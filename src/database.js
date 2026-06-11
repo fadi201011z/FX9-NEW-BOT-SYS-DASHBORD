@@ -101,6 +101,13 @@ db.exec(`
     added_at INTEGER,
     PRIMARY KEY (guild_id, role_id)
   );
+
+  CREATE TABLE IF NOT EXISTS guild_config (
+    guild_id TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT,
+    PRIMARY KEY (guild_id, key)
+  );
 `);
 
 try { db.exec('ALTER TABLE command_config ADD COLUMN blocked_roles TEXT DEFAULT \'[]\''); } catch (e) {}
