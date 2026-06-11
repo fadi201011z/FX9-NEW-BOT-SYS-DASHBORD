@@ -6,7 +6,8 @@ import config from '../config.js';
 const router = Router();
 
 router.get('/discord', (req, res) => {
-  res.redirect(getAuthUrl());
+  const callbackUrl = `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+  res.redirect(getAuthUrl(callbackUrl));
 });
 
 router.get('/discord/callback', async (req, res) => {
@@ -15,7 +16,8 @@ router.get('/discord/callback', async (req, res) => {
     if (discordError) return res.redirect(`/?error=${discordError}`);
     if (!code) return res.redirect('/?error=no_code');
 
-    const tokenData = await exchangeCode(code);
+    const callbackUrl = `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+    const tokenData = await exchangeCode(code, callbackUrl);
     const discordUser = await getUserInfo(tokenData.access_token);
 
     let guilds = [];

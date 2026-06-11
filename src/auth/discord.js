@@ -3,25 +3,24 @@ import config from '../config.js';
 
 const CLIENT_ID = config.discord.clientId;
 const CLIENT_SECRET = config.discord.clientSecret;
-const CALLBACK_URL = config.discord.callbackUrl;
 
-export function getAuthUrl() {
+export function getAuthUrl(callbackUrl) {
   const url = new URL('https://discord.com/api/oauth2/authorize');
   url.searchParams.set('client_id', CLIENT_ID);
-  url.searchParams.set('redirect_uri', CALLBACK_URL);
+  url.searchParams.set('redirect_uri', callbackUrl);
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', config.discord.scopes.join(' '));
   url.searchParams.set('prompt', 'consent');
   return url.toString();
 }
 
-export async function exchangeCode(code) {
+export async function exchangeCode(code, callbackUrl) {
   const data = new URLSearchParams({
     client_id: CLIENT_ID,
     client_secret: CLIENT_SECRET,
     grant_type: 'authorization_code',
     code,
-    redirect_uri: CALLBACK_URL,
+    redirect_uri: callbackUrl,
   });
 
   const res = await axios.post('https://discord.com/api/oauth2/token', data.toString(), {
