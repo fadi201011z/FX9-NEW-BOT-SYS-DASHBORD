@@ -9,7 +9,7 @@ export default {
   discord: {
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    callbackUrl: process.env.CALLBACK_URL,
+    callbackUrl: process.env.CALLBACK_URL || `${process.env.DASHBOARD_URL || `http://localhost:${parseInt(process.env.PORT) || 10000}`}/auth/discord/callback`,
     botToken: process.env.BOT_TOKEN,
     ownerId: process.env.OWNER_ID,
     developerId: process.env.DEVELOPER_ID,
