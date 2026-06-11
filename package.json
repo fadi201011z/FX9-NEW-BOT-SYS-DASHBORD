@@ -2,6 +2,7 @@
   "name": "fx9-dashboard",
   "version": "1.0.0",
   "description": "FX9 Bot Advanced Web Dashboard",
+  "engines": { "node": ">=22.5.0" },
   "main": "src/index.js",
   "type": "module",
   "scripts": {
