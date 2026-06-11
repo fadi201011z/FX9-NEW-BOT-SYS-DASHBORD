@@ -1,8 +1,13 @@
+# fly.toml app configuration file generated for fx9-new-bot-sys-dashbord on 2026-06-11T08:36:12Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = 'fx9-new-bot-sys-dashbord'
 primary_region = 'cdg'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [[mounts]]
   source = 'dashdata'
@@ -19,3 +24,4 @@ primary_region = 'cdg'
   memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 256
