@@ -1,0 +1,109 @@
+<% currentPage = typeof currentPage !== 'undefined' ? currentPage : '' %>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<aside class="sidebar glass" id="sidebar">
+  <div class="sidebar-header">
+    <i class="fas fa-bolt"></i>
+    <span>FX9 Dashboard</span>
+    <button class="sidebar-close" onclick="closeSidebar()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <button class="sidebar-collapse-btn" onclick="toggleSidebarMode()" title="طي القائمة">
+    <i class="fas fa-chevron-right" id="collapseIcon"></i>
+  </button>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <span class="nav-section-title"><i class="fas fa-star"></i> <span>الرئيسية</span></span>
+      <a href="/home" class="nav-link <%= currentPage === 'home' ? 'active' : '' %>" title="الصفحة الرئيسية">
+        <i class="fas fa-home"></i>
+        <span>الصفحة الرئيسية</span>
+      </a>
+      <% if (locals.user && (user.isOwner || user.isDev)) { %>
+        <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>" title="لوحة التحكم">
+          <i class="fas fa-th-large"></i>
+          <span>لوحة التحكم</span>
+        </a>
+        <a href="/guilds" class="nav-link <%= currentPage === 'guilds' ? 'active' : '' %>" title="السيرفرات">
+          <i class="fas fa-server"></i>
+          <span>السيرفرات</span>
+        </a>
+      <% } %>
+      <a href="/status" class="nav-link <%= currentPage === 'status' ? 'active' : '' %>" title="حالة البوت">
+        <i class="fas fa-heartbeat"></i>
+        <span>حالة البوت</span>
+      </a>
+    </div>
+
+    <% if (locals.guild) { %>
+    <div class="nav-section">
+      <span class="nav-section-title"><i class="fas fa-cog"></i> <span><%= guild.name %></span></span>
+      <a href="/guilds/<%= guild.id %>" class="nav-link <%= currentPage === 'guild-overview' ? 'active' : '' %>" title="نظرة عامة">
+        <i class="fas fa-info-circle"></i>
+        <span>نظرة عامة</span>
+      </a>
+      <a href="/settings/<%= guild.id %>" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %>" title="الإعدادات">
+        <i class="fas fa-sliders-h"></i>
+        <span>الإعدادات</span>
+      </a>
+      <a href="/commands/<%= guild.id %>" class="nav-link <%= currentPage === 'commands' ? 'active' : '' %>" title="الأوامر">
+        <i class="fas fa-terminal"></i>
+        <span>الأوامر</span>
+      </a>
+      <a href="/tickets/<%= guild.id %>" class="nav-link <%= currentPage === 'tickets' ? 'active' : '' %>" title="التذاكر">
+        <i class="fas fa-ticket-alt"></i>
+        <span>التذاكر</span>
+      </a>
+      <a href="/voice/<%= guild.id %>" class="nav-link <%= currentPage === 'voice' ? 'active' : '' %>" title="الرومات المؤقتة">
+        <i class="fas fa-microphone"></i>
+        <span>الرومات المؤقتة</span>
+      </a>
+      <a href="/protection/<%= guild.id %>" class="nav-link <%= currentPage === 'protection' ? 'active' : '' %>" title="الحماية">
+        <i class="fas fa-shield-alt"></i>
+        <span>الحماية</span>
+      </a>
+      <a href="/admins/<%= guild.id %>" class="nav-link <%= currentPage === 'admins' ? 'active' : '' %>" title="المدراء">
+        <i class="fas fa-users-cog"></i>
+        <span>المدراء</span>
+      </a>
+      <a href="/logs/<%= guild.id %>" class="nav-link <%= currentPage === 'logs' ? 'active' : '' %>" title="سجل النشاط">
+        <i class="fas fa-history"></i>
+        <span>سجل النشاط</span>
+      </a>
+      <a href="/backup/<%= guild.id %>" class="nav-link <%= currentPage === 'backup' ? 'active' : '' %>" title="النسخ الاحتياطي">
+        <i class="fas fa-database"></i>
+        <span>النسخ الاحتياطي</span>
+      </a>
+    </div>
+    <% } %>
+
+    <div class="nav-section">
+      <span class="nav-section-title"><i class="fas fa-ellipsis-h"></i> <span>أخرى</span></span>
+      <a href="/docs" class="nav-link <%= currentPage === 'docs' ? 'active' : '' %>" title="التوثيق">
+        <i class="fas fa-book"></i>
+        <span>التوثيق</span>
+      </a>
+      <% if (user && user.isOwner) { %>
+      <a href="/dev" class="nav-link <%= currentPage === 'dev' ? 'active' : '' %>" title="لوحة المطور">
+        <i class="fas fa-code"></i>
+        <span>لوحة المطور</span>
+      </a>
+      <% } %>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="bot-status" id="botStatus">
+      <span class="status-dot online"></span>
+      <span class="status-text">البوت متصل</span>
+    </div>
+    <a href="/auth/logout" class="sidebar-logout" title="تسجيل الخروج">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>تسجيل الخروج</span>
+    </a>
+    <div class="sidebar-resize-handle" onclick="toggleSidebarMode()">
+      <i class="fas fa-chevron-right"></i>
+    </div>
+  </div>
+</aside>

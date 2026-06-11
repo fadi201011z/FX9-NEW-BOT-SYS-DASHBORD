@@ -1,0 +1,138 @@
+<% layout = 'layouts/main' %>
+<% currentPage = 'home' %>
+<div class="home-page fade-in-up">
+  <div class="home-header glass">
+    <div class="home-header-badge">
+      <i class="fas fa-bolt"></i> FX9 Merged Bot v5.0
+    </div>
+    <h1>مرحباً بك في <span class="gradient-text">FX9 Dashboard</span></h1>
+    <p>لوحة التحكم المتكاملة لإدارة جميع أنظمة البوت الخاص بك</p>
+  </div>
+
+  <div class="home-features">
+    <div class="home-feature glass">
+      <div class="home-feature-icon" style="--fc: #5865f2">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h3>الحماية</h3>
+      <p>نظام حماية متكامل ضد السبام، النيوك، الرايد، واللينكات</p>
+    </div>
+    <div class="home-feature glass">
+      <div class="home-feature-icon" style="--fc: #57f287">
+        <i class="fas fa-ticket-alt"></i>
+      </div>
+      <h3>التذاكر</h3>
+      <p>نظام دعم فني متكامل مع إدارة وتقييم التذاكر</p>
+    </div>
+    <div class="home-feature glass">
+      <div class="home-feature-icon" style="--fc: #fee75c">
+        <i class="fas fa-microphone"></i>
+      </div>
+      <h3>الرومات المؤقتة</h3>
+      <p>قنوات صوتية بنظام Join-to-Create مع لوحة تحكم</p>
+    </div>
+    <div class="home-feature glass">
+      <div class="home-feature-icon" style="--fc: #ed4245">
+        <i class="fas fa-gavel"></i>
+      </div>
+      <h3>الإشراف</h3>
+      <p>أوامر إشراف متكاملة مع سجلات وتحذيرات</p>
+    </div>
+    <div class="home-feature glass">
+      <div class="home-feature-icon" style="--fc: #eb459e">
+        <i class="fas fa-music"></i>
+      </div>
+      <h3>الموسيقى</h3>
+      <p>مشغل موسيقى متكامل مع يوتيوب وقوائم تشغيل</p>
+    </div>
+    <div class="home-feature glass">
+      <div class="home-feature-icon" style="--fc: #5865f2">
+        <i class="fas fa-cog"></i>
+      </div>
+      <h3>الإعدادات</h3>
+      <p>تحكم كامل بإعدادات البوت والأوامر لكل سيرفر</p>
+    </div>
+  </div>
+
+  <div class="home-actions">
+    <a href="/dashboard" class="btn-primary btn-glow">
+      <i class="fas fa-th-large"></i> لوحة التحكم
+    </a>
+    <a href="/guilds" class="btn-secondary">
+      <i class="fas fa-server"></i> السيرفرات
+    </a>
+  </div>
+</div>
+
+<style>
+.home-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+.home-header {
+  text-align: center;
+  padding: 48px 32px;
+  border-radius: 16px;
+  margin-bottom: 32px;
+}
+.home-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(88,101,242,.15);
+  color: #5865f2;
+  font-size: .8rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.home-header h1 {
+  font-size: 1.8rem;
+  margin: 0 0 12px;
+}
+.home-header p {
+  color: var(--text-secondary, #aaa);
+  font-size: 1.05rem;
+  margin: 0;
+}
+.home-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.home-feature {
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+}
+.home-feature-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin: 0 auto 12px;
+  background: color-mix(in srgb, var(--fc, #5865f2) 20%, transparent);
+  color: var(--fc, #5865f2);
+}
+.home-feature h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+.home-feature p {
+  margin: 0;
+  font-size: .85rem;
+  color: var(--text-secondary, #aaa);
+  line-height: 1.6;
+}
+.home-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+</style>

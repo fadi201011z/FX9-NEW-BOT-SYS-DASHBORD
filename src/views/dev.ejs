@@ -1,0 +1,83 @@
+<% currentPage = 'dev' %>
+<div class="page-header">
+  <h1><i class="fas fa-code"></i> لوحة المطور</h1>
+  <p>مرحباً، <%= user.globalName || user.username %> — لديك صلاحية كاملة</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5865f2">
+      <i class="fas fa-server"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value"><%= botGuilds.length %></span>
+      <span class="stat-label">سيرفرات البوت</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287">
+      <i class="fas fa-database"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="totalDbKeys">---</span>
+      <span class="stat-label">مفاتيح DB</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #fee75c">
+      <i class="fas fa-users-cog"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="totalAdmins">---</span>
+      <span class="stat-label">إجمالي المدراء</span>
+    </div>
+  </div>
+</div>
+
+<div class="card glass">
+  <div class="card-header"><h3><i class="fas fa-server"></i> جميع سيرفرات البوت</h3></div>
+  <div class="dev-guilds">
+    <% botGuilds.forEach(g => { %>
+      <div class="dev-guild-item">
+        <div class="dev-guild-info">
+          <strong><%= g.name %></strong>
+          <span>🗄️ <%= g.configCount || 0 %></span>
+          <span>👥 <%= g.adminCount || 0 %></span>
+        </div>
+        <a href="/guilds/<%= g.id %>" class="btn-sm"><i class="fas fa-external-link-alt"></i></a>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<div class="card glass">
+  <div class="card-header"><h3><i class="fas fa-database"></i> إدارة قاعدة البيانات</h3></div>
+  <div class="dev-actions">
+    <button class="btn-primary" onclick="showDbStats()">
+      <i class="fas fa-chart-bar"></i> إحصائيات DB
+    </button>
+    <button class="btn-danger" onclick="if(confirm('هل أنت متأكد؟'))alert('تم — هذا إجراء تجريبي')">
+      <i class="fas fa-trash"></i> تنظيف DB
+    </button>
+  </div>
+</div>
+
+<script>
+async function showDbStats() {
+  let totalKeys = 0;
+  let totalAdmins = 0;
+  for (const g of <%= JSON.stringify(botGuilds) %>) {
+    try {
+      const res = await fetch(`/api/guild/${g.id}/stats`);
+      const data = await res.json();
+      totalKeys += data.configKeys || 0;
+      totalAdmins += data.adminCount || 0;
+    } catch {}
+  }
+  document.getElementById('totalDbKeys').textContent = totalKeys;
+  document.getElementById('totalAdmins').textContent = totalAdmins;
+}
+showDbStats();
+</script>

@@ -1,0 +1,55 @@
+<% currentPage = 'logs' %>
+<div class="page-header">
+  <h1><i class="fas fa-history"></i> سجل النشاط — <%= guild.name %></h1>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab(this, 'activity')">📋 سجل النشاطات</button>
+  <button class="tab" onclick="switchTab(this, 'audit')">🔍 سجل التدقيق</button>
+</div>
+
+<div class="tab-content active" id="tab-activity">
+  <div class="card glass">
+    <div class="card-header"><h3><i class="fas fa-list"></i> النشاطات</h3></div>
+    <div class="logs-list">
+      <% if (activity && activity.length > 0) { %>
+        <% activity.forEach(a => { %>
+          <div class="log-item">
+            <img src="https://cdn.discordapp.com/avatars/<%= a.user_id %>/<%= a.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <div class="log-info">
+              <strong><%= a.username || a.user_id %></strong>
+              <span><%= a.action %></span>
+              <small><%= a.details || '' %></small>
+            </div>
+            <span class="log-time"><%= new Date(a.timestamp).toLocaleString('ar-SA') %></span>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state"><i class="fas fa-history"></i><p>لا توجد نشاطات</p></div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" id="tab-audit">
+  <div class="card glass">
+    <div class="card-header"><h3><i class="fas fa-search"></i> سجل التدقيق</h3></div>
+    <div class="logs-list">
+      <% if (auditLogs && auditLogs.length > 0) { %>
+        <% auditLogs.forEach(l => { %>
+          <div class="log-item audit-item">
+            <i class="fas fa-clipboard-check"></i>
+            <div class="log-info">
+              <strong><%= l.username || l.user_id %></strong>
+              <span><%= l.action %> → <code><%= l.field %></code></span>
+              <small>من: <%= l.old_value || 'فارغ' %> → إلى: <%= l.new_value || 'فارغ' %></small>
+            </div>
+            <span class="log-time"><%= new Date(l.timestamp).toLocaleString('ar-SA') %></span>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state"><i class="fas fa-search"></i><p>لا توجد سجلات تدقيق</p></div>
+      <% } %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,65 @@
+<% currentPage = 'tickets' %>
+<div class="page-header">
+  <h1><i class="fas fa-ticket-alt"></i> إدارة التذاكر — <%= guild.name %></h1>
+  <p>إجمالي التذاكر: <%= ticketCount %></p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab(this, 'open')">مفتوحة (<%= tickets.open?.length || 0 %>)</button>
+  <button class="tab" onclick="switchTab(this, 'closed')">مغلقة (<%= tickets.closed?.length || 0 %>)</button>
+</div>
+
+<div class="tab-content active" id="tab-open">
+  <div class="card glass">
+    <div class="card-header"><h3>📩 التذاكر المفتوحة</h3></div>
+    <div class="ticket-list">
+      <% if (tickets.open && tickets.open.length > 0) { %>
+        <% tickets.open.forEach(t => { %>
+          <div class="ticket-item">
+            <div class="ticket-info">
+              <strong>#<%= t.id || t.channelName %></strong>
+              <span><%= t.userId || 'غير معروف' %></span>
+              <span class="ticket-status open">مفتوحة</span>
+            </div>
+            <div class="ticket-meta">
+              <span><i class="fas fa-clock"></i> <%= new Date(t.createdAt || Date.now()).toLocaleString('ar-SA') %></span>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-check-circle" style="color:var(--success)"></i>
+          <p>لا توجد تذاكر مفتوحة</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" id="tab-closed">
+  <div class="card glass">
+    <div class="card-header"><h3>📁 التذاكر المغلقة</h3></div>
+    <div class="ticket-list">
+      <% if (tickets.closed && tickets.closed.length > 0) { %>
+        <% tickets.closed.forEach(t => { %>
+          <div class="ticket-item">
+            <div class="ticket-info">
+              <strong>#<%= t.id || t.channelName %></strong>
+              <span><%= t.userId || 'غير معروف' %></span>
+              <span class="ticket-status closed">مغلقة</span>
+              <% if (t.rating) { %><span class="ticket-rating">⭐ <%= t.rating %>/5</span><% } %>
+            </div>
+            <div class="ticket-meta">
+              <span><i class="fas fa-clock"></i> <%= new Date(t.closedAt || t.createdAt || Date.now()).toLocaleString('ar-SA') %></span>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-inbox"></i>
+          <p>لا توجد تذاكر مغلقة</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>

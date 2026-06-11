@@ -1,0 +1,73 @@
+<nav class="navbar glass">
+  <div class="nav-left">
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+    <a href="/" class="nav-brand">
+      <i class="fas fa-bolt"></i>
+      <span>FX9 Dashboard</span>
+    </a>
+  </div>
+
+  <div class="nav-center">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="بحث في لوحة التحكم..." id="globalSearch">
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <% if (user) { %>
+      <div class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </div>
+      <div class="notifications-dropdown">
+        <button class="notif-btn" onclick="toggleNotif()">
+          <i class="fas fa-bell"></i>
+          <span class="notif-badge" id="notifBadge">0</span>
+        </button>
+        <div class="notif-menu glass" id="notifMenu">
+          <div class="notif-header">
+            <h4>الإشعارات</h4>
+            <span id="notifCount">0 جديدة</span>
+          </div>
+          <div class="notif-list" id="notifList">
+            <div class="notif-empty">لا توجد إشعارات</div>
+          </div>
+        </div>
+      </div>
+      <div class="user-menu">
+        <button class="user-btn" onclick="toggleUserMenu()">
+          <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="" class="user-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+          <span class="user-name"><%= user.globalName || user.username %></span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="user-menu-dropdown glass" id="userMenu">
+          <div class="user-menu-header">
+            <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <div>
+              <strong><%= user.globalName || user.username %></strong>
+              <span><%= user.isOwner ? '👑 المالك' : user.isDev ? '💻 المبرمج' : 'مدير' %></span>
+            </div>
+          </div>
+          <div class="user-menu-body">
+            <a href="/dashboard"><i class="fas fa-th-large"></i> لوحة التحكم</a>
+            <a href="/guilds"><i class="fas fa-server"></i> السيرفرات</a>
+            <a href="/status"><i class="fas fa-heartbeat"></i> حالة البوت</a>
+            <a href="/docs"><i class="fas fa-book"></i> التوثيق</a>
+            <% if (user.isOwner) { %>
+              <a href="/dev"><i class="fas fa-code"></i> لوحة المطور</a>
+            <% } %>
+            <hr>
+            <a href="/auth/logout" class="danger"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
+          </div>
+        </div>
+      </div>
+    <% } else { %>
+      <a href="/auth/discord" class="btn-discord">
+        <i class="fab fa-discord"></i>
+        Login with Discord
+      </a>
+    <% } %>
+  </div>
+</nav>

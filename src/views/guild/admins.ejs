@@ -1,0 +1,214 @@
+<% currentPage = 'admins' %>
+<div class="page-header">
+  <h1><i class="fas fa-users-cog"></i> إدارة المدراء — <%= guild.name %></h1>
+  <p>عدد المدراء: <%= admins.length %> • الرتب الإدارية: <%= adminRoles.length %></p>
+  <div class="header-actions" style="margin-top:8px">
+    <button class="btn-sm btn-primary" onclick="syncAdmins()">
+      <i class="fas fa-sync-alt"></i> مزامنة المدراء
+    </button>
+  </div>
+</div>
+
+<% if (guildRoles && guildRoles.length > 0) { %>
+<div class="card glass">
+  <div class="card-header">
+    <h3><i class="fas fa-user-tag"></i> الرتب الإدارية في السيرفر</h3>
+    <span class="text-muted" style="font-size:0.8rem">اختر الرتب التي تمنح صلاحية الدخول للوحة التحكم</span>
+  </div>
+  <div class="admin-roles-grid">
+    <% guildRoles.forEach(r => { %>
+      <% const isLinked = adminRoles.some(ar => ar.role_id === r.id) %>
+      <div class="admin-role-card <%= isLinked ? 'active' : '' %>"
+           onclick="toggleAdminRole('<%= guild.id %>', '<%= r.id %>', '<%= r.name %>', this)">
+        <div class="role-color-dot" style="background:<%= r.color ? '#' + r.color.toString(16).padStart(6,'0') : '#99aab5' %>"></div>
+        <div class="role-info">
+          <div class="role-name"><%= r.name %></div>
+          <div class="role-meta"><%= r.members_count || 0 %> عضو</div>
+        </div>
+        <div class="role-check"><i class="fas fa-check"></i></div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<div class="card glass" id="adminMembersCard" style="display:none">
+  <div class="card-header">
+    <h3><i class="fas fa-users"></i> الأعضاء المرتبطون بالرتب الإدارية</h3>
+    <div class="admin-members-sync">
+      <i class="fas fa-sync-alt sync-spinner" id="syncSpinner" style="display:none"></i>
+      <span id="syncStatus">سيتم تحديثهم تلقائياً عند تغيير الرتب في السيرفر</span>
+    </div>
+  </div>
+  <div class="admins-table">
+    <table>
+      <thead>
+        <tr>
+          <th>العضو</th>
+          <th>الرتبة في الداشبورد</th>
+          <th>الرتب في السيرفر</th>
+          <th>حالة المزامنة</th>
+          <th>إجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="adminMembersBody">
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr style="border-color:var(--border);margin:24px 0">
+
+<div class="card glass">
+  <div class="card-header">
+    <h3><i class="fas fa-user-plus"></i> إضافة مدير يدوي (عبر ID)</h3>
+  </div>
+  <form class="admin-add-form" onsubmit="addAdmin(event)">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Discord ID</label>
+        <input type="text" id="adminUserId" required placeholder="User ID">
+      </div>
+      <div class="form-group">
+        <label>الرتبة</label>
+        <select id="adminRole">
+          <option value="manager">مدير</option>
+          <option value="admin">آدمن</option>
+          <option value="moderator">مشرف</option>
+          <option value="support">دعم فني</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> إضافة</button>
+    </div>
+  </form>
+</div>
+
+<div class="card glass">
+  <div class="card-header"><h3><i class="fas fa-list"></i> قائمة المدراء الحالية</h3></div>
+  <div class="admins-table">
+    <% if (admins && admins.length > 0) { %>
+      <table>
+        <thead>
+          <tr>
+            <th>العضو</th>
+            <th>الرتبة</th>
+            <th>النوع</th>
+            <th>تاريخ الإضافة</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% admins.forEach(a => { %>
+            <tr>
+              <td class="admin-user">
+                <img src="https://cdn.discordapp.com/avatars/<%= a.user_id %>/<%= a.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                <span><%= a.username || a.user_id %></span>
+              </td>
+              <td><span class="role-badge role-<%= a.role %>"><%= a.role %></span></td>
+              <td><span class="badge badge-<%= a.added_by === 'role_sync' ? 'info' : 'default' %>"><%= a.added_by === 'role_sync' ? 'تلقائي' : 'يدوي' %></span></td>
+              <td><%= new Date(a.added_at).toLocaleString('ar-SA') %></td>
+              <td class="actions">
+                <select class="role-select" onchange="updateRole('<%= a.user_id %>', this.value)">
+                  <option value="manager" <%= a.role === 'manager' ? 'selected' : '' %>>مدير</option>
+                  <option value="admin" <%= a.role === 'admin' ? 'selected' : '' %>>آدمن</option>
+                  <option value="moderator" <%= a.role === 'moderator' ? 'selected' : '' %>>مشرف</option>
+                  <option value="support" <%= a.role === 'support' ? 'selected' : '' %>>دعم</option>
+                </select>
+                <button class="btn-sm btn-danger" onclick="removeAdmin('<%= a.user_id %>')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <div class="empty-state"><i class="fas fa-users"></i><p>لا يوجد مدراء بعد — أضف رتب إدارية من الأعلى</p></div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+const GUILD_ID = '<%= guild.id %>';
+
+async function toggleAdminRole(guildId, roleId, roleName, el) {
+  el.classList.toggle('active');
+  const isActive = el.classList.contains('active');
+
+  if (isActive) {
+    const level = prompt(`أدخل مستوى الصلاحية للرتبة "${roleName}" (manager/admin/moderator/support):`, 'moderator');
+    if (!level || !['manager','admin','moderator','support'].includes(level)) {
+      el.classList.remove('active');
+      showToast('❌ مستوى غير صالح');
+      return;
+    }
+    const res = await fetch(`/admins/${guildId}/set-role`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roleId, level }),
+    });
+    const data = await res.json();
+    showToast(data.success ? `✅ تم تعيين ${roleName} كمدراء` : '❌ ' + data.error);
+  } else {
+    const res = await fetch(`/admins/${guildId}/remove-role`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roleId }),
+    });
+    const data = await res.json();
+    showToast(data.success ? `✅ تم إزالة ${roleName} من الرتب الإدارية` : '❌ ' + data.error);
+  }
+
+  // Refresh the page to show updated state
+  if (!isActive || confirm('هل تريد تحديث قائمة المدراء من الرتب الآن؟')) {
+    location.reload();
+  }
+}
+
+async function addAdmin(e) {
+  e.preventDefault();
+  const userId = document.getElementById('adminUserId').value;
+  const role = document.getElementById('adminRole').value;
+  const res = await fetch(`/admins/${GUILD_ID}/add`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, role }),
+  });
+  const data = await res.json();
+  showToast(data.success ? '✅ تمت الإضافة' : '❌ ' + data.error);
+  if (data.success) location.reload();
+}
+
+async function removeAdmin(userId) {
+  if (!confirm('إزالة المدير؟')) return;
+  const res = await fetch(`/admins/${GUILD_ID}/remove`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId }),
+  });
+  if (res.ok) { showToast('✅ تمت الإزالة'); location.reload(); }
+}
+
+async function updateRole(userId, role) {
+  const res = await fetch(`/admins/${GUILD_ID}/update-role`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, role }),
+  });
+  const data = await res.json();
+  showToast(data.success ? '✅ تم التحديث' : '❌ ' + data.error);
+}
+
+async function syncAdmins() {
+  const btn = event.target.closest('button');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المزامنة...';
+  try {
+    const res = await fetch(`/admins/${GUILD_ID}/sync`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    showToast(data.success ? `✅ ${data.message}` : '❌ ' + (data.message || data.error));
+    if (data.success) setTimeout(() => location.reload(), 1500);
+  } catch {
+    showToast('❌ فشلت المزامنة');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-sync-alt"></i> مزامنة المدراء';
+}
+</script>

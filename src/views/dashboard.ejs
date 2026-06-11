@@ -1,0 +1,185 @@
+<% currentPage = 'dashboard' %>
+
+<div class="dashboard-header">
+  <div class="header-text">
+    <h1><i class="fas fa-th-large"></i> لوحة التحكم</h1>
+    <p>مرحباً بعودتك، <strong><%= user.globalName || user.username %></strong></p>
+  </div>
+  <div class="header-actions">
+    <button class="btn-refresh" onclick="refreshDashboard()">
+      <i class="fas fa-sync-alt"></i> تحديث
+    </button>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5865f2">
+      <i class="fas fa-server"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value"><%= totalGuilds %></span>
+      <span class="stat-label">السيرفرات</span>
+    </div>
+    <div class="stat-trend up">
+      <i class="fas fa-arrow-up"></i>
+      <span>متصل</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287">
+      <i class="fas fa-users"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value"><%= totalMembers.toLocaleString() %></span>
+      <span class="stat-label">إجمالي الأعضاء</span>
+    </div>
+    <div class="stat-trend up">
+      <i class="fas fa-globe"></i>
+      <span>جميع السيرفرات</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #fee75c">
+      <i class="fas fa-ticket-alt"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="totalTickets"><%= typeof totalTickets !== 'undefined' ? totalTickets : 0 %></span>
+      <span class="stat-label">إجمالي التذاكر</span>
+    </div>
+    <div class="stat-trend">
+      <span class="status-dot" style="background:#43b581"></span>
+      <span id="openTicketsLabel">مفتوح: ---</span>
+      <span style="margin:0 4px">|</span>
+      <span class="status-dot" style="background:#f04747"></span>
+      <span id="closedTicketsLabel">مغلق: ---</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ed4245">
+      <i class="fas fa-heartbeat"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="botPing">---</span>
+      <span class="stat-label">Ping</span>
+    </div>
+    <div class="stat-trend">
+      <span class="status-dot online"></span>
+      <span id="botStatusText">متصل</span>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card glass guilds-card">
+    <div class="card-header">
+      <h3><i class="fas fa-server"></i> السيرفرات المتصلة</h3>
+      <a href="/guilds" class="btn-sm">عرض الكل <i class="fas fa-arrow-left"></i></a>
+    </div>
+    <div class="guild-list">
+      <% if (guilds && guilds.length > 0) { %>
+        <% guilds.slice(0, 6).forEach(g => { %>
+          <% if (g.hasBot) { %>
+            <a href="/guilds/<%= g.id %>" class="guild-item">
+              <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+              <div class="guild-info">
+                <strong><%= g.name %></strong>
+                <span><%= g.approximate_member_count || 'N/A' %> عضو</span>
+              </div>
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          <% } else { %>
+            <div class="guild-item guild-item-nobot">
+              <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+              <div class="guild-info">
+                <strong><%= g.name %></strong>
+                <span class="no-bot-label">البوت غير موجود</span>
+              </div>
+              <a href="https://discord.com/oauth2/authorize?client_id=<%= typeof clientId !== 'undefined' ? clientId : '' %>&scope=bot&permissions=8&guild_id=<%= g.id %>" target="_blank" class="btn-sm btn-add-bot" title="إضافة البوت إلى هذا السيرفر">
+                <i class="fas fa-plus-circle"></i> إضافة
+              </a>
+            </div>
+          <% } %>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-exclamation-circle"></i>
+          <p>لا يوجد سيرفرات متاحة. أضف البوت إلى سيرفر للبدء.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card glass">
+    <div class="card-header">
+      <h3><i class="fas fa-bell"></i> آخر التنبيهات</h3>
+    </div>
+    <div class="alerts-list" id="dashboardAlerts">
+      <% if (locals.alerts && alerts.length > 0) { %>
+        <% alerts.slice(0, 5).forEach(a => { %>
+          <div class="alert-item severity-<%= a.severity %>">
+            <i class="fas fa-<%= a.severity === 'critical' ? 'exclamation-circle' : a.severity === 'high' ? 'exclamation-triangle' : 'info-circle' %>"></i>
+            <div class="alert-content">
+              <strong><%= a.title %></strong>
+              <span><%= a.message %></span>
+            </div>
+            <span class="alert-time"><%= new Date(a.timestamp).toLocaleTimeString('ar-SA') %></span>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-check-circle" style="color:var(--success)"></i>
+          <p>لا توجد تنبيهات — كل شيء يعمل بسلاسة</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="card glass quick-actions">
+  <div class="card-header">
+    <h3><i class="fas fa-bolt"></i> إجراءات سريعة</h3>
+  </div>
+  <div class="actions-grid">
+    <a href="/guilds" class="action-item">
+      <i class="fas fa-server"></i>
+      <span>إدارة السيرفرات</span>
+    </a>
+    <a href="/docs" class="action-item">
+      <i class="fas fa-book"></i>
+      <span>التوثيق</span>
+    </a>
+    <a href="<%= inviteUrl %>" target="_blank" class="action-item">
+      <i class="fas fa-plus-circle"></i>
+      <span>إضافة البوت</span>
+    </a>
+    <a href="/status" class="action-item">
+      <i class="fas fa-heartbeat"></i>
+      <span>حالة البوت</span>
+    </a>
+  </div>
+</div>
+
+<script>
+async function refreshDashboard() {
+  try {
+    const [statusRes, ticketRes] = await Promise.all([
+      fetch('/api/status'),
+      fetch('/api/tickets/stats'),
+    ]);
+    const status = await statusRes.json();
+    document.getElementById('botPing').textContent = status.responseTime + 'ms';
+    document.getElementById('botStatusText').textContent = 'متصل';
+    if (ticketRes.ok) {
+      const tickets = await ticketRes.json();
+      document.getElementById('totalTickets').textContent = tickets.total;
+      document.getElementById('openTicketsLabel').textContent = 'مفتوح: ' + tickets.open;
+      document.getElementById('closedTicketsLabel').textContent = 'مغلق: ' + tickets.closed;
+    }
+  } catch {}
+}
+refreshDashboard();
+</script>

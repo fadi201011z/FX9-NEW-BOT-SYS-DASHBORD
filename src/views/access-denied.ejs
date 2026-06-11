@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لا يمكنك الدخول — FX9 Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="denied-page">
+    <div class="denied-box glass fade-in-up">
+      <div class="denied-icon">
+        <i class="fas fa-shield-halved"></i>
+      </div>
+      <h1>ليس لديك صلاحية الدخول</h1>
+      <p>عذراً، هذه اللوحة خاصة بمالك البوت والمبرمج فقط.</p>
+      <p>إذا كنت تملك سيرفراً وتريد استخدام البوت، أضف البوت إلى سيرفرك أولاً.</p>
+      <div class="denied-divider"></div>
+      <div class="denied-actions">
+        <a href="https://discord.com/oauth2/authorize?client_id=<%= typeof clientId !== 'undefined' ? clientId : '' %>&scope=bot&permissions=8" class="btn-primary" target="_blank">
+          <i class="fab fa-discord"></i> أضف البوت إلى سيرفرك
+        </a>
+        <a href="https://discord.gg/fx9" class="btn-secondary" target="_blank" style="margin-top:4px">
+          <i class="fab fa-discord"></i> سيرفر الدعم
+        </a>
+        <a href="/auth/logout" class="btn-logout" style="margin-top:8px">
+          <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+        </a>
+      </div>
+      <div class="denied-footer">
+        <p>FX9 Dashboard &copy; 2026</p>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-primary, #0f0f1a);
+      direction: rtl;
+    }
+    .denied-page {
+      width: 100%;
+      max-width: 440px;
+      padding: 20px;
+    }
+    .denied-box {
+      padding: 40px 28px;
+      text-align: center;
+      border-radius: 16px;
+    }
+    .denied-icon {
+      font-size: 3.5rem;
+      color: #ed4245;
+      margin-bottom: 16px;
+    }
+    .denied-box h1 {
+      margin: 0 0 12px;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .denied-box p {
+      margin: 0 0 6px;
+      color: var(--text-secondary, #aaa);
+      line-height: 1.7;
+      font-size: 0.9rem;
+    }
+    .denied-divider {
+      height: 1px;
+      background: var(--border-light, rgba(255,255,255,0.08));
+      margin: 20px 0;
+    }
+    .denied-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .denied-actions a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .denied-actions .btn-primary {
+      background: #5865f2;
+      color: #fff;
+    }
+    .denied-actions .btn-primary:hover {
+      background: #4752c4;
+      transform: translateY(-1px);
+    }
+    .denied-actions .btn-secondary {
+      background: var(--bg-glass-hover, rgba(255,255,255,0.06));
+      color: var(--text, #ddd);
+      border: 1px solid var(--border-light, rgba(255,255,255,0.08));
+    }
+    .denied-actions .btn-secondary:hover {
+      background: var(--bg-glass, rgba(255,255,255,0.1));
+    }
+    .denied-actions .btn-logout {
+      background: transparent;
+      color: #ed4245;
+      border: 1px solid #ed4245;
+    }
+    .denied-actions .btn-logout:hover {
+      background: rgba(237,66,69,0.1);
+    }
+    .denied-footer {
+      margin-top: 24px;
+    }
+    .denied-footer p {
+      font-size: 0.75rem;
+      color: var(--text-muted, #666);
+    }
+  </style>
+</body>
+</html>

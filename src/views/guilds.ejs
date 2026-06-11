@@ -1,0 +1,54 @@
+<% currentPage = 'guilds' %>
+
+<div class="page-header">
+  <h1><i class="fas fa-server"></i> اختر السيرفر</h1>
+  <p>اختر السيرفر الذي تريد إدارته من القائمة</p>
+</div>
+
+<div class="guild-grid">
+  <% if (guilds && guilds.length > 0) { %>
+    <% guilds.forEach(g => { %>
+      <a href="/guilds/<%= g.id %>" class="guild-card glass <%= !g.hasBot ? 'guild-no-bot' : '' %>">
+        <div class="guild-icon-wrapper">
+          <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" class="guild-icon" onerror="this.style.display='none'">
+          <div class="guild-icon-fallback" style="display:none">
+            <span><%= g.name.charAt(0).toUpperCase() %></span>
+          </div>
+          <% if (!g.hasBot) { %>
+            <div class="guild-bot-missing-badge" title="البوت غير موجود في هذا السيرفر">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+          <% } else { %>
+            <div class="guild-bot-present-badge" title="البوت متصل">
+              <i class="fas fa-check-circle"></i>
+            </div>
+          <% } %>
+        </div>
+        <div class="guild-card-info">
+          <h3><%= g.name %></h3>
+          <div class="guild-meta">
+            <span><i class="fas fa-user"></i> <%= g.approximate_member_count || 'N/A' %></span>
+            <span class="guild-badge"><%= g.permissions & 0x20 ? '👑 مالك' : 'مدير' %></span>
+          </div>
+        </div>
+        <div class="guild-card-action">
+          <% if (g.hasBot) { %>
+            <i class="fas fa-chevron-left"></i>
+          <% } else { %>
+            <span class="guild-no-bot-label">البوت غير موجود</span>
+          <% } %>
+        </div>
+      </a>
+    <% }) %>
+  <% } else { %>
+    <div class="empty-state-full">
+      <i class="fas fa-exclamation-triangle"></i>
+      <h3>لا توجد سيرفرات</h3>
+      <p>يبدو أنك لا تملك صلاحيات إدارة في أي سيرفر أو أن البوت غير مضاف إلى سيرفراتك.</p>
+      <a href="<%= locals.inviteUrl || '#' %>" class="btn-primary">
+        <i class="fas fa-plus-circle"></i>
+        إضافة البوت إلى سيرفر
+      </a>
+    </div>
+  <% } %>
+</div>

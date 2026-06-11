@@ -1,0 +1,57 @@
+<% currentPage = 'docs' %>
+<div class="page-header">
+  <h1><i class="fas fa-book"></i> توثيق الأوامر</h1>
+  <p>جميع أوامر البوت مع الشرح والاستخدام</p>
+</div>
+
+<div class="docs-filter">
+  <input type="text" id="docsSearch" placeholder="🔍 بحث عن أمر..." oninput="filterDocs()">
+  <div class="docs-categories">
+    <a href="/docs" class="btn-sm <%= !locals.category ? 'active' : '' %>">الكل</a>
+    <% const cats = ['setup','moderation','info','members','ticket','voice'] %>
+    <% cats.forEach(c => { %>
+      <a href="/docs/<%= c %>" class="btn-sm <%= locals.category === c ? 'active' : '' %>"><%= c %></a>
+    <% }) %>
+  </div>
+</div>
+
+<div class="docs-grid" id="docsGrid">
+  <% commands.forEach(cmd => { %>
+    <div class="doc-card glass" data-name="<%= cmd.name %>">
+      <div class="doc-header">
+        <span class="doc-category"><%= cmd.category %></span>
+        <code class="doc-command">/<%= cmd.name %></code>
+      </div>
+      <p class="doc-desc"><%= cmd.description || 'بدون وصف' %></p>
+      <% if (cmd.options && cmd.options.length > 0) { %>
+        <div class="doc-options">
+          <strong>الخيارات:</strong>
+          <ul>
+            <% cmd.options.forEach(o => { %>
+              <li><code><%= o.name %></code> — <%= o.description %><%= o.required ? ' <span class="required">*</span>' : '' %></li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } %>
+    </div>
+  <% }) %>
+</div>
+
+<div class="empty-state" id="noDocs" style="display:none">
+  <i class="fas fa-search"></i>
+  <p>لا توجد نتائج للبحث</p>
+</div>
+
+<script>
+function filterDocs() {
+  const q = document.getElementById('docsSearch').value.toLowerCase();
+  const cards = document.querySelectorAll('.doc-card');
+  let visible = 0;
+  cards.forEach(c => {
+    const match = c.dataset.name.includes(q);
+    c.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('noDocs').style.display = visible === 0 ? '' : 'none';
+}
+</script>

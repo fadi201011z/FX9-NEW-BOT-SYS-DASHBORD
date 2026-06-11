@@ -1,0 +1,152 @@
+<% currentPage = 'guild-overview' %>
+
+<% if (!botInGuild) { %>
+  <div class="blocked-guild glass fade-in-up">
+    <div class="blocked-guild-icon">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h2>لا يمكن التعديل على هذا السيرفر</h2>
+    <p>البوت غير موجود في <strong><%= guild.name %></strong>. يجب إضافة البوت إلى السيرفر أولاً لتتمكن من إدارته.</p>
+    <div class="blocked-guild-actions">
+      <a href="https://discord.com/api/oauth2/authorize?client_id=<%= locals.inviteUrl ? inviteUrl.match(/client_id=(\d+)/)[1] : '' %>&permissions=8&scope=bot%20applications.commands&guild_id=<%= guild.id %>" target="_blank" class="btn-primary">
+        <i class="fas fa-plus-circle"></i>
+        إضافة البوت إلى السيرفر
+      </a>
+      <a href="/guilds" class="btn-secondary">
+        <i class="fas fa-arrow-right"></i>
+        العودة إلى قائمة السيرفرات
+      </a>
+    </div>
+  </div>
+<% } else { %>
+
+<div class="guild-header">
+  <div class="guild-header-info">
+    <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" alt="" class="guild-header-icon" onerror="this.style.display='none'">
+    <div>
+      <h1><%= guild.name %></h1>
+      <p><%= memberCount %> عضو • ✅ البوت متصل</p>
+    </div>
+  </div>
+  <div class="guild-header-actions">
+    <span class="badge badge-success"><i class="fas fa-check"></i> متصل</span>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5865f2">
+      <i class="fas fa-cog"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value"><%= Object.keys(guildConfig).length %></span>
+      <span class="stat-label">إعدادات</span>
+    </div>
+    <a href="/settings/<%= guild.id %>" class="stat-link"><i class="fas fa-arrow-left"></i></a>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287">
+      <i class="fas fa-users-cog"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value"><%= admins.length %></span>
+      <span class="stat-label">المدراء</span>
+    </div>
+    <a href="/admins/<%= guild.id %>" class="stat-link"><i class="fas fa-arrow-left"></i></a>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #fee75c">
+      <i class="fas fa-ticket-alt"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="ticketCountOverview"><%= locals.tickets ? tickets.total : '---' %></span>
+      <span class="stat-label">التذاكر</span>
+    </div>
+    <a href="/tickets/<%= guild.id %>" class="stat-link"><i class="fas fa-arrow-left"></i></a>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ed4245">
+      <i class="fas fa-shield-alt"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">
+        <% const protectionCount = ['anti_spam', 'anti_link', 'anti_mention', 'anti_nuke', 'anti_raid'].filter(k => guildConfig[k] !== 'false').length %>
+        <%= protectionCount %>/5
+      </span>
+      <span class="stat-label">أنظمة حماية</span>
+    </div>
+    <a href="/protection/<%= guild.id %>" class="stat-link"><i class="fas fa-arrow-left"></i></a>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card glass">
+    <div class="card-header">
+      <h3><i class="fas fa-sliders-h"></i> الإعدادات الحالية</h3>
+      <a href="/settings/<%= guild.id %>" class="btn-sm">إدارة <i class="fas fa-arrow-left"></i></a>
+    </div>
+    <div class="config-list">
+      <% if (Object.keys(guildConfig).length > 0) { %>
+        <% const displayKeys = Object.keys(guildConfig).slice(0, 8) %>
+        <% displayKeys.forEach(k => { %>
+          <div class="config-item">
+            <span class="config-key"><%= k %></span>
+            <span class="config-value"><%= guildConfig[k] %></span>
+          </div>
+        <% }) %>
+        <% if (Object.keys(guildConfig).length > 8) { %>
+          <div class="config-more">و <%= Object.keys(guildConfig).length - 8 %> إعدادات أخرى...</div>
+        <% } %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-cog"></i>
+          <p>لا توجد إعدادات محفوظة بعد</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card glass">
+    <div class="card-header">
+      <h3><i class="fas fa-history"></i> آخر النشاطات</h3>
+      <a href="/logs/<%= guild.id %>" class="btn-sm">عرض الكل <i class="fas fa-arrow-left"></i></a>
+    </div>
+    <div class="activity-list">
+      <% if (activity && activity.length > 0) { %>
+        <% activity.slice(0, 5).forEach(a => { %>
+          <div class="activity-item">
+            <img src="https://cdn.discordapp.com/avatars/<%= a.user_id %>/<%= a.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <div class="activity-info">
+              <strong><%= a.username || a.user_id %></strong>
+              <span><%= a.action %> — <%= a.details || '' %></span>
+            </div>
+            <span class="activity-time"><%= new Date(a.timestamp).toLocaleString('ar-SA') %></span>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-history"></i>
+          <p>لا توجد نشاطات بعد</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="quick-nav glass">
+  <h3><i class="fas fa-bolt"></i> التنقل السريع</h3>
+  <div class="quick-nav-grid">
+    <a href="/settings/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-sliders-h"></i> الإعدادات</a>
+    <a href="/commands/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-terminal"></i> الأوامر</a>
+    <a href="/tickets/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-ticket-alt"></i> التذاكر</a>
+    <a href="/voice/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-microphone"></i> الصوت</a>
+    <a href="/protection/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-shield-alt"></i> الحماية</a>
+    <a href="/admins/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-users-cog"></i> المدراء</a>
+    <a href="/logs/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-history"></i> السجلات</a>
+    <a href="/backup/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-database"></i> النسخ</a>
+  </div>
+</div>
+<% } %>

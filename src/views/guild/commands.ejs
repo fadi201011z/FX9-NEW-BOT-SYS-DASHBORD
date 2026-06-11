@@ -1,0 +1,255 @@
+<% currentPage = 'commands' %>
+<div class="page-header">
+  <h1><i class="fas fa-terminal"></i> إدارة الأوامر — <%= guild.name %></h1>
+  <p>عدد الأوامر: <%= commands.length %></p>
+</div>
+
+<div class="commands-filter">
+  <input type="text" id="commandSearch" placeholder="🔍 بحث عن أمر..." oninput="filterCommands()">
+  <select id="categoryFilter" onchange="filterCommands()">
+    <option value="all">جميع الأقسام</option>
+    <% const cats = [...new Set(commands.map(c => c.category))] %>
+    <% cats.forEach(cat => { %>
+      <option value="<%= cat %>"><%= cat %></option>
+    <% }) %>
+  </select>
+</div>
+
+<div class="commands-grid" id="commandsGrid">
+  <% commands.forEach(cmd => { %>
+    <% const cfg = configMap[cmd.name] %>
+    <div class="command-card glass" data-name="<%= cmd.name %>" data-category="<%= cmd.category %>">
+      <div class="command-header">
+        <span class="command-category"><%= cmd.category %></span>
+        <label class="toggle">
+          <input type="checkbox" <%= cfg ? (cfg.enabled == 1 ? 'checked' : '') : 'checked' %> onchange="toggleCommand('<%= cmd.name %>', this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="command-body">
+        <h3>/<%= cmd.name %></h3>
+        <p class="command-desc" id="desc-<%= cmd.name %>">
+          <%= cmd.description || 'بدون وصف' %>
+          <i class="fas fa-pen edit-desc-btn" onclick="openEditDesc('<%= cmd.name %>')" title="تعديل الوصف"></i>
+        </p>
+        <div class="command-meta">
+          <span><i class="fas fa-folder"></i> <%= cmd.category %></span>
+          <span><i class="fas fa-file"></i> <%= cmd.file %></span>
+        </div>
+        <div class="command-roles" id="roles-<%= cmd.name %>" style="margin-top:6px;font-size:0.75rem">
+          <% if (cfg && cfg.allowed_roles) { const a = JSON.parse(cfg.allowed_roles); if (a.length) { %>
+            <div style="color:#43b581;margin-bottom:2px"><i class="fas fa-check-circle"></i> مسموح: <span dir="ltr"><%= a.map(id => `<@&${id}>`).join(', ') %></span></div>
+          <% } } %>
+          <% if (cfg && cfg.blocked_roles) { const b = JSON.parse(cfg.blocked_roles); if (b.length) { %>
+            <div style="color:#f04747"><i class="fas fa-ban"></i> ممنوع: <span dir="ltr"><%= b.map(id => `<@&${id}>`).join(', ') %></span></div>
+          <% } } %>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="openPermsModal('<%= cmd.name %>')" style="margin-top:8px;width:100%">
+          <i class="fas fa-shield-alt"></i> صلاحيات
+        </button>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<div class="empty-state" id="noCommands" style="display:none">
+  <i class="fas fa-search"></i>
+  <p>لا توجد نتائج للبحث</p>
+</div>
+
+<script>
+function filterCommands() {
+  const search = document.getElementById('commandSearch').value.toLowerCase();
+  const cat = document.getElementById('categoryFilter').value;
+  const cards = document.querySelectorAll('.command-card');
+  let visible = 0;
+  cards.forEach(c => {
+    const name = c.dataset.name;
+    const category = c.dataset.category;
+    const match = name.includes(search) && (cat === 'all' || category === cat);
+    c.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('noCommands').style.display = visible === 0 ? '' : 'none';
+}
+
+async function toggleCommand(name, enabled) {
+  const res = await fetch('/commands/<%= guild.id %>/update', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ command: name, enabled }),
+  });
+  if (res.ok) {
+    showToast(`${enabled ? '✅ تم التفعيل' : '❌ تم التعطيل'} ${name}`);
+    return;
+  }
+  try {
+    const data = await res.json();
+    alert(`خطأ: ${data.error || 'غير معروف'}\nالتفاصيل: ${data.detail || 'لا يوجد'}`);
+  } catch {
+    alert(`خطأ ${res.status}: ${res.statusText}`);
+  }
+}
+
+function openEditDesc(name) {
+  const el = document.getElementById('desc-' + name);
+  document.getElementById('editDescName').value = name;
+  document.getElementById('editDescInput').value = el.textContent.trim();
+  document.getElementById('editDescModal').style.display = 'flex';
+}
+
+async function saveEditDesc() {
+  const name = document.getElementById('editDescName').value;
+  const desc = document.getElementById('editDescInput').value;
+  const res = await fetch('/commands/<%= guild.id %>/update-description', {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ command: name, description: desc }),
+  });
+  if (res.ok) {
+    document.getElementById('desc-' + name).innerHTML = (desc || 'بدون وصف') + ' <i class="fas fa-pen edit-desc-btn" onclick="openEditDesc(\'' + name + '\')" title="تعديل الوصف"></i>';
+    closeEditDesc();
+    showToast('✅ تم تحديث الوصف');
+  } else {
+    showToast('❌ فشل التحديث');
+  }
+}
+
+function closeEditDesc() {
+  document.getElementById('editDescModal').style.display = 'none';
+}
+
+// ─── Command Permissions ──────────────────────────────────────────────────
+let allRoles = [];
+
+async function openPermsModal(name) {
+  document.getElementById('permsCommandName').value = name;
+  document.getElementById('permsModal').style.display = 'flex';
+  document.getElementById('permsLoading').style.display = 'block';
+  document.getElementById('permsContent').style.display = 'none';
+
+  try {
+    const roleRes = await fetch('/commands/<%= guild.id %>/roles');
+    allRoles = await roleRes.json();
+    document.getElementById('permsLoading').style.display = 'none';
+    document.getElementById('permsContent').style.display = 'block';
+    renderPermsCheckboxes(name);
+  } catch {
+    document.getElementById('permsLoading').textContent = '❌ فشل تحميل الرتب';
+  }
+}
+
+function renderPermsCheckboxes(name) {
+  const cfg = <%- JSON.stringify(configMap) %>;
+  const cmdCfg = cfg[name] || {};
+  const allowed = cmdCfg.allowed_roles ? JSON.parse(cmdCfg.allowed_roles) : [];
+  const blocked = cmdCfg.blocked_roles ? JSON.parse(cmdCfg.blocked_roles) : [];
+
+  const container = document.getElementById('permsCheckboxes');
+  container.innerHTML = '';
+
+  if (!allRoles.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);text-align:center">لا توجد رتب في السيرفر</p>';
+    return;
+  }
+
+  for (const role of allRoles) {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light)';
+    const color = role.color ? `#${role.color.toString(16).padStart(6,'0')}` : '#99aab5';
+    div.innerHTML = `
+      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};flex-shrink:0"></span>
+      <span style="flex:1">${role.name}</span>
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem">
+        <input type="checkbox" class="perms-allowed" data-role="${role.id}" ${allowed.includes(role.id) ? 'checked' : ''}>
+        مسموح
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem">
+        <input type="checkbox" class="perms-blocked" data-role="${role.id}" ${blocked.includes(role.id) ? 'checked' : ''}>
+        ممنوع
+      </label>
+    `;
+    // Mutual exclusion: uncheck blocked when allowed checked
+    div.querySelector('.perms-allowed').addEventListener('change', function() {
+      if (this.checked) div.querySelector('.perms-blocked').checked = false;
+    });
+    div.querySelector('.perms-blocked').addEventListener('change', function() {
+      if (this.checked) div.querySelector('.perms-allowed').checked = false;
+    });
+    container.appendChild(div);
+  }
+}
+
+async function savePerms() {
+  const name = document.getElementById('permsCommandName').value;
+  const allowed = [...document.querySelectorAll('.perms-allowed:checked')].map(el => el.dataset.role);
+  const blocked = [...document.querySelectorAll('.perms-blocked:checked')].map(el => el.dataset.role);
+
+  const res = await fetch('/commands/<%= guild.id %>/permissions', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ command: name, allowedRoles: allowed, blockedRoles: blocked }),
+  });
+  if (res.ok) {
+    closePermsModal();
+    updateRolesDisplay(name, allowed, blocked);
+    showToast('✅ تم حفظ الصلاحيات');
+  } else {
+    const data = await res.json().catch(() => ({}));
+    alert(`خطأ: ${data.error || 'فشل حفظ الصلاحيات'}`);
+  }
+}
+
+function updateRolesDisplay(name, allowed, blocked) {
+  const el = document.getElementById('roles-' + name);
+  if (!el) return;
+  const labels = [];
+  if (allowed.length) labels.push('<div style="color:#43b581;margin-bottom:2px"><i class="fas fa-check-circle"></i> مسموح: ' + allowed.map(id => '<@&' + id + '>').join(', ') + '</div>');
+  if (blocked.length) labels.push('<div style="color:#f04747"><i class="fas fa-ban"></i> ممنوع: ' + blocked.map(id => '<@&' + id + '>').join(', ') + '</div>');
+  el.innerHTML = labels.join('');
+}
+
+function closePermsModal() {
+  document.getElementById('permsModal').style.display = 'none';
+}
+</script>
+
+<div class="modal-overlay" id="editDescModal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3><i class="fas fa-pen"></i> تعديل وصف الأمر</h3>
+      <button class="modal-close" onclick="closeEditDesc()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editDescName">
+      <label for="editDescInput">الوصف الجديد:</label>
+      <input type="text" id="editDescInput" class="modal-input" maxlength="100" placeholder="أدخل الوصف الجديد" style="width:100%;padding:8px;margin-top:8px;border-radius:var(--radius);background:var(--bg-glass);color:var(--text);border:1px solid var(--border);">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeEditDesc()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveEditDesc()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="permsModal" style="display:none">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-header">
+      <h3><i class="fas fa-shield-alt"></i> صلاحيات الأمر — <span id="permsCmdTitle"></span></h3>
+      <button class="modal-close" onclick="closePermsModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="permsCommandName">
+      <p style="margin-bottom:12px;font-size:0.85rem;color:var(--text-muted)">
+        <strong>مسموح</strong>: فقط الرتب المحددة تستطيع استخدام الأمر<br>
+        <strong>ممنوع</strong>: الرتب المحددة ممنوعة من استخدام الأمر<br>
+        <em>إذا كان كلا الخيارين فارغين، الكل يستطيع استخدام الأمر</em>
+      </p>
+      <div id="permsLoading" style="text-align:center;padding:20px">⏳ جاري تحميل الرتب...</div>
+      <div id="permsContent" style="display:none;max-height:400px;overflow-y:auto" id="permsCheckboxesContainer">
+        <div id="permsCheckboxes"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePermsModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="savePerms()">حفظ الصلاحيات</button>
+    </div>
+  </div>
+</div>

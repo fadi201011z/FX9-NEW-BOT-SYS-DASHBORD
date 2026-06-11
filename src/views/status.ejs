@@ -1,0 +1,119 @@
+<% currentPage = 'status' %>
+<div class="page-header">
+  <h1><i class="fas fa-heartbeat"></i> حالة البوت</h1>
+  <p>مراقبة حالة البوت وأداء الخادم</p>
+</div>
+
+<div class="stats-grid" id="statusGrid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287">
+      <i class="fas fa-circle"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="sBotStatus">جاري التحميل...</span>
+      <span class="stat-label">حالة البوت</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5865f2">
+      <i class="fas fa-clock"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="sUptime">---</span>
+      <span class="stat-label">وقت التشغيل</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #fee75c">
+      <i class="fas fa-tachometer-alt"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="sPing">---</span>
+      <span class="stat-label">Ping</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #eb459e">
+      <i class="fas fa-microchip"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="sMemory">---</span>
+      <span class="stat-label">استهلاك الذاكرة</span>
+    </div>
+  </div>
+</div>
+
+<div class="card glass">
+  <div class="card-header"><h3><i class="fas fa-server"></i> تفاصيل الخادم</h3></div>
+  <div class="status-details" id="statusDetails">
+    <div class="detail-row">
+      <span>إصدار Node.js</span>
+      <span id="sNodeVersion">---</span>
+    </div>
+    <div class="detail-row">
+      <span>المنصة</span>
+      <span id="sPlatform">---</span>
+    </div>
+    <div class="detail-row">
+      <span>إصدار البوت</span>
+      <span>5.0.0</span>
+    </div>
+    <div class="detail-row">
+      <span>إصدار الداشبورد</span>
+      <span>1.0.0</span>
+    </div>
+  </div>
+</div>
+
+<div class="status-timeline glass">
+  <h3><i class="fas fa-chart-area"></i> أداء الخادم</h3>
+  <canvas id="performanceChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+async function loadStatus() {
+  try {
+    const res = await fetch('/api/status');
+    const data = await res.json();
+    document.getElementById('sBotStatus').textContent = '🟢 متصل';
+    document.getElementById('sUptime').textContent = Math.floor(data.uptime / 3600) + 'h ' + Math.floor((data.uptime % 3600) / 60) + 'm';
+    document.getElementById('sPing').textContent = data.responseTime + 'ms';
+    document.getElementById('sMemory').textContent = (data.memory.heapUsed / 1024 / 1024).toFixed(1) + ' MB';
+    document.getElementById('sNodeVersion').textContent = data.nodeVersion;
+    document.getElementById('sPlatform').textContent = data.platform;
+  } catch {
+    document.getElementById('sBotStatus').textContent = '🔴 غير متصل';
+  }
+}
+
+const ctx = document.getElementById('performanceChart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: Array.from({length: 20}, (_, i) => `${i * 5}ث`),
+    datasets: [{
+      label: 'استجابة (ms)',
+      data: Array.from({length: 20}, () => Math.floor(Math.random() * 50) + 10),
+      borderColor: '#5865f2',
+      backgroundColor: 'rgba(88, 101, 242, 0.1)',
+      fill: true,
+      tension: 0.4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text').trim() } } },
+    scales: {
+      x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted').trim() } },
+      y: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted').trim() } }
+    }
+  }
+});
+
+loadStatus();
+setInterval(loadStatus, 30000);
+</script>

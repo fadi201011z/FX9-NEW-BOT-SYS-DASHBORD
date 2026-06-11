@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FX9 Dashboard — لوحة تحكم البوت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="landing-page">
+  <nav class="navbar glass landing-nav">
+    <div class="nav-left">
+      <a href="/" class="nav-brand">
+        <i class="fas fa-bolt"></i>
+        <span>FX9 Dashboard</span>
+      </a>
+    </div>
+    <div class="nav-right">
+      <% if (locals.user) { %>
+        <a href="/dashboard" class="btn-discord" style="margin-left:8px">
+          <i class="fas fa-th-large"></i>
+          لوحة التحكم
+        </a>
+        <a href="/auth/logout" class="btn-discord" style="background:#ed4245;">
+          <i class="fas fa-sign-out-alt"></i>
+          تسجيل الخروج
+        </a>
+      <% } else { %>
+        <a href="/auth/discord" class="btn-discord">
+          <i class="fab fa-discord"></i>
+          Login with Discord
+        </a>
+      <% } %>
+    </div>
+  </nav>
+
+  <% if (locals.error) { %>
+    <div class="toast-container">
+      <div class="toast glass fade-in-up" style="background:var(--danger);color:white">
+        ⚠️ <%= error === 'auth_failed' ? 'فشل تسجيل الدخول — تحقق من Redirect URI في Discord Developer Portal' : error === 'no_code' ? 'لم يتم استلام رمز التوثيق — حاول مرة أخرى' : error %>
+      </div>
+    </div>
+  <% } %>
+
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-shape shape-1"></div>
+      <div class="hero-shape shape-2"></div>
+      <div class="hero-shape shape-3"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="fas fa-bolt"></i>
+        FX9 Merged Bot v5.0
+      </div>
+      <h1>لوحة تحكم متكاملة<br>لإدارة <span class="gradient-text">بوتك بالكامل</span></h1>
+      <p>تحكم بجميع أنظمة البوت — الإدارة، التذاكر، الصوت المؤقت، الحماية — من لوحة واحدة احترافية مع مزامنة فورية</p>
+      <div class="hero-buttons">
+        <% if (locals.user) { %>
+          <a href="/dashboard" class="btn-primary btn-glow">
+            <i class="fas fa-th-large"></i>
+            لوحة التحكم
+          </a>
+          <a href="/auth/logout" class="btn-secondary">
+            <i class="fas fa-sign-out-alt"></i>
+            تسجيل الخروج
+          </a>
+        <% } else { %>
+          <a href="/auth/discord" class="btn-primary btn-glow">
+            <i class="fab fa-discord"></i>
+            ابدأ الآن — سجل دخولك
+          </a>
+          <a href="<%= inviteUrl %>" target="_blank" class="btn-secondary">
+            <i class="fas fa-plus-circle"></i>
+            إضافة البوت
+          </a>
+        <% } %>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="stat-value">6</span>
+          <span class="stat-label">أنظمة</span>
+        </div>
+        <div class="hero-stat">
+          <span class="stat-value">52</span>
+          <span class="stat-label">أمر</span>
+        </div>
+        <div class="hero-stat">
+          <span class="stat-value">100%</span>
+          <span class="stat-label">تحكم عبر الويب</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="section-header">
+      <h2>كل ما تحتاجه في <span class="gradient-text">لوحة واحدة</span></h2>
+      <p>أنظمة متكاملة مع واجهة استخدام احترافية وسهلة</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card glass">
+        <div class="feature-icon" style="--icon-color: #5865f2">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3>الحماية</h3>
+        <p>نظام حماية متكامل ضد السبام، النيوك، الرايد، واللينكات</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="--icon-color: #57f287">
+          <i class="fas fa-ticket-alt"></i>
+        </div>
+        <h3>التذاكر</h3>
+        <p>نظام تذاكر دعم فني متكامل مع تقييم وإدارة متقدمة</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="--icon-color: #fee75c">
+          <i class="fas fa-microphone"></i>
+        </div>
+        <h3>الرومات المؤقتة</h3>
+        <p>قنوات صوتية مؤقتة بنظام Join-to-Create مع لوحة تحكم خاصة</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="--icon-color: #ed4245">
+          <i class="fas fa-gavel"></i>
+        </div>
+        <h3>الإشراف</h3>
+        <p>أوامر إشراف متكاملة مع سجلات ونظام تحذيرات</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="--icon-color: #eb459e">
+          <i class="fas fa-music"></i>
+        </div>
+        <h3>الموسيقى</h3>
+        <p>مشغل موسيقى متكامل مع يوتيوب وقائمة تشغيل</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="--icon-color: #5865f2">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>الإحصائيات</h3>
+        <p>إحصائيات ورسوم بيانية لأداء السيرفر والبوت</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats-section">
+    <div class="stats-container">
+      <div class="stat-item">
+        <i class="fas fa-shield-alt"></i>
+        <span class="stat-number" data-target="6">0</span>
+        <span class="stat-desc">أنظمة حماية</span>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-ticket-alt"></i>
+        <span class="stat-number" data-target="9">0</span>
+        <span class="stat-desc">أوامر تذاكر</span>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-microphone"></i>
+        <span class="stat-number" data-target="15">0</span>
+        <span class="stat-desc">أوامر صوتية</span>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-terminal"></i>
+        <span class="stat-number" data-target="52">0</span>
+        <span class="stat-desc">إجمالي الأوامر</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="cta-content glass">
+      <h2>هل أنت مستعد؟</h2>
+      <p>ابدأ بإدارة سيرفرك بشكل احترافي مع FX9 Dashboard</p>
+      <% if (locals.user) { %>
+        <a href="/dashboard" class="btn-primary btn-glow">
+          <i class="fas fa-th-large"></i>
+          لوحة التحكم
+        </a>
+      <% } else { %>
+        <a href="/auth/discord" class="btn-primary btn-glow">
+          <i class="fab fa-discord"></i>
+          سجل دخولك الآن
+        </a>
+      <% } %>
+    </div>
+  </section>
+
+  <footer class="footer landing-footer">
+    <div class="footer-content">
+      <span>© 2026 FX9 Dashboard — جميع الحقوق محفوظة</span>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

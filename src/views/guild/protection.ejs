@@ -1,0 +1,91 @@
+<% currentPage = 'protection' %>
+<div class="page-header">
+  <h1><i class="fas fa-shield-alt"></i> إعدادات الحماية — <%= guild.name %></h1>
+  <p>تحكم بجميع أنظمة الحماية التلقائية</p>
+</div>
+
+<form id="protectionForm" onsubmit="updateProtection(event)">
+  <% const systems = [
+    { key: 'antiSpamEnabled', name: 'Anti-Spam', icon: 'fa-shield-alt', desc: 'منع السبام — 5 رسائل/5ث ← إيقاف 60ث' },
+    { key: 'antiLinkEnabled', name: 'Anti-Link', icon: 'fa-link', desc: 'منع الروابط التلقائية' },
+    { key: 'antiMentionEnabled', name: 'Anti-Mention', icon: 'fa-at', desc: 'منع 5+ منشنات في رسالة' },
+    { key: 'antiNukeEnabled', name: 'Anti-Nuke', icon: 'fa-bomb', desc: 'منع حذف القنوات والحظر الجماعي' },
+    { key: 'antiRaidEnabled', name: 'Anti-Raid', icon: 'fa-users-slash', desc: 'منع الانضمام الجماعي المفاجئ' },
+  ] %>
+
+  <div class="card glass">
+    <div class="card-header"><h3><i class="fas fa-shield-alt"></i> أنظمة الحماية</h3></div>
+    <div class="protection-grid">
+      <% systems.forEach(sys => { %>
+        <div class="protection-card">
+          <div class="protection-header">
+            <i class="fas <%= sys.icon %>"></i>
+            <h4><%= sys.name %></h4>
+            <label class="toggle">
+              <input type="checkbox" name="<%= sys.key %>" <%= protection[sys.key] === 'true' ? 'checked' : '' %>>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <p><%= sys.desc %></p>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="card glass">
+    <div class="card-header"><h3><i class="fas fa-sliders-h"></i> الحدود والإعدادات</h3></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>حد السبام (رسائل)</label>
+        <input type="number" name="spamLimit" value="<%= protection.spamLimit %>" min="1" max="20">
+      </div>
+      <div class="form-group">
+        <label>نافذة السبام (مللي ثانية)</label>
+        <input type="number" name="spamWindow" value="<%= protection.spamWindow %>" min="1000" max="30000">
+      </div>
+      <div class="form-group">
+        <label>عقوبة السبام</label>
+        <select name="spamPunishment">
+          <option value="timeout" <%= protection.spamPunishment === 'timeout' ? 'selected' : '' %>>إيقاف مؤقت</option>
+          <option value="kick" <%= protection.spamPunishment === 'kick' ? 'selected' : '' %>>طرد</option>
+          <option value="warn" <%= protection.spamPunishment === 'warn' ? 'selected' : '' %>>تحذير</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>حد حذف القنوات (Anti-Nuke)</label>
+        <input type="number" name="nukeChannelLimit" value="<%= protection.nukeChannelLimit %>" min="1" max="10">
+      </div>
+      <div class="form-group">
+        <label>حد الحظر (Anti-Nuke)</label>
+        <input type="number" name="nukeBanLimit" value="<%= protection.nukeBanLimit %>" min="1" max="10">
+      </div>
+      <div class="form-group">
+        <label>نافذة Nuke (مللي ثانية)</label>
+        <input type="number" name="nukeWindow" value="<%= protection.nukeWindow %>" min="5000" max="30000">
+      </div>
+      <div class="form-group">
+        <label>حد الانضمام (Raid)</label>
+        <input type="number" name="raidLimit" value="<%= protection.raidLimit %>" min="5" max="30">
+      </div>
+      <div class="form-group">
+        <label>نافذة Raid (مللي ثانية)</label>
+        <input type="number" name="raidWindow" value="<%= protection.raidWindow %>" min="5000" max="30000">
+      </div>
+    </div>
+    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> حفظ إعدادات الحماية</button>
+  </div>
+</form>
+
+<script>
+async function updateProtection(e) {
+  e.preventDefault();
+  const form = document.getElementById('protectionForm');
+  const data = {};
+  new FormData(form).forEach((v, k) => { data[k] = v; });
+  const res = await fetch('/protection/<%= guild.id %>/update', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (res.ok) showToast('✅ تم حفظ إعدادات الحماية بنجاح');
+}
+</script>

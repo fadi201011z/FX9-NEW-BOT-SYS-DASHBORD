@@ -1,0 +1,47 @@
+<% currentPage = 'settings' %>
+<div class="page-header">
+  <h1><i class="fas fa-sliders-h"></i> إعدادات <%= guild.name %></h1>
+  <p>إدارة جميع إعدادات البوت في السيرفر</p>
+</div>
+
+<div class="maintenance-box glass fade-in-up">
+  <div class="maintenance-icon">
+    <i class="fas fa-tools"></i>
+  </div>
+  <h2>قيد الصيانة</h2>
+  <p>نعمل على تحسين هذه الصفحة لتكون متزامنة بشكل كامل مع إعدادات البوت.</p>
+  <p class="text-muted">سيتم إعادة تفعيلها قريباً.</p>
+</div>
+
+<style>
+.maintenance-box {
+  max-width: 480px;
+  margin: 60px auto;
+  padding: 48px 32px;
+  text-align: center;
+  border-radius: 16px;
+}
+.maintenance-icon {
+  font-size: 3rem;
+  color: var(--warning, #fee75c);
+  margin-bottom: 16px;
+  animation: spin 4s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.maintenance-box h2 {
+  margin: 0 0 12px;
+  font-size: 1.5rem;
+}
+.maintenance-box p {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+</style>
