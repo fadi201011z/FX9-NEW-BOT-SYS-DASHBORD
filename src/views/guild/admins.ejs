@@ -213,15 +213,24 @@ async function confirmRole() {
         body: JSON.stringify({ roleId, level }),
       });
       const data = await res.json();
-      showToast(data.success ? `✅ تم تعيين ${roleName} كمدراء` : '❌ ' + (data.error || data.message));
+      if (data.success) {
+        const memberCount = data.memberCount || data.added || 0;
+        showToast(`✅ ${memberCount} عضو من ${roleName} أصبحوا مدراء`);
+      } else {
+        showToast('❌ ' + (data.error || data.message));
+      }
       if (data.success) setTimeout(() => location.reload(), 1000);
     } else {
-      // Update level only
-      await fetch(`/admins/${guildId}/set-role`, {
+      const res = await fetch(`/admins/${guildId}/set-role`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ roleId, level }),
       });
-      showToast(`✅ تم تحديث صلاحية ${roleName}`);
+      const data = await res.json();
+      if (data.success) {
+        showToast(`✅ تم تحديث صلاحية ${roleName} — ${data.memberCount || data.added || 0} عضو`);
+      } else {
+        showToast('❌ ' + (data.error || data.message));
+      }
       setTimeout(() => location.reload(), 1000);
     }
   } catch (err) {

@@ -189,7 +189,7 @@ router.post('/:guildId/set-role', isAuthenticated, hasGuildAccess, sanitizeInput
     // Auto-sync after adding a role
     const result = await autoSyncAdmins(guildId, req.session.user.id);
 
-    res.json({ success: true, message: `تم تعيين الدور. تمت مزامنة ${result.added} أعضاء.` });
+    res.json({ success: true, memberCount: result.memberCount, added: result.added, message: `تم تعيين الدور. تمت مزامنة ${result.added} أعضاء.` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -208,7 +208,7 @@ router.post('/:guildId/remove-role', isAuthenticated, hasGuildAccess, sanitizeIn
     // Auto-sync after removing a role
     const result = await autoSyncAdmins(guildId, req.session.user.id);
 
-    res.json({ success: true, message: `تم إزالة الدور. تمت مزامنة إزالة ${result.removed} أعضاء.` });
+    res.json({ success: true, memberCount: result.memberCount, removed: result.removed, message: `تم إزالة الدور. تمت مزامنة إزالة ${result.removed} أعضاء.` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -331,4 +331,5 @@ router.post('/:guildId/sync', isAuthenticated, hasGuildAccess, async (req, res) 
   }
 });
 
+export { autoSyncAdmins };
 export default router;

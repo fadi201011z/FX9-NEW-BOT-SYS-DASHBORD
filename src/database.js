@@ -234,3 +234,7 @@ export async function removeAdminByUserGuildAddedBy(userId, guildId, addedBy) {
 export async function addAdminRaw(userId, guildId, role, addedBy) {
   await Admin.create({ userId, guildId, role, addedBy, addedAt: Date.now() });
 }
+
+export async function getAllGuildIdsWithAdminRoles() {
+  return GuildAdminRole.distinct('guildId');
+}

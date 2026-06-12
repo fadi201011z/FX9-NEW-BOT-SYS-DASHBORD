@@ -165,6 +165,26 @@ const server = app.listen(config.port, '0.0.0.0', () => {
   console.log('═══════════════════════════════════════════════════');
 });
 
+// ─── Periodic Admin Sync (every 5 minutes) ──────────────────────────────────
+import { getAllGuildIdsWithAdminRoles } from './database.js';
+setInterval(async () => {
+  try {
+    const guildIds = await getAllGuildIdsWithAdminRoles();
+    if (guildIds.length === 0) return;
+    const { autoSyncAdmins } = await import('./routes/admins.js');
+    for (const guildId of guildIds) {
+      try {
+        const result = await autoSyncAdmins(guildId, 'system');
+        if (result.added > 0 || result.removed > 0) {
+          console.log(`[AdminSync] ${guildId}: +${result.added} / -${result.removed}`);
+        }
+      } catch {}
+    }
+  } catch (err) {
+    console.error('[AdminSync] Error:', err.message);
+  }
+}, 300_000);
+
 // ─── WebSocket ───────────────────────────────────────────────────────────
 const ws = setupWebSocket(server);
 export { ws };
