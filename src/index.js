@@ -34,6 +34,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ─── Initialize Express ──────────────────────────────────────────────────
 const app = express();
+app.set('trust proxy', 1);
 
 // ─── Security & Performance ──────────────────────────────────────────────
 app.use(helmet({
