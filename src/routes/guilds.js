@@ -3,7 +3,7 @@ import { isAuthenticated, hasGuildAccess, isOwner } from '../middleware/auth.js'
 import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
 import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity } from '../database.js';
 import config from '../config.js';
-import { getGuildTickets } from '../services/dataReader.js';
+import { getGuildTickets, getTicketGuildConfig } from '../services/dataReader.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
 const CACHE_TTL = 300000;
@@ -53,6 +53,14 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
     if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
 
     const guildConfig = await getAllGuildConfig(guildId);
+    const ticketCfg = await getTicketGuildConfig(guildId);
+    if (ticketCfg) {
+      guildConfig.ticket_category = ticketCfg.ticketCategoryId || '';
+      guildConfig.admin_category = ticketCfg.adminCategoryId || '';
+      guildConfig.panel_channel = ticketCfg.panelChannelId || '';
+      guildConfig.log_channel_id = ticketCfg.logChannelId || '';
+      guildConfig.support_role_ids = (ticketCfg.supportRoleIds || []).join(', ');
+    }
     const admins = await getGuildAdmins(guildId);
     const alerts = await getAlerts(guildId, 10);
     const activity = await getActivity(guildId, 10);
