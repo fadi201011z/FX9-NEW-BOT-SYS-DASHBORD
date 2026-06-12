@@ -22,5 +22,12 @@
   <script src="/js/theme.js"></script>
   <script src="/js/websocket.js"></script>
   <script src="/js/main.js"></script>
+  <script>
+const autoRefreshPages = ['dashboard', 'guild-overview', 'tickets', 'voice', 'admins', 'logs', 'guilds', 'dev', 'status'];
+const currentPg = '<%= typeof currentPage !== "undefined" ? currentPage : "" %>';
+if (autoRefreshPages.includes(currentPg)) {
+  setInterval(() => location.reload(), 45000);
+}
+  </script>
 </body>
 </html>
