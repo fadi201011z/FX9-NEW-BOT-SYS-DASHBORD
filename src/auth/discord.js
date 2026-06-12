@@ -134,7 +134,22 @@ export async function getGuildMembersByRole(guildId, roleId, botToken) {
 }
 
 export async function getAllGuildMembersPaginated(guildId, botToken) {
-  console.log(`[DiscordAPI] Fetching all members for guild ${guildId}...`);
+  // Try bot API first (uses Gateway fetch = all members)
+  try {
+    const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/members`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.length > 1) {
+        console.log(`[BotAPI] Got ${data.length} members for guild ${guildId}`);
+        return data.map(m => ({
+          user: { id: m.id, username: m.username, avatar: m.avatar },
+          roles: m.roles,
+        }));
+      }
+    }
+  } catch {}
+  // Fallback: Discord REST API (limited, but better than nothing)
+  console.log(`[DiscordAPI] Fetching all members for guild ${guildId} (REST fallback)...`);
   let members = [];
   let lastId = null;
   for (let i = 0; i < 10; i++) {
