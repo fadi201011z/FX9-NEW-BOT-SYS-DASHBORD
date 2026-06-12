@@ -12,8 +12,8 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
 
   const guildsData = [];
   for (const g of botGuilds) {
-    const cfg = getAllGuildConfig(g.id);
-    const admins = getGuildAdmins(g.id);
+    const cfg = await getAllGuildConfig(g.id);
+    const admins = await getGuildAdmins(g.id);
     guildsData.push({
       id: g.id,
       name: g.name,
@@ -33,10 +33,10 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
 
 router.get('/guild/:guildId', isAuthenticated, isOwner, async (req, res) => {
   const { guildId } = req.params;
-  const config_data = getAllGuildConfig(guildId);
-  const admins = getGuildAdmins(guildId);
-  const activity = getActivity(guildId, 200);
-  const audit = getAuditLogs(guildId, 200);
+  const config_data = await getAllGuildConfig(guildId);
+  const admins = await getGuildAdmins(guildId);
+  const activity = await getActivity(guildId, 200);
+  const audit = await getAuditLogs(guildId, 200);
 
   res.json({
     config: config_data,

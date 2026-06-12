@@ -9,20 +9,25 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
 
+  async function getCfg(key, def) {
+    const val = await getGuildConfig(guildId, key);
+    return val ? val.value : def;
+  }
+
   const protection = {
-    antiSpamEnabled: getGuildConfig(guildId, 'anti_spam') || 'true',
-    antiLinkEnabled: getGuildConfig(guildId, 'anti_link') || 'true',
-    antiMentionEnabled: getGuildConfig(guildId, 'anti_mention') || 'true',
-    antiNukeEnabled: getGuildConfig(guildId, 'anti_nuke') || 'true',
-    antiRaidEnabled: getGuildConfig(guildId, 'anti_raid') || 'true',
-    spamLimit: getGuildConfig(guildId, 'spam_limit') || '5',
-    spamWindow: getGuildConfig(guildId, 'spam_window') || '5000',
-    spamPunishment: getGuildConfig(guildId, 'spam_punishment') || 'timeout',
-    nukeChannelLimit: getGuildConfig(guildId, 'nuke_channel_limit') || '3',
-    nukeBanLimit: getGuildConfig(guildId, 'nuke_ban_limit') || '5',
-    nukeWindow: getGuildConfig(guildId, 'nuke_window') || '10000',
-    raidLimit: getGuildConfig(guildId, 'raid_limit') || '10',
-    raidWindow: getGuildConfig(guildId, 'raid_window') || '10000',
+    antiSpamEnabled: await getCfg('anti_spam', 'true'),
+    antiLinkEnabled: await getCfg('anti_link', 'true'),
+    antiMentionEnabled: await getCfg('anti_mention', 'true'),
+    antiNukeEnabled: await getCfg('anti_nuke', 'true'),
+    antiRaidEnabled: await getCfg('anti_raid', 'true'),
+    spamLimit: await getCfg('spam_limit', '5'),
+    spamWindow: await getCfg('spam_window', '5000'),
+    spamPunishment: await getCfg('spam_punishment', 'timeout'),
+    nukeChannelLimit: await getCfg('nuke_channel_limit', '3'),
+    nukeBanLimit: await getCfg('nuke_ban_limit', '5'),
+    nukeWindow: await getCfg('nuke_window', '10000'),
+    raidLimit: await getCfg('raid_limit', '10'),
+    raidWindow: await getCfg('raid_window', '10000'),
   };
 
   res.render('guild/protection', {

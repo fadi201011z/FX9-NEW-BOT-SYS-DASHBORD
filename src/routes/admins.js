@@ -1,10 +1,9 @@
 import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess } from '../middleware/auth.js';
-import { getGuildAdmins, setAdminRole, removeAdmin, logActivity, logAudit, getGuildAdminRoles, setGuildAdminRole, removeGuildAdminRole, getGuildAdminRoleIds } from '../database.js';
+import { getGuildAdmins, setAdminRole, removeAdmin, logActivity, logAudit, getGuildAdminRoles, setGuildAdminRole, removeGuildAdminRole, getGuildAdminRoleIds, getAdminsByGuildAndAddedBy, addAdminRaw, removeAdminByUserGuildAddedBy, getAdminRole } from '../database.js';
 import { sanitizeInput } from '../middleware/security.js';
 import { getGuildRoles, getGuildMember, getGuildMembersByRole } from '../auth/discord.js';
 import config from '../config.js';
-import db from '../database.js';
 
 const router = Router();
 
@@ -30,22 +29,21 @@ async function autoSyncAdmins(guildId, callerUserId) {
   }
 
   let added = 0, removed = 0;
-  const existing = db.prepare('SELECT user_id FROM dashboard_admins WHERE guild_id = ? AND added_by = ?').all(guildId, 'role_sync');
+  const existing = await getAdminsByGuildAndAddedBy(guildId, 'role_sync');
 
   // Remove admins who no longer have the role
   for (const row of existing) {
-    if (!validUserIds.has(row.user_id)) {
-      db.prepare('DELETE FROM dashboard_admins WHERE user_id = ? AND guild_id = ? AND added_by = ?').run(row.user_id, guildId, 'role_sync');
+    if (!validUserIds.has(row.userId)) {
+      await removeAdminByUserGuildAddedBy(row.userId, guildId, 'role_sync');
       removed++;
     }
   }
 
   // Add new admins
   for (const userId of validUserIds) {
-    const exists = db.prepare('SELECT * FROM dashboard_admins WHERE user_id = ? AND guild_id = ?').get(userId, guildId);
+    const exists = await getAdminRole(userId, guildId);
     if (!exists) {
-      db.prepare('INSERT INTO dashboard_admins (user_id, guild_id, role, added_by, added_at) VALUES (?, ?, ?, ?, ?)')
-        .run(userId, guildId, userRoleMap[userId] || 'moderator', 'role_sync', Date.now());
+      await addAdminRaw(userId, guildId, userRoleMap[userId] || 'moderator', 'role_sync');
       added++;
     }
   }
@@ -61,7 +59,7 @@ async function autoSyncAdmins(guildId, callerUserId) {
 router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
-  const adminRoles = getGuildAdminRoles(guildId);
+  const adminRoles = await getGuildAdminRoles(guildId);
 
   let guildRoles = [];
   try {
@@ -70,7 +68,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
 
   // Auto-sync in background (non-blocking)
   autoSyncAdmins(guildId, req.session.user.id).catch(() => {});
-  const admins = getGuildAdmins(guildId);
+  const admins = await getGuildAdmins(guildId);
 
   res.render('guild/admins', {
     user: req.session.user,
@@ -192,7 +190,7 @@ router.post('/webhook/sync-member', async (req, res) => {
     const { guildId, userId } = req.body;
     if (!guildId || !userId) return res.status(400).json({ error: 'guildId and userId required' });
 
-    const adminRoles = getGuildAdminRoleIds(guildId);
+  const adminRoles = await getGuildAdminRoleIds(guildId);
     if (adminRoles.length === 0) return res.json({ synced: false, reason: 'no admin roles configured' });
 
     // Fetch member's roles
@@ -211,14 +209,13 @@ router.post('/webhook/sync-member', async (req, res) => {
       }
     }
 
-    const existing = db.prepare('SELECT * FROM dashboard_admins WHERE user_id = ? AND guild_id = ?').get(userId, guildId);
+    const existing = await getAdminRole(userId, guildId);
 
     if (hasAdminRole && !existing) {
-      db.prepare('INSERT INTO dashboard_admins (user_id, guild_id, role, added_by, added_at) VALUES (?, ?, ?, ?, ?)')
-        .run(userId, guildId, matchedLevel, 'role_sync', Date.now());
+      await addAdminRaw(userId, guildId, matchedLevel, 'role_sync');
       res.json({ synced: true, action: 'added' });
-    } else if (!hasAdminRole && existing && existing.added_by === 'role_sync') {
-      db.prepare('DELETE FROM dashboard_admins WHERE user_id = ? AND guild_id = ? AND added_by = ?').run(userId, guildId, 'role_sync');
+    } else if (!hasAdminRole && existing && existing.addedBy === 'role_sync') {
+      await removeAdminByUserGuildAddedBy(userId, guildId, 'role_sync');
       res.json({ synced: true, action: 'removed' });
     } else {
       res.json({ synced: false, action: 'no_change' });

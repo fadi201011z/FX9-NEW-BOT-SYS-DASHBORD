@@ -37,7 +37,7 @@ export function setupWebSocket(server) {
         if (data.type === 'fetch_alerts') {
           const guildId = data.guildId || ws.guildId;
           if (guildId) {
-            const alerts = getAlerts(guildId, 20);
+            const alerts = await getAlerts(guildId, 20);
             ws.send(JSON.stringify({ type: 'alerts', alerts }));
           }
         }
@@ -45,7 +45,7 @@ export function setupWebSocket(server) {
         if (data.type === 'fetch_activity') {
           const guildId = data.guildId || ws.guildId;
           if (guildId) {
-            const activity = getActivity(guildId, 20);
+            const activity = await getActivity(guildId, 20);
             ws.send(JSON.stringify({ type: 'activity', activity }));
           }
         }

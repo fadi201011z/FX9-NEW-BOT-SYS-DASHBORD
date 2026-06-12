@@ -23,7 +23,7 @@ router.post('/:guildId/delete', isAuthenticated, hasGuildAccess, async (req, res
     const { guildId } = req.params;
     const { channelId } = req.body;
     logActivity(req.session.user.id, guildId, 'delete_voice', channelId, `حذف قناة صوتية ${channelId}`, req.ip, req.sessionID);
-    const voiceChannels = getGuildVoiceChannels(guildId);
+  const voiceChannels = await getGuildVoiceChannels(guildId);
     res.json({ success: true, message: 'تم حذف القناة الصوتية.', voiceChannels });
   } catch (err) {
     res.status(500).json({ error: err.message });

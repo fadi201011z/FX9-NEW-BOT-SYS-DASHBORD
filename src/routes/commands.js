@@ -43,7 +43,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
     }
   } catch {}
 
-  const commandConfigs = getAllCommandConfigs(guildId);
+  const commandConfigs = await getAllCommandConfigs(guildId);
   const configMap = {};
   for (const cc of commandConfigs) configMap[cc.command_name] = cc;
 
@@ -62,7 +62,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
     const { command, enabled } = req.body;
     const isEnabled = enabled !== undefined ? Boolean(enabled) : true;
 
-    const existing = getAllCommandConfigs(guildId).find(c => c.command_name === command) || {};
+    const existing = (await getAllCommandConfigs(guildId)).find(c => c.command_name === command) || {};
 
     // Send to bot's in-memory state via API (single source of truth)
     let botOk = false;
@@ -108,7 +108,7 @@ router.patch('/:guildId/update-description', isAuthenticated, hasGuildAccess, ca
       return res.status(400).json({ error: 'Missing command or description' });
     }
 
-    const existing = getAllCommandConfigs(guildId).find(c => c.command_name === command) || {};
+    const existing = (await getAllCommandConfigs(guildId)).find(c => c.command_name === command) || {};
     setCommandConfig(guildId, command, {
       enabled: existing.enabled ?? 1,
       allowedRoles: existing.allowed_roles ? JSON.parse(existing.allowed_roles) : [],
@@ -157,7 +157,7 @@ router.post('/:guildId/permissions', isAuthenticated, hasGuildAccess, canModify,
     const { command, allowedRoles, blockedRoles } = req.body;
     if (!command) return res.status(400).json({ error: 'Missing command' });
 
-    const existing = getAllCommandConfigs(guildId).find(c => c.command_name === command) || {};
+    const existing = (await getAllCommandConfigs(guildId)).find(c => c.command_name === command) || {};
     const ar = allowedRoles || [];
     const br = blockedRoles || [];
 

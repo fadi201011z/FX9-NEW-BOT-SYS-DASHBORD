@@ -23,9 +23,9 @@ router.get('/discord/callback', async (req, res) => {
       guilds = await getUserGuilds(tokenData.access_token);
     } catch {}
 
-    upsertUser(discordUser.id, discordUser.username, discordUser.avatar);
+    await upsertUser(discordUser.id, discordUser.username, discordUser.avatar);
 
-    const adminGuilds = getUserAdminGuilds(discordUser.id);
+    const adminGuilds = await getUserAdminGuilds(discordUser.id);
     const bestAdmin = adminGuilds.length > 0
       ? adminGuilds.reduce((a, b) => {
           const hierarchy = { owner: 4, manager: 3, admin: 2, moderator: 1, support: 0 };

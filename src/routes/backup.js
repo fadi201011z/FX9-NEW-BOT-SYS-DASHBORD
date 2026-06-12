@@ -14,7 +14,7 @@ const router = Router();
 router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
-  const backups = getBackupHistory(guildId);
+  const backups = await getBackupHistory(guildId);
   res.render('guild/backup', { user: req.session.user, guild, backups, title: 'النسخ الاحتياطي' });
 });
 
@@ -23,7 +23,7 @@ router.post('/:guildId/create', isAuthenticated, hasGuildAccess, async (req, res
     const { guildId } = req.params;
     fs.mkdirSync(BACKUP_DIR, { recursive: true });
 
-    const config = getAllGuildConfig(guildId);
+    const config = await getAllGuildConfig(guildId);
     const filename = `backup_${guildId}_${Date.now()}.json`;
     const filePath = path.join(BACKUP_DIR, filename);
     const content = JSON.stringify({ guildId, config, timestamp: Date.now() }, null, 2);

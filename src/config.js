@@ -20,6 +20,10 @@ export default {
     maxAge: 24 * 60 * 60 * 1000,
   },
 
+  mongodb: {
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/fx9_dashboard',
+  },
+
   db: {
     path: process.env.BOT_DB_PATH || './data/bot.db',
   },

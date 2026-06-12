@@ -32,8 +32,8 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
       }
     } catch {}
     const totalGuilds = botGuilds.length || guildsWithBot.length;
-    const alerts = getUnreadAlerts(null);
-    const totalTickets = getTotalTicketCount();
+    const alerts = await getUnreadAlerts(null);
+    const totalTickets = await getTotalTicketCount();
 
     res.render('dashboard', {
       user: req.session.user,

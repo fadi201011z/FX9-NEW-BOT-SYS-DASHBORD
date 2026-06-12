@@ -47,10 +47,10 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
     const guild = req.session.user.guilds?.find(g => g.id === guildId);
     if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
 
-    const guildConfig = getAllGuildConfig(guildId);
-    const admins = getGuildAdmins(guildId);
-    const alerts = getAlerts(guildId, 10);
-    const activity = getActivity(guildId, 10);
+    const guildConfig = await getAllGuildConfig(guildId);
+    const admins = await getGuildAdmins(guildId);
+    const alerts = await getAlerts(guildId, 10);
+    const activity = await getActivity(guildId, 10);
 
     const botGuildIds = await getBotGuildIds();
     const botInGuild = botGuildIds ? botGuildIds.has(guildId) : false;
@@ -67,7 +67,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
       } catch {}
     }
 
-    const tickets = getGuildTickets(guildId);
+    const tickets = await getGuildTickets(guildId);
 
     res.render('guild/overview', {
       user: req.session.user,

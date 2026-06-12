@@ -16,8 +16,8 @@ const router = Router();
 router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
-  const config = getAllGuildConfig(guildId);
-  const ticketJson = getTicketGuildConfig(guildId);
+  const config = await getAllGuildConfig(guildId);
+  const ticketJson = await getTicketGuildConfig(guildId);
   if (ticketJson) {
     config.ticket_category = ticketJson.ticketCategoryId || (config.ticket_category || '');
     config.admin_category = ticketJson.adminCategoryId || (config.admin_category || '');
@@ -35,7 +35,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
     const { key, value } = req.body;
     if (!key) return res.status(400).json({ error: 'Key is required' });
 
-    const oldValue = getGuildConfig(guildId, key);
+    const oldValue = await getGuildConfig(guildId, key);
     setGuildConfig(guildId, key, value);
 
     if (key === 'support_role') {
@@ -61,7 +61,7 @@ router.post('/:guildId/delete', isAuthenticated, hasGuildAccess, canModify, sani
     const { key } = req.body;
     if (!key) return res.status(400).json({ error: 'Key is required' });
 
-    const oldValue = getGuildConfig(guildId, key);
+    const oldValue = await getGuildConfig(guildId, key);
     deleteGuildConfig(guildId, key);
 
     logAudit(req.session.user.id, guildId, 'delete_setting', key, oldValue, null, req.ip, req.sessionID);

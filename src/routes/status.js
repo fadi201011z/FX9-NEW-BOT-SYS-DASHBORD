@@ -2,17 +2,15 @@ import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess } from '../middleware/auth.js';
 import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig } from '../database.js';
 import config from '../config.js';
-import { readJsonFile } from '../services/dataReader.js';
+import Ticket from '../models/Ticket.js';
 
 const router = Router();
 
 router.get('/tickets/stats', async (req, res) => {
-  const all = readJsonFile('fx9_data.json');
-  const tickets = all.tickets || {};
-  const list = Object.values(tickets);
-  const open = list.filter(t => t.status === 'open').length;
-  const closed = list.filter(t => t.status === 'closed').length;
-  res.json({ total: list.length, open, closed });
+  const total = await Ticket.countDocuments();
+  const open = await Ticket.countDocuments({ status: 'open' });
+  const closed = await Ticket.countDocuments({ status: 'closed' });
+  res.json({ total, open, closed });
 });
 
 router.get('/status', async (req, res) => {
@@ -30,9 +28,9 @@ router.get('/status', async (req, res) => {
 
 router.get('/guild/:guildId/stats', isAuthenticated, hasGuildAccess, async (req, res) => {
   const { guildId } = req.params;
-  const config_data = getAllGuildConfig(guildId);
-  const activity = getActivity(guildId, 500);
-  const alerts = getAlerts(guildId, 50);
+  const config_data = await getAllGuildConfig(guildId);
+  const activity = await getActivity(guildId, 500);
+  const alerts = await getAlerts(guildId, 50);
 
   const actionCounts = {};
   for (const a of activity) {
@@ -49,7 +47,7 @@ router.get('/guild/:guildId/stats', isAuthenticated, hasGuildAccess, async (req,
 });
 
 router.get('/user/activity', isAuthenticated, async (req, res) => {
-  const activity = getUserActivity(req.session.user.id, 50);
+  const activity = await getUserActivity(req.session.user.id, 50);
   res.json({ activity });
 });
 
