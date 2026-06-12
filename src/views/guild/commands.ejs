@@ -39,10 +39,10 @@
         <div class="command-roles" id="roles-<%= cmd.name %>" style="margin-top:6px;font-size:0.75rem">
           <% if (cfg && cfg.allowedRoles && cfg.allowedRoles.length) { %>
             <div style="color:#43b581;margin-bottom:2px"><i class="fas fa-check-circle"></i> مسموح: <span dir="ltr"><%= cfg.allowedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
-          <% } } %>
+          <% } %>
           <% if (cfg && cfg.blockedRoles && cfg.blockedRoles.length) { %>
             <div style="color:#f04747"><i class="fas fa-ban"></i> ممنوع: <span dir="ltr"><%= cfg.blockedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
-          <% } } %>
+          <% } %>
         </div>
         <button class="btn btn-sm btn-secondary" onclick="openPermsModal('<%= cmd.name %>')" style="margin-top:8px;width:100%">
           <i class="fas fa-shield-alt"></i> صلاحيات
