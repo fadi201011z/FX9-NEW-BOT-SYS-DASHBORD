@@ -102,7 +102,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
 
   const commandConfigs = await getAllCommandConfigs(guildId);
   const configMap = {};
-  for (const cc of commandConfigs) configMap[cc.command_name] = cc;
+  for (const cc of commandConfigs) configMap[cc.commandName] = cc;
 
   res.render('guild/commands', {
     user: req.session.user,
@@ -123,11 +123,9 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
 
     // Save to DB first regardless of bot status
     setCommandConfig(guildId, command, {
-      enabled: isEnabled ? 1 : 0,
-      allowedRoles: existing.allowed_roles ? JSON.parse(existing.allowed_roles) : [],
-      blockedRoles: existing.blocked_roles ? JSON.parse(existing.blocked_roles) : [],
-      allowedChannels: existing.allowed_channels ? JSON.parse(existing.allowed_channels) : [],
-      blockedChannels: existing.blocked_channels ? JSON.parse(existing.blocked_channels) : [],
+      enabled: isEnabled,
+      allowedRoles: existing.allowedRoles || [],
+      blockedRoles: existing.blockedRoles || [],
     });
 
     logActivity(req.session.user.id, guildId, 'update_command', command,
@@ -137,8 +135,8 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
     try {
       await axios.post(`http://localhost:10001/api/sync-command`, {
         guildId, commandName: command, enabled: isEnabled,
-        allowedRoles: existing.allowed_roles ? JSON.parse(existing.allowed_roles) : [],
-        blockedRoles: existing.blocked_roles ? JSON.parse(existing.blocked_roles) : [],
+        allowedRoles: existing.allowedRoles || [],
+        blockedRoles: existing.blockedRoles || [],
       }, { timeout: 5000 });
     } catch (e) {
       console.error('[Commands] Bot sync skipped:', e.code || e.message);
@@ -158,12 +156,10 @@ router.patch('/:guildId/update-description', isAuthenticated, hasGuildAccess, ca
       return res.status(400).json({ error: 'Missing command or description' });
     }
 
-    const existing = (await getAllCommandConfigs(guildId)).find(c => c.command_name === command) || {};
+    const existing = (await getAllCommandConfigs(guildId)).find(c => c.commandName === command) || {};
     setCommandConfig(guildId, command, {
-      enabled: existing.enabled ?? 1,
-      allowedRoles: existing.allowed_roles ? JSON.parse(existing.allowed_roles) : [],
-      allowedChannels: existing.allowed_channels ? JSON.parse(existing.allowed_channels) : [],
-      blockedChannels: existing.blocked_channels ? JSON.parse(existing.blocked_channels) : [],
+      enabled: existing.enabled ?? true,
+      allowedRoles: existing.allowedRoles || [],
       customDescription: description,
     });
 
@@ -174,10 +170,8 @@ router.patch('/:guildId/update-description', isAuthenticated, hasGuildAccess, ca
     try {
       await axios.post(`http://localhost:10001/api/sync-command`, {
         guildId, commandName: command,
-        enabled: existing.enabled ?? 1,
-        allowedRoles: existing.allowed_roles ? JSON.parse(existing.allowed_roles) : [],
-        allowedChannels: existing.allowed_channels ? JSON.parse(existing.allowed_channels) : [],
-        blockedChannels: existing.blocked_channels ? JSON.parse(existing.blocked_channels) : [],
+        enabled: existing.enabled ?? true,
+        allowedRoles: existing.allowedRoles || [],
         customDescription: description,
       });
     } catch (e) {
@@ -207,17 +201,15 @@ router.post('/:guildId/permissions', isAuthenticated, hasGuildAccess, canModify,
     const { command, allowedRoles, blockedRoles } = req.body;
     if (!command) return res.status(400).json({ error: 'Missing command' });
 
-    const existing = (await getAllCommandConfigs(guildId)).find(c => c.command_name === command) || {};
+    const existing = (await getAllCommandConfigs(guildId)).find(c => c.commandName === command) || {};
     const ar = allowedRoles || [];
     const br = blockedRoles || [];
 
     // Save to local DB
     setCommandConfig(guildId, command, {
-      enabled: existing.enabled ?? 1,
+      enabled: existing.enabled ?? true,
       allowedRoles: ar,
       blockedRoles: br,
-      allowedChannels: existing.allowed_channels ? JSON.parse(existing.allowed_channels) : [],
-      blockedChannels: existing.blocked_channels ? JSON.parse(existing.blocked_channels) : [],
     });
 
     logActivity(req.session.user.id, guildId, 'update_command_perms', command,
@@ -226,7 +218,7 @@ router.post('/:guildId/permissions', isAuthenticated, hasGuildAccess, canModify,
     // Try to sync with bot (non-blocking)
     try {
       await axios.post(`http://localhost:10001/api/sync-command`, {
-        guildId, commandName: command, enabled: existing.enabled ?? 1,
+        guildId, commandName: command, enabled: existing.enabled ?? true,
         allowedRoles: ar, blockedRoles: br,
       }, { timeout: 5000 });
     } catch (e) {

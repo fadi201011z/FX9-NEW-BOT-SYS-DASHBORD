@@ -22,7 +22,7 @@
       <div class="command-header">
         <span class="command-category"><%= cmd.category %></span>
         <label class="toggle">
-          <input type="checkbox" <%= cfg ? (cfg.enabled == 1 ? 'checked' : '') : 'checked' %> onchange="toggleCommand('<%= cmd.name %>', this.checked)">
+          <input type="checkbox" <%= cfg ? (cfg.enabled ? 'checked' : '') : 'checked' %> onchange="toggleCommand('<%= cmd.name %>', this.checked)">
           <span class="toggle-slider"></span>
         </label>
       </div>
@@ -37,11 +37,11 @@
           <span><i class="fas fa-file"></i> <%= cmd.file %></span>
         </div>
         <div class="command-roles" id="roles-<%= cmd.name %>" style="margin-top:6px;font-size:0.75rem">
-          <% if (cfg && cfg.allowed_roles) { const a = JSON.parse(cfg.allowed_roles); if (a.length) { %>
-            <div style="color:#43b581;margin-bottom:2px"><i class="fas fa-check-circle"></i> مسموح: <span dir="ltr"><%= a.map(id => `<@&${id}>`).join(', ') %></span></div>
+          <% if (cfg && cfg.allowedRoles && cfg.allowedRoles.length) { %>
+            <div style="color:#43b581;margin-bottom:2px"><i class="fas fa-check-circle"></i> مسموح: <span dir="ltr"><%= cfg.allowedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
           <% } } %>
-          <% if (cfg && cfg.blocked_roles) { const b = JSON.parse(cfg.blocked_roles); if (b.length) { %>
-            <div style="color:#f04747"><i class="fas fa-ban"></i> ممنوع: <span dir="ltr"><%= b.map(id => `<@&${id}>`).join(', ') %></span></div>
+          <% if (cfg && cfg.blockedRoles && cfg.blockedRoles.length) { %>
+            <div style="color:#f04747"><i class="fas fa-ban"></i> ممنوع: <span dir="ltr"><%= cfg.blockedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
           <% } } %>
         </div>
         <button class="btn btn-sm btn-secondary" onclick="openPermsModal('<%= cmd.name %>')" style="margin-top:8px;width:100%">
@@ -140,8 +140,8 @@ async function openPermsModal(name) {
 function renderPermsCheckboxes(name) {
   const cfg = <%- JSON.stringify(configMap) %>;
   const cmdCfg = cfg[name] || {};
-  const allowed = cmdCfg.allowed_roles ? JSON.parse(cmdCfg.allowed_roles) : [];
-  const blocked = cmdCfg.blocked_roles ? JSON.parse(cmdCfg.blocked_roles) : [];
+  const allowed = cmdCfg.allowedRoles || [];
+  const blocked = cmdCfg.blockedRoles || [];
 
   const container = document.getElementById('permsCheckboxes');
   container.innerHTML = '';
