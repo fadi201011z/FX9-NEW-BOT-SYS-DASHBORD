@@ -6,15 +6,20 @@ import config from '../config.js';
 import { getGuildTickets } from '../services/dataReader.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
-const CACHE_TTL = 60000;
+const CACHE_TTL = 300000;
 
 async function getBotGuildIds() {
-  if (botGuildCache.ids && Date.now() - botGuildCache.lastFetch < CACHE_TTL) return botGuildCache.ids;
+  if (botGuildCache.ids) {
+    if (Date.now() - botGuildCache.lastFetch < CACHE_TTL) return botGuildCache.ids;
+    if (botGuildCache.rateLimited && Date.now() - botGuildCache.lastFetch < 60000) return botGuildCache.ids;
+  }
   try {
     const guilds = await getBotGuilds(config.discord.botToken);
     botGuildCache = { ids: new Set((guilds || []).map(g => g.id)), lastFetch: Date.now() };
   } catch (e) {
-    console.error('[getBotGuildIds Error]', e?.response?.status, e?.message);
+    if (e?.response?.status === 429) {
+      botGuildCache.rateLimited = true;
+    }
   }
   return botGuildCache.ids;
 }

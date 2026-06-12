@@ -22,16 +22,8 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
       .filter(g => botGuildIds.has(g.id))
       .map(g => ({ ...g, hasBot: true }));
 
-    let totalMembers = 0;
-    try {
-      const results = await Promise.allSettled(botGuilds.map(g => getGuildInfo(g.id, config.discord.botToken)));
-      for (const r of results) {
-        if (r.status === 'fulfilled' && r.value) {
-          totalMembers += r.value.approximate_member_count || r.value.member_count || 0;
-        }
-      }
-    } catch {}
     const totalGuilds = botGuilds.length || guildsWithBot.length;
+    const totalMembers = 0;
     const alerts = await getUnreadAlerts(null);
     const totalTickets = await getTotalTicketCount();
 
