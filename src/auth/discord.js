@@ -134,6 +134,7 @@ export async function getGuildMembersByRole(guildId, roleId, botToken) {
 }
 
 export async function getAllGuildMembersPaginated(guildId, botToken) {
+  console.log(`[DiscordAPI] Fetching all members for guild ${guildId}...`);
   let members = [];
   let lastId = null;
   for (let i = 0; i < 10; i++) {
@@ -143,9 +144,11 @@ export async function getAllGuildMembersPaginated(guildId, botToken) {
     const batch = res.data || [];
     if (batch.length === 0) break;
     members = members.concat(batch);
+    console.log(`[DiscordAPI]  Fetched ${batch.length} members (page ${i + 1}, total ${members.length})`);
     if (batch.length < 1000) break;
     lastId = batch[batch.length - 1].user.id;
   }
+  console.log(`[DiscordAPI] Done: ${members.length} total members for guild ${guildId}`);
   return members;
 }
 
