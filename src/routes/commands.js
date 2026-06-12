@@ -133,7 +133,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
 
     // Try to sync with bot (non-blocking)
     try {
-      await axios.post(`http://localhost:10001/api/sync-command`, {
+      await axios.post(`${config.botApiUrl}/api/sync-command`, {
         guildId, commandName: command, enabled: isEnabled,
         allowedRoles: existing.allowedRoles || [],
         blockedRoles: existing.blockedRoles || [],
@@ -168,7 +168,7 @@ router.patch('/:guildId/update-description', isAuthenticated, hasGuildAccess, ca
 
     // Sync with bot
     try {
-      await axios.post(`http://localhost:10001/api/sync-command`, {
+      await axios.post(`${config.botApiUrl}/api/sync-command`, {
         guildId, commandName: command,
         enabled: existing.enabled ?? true,
         allowedRoles: existing.allowedRoles || [],
@@ -217,7 +217,7 @@ router.post('/:guildId/permissions', isAuthenticated, hasGuildAccess, canModify,
 
     // Try to sync with bot (non-blocking)
     try {
-      await axios.post(`http://localhost:10001/api/sync-command`, {
+      await axios.post(`${config.botApiUrl}/api/sync-command`, {
         guildId, commandName: command, enabled: existing.enabled ?? true,
         allowedRoles: ar, blockedRoles: br,
       }, { timeout: 5000 });
