@@ -63,8 +63,17 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
 
   let guildRoles = [];
   try {
-    guildRoles = await getGuildRoles(guildId, config.discord.botToken);
-  } catch {}
+    const botRes = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/roles`);
+    if (botRes.ok) {
+      guildRoles = await botRes.json();
+    } else {
+      throw new Error('bot api failed');
+    }
+  } catch {
+    try {
+      guildRoles = await getGuildRoles(guildId, config.discord.botToken);
+    } catch {}
+  }
 
   // Auto-sync in background (non-blocking)
   autoSyncAdmins(guildId, req.session.user.id).catch(() => {});
