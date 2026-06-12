@@ -14,13 +14,13 @@
             <i class="fas fa-microphone"></i>
             <div>
               <strong><%= vc.name || vc.vcId %></strong>
-              <span>👑 <%- vc.ownerId %></span>
+              <span class="voice-owner">👑 المالك: <%- vc.ownerId ? `<@${vc.ownerId}>` : 'غير معروف' %></span>
             </div>
           </div>
           <div class="voice-meta">
             <span><i class="fas fa-clock"></i> <%= new Date(vc.createdAt || Date.now()).toLocaleString('ar-SA') %></span>
-            <button class="btn-sm btn-danger" onclick="deleteVoice('<%= vc.vcId %>')">
-              <i class="fas fa-trash"></i>
+            <button class="btn-sm btn-danger" onclick="deleteVoice('<%= vc.vcId %>', '<%= vc.name || vc.vcId %>')" title="حذف القناة من السيرفر">
+              <i class="fas fa-trash"></i> حذف
             </button>
           </div>
         </div>
@@ -35,16 +35,27 @@
 </div>
 
 <script>
-async function deleteVoice(channelId) {
-  if (!confirm('هل أنت متأكد من حذف هذه القناة الصوتية؟')) return;
-  const res = await fetch('/voice/<%= guild.id %>/delete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ channelId }),
-  });
-  if (res.ok) {
-    showToast('✅ تم حذف القناة');
-    location.reload();
+async function deleteVoice(channelId, name) {
+  if (!confirm(`هل أنت متأكد من حذف "${name}" من السيرفر؟`)) return;
+  const btn = event.target.closest('button');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  try {
+    const res = await fetch('/voice/<%= guild.id %>/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✅ تم حذف القناة من السيرفر');
+      location.reload();
+    } else {
+      showToast('❌ ' + (data.error || 'فشل الحذف'));
+      btn.disabled = false; btn.innerHTML = '<i class="fas fa-trash"></i> حذف';
+    }
+  } catch {
+    showToast('❌ فشل الاتصال');
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-trash"></i> حذف';
   }
 }
 </script>
