@@ -8,7 +8,7 @@ const router = Router();
 router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
-  const voiceChannels = getGuildVoiceChannels(guildId);
+  const voiceChannels = await getGuildVoiceChannels(guildId);
 
   res.render('guild/voice', {
     user: req.session.user,
