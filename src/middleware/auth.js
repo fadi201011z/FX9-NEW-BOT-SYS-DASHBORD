@@ -1,5 +1,6 @@
 import config from '../config.js';
 import { getBotGuilds } from '../auth/discord.js';
+import Admin from '../models/Admin.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
 const CACHE_TTL = 300000;
@@ -47,7 +48,8 @@ export async function hasGuildAccess(req, res, next) {
     const guilds = req.session.user?.guilds || [];
     const hasManageGuild = guilds.some(g => g.id === guildId && (BigInt(g.permissions) & 0x20n) === 0x20n);
     const userId = req.session.user?.id;
-    if (userId !== config.discord.ownerId && !hasManageGuild) {
+    const isAdmin = userId ? await Admin.findOne({ userId, guildId }).collation({ locale: 'en', strength: 2 }).lean() : null;
+    if (userId !== config.discord.ownerId && !hasManageGuild && !isAdmin) {
       if (req.xhr || req.path.startsWith('/api/')) {
         return res.status(403).json({ error: 'No access to this guild' });
       }
