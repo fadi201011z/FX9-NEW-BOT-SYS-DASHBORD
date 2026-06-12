@@ -82,27 +82,14 @@
     <div class="guild-list">
       <% if (guilds && guilds.length > 0) { %>
         <% guilds.slice(0, 6).forEach(g => { %>
-          <% if (g.hasBot) { %>
-            <a href="/guilds/<%= g.id %>" class="guild-item">
-              <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-              <div class="guild-info">
-                <strong><%= g.name %></strong>
-                <span><%= g.approximate_member_count || 'N/A' %> عضو</span>
-              </div>
-              <i class="fas fa-chevron-left"></i>
-            </a>
-          <% } else { %>
-            <div class="guild-item guild-item-nobot">
-              <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-              <div class="guild-info">
-                <strong><%= g.name %></strong>
-                <span class="no-bot-label">البوت غير موجود</span>
-              </div>
-              <a href="https://discord.com/oauth2/authorize?client_id=<%= typeof clientId !== 'undefined' ? clientId : '' %>&scope=bot&permissions=8&guild_id=<%= g.id %>" target="_blank" class="btn-sm btn-add-bot" title="إضافة البوت إلى هذا السيرفر">
-                <i class="fas fa-plus-circle"></i> إضافة
-              </a>
+          <a href="/guilds/<%= g.id %>" class="guild-item">
+            <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <div class="guild-info">
+              <strong><%= g.name %></strong>
+              <span><%= g.hasBot ? 'البوت متصل ✅' : 'البوت غير موجود ⚠️' %></span>
             </div>
-          <% } %>
+            <i class="fas fa-chevron-left"></i>
+          </a>
         <% }) %>
       <% } else { %>
         <div class="empty-state">

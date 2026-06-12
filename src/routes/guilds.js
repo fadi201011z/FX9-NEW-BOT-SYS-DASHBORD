@@ -1,35 +1,38 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, isOwnerOrDev } from '../middleware/auth.js';
-import { getBotGuilds, getSupportedGuilds, getGuildRoles, getGuildMember, getGuildInfo, getInviteUrl } from '../auth/discord.js';
+import { isAuthenticated, hasGuildAccess, isOwner } from '../middleware/auth.js';
+import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
 import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity } from '../database.js';
 import config from '../config.js';
 import { getGuildTickets } from '../services/dataReader.js';
 
+let botGuildCache = { ids: null, lastFetch: 0 };
+const CACHE_TTL = 60000;
+
+async function getBotGuildIds() {
+  if (botGuildCache.ids && Date.now() - botGuildCache.lastFetch < CACHE_TTL) return botGuildCache.ids;
+  try {
+    const guilds = await getBotGuilds(config.discord.botToken);
+    botGuildCache = { ids: new Set((guilds || []).map(g => g.id)), lastFetch: Date.now() };
+  } catch (e) {
+    console.error('[getBotGuildIds Error]', e?.response?.status, e?.message);
+  }
+  return botGuildCache.ids;
+}
+
 const router = Router();
 
-router.get('/', isAuthenticated, isOwnerOrDev, async (req, res) => {
+router.get('/', isAuthenticated, isOwner, async (req, res) => {
   const allGuilds = req.session.user.guilds || [];
-
-  let botGuildIds = new Set();
-  try {
-    const botGuilds = await getBotGuilds(config.discord.botToken);
-    botGuildIds = new Set(botGuilds.map(g => g.id));
-  } catch {}
+  const botGuildIds = await getBotGuildIds() || new Set();
 
   const guilds = allGuilds
     .filter(g => {
       const perms = BigInt(g.permissions);
       const canManage = (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n;
-      return canManage || botGuildIds.has(g.id);
+      const hasBot = botGuildIds.has(g.id);
+      return canManage || hasBot;
     })
-    .map(g => {
-      const perms = BigInt(g.permissions);
-      return {
-        ...g,
-        hasBot: botGuildIds.has(g.id),
-        canManage: (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n,
-      };
-    });
+    .map(g => ({ ...g, hasBot: botGuildIds.has(g.id) }));
 
   res.render('guilds', {
     user: req.session.user,
@@ -49,13 +52,9 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
     const alerts = getAlerts(guildId, 10);
     const activity = getActivity(guildId, 10);
 
-    let botGuildIds = new Set();
+    const botGuildIds = await getBotGuildIds();
+    const botInGuild = botGuildIds ? botGuildIds.has(guildId) : false;
     let memberCount = 'N/A';
-    try {
-      const botGuilds = await getBotGuilds(config.discord.botToken);
-      botGuildIds = new Set(botGuilds.map(g => g.id));
-    } catch {}
-    const botInGuild = botGuildIds.has(guildId);
 
     if (botInGuild) {
       try {

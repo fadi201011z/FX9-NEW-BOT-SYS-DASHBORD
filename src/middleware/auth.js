@@ -23,17 +23,6 @@ export function isAuthenticated(req, res, next) {
   res.redirect('/');
 }
 
-export function isOwnerOrDev(req, res, next) {
-  const user = req.session.user;
-  if (user && (user.isOwner || user.isDev)) {
-    return next();
-  }
-  if (req.xhr || req.path.startsWith('/api/')) {
-    return res.status(403).json({ error: 'Owner or developer only' });
-  }
-  res.redirect('/access-denied');
-}
-
 export function isOwner(req, res, next) {
   if (req.session.user && req.session.user.id === config.discord.ownerId) {
     return next();
@@ -41,7 +30,7 @@ export function isOwner(req, res, next) {
   if (req.xhr || req.path.startsWith('/api/')) {
     return res.status(403).json({ error: 'Owner only' });
   }
-  res.status(403).render('error', { layout: false, message: 'غير مصرح لك — المالك فقط.', user: req.session.user });
+  res.redirect('/access-denied');
 }
 
 export async function hasGuildAccess(req, res, next) {
@@ -49,10 +38,14 @@ export async function hasGuildAccess(req, res, next) {
     const guildId = req.params.guildId || req.query.guildId;
     if (!guildId) return res.status(400).json({ error: 'Guild ID required' });
     const guilds = req.session.user?.guilds || [];
-    const hasAccess = guilds.some(g => g.id === guildId && (BigInt(g.permissions) & 0x20n) === 0x20n);
-    if (req.session.user?.id === config.discord.ownerId) {}
-    else if (config.discord.developerId && req.session.user?.id === config.discord.developerId) {}
-    else if (!hasAccess) return res.status(403).json({ error: 'No access to this guild' });
+    const hasManageGuild = guilds.some(g => g.id === guildId && (BigInt(g.permissions) & 0x20n) === 0x20n);
+    const userId = req.session.user?.id;
+    if (userId !== config.discord.ownerId && !hasManageGuild) {
+      if (req.xhr || req.path.startsWith('/api/')) {
+        return res.status(403).json({ error: 'No access to this guild' });
+      }
+      return res.redirect('/access-denied');
+    }
     const botIds = await getBotGuildIds();
     if (botIds && !botIds.has(guildId)) {
       if (req.xhr || req.path.startsWith('/api/')) {

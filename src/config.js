@@ -12,7 +12,6 @@ export default {
     callbackUrl: process.env.CALLBACK_URL,
     botToken: process.env.BOT_TOKEN,
     ownerId: process.env.OWNER_ID,
-    developerId: process.env.DEVELOPER_ID,
     scopes: ['identify', 'guilds', 'guilds.members.read', 'guilds.join'],
   },
 

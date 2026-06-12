@@ -8,27 +8,17 @@
 <div class="guild-grid">
   <% if (guilds && guilds.length > 0) { %>
     <% guilds.forEach(g => { %>
-      <a href="/guilds/<%= g.id %>" class="guild-card glass <%= !g.hasBot ? 'guild-no-bot' : '' %>">
+      <div class="guild-card glass" data-hasbot="<%= g.hasBot %>" data-guildname="<%= g.name %>" data-guildid="<%= g.id %>">
         <div class="guild-icon-wrapper">
           <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" class="guild-icon" onerror="this.style.display='none'">
           <div class="guild-icon-fallback" style="display:none">
-            <span><%= g.name.charAt(0).toUpperCase() %></span>
+            <span><%= (g.name || '?').charAt(0).toUpperCase() %></span>
           </div>
-          <% if (!g.hasBot) { %>
-            <div class="guild-bot-missing-badge" title="البوت غير موجود في هذا السيرفر">
-              <i class="fas fa-exclamation-triangle"></i>
-            </div>
-          <% } else { %>
-            <div class="guild-bot-present-badge" title="البوت متصل">
-              <i class="fas fa-check-circle"></i>
-            </div>
-          <% } %>
         </div>
         <div class="guild-card-info">
           <h3><%= g.name %></h3>
           <div class="guild-meta">
-            <span><i class="fas fa-user"></i> <%= g.approximate_member_count || 'N/A' %></span>
-            <span class="guild-badge"><%= g.permissions & 0x20 ? '👑 مالك' : 'مدير' %></span>
+            <span class="guild-bot-status"><%= g.hasBot ? 'البوت متصل ✅' : 'البوت غير موجود ⚠️' %></span>
           </div>
         </div>
         <div class="guild-card-action">
@@ -38,17 +28,68 @@
             <span class="guild-no-bot-label">البوت غير موجود</span>
           <% } %>
         </div>
-      </a>
+      </div>
     <% }) %>
   <% } else { %>
     <div class="empty-state-full">
       <i class="fas fa-exclamation-triangle"></i>
       <h3>لا توجد سيرفرات</h3>
       <p>يبدو أنك لا تملك صلاحيات إدارة في أي سيرفر أو أن البوت غير مضاف إلى سيرفراتك.</p>
-      <a href="<%= locals.inviteUrl || '#' %>" class="btn-primary">
-        <i class="fas fa-plus-circle"></i>
-        إضافة البوت إلى سيرفر
+      <a href="/maintenance" class="btn-primary">
+        <i class="fas fa-screwdriver-wrench"></i>
+        الإضافة تحت الصيانة
       </a>
     </div>
   <% } %>
 </div>
+
+<div id="guildWarningModal" class="modal-overlay" style="display:none">
+  <div class="modal-box glass">
+    <div class="modal-icon"><i class="fas fa-exclamation-triangle" style="color:#f0c040;font-size:2.5rem"></i></div>
+    <h3>البوت غير موجود</h3>
+    <p id="guildWarningText">البوت غير مضاف إلى هذا السيرفر. إضافة البوت تحت الصيانة حالياً.</p>
+    <button class="btn-primary" id="guildWarningCloseBtn">حسناً</button>
+  </div>
+</div>
+
+<style>
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-box {
+  max-width: 400px; width: 90%; padding: 32px; text-align: center;
+  border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.modal-box h3 { margin: 0; font-size: 1.2rem; }
+.modal-box p { margin: 0; opacity: 0.8; line-height: 1.6; }
+.guild-bot-status { font-size: 0.8rem; opacity: 0.8; }
+</style>
+
+<script>
+(function(){
+var modal = document.getElementById('guildWarningModal');
+var text = document.getElementById('guildWarningText');
+var closeBtn = document.getElementById('guildWarningCloseBtn');
+
+document.querySelectorAll('.guild-card').forEach(function(card) {
+  card.addEventListener('click', function(e) {
+    var hasBot = this.dataset.hasbot === 'true';
+    var name = this.dataset.guildname;
+    if (!hasBot) {
+      e.preventDefault();
+      text.textContent = 'البوت غير مضاف إلى "' + name + '". إضافة البوت تحت الصيانة حالياً.';
+      modal.style.display = 'flex';
+    } else {
+      window.location.href = '/guilds/' + (this.dataset.guildid || '');
+    }
+  });
+});
+
+function closeModal() { modal.style.display = 'none'; }
+closeBtn.addEventListener('click', closeModal);
+modal.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+})();
+</script>

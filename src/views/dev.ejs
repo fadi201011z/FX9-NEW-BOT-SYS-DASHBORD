@@ -65,19 +65,18 @@
 </div>
 
 <script>
-async function showDbStats() {
-  let totalKeys = 0;
-  let totalAdmins = 0;
-  for (const g of <%= JSON.stringify(botGuilds) %>) {
-    try {
-      const res = await fetch(`/api/guild/${g.id}/stats`);
-      const data = await res.json();
-      totalKeys += data.configKeys || 0;
-      totalAdmins += data.adminCount || 0;
-    } catch {}
-  }
-  document.getElementById('totalDbKeys').textContent = totalKeys;
-  document.getElementById('totalAdmins').textContent = totalAdmins;
-}
-showDbStats();
+const botGuilds = <%= JSON.stringify(botGuilds) %>;
+document.addEventListener('DOMContentLoaded', () => {
+  let totalKeys = 0, totalAdmins = 0;
+  Promise.all(botGuilds.map(g =>
+    fetch(`/api/guild/${g.id}/stats`).then(r => r.json()).then(d => {
+      totalKeys += d.configKeys || 0;
+      totalAdmins += d.adminCount || 0;
+    }).catch(() => {})
+  )).then(() => {
+    document.getElementById('totalDbKeys').textContent = totalKeys;
+    document.getElementById('totalAdmins').textContent = totalAdmins;
+  });
+});
 </script>
+

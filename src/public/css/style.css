@@ -637,6 +637,8 @@ a:hover { color: var(--primary-hover); }
 .guild-item > i { color: var(--text-muted); font-size: 0.8rem; }
 .guild-item-nobot { opacity: 0.65; cursor: default; }
 .guild-item-nobot:hover { background: transparent; }
+.guild-item-noaccess { opacity: 0.4; cursor: not-allowed; }
+.guild-item-noaccess:hover { background: transparent; }
 .no-bot-label { color: var(--warning, #fee75c) !important; font-size: 0.75rem; }
 .btn-add-bot { text-decoration: none; padding: 4px 10px; border-radius: 6px; background: var(--primary); color: #fff; font-size: 0.75rem; white-space: nowrap; }
 .btn-add-bot:hover { filter: brightness(1.15); }
@@ -1335,6 +1337,13 @@ a:hover { color: var(--primary-hover); }
   position: absolute; top: -4px; right: -4px;
   width: 22px; height: 22px; border-radius: 50%;
   background: var(--success); color: white; font-size: 0.7rem;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--bg-card);
+}
+.guild-access-denied-badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--danger); color: white; font-size: 0.7rem;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid var(--bg-card);
 }

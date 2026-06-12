@@ -60,6 +60,17 @@ export async function getUserGuilds(accessToken) {
   return res.data;
 }
 
+export async function getDiscordUser(userId, botToken) {
+  try {
+    const res = await axios.get(`https://discord.com/api/users/${userId}`, {
+      headers: { Authorization: `Bot ${botToken}` },
+    });
+    return res.data;
+  } catch {
+    return null;
+  }
+}
+
 export async function getGuildRoles(guildId, botToken) {
   const res = await axios.get(`https://discord.com/api/guilds/${guildId}/roles`, {
     headers: { Authorization: `Bot ${botToken}` },
@@ -120,7 +131,7 @@ export async function getGuildMembersByRole(guildId, roleId, botToken) {
 }
 
 export function getInviteUrl() {
-  return `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&permissions=8&scope=bot%20applications.commands`;
+  return '/maintenance';
 }
 
 export function getSupportedGuilds(userGuilds, botGuilds) {

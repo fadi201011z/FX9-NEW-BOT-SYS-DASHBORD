@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, isOwnerOrDev } from '../middleware/auth.js';
+import { isAuthenticated, isOwner } from '../middleware/auth.js';
 import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
 import { getAlerts, getUnreadAlerts } from '../database.js';
 import config from '../config.js';
@@ -7,7 +7,7 @@ import { getTotalTicketCount } from '../services/dataReader.js';
 
 const router = Router();
 
-router.get('/', isAuthenticated, isOwnerOrDev, async (req, res) => {
+router.get('/', isAuthenticated, isOwner, async (req, res) => {
   try {
     const userGuilds = req.session.user.guilds || [];
 
@@ -19,19 +19,8 @@ router.get('/', isAuthenticated, isOwnerOrDev, async (req, res) => {
     } catch {}
 
     const guildsWithBot = userGuilds
-      .filter(g => {
-        const perms = BigInt(g.permissions);
-        const canManage = (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n;
-        return canManage || botGuildIds.has(g.id);
-      })
-      .map(g => {
-        const perms = BigInt(g.permissions);
-        return {
-          ...g,
-          hasBot: botGuildIds.has(g.id),
-          canManage: (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n,
-        };
-      });
+      .filter(g => botGuildIds.has(g.id))
+      .map(g => ({ ...g, hasBot: true }));
 
     let totalMembers = 0;
     try {

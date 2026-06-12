@@ -27,6 +27,7 @@ import alertRoutes from './routes/alerts.js';
 import statusRoutes from './routes/status.js';
 import apiRoutes from './routes/api.js';
 import devRoutes from './routes/dev.js';
+
 import homeRoutes from './routes/home.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -61,7 +62,6 @@ app.use(session({
 // ─── View Engine ─────────────────────────────────────────────────────────
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.set('trust proxy', true);
 app.use(expressLayouts);
 app.set('layout', 'layouts/main');
 
@@ -85,6 +85,7 @@ app.use('/alerts', alertRoutes);
 app.use('/api', statusRoutes);
 app.use('/api/user', apiRoutes);
 app.use('/dev', devRoutes);
+
 
 // ─── Documentation page ──────────────────────────────────────────────────
 app.get('/docs', async (req, res) => {
@@ -117,9 +118,14 @@ app.get('/access-denied', (req, res) => {
   res.status(403).render('access-denied', { layout: false, user: req.session.user, title: 'لا يمكنك الدخول', clientId: config.discord.clientId });
 });
 
+// ─── Maintenance ─────────────────────────────────────────────────────────
+app.get('/maintenance', (req, res) => {
+  res.status(503).render('maintenance', { layout: false, user: req.session.user, title: 'تحت الصيانة' });
+});
+
 // ─── Landing Page ────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-  if (req.session?.user && (req.session.user.isOwner || req.session.user.isDev)) {
+  if (req.session?.user && req.session.user.isOwner) {
     return res.redirect('/dashboard');
   }
   const errorMap = {
@@ -131,7 +137,7 @@ app.get('/', (req, res) => {
     layout: false,
     user: req.session?.user || null,
     title: 'FX9 Dashboard — لوحة تحكم البوت',
-    inviteUrl: `https://discord.com/api/oauth2/authorize?client_id=${config.discord.clientId}&permissions=8&scope=bot%20applications.commands`,
+    inviteUrl: '/maintenance',
     supportUrl: '#',
     error: errorMap[req.query.error] || null,
   });

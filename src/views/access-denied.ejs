@@ -4,29 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>لا يمكنك الدخول — FX9 Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <div class="denied-page">
     <div class="denied-box glass fade-in-up">
-      <div class="denied-icon">
-        <i class="fas fa-shield-halved"></i>
+      <div class="denied-lock-icon">
+        <i class="fas fa-lock"></i>
       </div>
-      <h1>ليس لديك صلاحية الدخول</h1>
-      <p>عذراً، هذه اللوحة خاصة بمالك البوت والمبرمج فقط.</p>
-      <p>إذا كنت تملك سيرفراً وتريد استخدام البوت، أضف البوت إلى سيرفرك أولاً.</p>
+      <h1>غير مصرح بالدخول</h1>
+      <p class="denied-subtitle">هذه اللوحة خاصة بمالك البوت فقط</p>
+      <div class="denied-features">
+        <div class="denied-feature">
+          <i class="fas fa-robot"></i>
+          <span>لديك سيرفر وتريد استخدام البوت؟</span>
+        </div>
+        <div class="denied-feature">
+          <i class="fas fa-plus-circle"></i>
+          <span>أضف البوت إلى سيرفرك للبدء</span>
+        </div>
+      </div>
       <div class="denied-divider"></div>
       <div class="denied-actions">
-        <a href="https://discord.com/oauth2/authorize?client_id=<%= typeof clientId !== 'undefined' ? clientId : '' %>&scope=bot&permissions=8" class="btn-primary" target="_blank">
-          <i class="fab fa-discord"></i> أضف البوت إلى سيرفرك
+        <a href="/maintenance" class="denied-btn denied-btn-primary">
+          <i class="fas fa-screwdriver-wrench"></i>
+          إضافة البوت
         </a>
-        <a href="https://discord.gg/fx9" class="btn-secondary" target="_blank" style="margin-top:4px">
-          <i class="fab fa-discord"></i> سيرفر الدعم
+        <a href="https://discord.gg/fx9" class="denied-btn denied-btn-secondary" target="_blank">
+          <i class="fab fa-discord"></i>
+          سيرفر الدعم
         </a>
-        <a href="/auth/logout" class="btn-logout" style="margin-top:8px">
-          <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+        <a href="/auth/logout" class="denied-btn denied-btn-outline">
+          <i class="fas fa-sign-out-alt"></i>
+          تسجيل الخروج
         </a>
       </div>
       <div class="denied-footer">
@@ -42,87 +54,167 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--bg-primary, #0f0f1a);
+      background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%);
       direction: rtl;
+      font-family: 'Cairo', sans-serif;
     }
     .denied-page {
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       padding: 20px;
     }
     .denied-box {
-      padding: 40px 28px;
+      padding: 48px 32px 36px;
       text-align: center;
-      border-radius: 16px;
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
     }
-    .denied-icon {
-      font-size: 3.5rem;
+    .denied-box::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      left: -60px;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(237,66,69,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .denied-box::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      right: -80px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(237,66,69,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .denied-lock-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(237,66,69,0.2), rgba(237,66,69,0.05));
+      border: 2px solid rgba(237,66,69,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 2rem;
       color: #ed4245;
-      margin-bottom: 16px;
+      animation: deniedPulse 2s ease-in-out infinite;
+    }
+    @keyframes deniedPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(237,66,69,0.3); }
+      50% { box-shadow: 0 0 0 12px rgba(237,66,69,0); }
     }
     .denied-box h1 {
-      margin: 0 0 12px;
-      font-size: 1.3rem;
-      font-weight: 700;
-    }
-    .denied-box p {
       margin: 0 0 6px;
-      color: var(--text-secondary, #aaa);
-      line-height: 1.7;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text, #eee);
+    }
+    .denied-subtitle {
+      margin: 0 0 24px;
+      color: var(--text-secondary, #999);
       font-size: 0.9rem;
+    }
+    .denied-features {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .denied-feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.85rem;
+      color: var(--text-secondary, #bbb);
+      text-align: right;
+    }
+    .denied-feature i {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(88,101,242,0.15);
+      color: #5865f2;
+      font-size: 0.9rem;
+      flex-shrink: 0;
     }
     .denied-divider {
       height: 1px;
-      background: var(--border-light, rgba(255,255,255,0.08));
+      background: linear-gradient(to left, transparent, rgba(255,255,255,0.1), transparent);
       margin: 20px 0;
     }
     .denied-actions {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
-    .denied-actions a {
+    .denied-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 12px 20px;
-      border-radius: 8px;
+      gap: 10px;
+      padding: 13px 20px;
+      border-radius: 10px;
       text-decoration: none;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.9rem;
-      transition: all 0.2s;
+      transition: all 0.25s ease;
+      cursor: pointer;
     }
-    .denied-actions .btn-primary {
-      background: #5865f2;
+    .denied-btn-primary {
+      background: linear-gradient(135deg, #5865f2, #4752c4);
       color: #fff;
+      box-shadow: 0 4px 15px rgba(88,101,242,0.3);
     }
-    .denied-actions .btn-primary:hover {
-      background: #4752c4;
-      transform: translateY(-1px);
+    .denied-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(88,101,242,0.4);
     }
-    .denied-actions .btn-secondary {
-      background: var(--bg-glass-hover, rgba(255,255,255,0.06));
+    .denied-btn-secondary {
+      background: rgba(255,255,255,0.05);
       color: var(--text, #ddd);
-      border: 1px solid var(--border-light, rgba(255,255,255,0.08));
+      border: 1px solid rgba(255,255,255,0.08);
     }
-    .denied-actions .btn-secondary:hover {
-      background: var(--bg-glass, rgba(255,255,255,0.1));
+    .denied-btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.15);
     }
-    .denied-actions .btn-logout {
+    .denied-btn-outline {
       background: transparent;
       color: #ed4245;
-      border: 1px solid #ed4245;
+      border: 1px solid rgba(237,66,69,0.4);
     }
-    .denied-actions .btn-logout:hover {
-      background: rgba(237,66,69,0.1);
+    .denied-btn-outline:hover {
+      background: rgba(237,66,69,0.08);
+      border-color: #ed4245;
     }
     .denied-footer {
       margin-top: 24px;
     }
     .denied-footer p {
-      font-size: 0.75rem;
-      color: var(--text-muted, #666);
+      margin: 0;
+      font-size: 0.72rem;
+      color: var(--text-muted, #555);
+    }
+    .fade-in-up {
+      animation: deniedFadeInUp 0.6s ease forwards;
+    }
+    @keyframes deniedFadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </body>

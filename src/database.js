@@ -108,6 +108,7 @@ db.exec(`
     value TEXT,
     PRIMARY KEY (guild_id, key)
   );
+
 `);
 
 try { db.exec('ALTER TABLE command_config ADD COLUMN blocked_roles TEXT DEFAULT \'[]\''); } catch (e) {}
@@ -303,3 +304,5 @@ export function getGuildAdminRoleIds(guildId) {
   const rows = db.prepare('SELECT role_id, level FROM guild_admin_roles WHERE guild_id = ?').all(guildId);
   return rows;
 }
+
+

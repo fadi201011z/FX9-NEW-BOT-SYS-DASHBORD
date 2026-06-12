@@ -34,9 +34,8 @@ router.get('/discord/callback', async (req, res) => {
       : null;
 
     const isOwner = discordUser.id === config.discord.ownerId;
-    const isDev = config.discord.developerId && discordUser.id === config.discord.developerId;
     const hasManageGuild = guilds.some(g => (BigInt(g.permissions) & 0x20n) === 0x20n);
-    const canAccess = isOwner || isDev || hasManageGuild || bestAdmin !== null;
+    const canAccess = isOwner || hasManageGuild || bestAdmin !== null;
 
     if (!canAccess) {
       return res.redirect('/access-denied');
@@ -44,7 +43,6 @@ router.get('/discord/callback', async (req, res) => {
 
     let dashboardRole = 'member';
     if (isOwner) dashboardRole = 'owner';
-    else if (isDev) dashboardRole = 'developer';
     else if (bestAdmin) dashboardRole = bestAdmin.role;
 
     req.session.user = {
@@ -58,7 +56,6 @@ router.get('/discord/callback', async (req, res) => {
       refreshToken: tokenData.refresh_token,
       dashboardRole,
       isOwner,
-      isDev,
     };
 
     req.session.save(() => {
