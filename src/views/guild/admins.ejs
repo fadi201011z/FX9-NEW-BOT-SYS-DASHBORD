@@ -13,14 +13,16 @@
 <div class="card glass">
   <div class="card-header">
     <h3><i class="fas fa-user-tag"></i> الرتب الإدارية في السيرفر</h3>
-    <span class="text-muted" style="font-size:0.8rem">اختر الرتب التي تمنح صلاحية الدخول للوحة التحكم</span>
+    <span class="text-muted" style="font-size:0.8rem">الرتب التي تمنح صلاحية الدخول للوحة التحكم</span>
+  </div>
+  <div class="maintenance-banner">
+    <i class="fas fa-tools"></i> إضافة المدراء من الرتب قيد الصيانة — الرتب الحالية مستمرة في التحديث تلقائياً
   </div>
   <div class="admin-roles-grid">
     <% guildRoles.forEach(r => { %>
       <% const isLinked = adminRoles.some(ar => ar.role_id === r.id) %>
       <% const linkedRole = adminRoles.find(ar => ar.role_id === r.id) %>
-      <div class="admin-role-card <%= isLinked ? 'active' : '' %>"
-           onclick="openRoleModal('<%= guild.id %>', '<%= r.id %>', '<%= r.name.replace(/'/g, "\\'") %>', '<%= linkedRole ? linkedRole.level : 'moderator' %>', this)">
+      <div class="admin-role-card <%= isLinked ? 'active' : '' %> disabled">
         <div class="role-color-dot" style="background:<%= r.color ? '#' + Number(r.color).toString(16).padStart(6,'0') : '#99aab5' %>"></div>
         <div class="role-info">
           <div class="role-name"><%= r.name %></div>
@@ -145,102 +147,8 @@
   </div>
 </div>
 
-<!-- Role Level Modal -->
-<div id="roleModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeRoleModal()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h3 id="roleModalTitle">تحديد صلاحية الرتبة</h3>
-      <button class="modal-close" onclick="closeRoleModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <p id="roleModalDesc">اختر مستوى الصلاحية للرتبة</p>
-      <div class="role-levels">
-        <% ['manager', 'admin', 'moderator', 'support'].forEach(level => { %>
-          <label class="role-level-option">
-            <input type="radio" name="roleLevel" value="<%= level %>">
-            <div class="role-level-card">
-              <span class="role-level-icon">
-                <i class="fas fa-<%= level === 'manager' ? 'crown' : level === 'admin' ? 'shield-alt' : level === 'moderator' ? 'gavel' : 'headset' %>"></i>
-              </span>
-              <span class="role-level-name"><%= { manager: 'مدير', admin: 'آدمن', moderator: 'مشرف', support: 'دعم فني' }[level] %></span>
-              <span class="role-level-desc"><%= { manager: 'صلاحية كاملة على اللوحة', admin: 'إدارة الإعدادات والمدراء', moderator: 'إدارة الأعضاء والتذاكر', support: 'دعم فني فقط' }[level] %></span>
-            </div>
-          </label>
-        <% }) %>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-sm btn-secondary" onclick="closeRoleModal()">إلغاء</button>
-      <button class="btn-sm btn-primary" id="roleModalConfirm" onclick="confirmRole()">تأكيد</button>
-    </div>
-  </div>
-</div>
-
 <script>
 const GUILD_ID = '<%= guild.id %>';
-let pendingRoleData = null;
-
-function openRoleModal(guildId, roleId, roleName, currentLevel, el) {
-  pendingRoleData = { guildId, roleId, roleName, currentLevel, el, wasActive: el.classList.contains('active') };
-  document.getElementById('roleModalTitle').textContent = 'صلاحية الرتبة: ' + roleName;
-  document.getElementById('roleModalDesc').textContent = 'اختر مستوى الصلاحية للرتبة "' + roleName + '"';
-  document.querySelectorAll('input[name="roleLevel"]').forEach(r => {
-    r.checked = r.value === currentLevel;
-  });
-  document.getElementById('roleModal').style.display = 'flex';
-}
-
-function closeRoleModal() {
-  document.getElementById('roleModal').style.display = 'none';
-  pendingRoleData = null;
-}
-
-async function confirmRole() {
-  if (!pendingRoleData) return;
-  const { guildId, roleId, roleName, el, wasActive } = pendingRoleData;
-  const selected = document.querySelector('input[name="roleLevel"]:checked');
-  if (!selected) { showToast('❌ اختر مستوى صلاحية'); return; }
-  const level = selected.value;
-  const btn = document.getElementById('roleModalConfirm');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-  try {
-    if (!wasActive) {
-      el.classList.add('active');
-      const res = await fetch(`/admins/${guildId}/set-role`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roleId, level }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        const memberCount = data.memberCount || data.added || 0;
-        showToast(`✅ ${memberCount} عضو من ${roleName} أصبحوا مدراء`);
-      } else {
-        showToast('❌ ' + (data.error || data.message));
-      }
-      if (data.success) setTimeout(() => location.reload(), 1000);
-    } else {
-      const res = await fetch(`/admins/${guildId}/set-role`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roleId, level }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast(`✅ تم تحديث صلاحية ${roleName} — ${data.memberCount || data.added || 0} عضو`);
-      } else {
-        showToast('❌ ' + (data.error || data.message));
-      }
-      setTimeout(() => location.reload(), 1000);
-    }
-  } catch (err) {
-    showToast('❌ فشل العملية');
-    if (!wasActive) el.classList.remove('active');
-  }
-  btn.disabled = false;
-  btn.innerHTML = 'تأكيد';
-  closeRoleModal();
-}
 
 function filterAdmins() {
   const q = document.getElementById('adminSearch').value.toLowerCase();
