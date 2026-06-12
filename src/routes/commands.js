@@ -119,7 +119,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
     const { command, enabled } = req.body;
     const isEnabled = enabled !== undefined ? Boolean(enabled) : true;
 
-    const existing = (await getAllCommandConfigs(guildId)).find(c => c.command_name === command) || {};
+    const existing = (await getAllCommandConfigs(guildId)).find(c => c.commandName === command) || {};
 
     // Save to DB first regardless of bot status
     setCommandConfig(guildId, command, {

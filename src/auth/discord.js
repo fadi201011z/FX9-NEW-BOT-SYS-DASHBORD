@@ -71,10 +71,16 @@ export async function getDiscordUser(userId, botToken) {
   }
 }
 
+const rolesCache = new Map();
+const ROLES_CACHE_TTL = 300000;
+
 export async function getGuildRoles(guildId, botToken) {
+  const cached = rolesCache.get(guildId);
+  if (cached && Date.now() - cached.ts < ROLES_CACHE_TTL) return cached.data;
   const res = await axios.get(`https://discord.com/api/guilds/${guildId}/roles`, {
     headers: { Authorization: `Bot ${botToken}` },
   });
+  rolesCache.set(guildId, { data: res.data, ts: Date.now() });
   return res.data;
 }
 
