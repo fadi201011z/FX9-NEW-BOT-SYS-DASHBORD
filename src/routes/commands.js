@@ -121,25 +121,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
 
     const existing = (await getAllCommandConfigs(guildId)).find(c => c.command_name === command) || {};
 
-    // Send to bot's in-memory state via API (single source of truth)
-    let botOk = false;
-    try {
-      const botRes = await axios.post(`http://localhost:10001/api/sync-command`, {
-        guildId, commandName: command, enabled: isEnabled,
-        allowedRoles: existing.allowed_roles ? JSON.parse(existing.allowed_roles) : [],
-        blockedRoles: existing.blocked_roles ? JSON.parse(existing.blocked_roles) : [],
-      }, { timeout: 5000 });
-      botOk = botRes.data && botRes.data.synced;
-    } catch (e) {
-      console.error('[Commands] Bot sync FAILED:', e.code || e.message);
-      return res.status(502).json({ error: 'فشل الاتصال بالبوت', detail: e.message, code: e.code });
-    }
-
-    if (!botOk) {
-      return res.status(502).json({ error: 'البوت لم يؤكد التحديث' });
-    }
-
-    // Write to local DB for dashboard display (only after bot confirms)
+    // Save to DB first regardless of bot status
     setCommandConfig(guildId, command, {
       enabled: isEnabled ? 1 : 0,
       allowedRoles: existing.allowed_roles ? JSON.parse(existing.allowed_roles) : [],
@@ -150,6 +132,17 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
 
     logActivity(req.session.user.id, guildId, 'update_command', command,
       isEnabled ? 'تفعيل أمر' : 'تعطيل أمر', req.ip, req.sessionID);
+
+    // Try to sync with bot (non-blocking)
+    try {
+      await axios.post(`http://localhost:10001/api/sync-command`, {
+        guildId, commandName: command, enabled: isEnabled,
+        allowedRoles: existing.allowed_roles ? JSON.parse(existing.allowed_roles) : [],
+        blockedRoles: existing.blocked_roles ? JSON.parse(existing.blocked_roles) : [],
+      }, { timeout: 5000 });
+    } catch (e) {
+      console.error('[Commands] Bot sync skipped:', e.code || e.message);
+    }
 
     res.json({ success: true });
   } catch (err) {
@@ -230,18 +223,15 @@ router.post('/:guildId/permissions', isAuthenticated, hasGuildAccess, canModify,
     logActivity(req.session.user.id, guildId, 'update_command_perms', command,
       'تحديث صلاحيات الأمر', req.ip, req.sessionID);
 
-    // Sync with bot
-    let botOk = false;
+    // Try to sync with bot (non-blocking)
     try {
-      const botRes = await axios.post(`http://localhost:10001/api/sync-command`, {
+      await axios.post(`http://localhost:10001/api/sync-command`, {
         guildId, commandName: command, enabled: existing.enabled ?? 1,
         allowedRoles: ar, blockedRoles: br,
       }, { timeout: 5000 });
-      botOk = botRes.data && botRes.data.synced;
     } catch (e) {
-      return res.status(502).json({ error: 'فشل الاتصال بالبوت', detail: e.message });
+      console.error('[Commands] Bot perms sync skipped:', e.message);
     }
-    if (!botOk) return res.status(502).json({ error: 'البوت لم يؤكد التحديث' });
 
     res.json({ success: true });
   } catch (err) {
