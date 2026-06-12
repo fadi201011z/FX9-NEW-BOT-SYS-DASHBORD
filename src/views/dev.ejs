@@ -58,8 +58,8 @@
     <button class="btn-primary" onclick="showDbStats()">
       <i class="fas fa-chart-bar"></i> إحصائيات DB
     </button>
-    <button class="btn-danger" onclick="if(confirm('هل أنت متأكد؟'))alert('تم — هذا إجراء تجريبي')">
-      <i class="fas fa-trash"></i> تنظيف DB
+    <button class="btn-danger" onclick="cleanupTickets()">
+      <i class="fas fa-broom"></i> تنظيف التذاكر القديمة
     </button>
   </div>
 </div>
@@ -78,5 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('totalAdmins').textContent = totalAdmins;
   });
 });
+
+async function cleanupTickets() {
+  if (!confirm('تنظيف التذاكر القديمة من قاعدة البيانات؟')) return;
+  try {
+    const res = await fetch('/api/tickets/cleanup', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ تم حذف ' + data.deleted + ' تذكرة');
+    } else {
+      alert('⚠️ ' + (data.error || 'لا يمكن التنظيف'));
+    }
+  } catch { alert('❌ فشل التنظيف'); }
+}
 </script>
 

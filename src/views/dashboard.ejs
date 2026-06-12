@@ -147,10 +147,6 @@
       <i class="fas fa-heartbeat"></i>
       <span>حالة البوت</span>
     </a>
-    <button class="action-item" onclick="cleanupTickets()" style="border:none;cursor:pointer;color:var(--danger)">
-      <i class="fas fa-broom"></i>
-      <span>تنظيف التذاكر</span>
-    </button>
   </div>
 </div>
 
@@ -173,13 +169,4 @@ async function refreshDashboard() {
 }
 refreshDashboard();
 
-async function cleanupTickets() {
-  if (!confirm('تنظيف جميع التذاكر القديمة من قاعدة البيانات؟')) return;
-  try {
-    const res = await fetch('/api/tickets/cleanup', { method: 'POST' });
-    const data = await res.json();
-    alert('✅ تم حذف ' + data.deleted + ' تذكرة');
-    if (data.deleted > 0) refreshDashboard();
-  } catch { alert('❌ فشل التنظيف'); }
-}
 </script>

@@ -65,6 +65,9 @@ router.get('/bot/info', async (req, res) => {
 
 router.post('/tickets/cleanup', isAuthenticated, isOwner, async (req, res) => {
   try {
+    const total = await Ticket.countDocuments({});
+    if (total === 0) return res.json({ success: true, deleted: 0, message: 'لا توجد تذاكر' });
+    if (total > 5) return res.status(400).json({ error: 'يوجد أكثر من 5 تذاكر حقيقية، لا يمكن التنظيف' });
     const result = await Ticket.deleteMany({});
     res.json({ success: true, deleted: result.deletedCount });
   } catch (err) {
