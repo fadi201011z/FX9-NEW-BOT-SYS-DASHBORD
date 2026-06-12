@@ -182,9 +182,9 @@ router.post('/:guildId/set-role', isAuthenticated, hasGuildAccess, sanitizeInput
     const { roleId, level } = req.body;
     if (!roleId || !level) return res.status(400).json({ error: 'Role ID and level required' });
 
-    setGuildAdminRole(guildId, roleId, level, req.session.user.id);
-    logActivity(req.session.user.id, guildId, 'set_admin_role', roleId, `تعيين رتبة ${level} للدور`, req.ip, req.sessionID);
-    logAudit(req.session.user.id, guildId, 'set_admin_role', 'admin_role', null, roleId, req.ip, req.sessionID);
+    await setGuildAdminRole(guildId, roleId, level, req.session.user.id);
+    await logActivity(req.session.user.id, guildId, 'set_admin_role', roleId, `تعيين رتبة ${level} للدور`, req.ip, req.sessionID);
+    await logAudit(req.session.user.id, guildId, 'set_admin_role', 'admin_role', null, roleId, req.ip, req.sessionID);
 
     // Auto-sync after adding a role
     const result = await autoSyncAdmins(guildId, req.session.user.id);
@@ -201,9 +201,9 @@ router.post('/:guildId/remove-role', isAuthenticated, hasGuildAccess, sanitizeIn
     const { roleId } = req.body;
     if (!roleId) return res.status(400).json({ error: 'Role ID required' });
 
-    removeGuildAdminRole(guildId, roleId);
-    logActivity(req.session.user.id, guildId, 'remove_admin_role', roleId, 'إزالة دور إداري', req.ip, req.sessionID);
-    logAudit(req.session.user.id, guildId, 'remove_admin_role', 'admin_role', roleId, null, req.ip, req.sessionID);
+    await removeGuildAdminRole(guildId, roleId);
+    await logActivity(req.session.user.id, guildId, 'remove_admin_role', roleId, 'إزالة دور إداري', req.ip, req.sessionID);
+    await logAudit(req.session.user.id, guildId, 'remove_admin_role', 'admin_role', roleId, null, req.ip, req.sessionID);
 
     // Auto-sync after removing a role
     const result = await autoSyncAdmins(guildId, req.session.user.id);
@@ -219,7 +219,7 @@ router.post('/:guildId/unlink', isAuthenticated, hasGuildAccess, sanitizeInput, 
     const { guildId } = req.params;
     const { roleId } = req.body;
     if (!roleId) return res.status(400).json({ error: 'Role ID required' });
-    removeGuildAdminRole(guildId, roleId);
+    await removeGuildAdminRole(guildId, roleId);
     await autoSyncAdmins(guildId, req.session.user.id);
     res.json({ success: true, message: 'تم إلغاء ربط الدور والمزامنة.' });
   } catch (err) {
@@ -235,9 +235,9 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, sanitizeInput, asy
     const { userId, role } = req.body;
     if (!userId || !role) return res.status(400).json({ error: 'User ID and role required' });
 
-    setAdminRole(userId, guildId, role, req.session.user.id);
-    logActivity(req.session.user.id, guildId, 'add_admin', userId, `إضافة مدير ${role}`, req.ip, req.sessionID);
-    logAudit(req.session.user.id, guildId, 'add_admin', 'admin_role', null, role, req.ip, req.sessionID);
+    await setAdminRole(userId, guildId, role, req.session.user.id);
+    await logActivity(req.session.user.id, guildId, 'add_admin', userId, `إضافة مدير ${role}`, req.ip, req.sessionID);
+    await logAudit(req.session.user.id, guildId, 'add_admin', 'admin_role', null, role, req.ip, req.sessionID);
 
     res.json({ success: true, message: 'تمت إضافة المدير.' });
   } catch (err) {
@@ -251,9 +251,9 @@ router.post('/:guildId/remove', isAuthenticated, hasGuildAccess, sanitizeInput, 
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: 'User ID required' });
 
-    removeAdmin(userId, guildId);
-    logActivity(req.session.user.id, guildId, 'remove_admin', userId, 'إزالة مدير', req.ip, req.sessionID);
-    logAudit(req.session.user.id, guildId, 'remove_admin', 'admin', null, userId, req.ip, req.sessionID);
+    await removeAdmin(userId, guildId);
+    await logActivity(req.session.user.id, guildId, 'remove_admin', userId, 'إزالة مدير', req.ip, req.sessionID);
+    await logAudit(req.session.user.id, guildId, 'remove_admin', 'admin', null, userId, req.ip, req.sessionID);
 
     res.json({ success: true, message: 'تمت إزالة المدير.' });
   } catch (err) {
@@ -267,9 +267,9 @@ router.post('/:guildId/update-role', isAuthenticated, hasGuildAccess, sanitizeIn
     const { userId, role } = req.body;
     if (!userId || !role) return res.status(400).json({ error: 'User ID and role required' });
 
-    setAdminRole(userId, guildId, role, req.session.user.id);
-    logActivity(req.session.user.id, guildId, 'update_admin_role', userId, `تغيير رتبة إلى ${role}`, req.ip, req.sessionID);
-    logAudit(req.session.user.id, guildId, 'update_admin_role', 'admin_role', null, role, req.ip, req.sessionID);
+    await setAdminRole(userId, guildId, role, req.session.user.id);
+    await logActivity(req.session.user.id, guildId, 'update_admin_role', userId, `تغيير رتبة إلى ${role}`, req.ip, req.sessionID);
+    await logAudit(req.session.user.id, guildId, 'update_admin_role', 'admin_role', null, role, req.ip, req.sessionID);
 
     res.json({ success: true, message: 'تم تحديث الرتبة.' });
   } catch (err) {
