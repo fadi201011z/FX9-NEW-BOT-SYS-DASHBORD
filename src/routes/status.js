@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, isOwner } from '../middleware/auth.js';
 import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig } from '../database.js';
 import config from '../config.js';
 import Ticket from '../models/Ticket.js';
@@ -61,6 +61,15 @@ router.get('/bot/info', async (req, res) => {
     uptime: process.uptime(),
     nodeVersion: process.version,
   });
+});
+
+router.post('/tickets/cleanup', isAuthenticated, isOwner, async (req, res) => {
+  try {
+    const result = await Ticket.deleteMany({});
+    res.json({ success: true, deleted: result.deletedCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;
