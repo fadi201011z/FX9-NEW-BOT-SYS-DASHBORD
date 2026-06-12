@@ -9,32 +9,15 @@
   </div>
 </div>
 
-<% if (guildRoles && guildRoles.length > 0) { %>
 <div class="card glass">
   <div class="card-header">
     <h3><i class="fas fa-user-tag"></i> الرتب الإدارية في السيرفر</h3>
-    <span class="text-muted" style="font-size:0.8rem">اختر الرتب التي تمنح صلاحية الدخول للوحة التحكم</span>
   </div>
-  <div style="padding:16px 18px 8px;text-align:center;font-size:1.1rem;font-weight:700;color:#f0b400;display:flex;align-items:center;justify-content:center;gap:8px">
-    <i class="fas fa-tools"></i> الخاصية تحت الصيانة — الرتب الحالية مستمرة في التحديث تلقائياً
-  </div>
-  <div class="admin-roles-grid">
-    <% guildRoles.forEach(r => { %>
-      <% const isLinked = adminRoles.some(ar => ar.role_id === r.id) %>
-      <% const linkedRole = adminRoles.find(ar => ar.role_id === r.id) %>
-      <div class="admin-role-card <%= isLinked ? 'active' : '' %>"
-           onclick="openRoleModal('<%= guild.id %>', '<%= r.id %>', '<%= r.name.replace(/'/g, "\\'") %>', '<%= linkedRole ? linkedRole.level : 'moderator' %>', this)">
-        <div class="role-color-dot" style="background:<%= r.color ? '#' + Number(r.color).toString(16).padStart(6,'0') : '#99aab5' %>"></div>
-        <div class="role-info">
-          <div class="role-name"><%= r.name %></div>
-          <div class="role-meta"><%= r.members_count || 0 %> عضو</div>
-        </div>
-        <div class="role-check"><i class="fas fa-check"></i></div>
-      </div>
-    <% }) %>
+  <div style="padding:24px 18px;text-align:center;font-size:1.15rem;font-weight:700;color:#f0b400;display:flex;flex-direction:column;align-items:center;gap:10px">
+    <i class="fas fa-tools" style="font-size:1.6rem"></i>
+    <span>الخاصية تحت الصيانة — الرتب الحالية مستمرة في التحديث تلقائياً</span>
   </div>
 </div>
-<% } %>
 
 <% if (adminRoleMembers && adminRoleMembers.length > 0) { %>
 <div class="card glass">
