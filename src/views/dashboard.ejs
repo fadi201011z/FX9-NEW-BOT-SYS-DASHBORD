@@ -63,7 +63,7 @@
       <i class="fas fa-heartbeat"></i>
     </div>
     <div class="stat-info">
-      <span class="stat-value" id="botPing">---</span>
+      <span class="stat-value" id="botPing"><%= typeof botPing === 'number' ? botPing + 'ms' : '---' %></span>
       <span class="stat-label">Ping</span>
     </div>
     <div class="stat-trend">
@@ -153,12 +153,11 @@
 <script>
 async function refreshDashboard() {
   try {
-    const [statusRes, ticketRes] = await Promise.all([
+    const [statsRes, ticketRes] = await Promise.all([
       fetch('/api/status'),
       fetch('/api/tickets/stats'),
     ]);
-    const status = await statusRes.json();
-    document.getElementById('botPing').textContent = status.responseTime + 'ms';
+    const status = await statsRes.json();
     document.getElementById('botStatusText').textContent = 'متصل';
     if (ticketRes.ok) {
       const tickets = await ticketRes.json();

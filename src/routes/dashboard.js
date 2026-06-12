@@ -23,7 +23,16 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
       .map(g => ({ ...g, hasBot: true }));
 
     const totalGuilds = botGuilds.length || guildsWithBot.length;
-    const totalMembers = 0;
+    let totalMembers = 0;
+    let botPing = null;
+    try {
+      const statsRes = await fetch(`${config.botApiUrl}/api/stats`);
+      if (statsRes.ok) {
+        const stats = await statsRes.json();
+        totalMembers = stats.members;
+        botPing = stats.ping;
+      }
+    } catch {}
     const alerts = await getUnreadAlerts(null);
     const totalTickets = await getTotalTicketCount();
 
@@ -32,6 +41,7 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
       guilds: guildsWithBot,
       totalGuilds,
       totalMembers,
+      botPing,
       totalTickets,
       inviteUrl: getInviteUrl(),
       alerts,
