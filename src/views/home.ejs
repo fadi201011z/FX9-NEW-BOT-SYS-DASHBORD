@@ -1,138 +1,286 @@
 <% layout = 'layouts/main' %>
 <% currentPage = 'home' %>
+<%
+  const guilds = user?.guilds || [];
+%>
 <div class="home-page fade-in-up">
-  <div class="home-header glass">
-    <div class="home-header-badge">
-      <i class="fas fa-bolt"></i> FX9 Merged Bot v5.0
+  <!-- بطاقة الترحيب -->
+  <div class="home-welcome glass">
+    <div class="welcome-avatar">
+      <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="Avatar">
+      <span class="status-dot"></span>
     </div>
-    <h1>مرحباً بك في <span class="gradient-text">FX9 Dashboard</span></h1>
-    <p>لوحة التحكم المتكاملة لإدارة جميع أنظمة البوت الخاص بك</p>
-  </div>
-
-  <div class="home-features">
-    <div class="home-feature glass">
-      <div class="home-feature-icon" style="--fc: #5865f2">
-        <i class="fas fa-shield-alt"></i>
+    <div class="welcome-text">
+      <div class="welcome-badge">
+        <i class="fas fa-bolt"></i> FX9 Bot v5.0
       </div>
-      <h3>الحماية</h3>
-      <p>نظام حماية متكامل ضد السبام، النيوك، الرايد، واللينكات</p>
+      <h1>مرحباً بك، <span class="gradient-text"><%= user.username %></span></h1>
+      <p>لوحة تحكم متكاملة — تحكم بجميع أنظمة البوت من مكان واحد</p>
     </div>
-    <div class="home-feature glass">
-      <div class="home-feature-icon" style="--fc: #57f287">
-        <i class="fas fa-ticket-alt"></i>
+    <div class="welcome-stats">
+      <div class="ws-item">
+        <span class="ws-num"><%= managedGuilds.length %></span>
+        <span class="ws-label">سيرفراتك</span>
       </div>
-      <h3>التذاكر</h3>
-      <p>نظام دعم فني متكامل مع إدارة وتقييم التذاكر</p>
-    </div>
-    <div class="home-feature glass">
-      <div class="home-feature-icon" style="--fc: #fee75c">
-        <i class="fas fa-microphone"></i>
+      <div class="ws-item">
+        <span class="ws-num"><%= guilds.length %></span>
+        <span class="ws-label">إجمالي السيرفرات</span>
       </div>
-      <h3>الرومات المؤقتة</h3>
-      <p>قنوات صوتية بنظام Join-to-Create مع لوحة تحكم</p>
-    </div>
-    <div class="home-feature glass">
-      <div class="home-feature-icon" style="--fc: #ed4245">
-        <i class="fas fa-gavel"></i>
+      <div class="ws-item">
+        <span class="ws-num">52</span>
+        <span class="ws-label">أمر</span>
       </div>
-      <h3>الإشراف</h3>
-      <p>أوامر إشراف متكاملة مع سجلات وتحذيرات</p>
-    </div>
-    <div class="home-feature glass">
-      <div class="home-feature-icon" style="--fc: #eb459e">
-        <i class="fas fa-music"></i>
-      </div>
-      <h3>الموسيقى</h3>
-      <p>مشغل موسيقى متكامل مع يوتيوب وقوائم تشغيل</p>
-    </div>
-    <div class="home-feature glass">
-      <div class="home-feature-icon" style="--fc: #5865f2">
-        <i class="fas fa-cog"></i>
-      </div>
-      <h3>الإعدادات</h3>
-      <p>تحكم كامل بإعدادات البوت والأوامر لكل سيرفر</p>
     </div>
   </div>
 
-  <div class="home-actions">
-    <a href="/dashboard" class="btn-primary btn-glow">
-      <i class="fas fa-th-large"></i> لوحة التحكم
+  <!-- بطاقات الأنظمة -->
+  <div class="home-section-label">
+    <i class="fas fa-cubes"></i> أنظمة البوت
+  </div>
+  <div class="home-systems">
+    <a href="/dashboard" class="sys-card glass" style="--sc: #5865f2">
+      <div class="sys-icon"><i class="fas fa-th-large"></i></div>
+      <div class="sys-info">
+        <h3>لوحة التحكم</h3>
+        <p>نظرة عامة على كل سيرفراتك وإحصائيات سريعة</p>
+      </div>
+      <i class="fas fa-chevron-left sys-arrow"></i>
     </a>
-    <a href="/guilds" class="btn-secondary">
-      <i class="fas fa-server"></i> السيرفرات
+    <a href="/guilds" class="sys-card glass" style="--sc: #57f287">
+      <div class="sys-icon"><i class="fas fa-server"></i></div>
+      <div class="sys-info">
+        <h3>السيرفرات</h3>
+        <p>إدارة سيرفراتك وضبط إعدادات كل سيرفر</p>
+      </div>
+      <i class="fas fa-chevron-left sys-arrow"></i>
     </a>
+    <a href="/guilds?tab=protection" class="sys-card glass" style="--sc: #ed4245">
+      <div class="sys-icon"><i class="fas fa-shield-alt"></i></div>
+      <div class="sys-info">
+        <h3>الحماية</h3>
+        <p>حماية السيرفر من السبام، النيوك، الرايد واللينكات</p>
+      </div>
+      <i class="fas fa-chevron-left sys-arrow"></i>
+    </a>
+    <a href="/guilds?tab=tickets" class="sys-card glass" style="--sc: #fee75c">
+      <div class="sys-icon"><i class="fas fa-ticket-alt"></i></div>
+      <div class="sys-info">
+        <h3>التذاكر</h3>
+        <p>نظام دعم فني متكامل مع إدارة وتقييم التذاكر</p>
+      </div>
+      <i class="fas fa-chevron-left sys-arrow"></i>
+    </a>
+    <a href="/guilds?tab=voice" class="sys-card glass" style="--sc: #eb459e">
+      <div class="sys-icon"><i class="fas fa-microphone"></i></div>
+      <div class="sys-info">
+        <h3>الرومات المؤقتة</h3>
+        <p>قنوات صوتية بنظام Join-to-Create مع لوحة تحكم</p>
+      </div>
+      <i class="fas fa-chevron-left sys-arrow"></i>
+    </a>
+    <a href="/guilds?tab=commands" class="sys-card glass" style="--sc: #5865f2">
+      <div class="sys-icon"><i class="fas fa-terminal"></i></div>
+      <div class="sys-info">
+        <h3>الأوامر</h3>
+        <p>تشغيل/إيقاف الأوامر وتغيير صلاحياتها بسهولة</p>
+      </div>
+      <i class="fas fa-chevron-left sys-arrow"></i>
+    </a>
+  </div>
+
+  <!-- روابط سريعة -->
+  <div class="home-section-label">
+    <i class="fas fa-bolt"></i> إجراءات سريعة
+  </div>
+  <div class="home-quick">
+    <a href="/status" class="quick-card glass">
+      <i class="fas fa-heartbeat"></i>
+      <span>حالة البوت</span>
+    </a>
+    <a href="/dev" class="quick-card glass">
+      <i class="fas fa-code"></i>
+      <span>المطور</span>
+    </a>
+    <a href="/docs" class="quick-card glass">
+      <i class="fas fa-book"></i>
+      <span>التوثيق</span>
+    </a>
+    <button onclick="theme && theme.toggle()" class="quick-card glass" style="cursor:pointer;border:none;font-family:var(--font)">
+      <i class="fas fa-palette"></i>
+      <span>تغيير الثيم</span>
+    </button>
   </div>
 </div>
 
 <style>
 .home-page {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 32px 24px;
 }
-.home-header {
-  text-align: center;
-  padding: 48px 32px;
-  border-radius: 16px;
-  margin-bottom: 32px;
+
+/* 📌 بطاقة الترحيب */
+.home-welcome {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 32px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
 }
-.home-header-badge {
+.home-welcome::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -20%;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(88,101,242,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.welcome-avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+.welcome-avatar img {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--primary);
+  box-shadow: 0 0 30px var(--primary-glow);
+}
+.status-dot {
+  position: absolute;
+  bottom: 2px; right: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--success);
+  border: 3px solid var(--bg-secondary);
+}
+.welcome-text { flex: 1; }
+.welcome-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  padding: 4px 14px;
   border-radius: 20px;
   background: rgba(88,101,242,.15);
   color: #5865f2;
-  font-size: .8rem;
+  font-size: .75rem;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
-.home-header h1 {
-  font-size: 1.8rem;
-  margin: 0 0 12px;
+.welcome-text h1 { font-size: 1.6rem; margin: 0 0 6px; }
+.welcome-text p { color: var(--text-muted); font-size: .95rem; margin: 0; }
+.welcome-stats {
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
 }
-.home-header p {
-  color: var(--text-secondary, #aaa);
-  font-size: 1.05rem;
-  margin: 0;
+.ws-item { text-align: center; }
+.ws-num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.home-features {
+.ws-label { font-size: .75rem; color: var(--text-muted); }
+
+/* 📌 عناوين الأقسام */
+.home-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  padding-right: 4px;
+}
+.home-section-label i { font-size: .85rem; }
+
+/* 📌 بطاقات الأنظمة */
+.home-systems {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.sys-card {
+  display: flex;
+  align-items: center;
   gap: 16px;
-  margin-bottom: 32px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
 }
-.home-feature {
-  padding: 24px;
-  border-radius: 12px;
-  text-align: center;
+.sys-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--sc, #5865f2) 10%, transparent), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
 }
-.home-feature-icon {
-  width: 48px;
-  height: 48px;
+.sys-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--sc, #5865f2);
+}
+.sys-card:hover::before { opacity: 1; }
+.sys-icon {
+  width: 46px; height: 46px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
-  margin: 0 auto 12px;
-  background: color-mix(in srgb, var(--fc, #5865f2) 20%, transparent);
-  color: var(--fc, #5865f2);
+  font-size: 1.2rem;
+  background: color-mix(in srgb, var(--sc, #5865f2) 18%, transparent);
+  color: var(--sc, #5865f2);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
-.home-feature h3 {
-  margin: 0 0 6px;
-  font-size: 1rem;
-}
-.home-feature p {
-  margin: 0;
-  font-size: .85rem;
-  color: var(--text-secondary, #aaa);
-  line-height: 1.6;
-}
-.home-actions {
-  display: flex;
+.sys-info { flex: 1; position: relative; z-index: 1; }
+.sys-info h3 { margin: 0; font-size: .95rem; }
+.sys-info p { margin: 2px 0 0; font-size: .78rem; color: var(--text-muted); }
+.sys-arrow { color: var(--text-muted); font-size: .8rem; position: relative; z-index: 1; }
+.sys-card:hover .sys-arrow { color: var(--sc, #5865f2); transform: translateX(-3px); transition: all var(--transition); }
+
+/* 📌 الإجراءات السريعة */
+.home-quick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
-  justify-content: center;
+}
+.quick-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  border-radius: 14px;
+  text-align: center;
+  color: var(--text);
+  transition: all var(--transition);
+}
+.quick-card:hover {
+  transform: translateY(-2px);
+  background: var(--bg-glass-hover);
+  color: var(--text);
+}
+.quick-card i { font-size: 1.3rem; color: var(--primary); }
+.quick-card span { font-size: .85rem; font-weight: 600; }
+
+/* 📌 استجابة */
+@media (max-width: 720px) {
+  .home-welcome { flex-direction: column; text-align: center; padding: 28px 20px; }
+  .welcome-stats { width: 100%; justify-content: center; }
+  .home-systems { grid-template-columns: 1fr; }
+  .home-quick { grid-template-columns: repeat(2, 1fr); }
+  .welcome-text h1 { font-size: 1.3rem; }
 }
 </style>
