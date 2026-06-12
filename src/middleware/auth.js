@@ -79,6 +79,16 @@ export function canModify(req, res, next) {
   res.status(403).render('error', { layout: false, message: 'ليس لديك صلاحية التعديل. المدير فقط يمكنه التعديل.', user: req.session.user });
 }
 
+export async function isOwnerOrAdmin(req, res, next) {
+  if (req.session.user?.id === config.discord.ownerId) return next();
+  const adminCount = await Admin.countDocuments({ userId: req.session.user?.id });
+  if (adminCount > 0) return next();
+  if (req.xhr || req.path.startsWith('/api/')) {
+    return res.status(403).json({ error: 'Owner or admin only' });
+  }
+  res.redirect('/access-denied');
+}
+
 export function checkPermission(requiredPermission) {
   return (req, res, next) => {
     const userRole = req.session.user?.dashboardRole || 'member';

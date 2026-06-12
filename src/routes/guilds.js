@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, isOwner } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, isOwnerOrAdmin } from '../middleware/auth.js';
 import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
-import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity } from '../database.js';
+import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
 import { getGuildTickets, getTicketGuildConfig } from '../services/dataReader.js';
 
@@ -26,16 +26,25 @@ async function getBotGuildIds() {
 
 const router = Router();
 
-router.get('/', isAuthenticated, isOwner, async (req, res) => {
+router.get('/', isAuthenticated, isOwnerOrAdmin, async (req, res) => {
   const allGuilds = req.session.user.guilds || [];
   const botGuildIds = await getBotGuildIds() || new Set();
+  const userId = req.session.user.id;
+
+  // Get guild IDs where user has Admin records (for non-owner admins)
+  let adminGuildIds = new Set();
+  if (userId !== config.discord.ownerId) {
+    const adminRecords = await getUserAdminGuilds(userId);
+    adminGuildIds = new Set((adminRecords || []).map(a => a.guildId));
+  }
 
   const guilds = allGuilds
     .filter(g => {
       const perms = BigInt(g.permissions);
       const canManage = (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n;
       const hasBot = botGuildIds.has(g.id);
-      return canManage || hasBot;
+      const isAdmin = adminGuildIds.has(g.id);
+      return canManage || hasBot || isAdmin;
     })
     .map(g => ({ ...g, hasBot: botGuildIds.has(g.id) }));
 
