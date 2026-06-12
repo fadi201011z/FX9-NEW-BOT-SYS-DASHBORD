@@ -126,14 +126,27 @@ export async function getGuildChannels(guildId, botToken) {
 
 export async function getGuildMembersByRole(guildId, roleId, botToken) {
   try {
-    const res = await axios.get(`https://discord.com/api/guilds/${guildId}/members?limit=1000`, {
-      headers: { Authorization: `Bot ${botToken}` },
-    });
-    const members = res.data || [];
-    return members.filter(m => m.roles && m.roles.includes(roleId));
+    const allMembers = await getAllGuildMembersPaginated(guildId, botToken);
+    return allMembers.filter(m => m.roles && m.roles.includes(roleId));
   } catch {
     return [];
   }
+}
+
+export async function getAllGuildMembersPaginated(guildId, botToken) {
+  let members = [];
+  let lastId = null;
+  for (let i = 0; i < 10; i++) {
+    let url = `https://discord.com/api/guilds/${guildId}/members?limit=1000`;
+    if (lastId) url += `&after=${lastId}`;
+    const res = await axios.get(url, { headers: { Authorization: `Bot ${botToken}` } });
+    const batch = res.data || [];
+    if (batch.length === 0) break;
+    members = members.concat(batch);
+    if (batch.length < 1000) break;
+    lastId = batch[batch.length - 1].user.id;
+  }
+  return members;
 }
 
 export function getInviteUrl() {

@@ -6,7 +6,7 @@ import {
   getAdminsByGuildAndAddedBy, addAdminRaw, removeAdminByUserGuildAddedBy, getAdminRole,
 } from '../database.js';
 import { sanitizeInput } from '../middleware/security.js';
-import { getGuildRoles, getGuildMember, getGuildMembersByRole, fetchBotMembersByRoles, fetchBotUser, fetchBotMembers } from '../auth/discord.js';
+import { getGuildRoles, getGuildMember, getGuildMembersByRole, fetchBotMembersByRoles, fetchBotUser, fetchBotMembers, getAllGuildMembersPaginated } from '../auth/discord.js';
 import config from '../config.js';
 
 const router = Router();
@@ -18,40 +18,57 @@ async function autoSyncAdmins(guildId, callerUserId) {
   const roleIds = adminRoles.map(ar => ar.role_id);
   const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
 
-  // Fetch members from bot API (uses cache)
+  // Fetch members — multi-level fallback: bot API cache → bot members endpoint → Discord API paginated
   let members = [];
-  try {
-    const raw = await fetchBotMembersByRoles(guildId, roleIds);
-    // Compute highestLevel for each member based on which admin roles they have
-    const roleLevelMap = {};
-    for (const ar of adminRoles) roleLevelMap[ar.role_id] = ar.level;
-    members = raw.map(m => {
-      let highestLevel = 'moderator';
-      let maxP = 0;
-      for (const rid of m.roles) {
-        if (roleLevelMap[rid] && hierarchy[roleLevelMap[rid]] > maxP) {
-          maxP = hierarchy[roleLevelMap[rid]];
-          highestLevel = roleLevelMap[rid];
-        }
+  const roleLevelMap = {};
+  for (const ar of adminRoles) roleLevelMap[ar.role_id] = ar.level;
+
+  const computeLevel = (memberRoles) => {
+    let highestLevel = 'moderator';
+    let maxP = 0;
+    for (const rid of memberRoles) {
+      if (roleLevelMap[rid] && hierarchy[roleLevelMap[rid]] > maxP) {
+        maxP = hierarchy[roleLevelMap[rid]];
+        highestLevel = roleLevelMap[rid];
       }
-      return { id: m.id, username: m.username, avatar: m.avatar, highestLevel };
-    });
+    }
+    return highestLevel;
+  };
+
+  const toMember = (m) => ({
+    id: m.id,
+    username: m.username,
+    avatar: m.avatar,
+    highestLevel: computeLevel(m.roles || []),
+  });
+
+  try {
+    // 1) Try bot's members-by-roles endpoint
+    const raw = await fetchBotMembersByRoles(guildId, roleIds);
+    members = raw.map(toMember);
   } catch {
-    // Fallback to Discord API
-    for (const ar of adminRoles) {
+    try {
+      // 2) Try bot's all-members endpoint + client filter
+      const all = await fetchBotMembers(guildId);
+      members = all.filter(m => m.roles && m.roles.some(r => roleIds.includes(r))).map(toMember);
+    } catch {
       try {
-        const apiMembers = await getGuildMembersByRole(guildId, ar.role_id, config.discord.botToken);
-        for (const apiM of apiMembers) {
-          const existing = members.find(x => x.id === apiM.user.id);
-          if (existing) {
-            if (hierarchy[ar.level] > hierarchy[existing.highestLevel]) {
-              existing.highestLevel = ar.level;
-            }
-          } else {
-            members.push({ id: apiM.user.id, username: apiM.user.username, avatar: apiM.user.avatar, highestLevel: ar.level });
+        // 3) Fallback: Discord API (paginated, handles >1000 members)
+        const allMembers = await getAllGuildMembersPaginated(guildId, config.discord.botToken);
+        const roleIdSet = new Set(roleIds);
+        for (const m of allMembers) {
+          if (m.roles && m.roles.some(r => roleIdSet.has(r))) {
+            members.push({
+              id: m.user.id,
+              username: m.user.username,
+              avatar: m.user.avatar,
+              highestLevel: computeLevel(m.roles),
+            });
           }
         }
-      } catch {}
+      } catch {
+        console.error(`[AdminSync] All methods failed for guild ${guildId}`);
+      }
     }
   }
 
@@ -143,24 +160,30 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   // Fetch admin role member info for the linked members card
   let adminRoleMembers = [];
   if (adminRoles.length > 0) {
-    try {
-      const roleIds = adminRoles.map(ar => ar.role_id);
-      const raw = await fetchBotMembersByRoles(guildId, roleIds);
-      const roleLevelMap = {};
-      for (const ar of adminRoles) roleLevelMap[ar.role_id] = ar.level;
-      const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
-      adminRoleMembers = raw.map(m => {
-        let highestLevel = 'moderator';
-        let maxP = 0;
-        for (const rid of m.roles) {
-          if (roleLevelMap[rid] && hierarchy[roleLevelMap[rid]] > maxP) {
-            maxP = hierarchy[roleLevelMap[rid]];
-            highestLevel = roleLevelMap[rid];
-          }
+    const roleIds = adminRoles.map(ar => ar.role_id);
+    const roleLevelMap = {};
+    for (const ar of adminRoles) roleLevelMap[ar.role_id] = ar.level;
+    const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
+    const computeLevel = (memberRoles) => {
+      let highestLevel = 'moderator', maxP = 0;
+      for (const rid of memberRoles) {
+        if (roleLevelMap[rid] && hierarchy[roleLevelMap[rid]] > maxP) {
+          maxP = hierarchy[roleLevelMap[rid]];
+          highestLevel = roleLevelMap[rid];
         }
-        return { ...m, highestLevel };
-      });
-    } catch {}
+      }
+      return highestLevel;
+    };
+    try {
+      const raw = await fetchBotMembersByRoles(guildId, roleIds);
+      adminRoleMembers = raw.map(m => ({ ...m, highestLevel: computeLevel(m.roles || []) }));
+    } catch {
+      try {
+        const all = await fetchBotMembers(guildId);
+        adminRoleMembers = all.filter(m => m.roles && m.roles.some(r => roleIds.includes(r)))
+          .map(m => ({ ...m, highestLevel: computeLevel(m.roles) }));
+      } catch {}
+    }
   }
 
   res.render('guild/admins', {
