@@ -1377,13 +1377,7 @@ a:hover { color: var(--primary-hover); }
 .admin-role-card.active .role-check {
   background: var(--primary); border-color: var(--primary); color: white;
 }
-.admin-role-card.disabled { cursor: default; opacity: 0.85; }
-.admin-role-card.disabled:hover { border-color: var(--border); background: var(--bg-glass); }
-.maintenance-banner {
-  padding: 10px 16px; margin: 0 16px 12px; border-radius: var(--radius-sm);
-  background: rgba(255,193,7,0.12); border: 1px solid rgba(255,193,7,0.3);
-  color: #f0b400; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;
-}
+
 .admin-members-sync {
   display: flex; align-items: center; gap: 8px;
   padding: 12px; font-size: 0.8rem; color: var(--text-muted); cursor: default;
