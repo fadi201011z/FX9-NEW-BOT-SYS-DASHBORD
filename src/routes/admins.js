@@ -1,37 +1,71 @@
 import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess } from '../middleware/auth.js';
-import { getGuildAdmins, setAdminRole, removeAdmin, logActivity, logAudit, getGuildAdminRoles, setGuildAdminRole, removeGuildAdminRole, getGuildAdminRoleIds, getAdminsByGuildAndAddedBy, addAdminRaw, removeAdminByUserGuildAddedBy, getAdminRole } from '../database.js';
+import {
+  getGuildAdmins, setAdminRole, removeAdmin, logActivity, logAudit,
+  getGuildAdminRoles, setGuildAdminRole, removeGuildAdminRole, getGuildAdminRoleIds,
+  getAdminsByGuildAndAddedBy, addAdminRaw, removeAdminByUserGuildAddedBy, getAdminRole,
+} from '../database.js';
 import { sanitizeInput } from '../middleware/security.js';
-import { getGuildRoles, getGuildMember, getGuildMembersByRole } from '../auth/discord.js';
+import { getGuildRoles, getGuildMember, getGuildMembersByRole, fetchBotMembersByRoles, fetchBotUser, fetchBotMembers } from '../auth/discord.js';
 import config from '../config.js';
 
 const router = Router();
 
 async function autoSyncAdmins(guildId, callerUserId) {
-  const adminRoles = getGuildAdminRoleIds(guildId);
+  const adminRoles = await getGuildAdminRoleIds(guildId);
   if (adminRoles.length === 0) return { added: 0, removed: 0 };
 
-  const validUserIds = new Set();
-  const userRoleMap = {}; // userId -> admin dashboard role (from configured roles)
+  const roleIds = adminRoles.map(ar => ar.role_id);
+  const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
 
-  for (const ar of adminRoles) {
-    try {
-      const members = await getGuildMembersByRole(guildId, ar.role_id, config.discord.botToken);
-      for (const m of members) {
-        validUserIds.add(m.user.id);
-        // Highest role level wins
-        const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
-        if (!userRoleMap[m.user.id] || hierarchy[ar.level] > hierarchy[userRoleMap[m.user.id]]) {
-          userRoleMap[m.user.id] = ar.level;
+  // Fetch members from bot API (uses cache)
+  let members = [];
+  try {
+    const raw = await fetchBotMembersByRoles(guildId, roleIds);
+    // Compute highestLevel for each member based on which admin roles they have
+    const roleLevelMap = {};
+    for (const ar of adminRoles) roleLevelMap[ar.role_id] = ar.level;
+    members = raw.map(m => {
+      let highestLevel = 'moderator';
+      let maxP = 0;
+      for (const rid of m.roles) {
+        if (roleLevelMap[rid] && hierarchy[roleLevelMap[rid]] > maxP) {
+          maxP = hierarchy[roleLevelMap[rid]];
+          highestLevel = roleLevelMap[rid];
         }
       }
-    } catch {}
+      return { id: m.id, username: m.username, avatar: m.avatar, highestLevel };
+    });
+  } catch {
+    // Fallback to Discord API
+    for (const ar of adminRoles) {
+      try {
+        const apiMembers = await getGuildMembersByRole(guildId, ar.role_id, config.discord.botToken);
+        for (const apiM of apiMembers) {
+          const existing = members.find(x => x.id === apiM.user.id);
+          if (existing) {
+            if (hierarchy[ar.level] > hierarchy[existing.highestLevel]) {
+              existing.highestLevel = ar.level;
+            }
+          } else {
+            members.push({ id: apiM.user.id, username: apiM.user.username, avatar: apiM.user.avatar, highestLevel: ar.level });
+          }
+        }
+      } catch {}
+    }
+  }
+
+  const validUserIds = new Set(members.map(m => m.id));
+  const userRoleMap = {};
+  for (const m of members) {
+    if (!userRoleMap[m.id] || hierarchy[m.highestLevel] > hierarchy[userRoleMap[m.id]]) {
+      userRoleMap[m.id] = m.highestLevel;
+    }
   }
 
   let added = 0, removed = 0;
   const existing = await getAdminsByGuildAndAddedBy(guildId, 'role_sync');
 
-  // Remove admins who no longer have the role
   for (const row of existing) {
     if (!validUserIds.has(row.userId)) {
       await removeAdminByUserGuildAddedBy(row.userId, guildId, 'role_sync');
@@ -39,7 +73,6 @@ async function autoSyncAdmins(guildId, callerUserId) {
     }
   }
 
-  // Add new admins
   for (const userId of validUserIds) {
     const exists = await getAdminRole(userId, guildId);
     if (!exists) {
@@ -53,7 +86,35 @@ async function autoSyncAdmins(guildId, callerUserId) {
       `مزامنة تلقائية: +${added} / -${removed}`, 'auto', 'auto');
   }
 
-  return { added, removed };
+  return { added, removed, memberCount: members.length };
+}
+
+// Fetch user info (username, avatar) from bot API and store in User collection
+async function enrichAdminUsers(admins) {
+  const { default: User } = await import('../models/User.js');
+  const enriched = [];
+  for (const a of admins) {
+    if (a.username && a.avatar) {
+      enriched.push(a);
+    } else {
+      try {
+        const userData = await fetchBotUser(a.userId);
+        if (userData) {
+          await User.findOneAndUpdate(
+            { userId: a.userId },
+            { username: userData.username, avatar: userData.avatar },
+            { upsert: true }
+          );
+          enriched.push({ ...a, username: userData.username, avatar: userData.avatar });
+        } else {
+          enriched.push(a);
+        }
+      } catch {
+        enriched.push(a);
+      }
+    }
+  }
+  return enriched;
 }
 
 router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
@@ -77,7 +138,30 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
 
   // Auto-sync in background (non-blocking)
   autoSyncAdmins(guildId, req.session.user.id).catch(() => {});
-  const admins = await getGuildAdmins(guildId);
+  const admins = await enrichAdminUsers(await getGuildAdmins(guildId));
+
+  // Fetch admin role member info for the linked members card
+  let adminRoleMembers = [];
+  if (adminRoles.length > 0) {
+    try {
+      const roleIds = adminRoles.map(ar => ar.role_id);
+      const raw = await fetchBotMembersByRoles(guildId, roleIds);
+      const roleLevelMap = {};
+      for (const ar of adminRoles) roleLevelMap[ar.role_id] = ar.level;
+      const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
+      adminRoleMembers = raw.map(m => {
+        let highestLevel = 'moderator';
+        let maxP = 0;
+        for (const rid of m.roles) {
+          if (roleLevelMap[rid] && hierarchy[roleLevelMap[rid]] > maxP) {
+            maxP = hierarchy[roleLevelMap[rid]];
+            highestLevel = roleLevelMap[rid];
+          }
+        }
+        return { ...m, highestLevel };
+      });
+    } catch {}
+  }
 
   res.render('guild/admins', {
     user: req.session.user,
@@ -85,6 +169,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
     admins,
     adminRoles,
     guildRoles,
+    adminRoleMembers,
     title: 'إدارة المدراء',
   });
 });
@@ -199,7 +284,7 @@ router.post('/webhook/sync-member', async (req, res) => {
     const { guildId, userId } = req.body;
     if (!guildId || !userId) return res.status(400).json({ error: 'guildId and userId required' });
 
-  const adminRoles = await getGuildAdminRoleIds(guildId);
+    const adminRoles = await getGuildAdminRoleIds(guildId);
     if (adminRoles.length === 0) return res.json({ synced: false, reason: 'no admin roles configured' });
 
     // Fetch member's roles

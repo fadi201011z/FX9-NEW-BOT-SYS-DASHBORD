@@ -140,6 +140,27 @@ export function getInviteUrl() {
   return '/maintenance';
 }
 
+// ─── Bot API helpers (cache-first, fallback to Discord API) ─────────────
+
+export async function fetchBotMembers(guildId) {
+  const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/members`);
+  if (!res.ok) throw new Error('Bot API failed');
+  return res.json();
+}
+
+export async function fetchBotMembersByRoles(guildId, roleIds) {
+  const query = roleIds.length ? `?roleIds=${roleIds.join(',')}` : '';
+  const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/members-by-roles${query}`);
+  if (!res.ok) throw new Error('Bot API failed');
+  return res.json();
+}
+
+export async function fetchBotUser(userId) {
+  const res = await fetch(`${config.botApiUrl}/api/users/${userId}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export function getSupportedGuilds(userGuilds, botGuilds) {
   const botGuildIds = new Set(botGuilds.map(g => g.id));
   return userGuilds.filter(g => botGuildIds.has(g.id)).map(g => ({
