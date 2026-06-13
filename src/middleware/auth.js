@@ -9,6 +9,36 @@ export function clearBotGuildCache() {
 }
 const CACHE_TTL = 300000;
 
+let roleRefreshCache = {};
+
+export async function refreshDashboardRole(req, res, next) {
+  if (!req.session?.user || req.session.user.isOwner) return next();
+  const userId = req.session.user.id;
+  const now = Date.now();
+  const cached = roleRefreshCache[userId];
+  if (cached && now - cached.ts < 60000) {
+    if (cached.role !== req.session.user.dashboardRole) {
+      req.session.user.dashboardRole = cached.role;
+    }
+    return next();
+  }
+  try {
+    const adminGuilds = await Admin.find({ userId }).collation({ locale: 'en', strength: 2 }).lean();
+    const hierarchy = { owner: 4, manager: 3, admin: 2, moderator: 1, support: 0 };
+    let best = null, bestLevel = -1;
+    for (const a of adminGuilds) {
+      const level = hierarchy[a.role] ?? -1;
+      if (level > bestLevel) { bestLevel = level; best = a.role; }
+    }
+    const newRole = best || 'member';
+    roleRefreshCache[userId] = { role: newRole, ts: now };
+    if (newRole !== req.session.user.dashboardRole) {
+      req.session.user.dashboardRole = newRole;
+    }
+  } catch {}
+  next();
+}
+
 async function getBotGuildIds() {
   if (botGuildCache.ids) {
     if (Date.now() - botGuildCache.lastFetch < CACHE_TTL) return botGuildCache.ids;
@@ -55,7 +85,7 @@ export function isOwner(req, res, next) {
   if (req.xhr || req.path.startsWith('/api/')) {
     return res.status(403).json({ error: 'Owner only' });
   }
-  res.redirect('/access-denied');
+  res.redirect('/access-denied?reason=owner');
 }
 
 export async function hasGuildAccess(req, res, next) {
@@ -63,14 +93,15 @@ export async function hasGuildAccess(req, res, next) {
     const guildId = req.params.guildId || req.query.guildId;
     if (!guildId) return res.status(400).json({ error: 'Guild ID required' });
     const guilds = req.session.user?.guilds || [];
-    const hasManageGuild = guilds.some(g => g.id === guildId && (BigInt(g.permissions) & 0x20n) === 0x20n);
+    const perms = guilds.find(g => g.id === guildId)?.permissions;
+    const hasGuildPerm = perms ? ((BigInt(perms) & 0x8n) === 0x8n || (BigInt(perms) & 0x20n) === 0x20n) : false;
     const userId = req.session.user?.id;
     const isAdmin = userId ? await Admin.findOne({ userId, guildId }).collation({ locale: 'en', strength: 2 }).lean() : null;
-    if (userId !== config.discord.ownerId && !hasManageGuild && !isAdmin) {
+    if (userId !== config.discord.ownerId && !hasGuildPerm && !isAdmin) {
       if (req.xhr || req.path.startsWith('/api/')) {
         return res.status(403).json({ error: 'No access to this guild' });
       }
-      return res.redirect('/access-denied');
+      return res.redirect('/access-denied?reason=guild');
     }
     const botIds = await getBotGuildIds();
     if (botIds && !botIds.has(guildId)) {
@@ -102,7 +133,7 @@ export async function isOwnerOrAdmin(req, res, next) {
   if (req.xhr || req.path.startsWith('/api/')) {
     return res.status(403).json({ error: 'Owner or admin only' });
   }
-  res.redirect('/access-denied');
+  res.redirect('/access-denied?reason=owner');
 }
 
 export function checkPermission(requiredPermission) {

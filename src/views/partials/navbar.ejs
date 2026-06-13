@@ -51,11 +51,13 @@
             </div>
           </div>
           <div class="user-menu-body">
+            <% if (roleLevel >= 3) { %>
             <a href="/dashboard"><i class="fas fa-th-large"></i> لوحة التحكم</a>
+            <% } %>
             <a href="/guilds"><i class="fas fa-server"></i> السيرفرات</a>
             <a href="/status"><i class="fas fa-heartbeat"></i> حالة البوت</a>
             <a href="/docs"><i class="fas fa-book"></i> التوثيق</a>
-            <% if (user.isOwner) { %>
+            <% if (roleLevel >= 4) { %>
               <a href="/dev"><i class="fas fa-code"></i> لوحة المطور</a>
             <% } %>
             <hr>

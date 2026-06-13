@@ -34,7 +34,10 @@ router.get('/discord/callback', async (req, res) => {
       : null;
 
     const isOwner = discordUser.id === config.discord.ownerId;
-    const hasManageGuild = guilds.some(g => (BigInt(g.permissions) & 0x20n) === 0x20n);
+    const hasManageGuild = guilds.some(g => {
+      const p = BigInt(g.permissions);
+      return (p & 0x20n) === 0x20n || (p & 0x8n) === 0x8n;
+    });
     const canAccess = isOwner || hasManageGuild || bestAdmin !== null;
 
     if (!canAccess) {

@@ -70,6 +70,10 @@ app.set('layout', 'layouts/main');
 // ─── Static Files ────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ─── Auto-refresh dashboard role from DB ────────────────────────────────
+import { refreshDashboardRole } from './middleware/auth.js';
+app.use(refreshDashboardRole);
+
 // ─── Inject role level into all views ──────────────────────────────────
 app.use((req, res, next) => {
   const role = req.session?.user?.dashboardRole || 'member';
@@ -124,7 +128,7 @@ app.get('/status', (req, res) => {
 
 // ─── Access Denied ───────────────────────────────────────────────────────
 app.get('/access-denied', (req, res) => {
-  res.status(403).render('access-denied', { layout: false, user: req.session.user, title: 'لا يمكنك الدخول', clientId: config.discord.clientId });
+  res.status(403).render('access-denied', { layout: false, user: req.session.user, title: 'لا يمكنك الدخول', clientId: config.discord.clientId, reason: req.query.reason || 'owner' });
 });
 
 // ─── Maintenance ─────────────────────────────────────────────────────────
@@ -135,7 +139,9 @@ app.get('/maintenance', (req, res) => {
 // ─── Landing Page ────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   if (req.session?.user) {
-    return res.redirect(req.session.user.isOwner ? '/dashboard' : '/home');
+    const role = req.session.user.dashboardRole || 'member';
+    const level = ROLE_HIERARCHY[role] ?? -1;
+    return res.redirect(level >= 3 ? '/dashboard' : '/home');
   }
   const errorMap = {
     auth_failed: 'auth_failed',

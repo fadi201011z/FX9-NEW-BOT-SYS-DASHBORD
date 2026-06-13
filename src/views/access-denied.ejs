@@ -17,47 +17,92 @@
           <i class="fas fa-user-lock"></i>
         </div>
       </div>
-      <div class="denied-status-badge">صلاحية محدودة</div>
-      <h1>لا يمكنك الوصول إلى هنا</h1>
-      <p class="denied-subtitle">هذه الصفحة تتطلب صلاحيات خاصة — حسابك الحالي لا يمتلك التصريح اللازم للدخول إليها</p>
-      <div class="denied-features">
-        <div class="denied-feature">
-          <div class="denied-feature-icon"><i class="fas fa-shield-alt"></i></div>
-          <div class="denied-feature-text">
-            <strong>صلاحيات غير كافية</strong>
-            <span>أنت بحاجة إلى دور مالك البوت أو مطور للوصول إلى هذه اللوحة</span>
+      <% const reason = locals.reason || 'owner' %>
+      <% if (reason === 'guild') { %>
+        <div class="denied-status-badge">صلاحية محدودة</div>
+        <h1>ليس لديك صلاحية لهذا السيرفر</h1>
+        <p class="denied-subtitle">هذا السيرفر يتطلب صلاحية "إدارة السيرفر" أو أن تكون مشرفاً مضافاً في لوحة تحكم البوت</p>
+        <div class="denied-features">
+          <div class="denied-feature">
+            <div class="denied-feature-icon"><i class="fas fa-user-shield"></i></div>
+            <div class="denied-feature-text">
+              <strong>صلاحية إدارة السيرفر</strong>
+              <span>يجب أن تمتلك صلاحية "Manage Guild" في هذا السيرفر على ديسكورد</span>
+            </div>
+          </div>
+          <div class="denied-feature">
+            <div class="denied-feature-icon"><i class="fas fa-users-cog"></i></div>
+            <div class="denied-feature-text">
+              <strong>مشرف في البوت</strong>
+              <span>إذا كنت مضافاً كمدير في البوت، يمكنك الوصول إلى السيرفرات المخصصة لك</span>
+            </div>
+          </div>
+          <div class="denied-feature">
+            <div class="denied-feature-icon"><i class="fab fa-discord"></i></div>
+            <div class="denied-feature-text">
+              <strong>تحتاج مساعدة؟</strong>
+              <span>تواصل مع مالك البوت لإضافة صلاحياتك أو راجع سيرفر الدعم الفني</span>
+            </div>
           </div>
         </div>
-        <div class="denied-feature">
-          <div class="denied-feature-icon"><i class="fas fa-th-large"></i></div>
-          <div class="denied-feature-text">
-            <strong>لوحة التحكم</strong>
-            <span>إذا كنت مشرف سيرفر، يمكنك إدارة البوت من خلال لوحة التحكم الرئيسية</span>
+        <div class="denied-divider"></div>
+        <div class="denied-actions">
+          <a href="/guilds" class="denied-btn denied-btn-primary">
+            <i class="fas fa-server"></i>
+            العودة إلى السيرفرات
+          </a>
+          <a href="/" class="denied-btn denied-btn-secondary">
+            <i class="fas fa-home"></i>
+            الصفحة الرئيسية
+          </a>
+          <a href="/auth/logout" class="denied-btn denied-btn-outline">
+            <i class="fas fa-sign-out-alt"></i>
+            تسجيل الخروج
+          </a>
+        </div>
+      <% } else { %>
+        <div class="denied-status-badge">صلاحية محدودة</div>
+        <h1>لا يمكنك الوصول إلى هنا</h1>
+        <p class="denied-subtitle">هذه الصفحة تتطلب صلاحيات خاصة — حسابك الحالي لا يمتلك التصريح اللازم للدخول إليها</p>
+        <div class="denied-features">
+          <div class="denied-feature">
+            <div class="denied-feature-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="denied-feature-text">
+              <strong>صلاحيات غير كافية</strong>
+              <span>أنت بحاجة إلى دور مالك البوت أو مطور للوصول إلى هذه اللوحة</span>
+            </div>
+          </div>
+          <div class="denied-feature">
+            <div class="denied-feature-icon"><i class="fas fa-th-large"></i></div>
+            <div class="denied-feature-text">
+              <strong>لوحة التحكم</strong>
+              <span>إذا كنت مشرف سيرفر، يمكنك إدارة البوت من خلال لوحة التحكم الرئيسية</span>
+            </div>
+          </div>
+          <div class="denied-feature">
+            <div class="denied-feature-icon"><i class="fab fa-discord"></i></div>
+            <div class="denied-feature-text">
+              <strong>تحتاج مساعدة؟</strong>
+              <span>تواصل معنا عبر سيرفر الدعم الفني وسنكون سعداء بمساعدتك</span>
+            </div>
           </div>
         </div>
-        <div class="denied-feature">
-          <div class="denied-feature-icon"><i class="fab fa-discord"></i></div>
-          <div class="denied-feature-text">
-            <strong>تحتاج مساعدة؟</strong>
-            <span>تواصل معنا عبر سيرفر الدعم الفني وسنكون سعداء بمساعدتك</span>
-          </div>
+        <div class="denied-divider"></div>
+        <div class="denied-actions">
+          <a href="/dashboard" class="denied-btn denied-btn-primary">
+            <i class="fas fa-th-large"></i>
+            العودة إلى لوحة التحكم
+          </a>
+          <a href="https://discord.gg/fx9" class="denied-btn denied-btn-secondary" target="_blank">
+            <i class="fab fa-discord"></i>
+            سيرفر الدعم الفني
+          </a>
+          <a href="/auth/logout" class="denied-btn denied-btn-outline">
+            <i class="fas fa-sign-out-alt"></i>
+            تسجيل الخروج
+          </a>
         </div>
-      </div>
-      <div class="denied-divider"></div>
-      <div class="denied-actions">
-        <a href="/dashboard" class="denied-btn denied-btn-primary">
-          <i class="fas fa-th-large"></i>
-          العودة إلى لوحة التحكم
-        </a>
-        <a href="https://discord.gg/fx9" class="denied-btn denied-btn-secondary" target="_blank">
-          <i class="fab fa-discord"></i>
-          سيرفر الدعم الفني
-        </a>
-        <a href="/auth/logout" class="denied-btn denied-btn-outline">
-          <i class="fas fa-sign-out-alt"></i>
-          تسجيل الخروج
-        </a>
-      </div>
+      <% } %>
       <div class="denied-footer">
         <p>FX9 Dashboard &copy; 2026 — جميع الحقوق محفوظة</p>
       </div>
