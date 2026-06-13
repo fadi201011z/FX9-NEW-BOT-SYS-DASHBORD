@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BACKUP_DIR = path.join(__dirname, '..', '..', 'data', 'backups');
 
+const router = Router();
 const mgrOnly = requireRole('manager');
 
 router.get('/:guildId', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
