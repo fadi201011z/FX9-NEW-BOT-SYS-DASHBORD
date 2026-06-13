@@ -1,8 +1,17 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, isOwner } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, isOwner, clearBotGuildCache } from '../middleware/auth.js';
 import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig } from '../database.js';
 import config from '../config.js';
 import Ticket from '../models/Ticket.js';
+import Admin from '../models/Admin.js';
+import TicketGuildConfig from '../models/TicketGuildConfig.js';
+import VoiceChannel from '../models/VoiceChannel.js';
+import GuildAdminRole from '../models/GuildAdminRole.js';
+import CommandConfig from '../models/CommandConfig.js';
+import AuditLog from '../models/AuditLog.js';
+import Activity from '../models/Activity.js';
+import Alert from '../models/Alert.js';
+import Backup from '../models/Backup.js';
 
 const router = Router();
 
@@ -71,6 +80,38 @@ router.post('/tickets/cleanup', isAuthenticated, isOwner, async (req, res) => {
     const result = await Ticket.deleteMany({});
     res.json({ success: true, deleted: result.deletedCount });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Webhook: Bot calls this when removed from a guild ────────────────────
+router.post('/webhooks/guild-delete', async (req, res) => {
+  try {
+    const { guildId, secret } = req.body;
+    if (!guildId || secret !== config.discord.botToken) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    await Promise.all([
+      Admin.deleteMany({ guildId }),
+      GuildConfig.deleteMany({ guildId }),
+      Ticket.deleteMany({ guildId }),
+      TicketGuildConfig.deleteOne({ guildId }),
+      VoiceChannel.deleteMany({ guildId }),
+      GuildAdminRole.deleteMany({ guildId }),
+      CommandConfig.deleteMany({ guildId }),
+      AuditLog.deleteMany({ guildId }),
+      Activity.deleteMany({ guildId }),
+      Alert.deleteMany({ guildId }),
+      Backup.deleteMany({ guildId }),
+    ]);
+
+    clearBotGuildCache();
+
+    console.log(`[Webhook] Cleaned all data for guild ${guildId}`);
+    res.json({ success: true, message: 'تم حذف بيانات السيرفر بالكامل.' });
+  } catch (err) {
+    console.error('[Webhook Guild Delete Error]', err);
     res.status(500).json({ error: err.message });
   }
 });

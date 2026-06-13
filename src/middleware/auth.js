@@ -3,6 +3,10 @@ import { getBotGuilds } from '../auth/discord.js';
 import Admin from '../models/Admin.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
+
+export function clearBotGuildCache() {
+  botGuildCache = { ids: null, lastFetch: 0 };
+}
 const CACHE_TTL = 300000;
 
 async function getBotGuildIds() {
