@@ -44,7 +44,7 @@
               <img src="https://cdn.discordapp.com/avatars/<%= m.id %>/<%= m.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
               <span><%= m.globalName || m.username || m.id %></span>
             </td>
-            <td><span class="role-badge role-<%= m.highestLevel %>"><%= m.highestLevel %></span></td>
+            <td><span class="role-badge role-<%= m.highestLevel %>"><%= ({ manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم' })[m.highestLevel] || m.highestLevel %></span></td>
             <td><span class="badge badge-<%= dbAdmin ? 'success' : 'warning' %>"><%= dbAdmin ? 'مضاف' : 'غير مضاف' %></span></td>
           </tr>
         <% }) %>
@@ -107,7 +107,7 @@
                 <img src="https://cdn.discordapp.com/avatars/<%= a.userId %>/<%= a.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                 <span><%= a.username || a.userId %></span>
               </td>
-              <td><span class="role-badge role-<%= a.role %>"><%= a.role %></span></td>
+              <td><span class="role-badge role-<%= a.role %>"><%= ({ manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم' })[a.role] || a.role %></span></td>
               <td><span class="badge badge-<%= a.addedBy === 'role_sync' ? 'info' : 'default' %>"><%= a.addedBy === 'role_sync' ? 'تلقائي' : 'يدوي' %></span></td>
               <td><%= new Date(a.addedAt).toLocaleString('ar-SA') %></td>
               <td class="actions">
