@@ -70,8 +70,8 @@
         <label>الرتبة</label>
         <select id="adminRole">
           <option value="manager">مدير</option>
-          <option value="admin">آدمن</option>
-          <option value="moderator">مشرف</option>
+          <option value="admin">مبرمج</option>
+          <option value="moderator">آدمن</option>
           <option value="support">دعم فني</option>
         </select>
       </div>
@@ -113,8 +113,8 @@
               <td class="actions">
                 <select class="role-select" onchange="updateRole('<%= a.userId %>', this.value)">
                   <option value="manager" <%= a.role === 'manager' ? 'selected' : '' %>>مدير</option>
-                  <option value="admin" <%= a.role === 'admin' ? 'selected' : '' %>>آدمن</option>
-                  <option value="moderator" <%= a.role === 'moderator' ? 'selected' : '' %>>مشرف</option>
+                  <option value="admin" <%= a.role === 'admin' ? 'selected' : '' %>>مبرمج</option>
+                  <option value="moderator" <%= a.role === 'moderator' ? 'selected' : '' %>>آدمن</option>
                   <option value="support" <%= a.role === 'support' ? 'selected' : '' %>>دعم</option>
                 </select>
                 <button class="btn-sm btn-danger" onclick="removeAdmin('<%= a.userId %>')">
@@ -148,8 +148,8 @@
               <span class="role-level-icon">
                 <i class="fas fa-<%= level === 'manager' ? 'crown' : level === 'admin' ? 'shield-alt' : level === 'moderator' ? 'gavel' : 'headset' %>"></i>
               </span>
-              <span class="role-level-name"><%= { manager: 'مدير', admin: 'آدمن', moderator: 'مشرف', support: 'دعم فني' }[level] %></span>
-              <span class="role-level-desc"><%= { manager: 'صلاحية كاملة على اللوحة', admin: 'إدارة الإعدادات والمدراء', moderator: 'إدارة الأعضاء والتذاكر', support: 'دعم فني فقط' }[level] %></span>
+              <span class="role-level-name"><%= { manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم فني' }[level] %></span>
+              <span class="role-level-desc"><%= { manager: 'صلاحية كاملة على اللوحة', admin: 'تحكم في الإعدادات والأوامر والحماية', moderator: 'إدارة الأعضاء والتذاكر', support: 'دعم فني فقط' }[level] %></span>
             </div>
           </label>
         <% }) %>

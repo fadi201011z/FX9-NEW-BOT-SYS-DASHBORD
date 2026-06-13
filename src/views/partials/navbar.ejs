@@ -47,7 +47,7 @@
             <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
             <div>
               <strong><%= user.globalName || user.username %></strong>
-              <span><%= user.isOwner ? '👑 المالك' : 'مدير' %></span>
+              <span><%= user.isOwner ? '👑 المالك' : ({ manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم فني' }[user.dashboardRole] || 'مدير') %></span>
             </div>
           </div>
           <div class="user-menu-body">
