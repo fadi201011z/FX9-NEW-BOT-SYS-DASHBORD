@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, isOwnerOrAdmin } from '../middleware/auth.js';
+import { isAuthenticated, requireRole } from '../middleware/auth.js';
 import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
 import { getAlerts, getUnreadAlerts, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
@@ -7,7 +7,7 @@ import { getTotalTicketCount } from '../services/dataReader.js';
 
 const router = Router();
 
-router.get('/', isAuthenticated, isOwnerOrAdmin, async (req, res) => {
+router.get('/', isAuthenticated, requireRole('manager'), async (req, res) => {
   try {
     const userGuilds = req.session.user.guilds || [];
     const userId = req.session.user.id;

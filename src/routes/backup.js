@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, isOwner } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, isOwner, requireRole } from '../middleware/auth.js';
 import { createBackupRecord, getBackupHistory, logActivity, logAudit, getAllGuildConfig } from '../database.js';
 import { sanitizeInput } from '../middleware/security.js';
 import path from 'path';
@@ -9,16 +9,16 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BACKUP_DIR = path.join(__dirname, '..', '..', 'data', 'backups');
 
-const router = Router();
+const mgrOnly = requireRole('manager');
 
-router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.get('/:guildId', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
   const backups = await getBackupHistory(guildId);
   res.render('guild/backup', { user: req.session.user, guild, backups, title: 'النسخ الاحتياطي' });
 });
 
-router.post('/:guildId/create', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.post('/:guildId/create', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   try {
     const { guildId } = req.params;
     fs.mkdirSync(BACKUP_DIR, { recursive: true });
@@ -41,7 +41,7 @@ router.post('/:guildId/create', isAuthenticated, hasGuildAccess, async (req, res
   }
 });
 
-router.post('/:guildId/restore', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.post('/:guildId/restore', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { filename } = req.body;
@@ -69,7 +69,7 @@ router.post('/:guildId/restore', isAuthenticated, hasGuildAccess, async (req, re
   }
 });
 
-router.get('/:guildId/download/:filename', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.get('/:guildId/download/:filename', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   const { guildId, filename } = req.params;
   const filePath = path.join(BACKUP_DIR, filename);
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });

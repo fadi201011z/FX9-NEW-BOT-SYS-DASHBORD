@@ -31,6 +31,19 @@ export function isAuthenticated(req, res, next) {
   res.redirect('/');
 }
 
+export const ROLE_HIERARCHY = { owner: 4, developer: 4, manager: 3, admin: 2, moderator: 1, support: 0, member: -1 };
+
+export function requireRole(minRole) {
+  return (req, res, next) => {
+    const role = req.session.user?.dashboardRole || 'member';
+    if ((ROLE_HIERARCHY[role] ?? -1) >= (ROLE_HIERARCHY[minRole] ?? 0)) return next();
+    if (req.xhr || req.path.startsWith('/api/')) {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+    res.status(403).render('error', { layout: false, message: 'صلاحياتك غير كافية لهذه الصفحة.', user: req.session.user });
+  };
+}
+
 export function isOwner(req, res, next) {
   if (req.session.user && req.session.user.id === config.discord.ownerId) {
     return next();
@@ -71,8 +84,7 @@ export async function hasGuildAccess(req, res, next) {
 
 export function canModify(req, res, next) {
   const role = req.session.user?.dashboardRole || 'member';
-  const hierarchy = { owner: 4, developer: 4, manager: 3, admin: 2, moderator: 1, support: 0, member: -1 };
-  if ((hierarchy[role] ?? -1) >= 3) return next();
+  if ((ROLE_HIERARCHY[role] ?? -1) >= 3) return next();
   if (req.xhr || req.path.startsWith('/api/')) {
     return res.status(403).json({ error: 'ليس لديك صلاحية التعديل. المدير فقط يمكنه التعديل.' });
   }
@@ -92,10 +104,8 @@ export async function isOwnerOrAdmin(req, res, next) {
 export function checkPermission(requiredPermission) {
   return (req, res, next) => {
     const userRole = req.session.user?.dashboardRole || 'member';
-    const roleHierarchy = { owner: 4, developer: 4, manager: 3, admin: 2, moderator: 1, support: 0, member: -1 };
-    const permHierarchy = { owner: 4, developer: 4, manager: 3, admin: 2, moderator: 1, support: 0, member: -1 };
-    const required = permHierarchy[requiredPermission] ?? 0;
-    const has = roleHierarchy[userRole] ?? -1;
+    const required = ROLE_HIERARCHY[requiredPermission] ?? 0;
+    const has = ROLE_HIERARCHY[userRole] ?? -1;
     if (has >= required) return next();
     if (req.xhr || req.path.startsWith('/api/')) {
       return res.status(403).json({ error: 'Insufficient permissions' });

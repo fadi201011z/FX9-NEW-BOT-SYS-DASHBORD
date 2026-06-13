@@ -11,6 +11,7 @@ import expressLayouts from 'express-ejs-layouts';
 import config from './config.js';
 import { securityMiddleware } from './middleware/security.js';
 import { setupWebSocket } from './websocket/index.js';
+import { ROLE_HIERARCHY } from './middleware/auth.js';
 
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
@@ -68,6 +69,13 @@ app.set('layout', 'layouts/main');
 
 // ─── Static Files ────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ─── Inject role level into all views ──────────────────────────────────
+app.use((req, res, next) => {
+  const role = req.session?.user?.dashboardRole || 'member';
+  res.locals.roleLevel = ROLE_HIERARCHY[role] ?? -1;
+  next();
+});
 
 // ─── Routes ──────────────────────────────────────────────────────────────
 app.use('/home', homeRoutes);

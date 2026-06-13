@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
 import { logActivity } from '../database.js';
 import { getGuildVoiceChannels } from '../services/dataReader.js';
 import VoiceChannel from '../models/VoiceChannel.js';
@@ -7,7 +7,7 @@ import config from '../config.js';
 
 const router = Router();
 
-router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('moderator'), async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
   const voiceChannels = await getGuildVoiceChannels(guildId);

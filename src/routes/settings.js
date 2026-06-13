@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, canModify } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, canModify, requireRole } from '../middleware/auth.js';
 import { getGuildConfig, setGuildConfig, getAllGuildConfig, deleteGuildConfig, logAudit, logActivity } from '../database.js';
 import { getTicketGuildConfig, saveTicketGuildConfig } from '../services/dataReader.js';
 import { sanitizeInput } from '../middleware/security.js';
@@ -13,7 +13,7 @@ const TICKET_KEY_MAP = {
 
 const router = Router();
 
-router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
   const config = await getAllGuildConfig(guildId);

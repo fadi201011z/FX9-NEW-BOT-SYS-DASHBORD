@@ -38,6 +38,7 @@
     <i class="fas fa-cubes"></i> أنظمة البوت
   </div>
   <div class="home-systems">
+    <% if (roleLevel >= 3) { %>
     <a href="/dashboard" class="sys-card glass" style="--sc: #5865f2">
       <div class="sys-icon"><i class="fas fa-th-large"></i></div>
       <div class="sys-info">
@@ -46,15 +47,17 @@
       </div>
       <i class="fas fa-chevron-left sys-arrow"></i>
     </a>
+    <% } %>
     <a href="/guilds" class="sys-card glass" style="--sc: #57f287">
       <div class="sys-icon"><i class="fas fa-server"></i></div>
       <div class="sys-info">
         <h3>السيرفرات</h3>
-        <p>إدارة سيرفراتك وضبط إعدادات كل سيرفر</p>
+        <p>تصفح السيرفرات وإدارة إعداداتها</p>
       </div>
       <i class="fas fa-chevron-left sys-arrow"></i>
     </a>
-    <a href="/guilds?tab=protection" class="sys-card glass" style="--sc: #ed4245">
+    <% if (roleLevel >= 2) { %>
+    <a href="/docs#protection" class="sys-card glass" style="--sc: #ed4245">
       <div class="sys-icon"><i class="fas fa-shield-alt"></i></div>
       <div class="sys-info">
         <h3>الحماية</h3>
@@ -62,7 +65,8 @@
       </div>
       <i class="fas fa-chevron-left sys-arrow"></i>
     </a>
-    <a href="/guilds?tab=tickets" class="sys-card glass" style="--sc: #fee75c">
+    <% } %>
+    <a href="/guilds" class="sys-card glass" style="--sc: #fee75c">
       <div class="sys-icon"><i class="fas fa-ticket-alt"></i></div>
       <div class="sys-info">
         <h3>التذاكر</h3>
@@ -70,7 +74,8 @@
       </div>
       <i class="fas fa-chevron-left sys-arrow"></i>
     </a>
-    <a href="/guilds?tab=voice" class="sys-card glass" style="--sc: #eb459e">
+    <% if (roleLevel >= 1) { %>
+    <a href="/docs#voice" class="sys-card glass" style="--sc: #eb459e">
       <div class="sys-icon"><i class="fas fa-microphone"></i></div>
       <div class="sys-info">
         <h3>الرومات المؤقتة</h3>
@@ -78,14 +83,17 @@
       </div>
       <i class="fas fa-chevron-left sys-arrow"></i>
     </a>
-    <a href="/guilds?tab=commands" class="sys-card glass" style="--sc: #5865f2">
+    <% } %>
+    <% if (roleLevel >= 2) { %>
+    <a href="/docs#commands" class="sys-card glass" style="--sc: #5865f2">
       <div class="sys-icon"><i class="fas fa-terminal"></i></div>
       <div class="sys-info">
         <h3>الأوامر</h3>
-        <p>تشغيل/إيقاف الأوامر وتغيير صلاحياتها بسهولة</p>
+        <p>تشغيل/إيقاف الأوامر وتغيير صلاحياتها</p>
       </div>
       <i class="fas fa-chevron-left sys-arrow"></i>
     </a>
+    <% } %>
   </div>
 
   <!-- روابط سريعة -->
@@ -97,10 +105,12 @@
       <i class="fas fa-heartbeat"></i>
       <span>حالة البوت</span>
     </a>
+    <% if (roleLevel >= 4) { %>
     <a href="/dev" class="quick-card glass">
       <i class="fas fa-code"></i>
       <span>المطور</span>
     </a>
+    <% } %>
     <a href="/docs" class="quick-card glass">
       <i class="fas fa-book"></i>
       <span>التوثيق</span>

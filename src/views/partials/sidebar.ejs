@@ -20,16 +20,16 @@
         <i class="fas fa-home"></i>
         <span>الصفحة الرئيسية</span>
       </a>
-      <% if (locals.user && user.isOwner) { %>
+      <% if (roleLevel >= 3) { %>
         <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>" title="لوحة التحكم">
           <i class="fas fa-th-large"></i>
           <span>لوحة التحكم</span>
         </a>
+      <% } %>
         <a href="/guilds" class="nav-link <%= currentPage === 'guilds' ? 'active' : '' %>" title="السيرفرات">
           <i class="fas fa-server"></i>
           <span>السيرفرات</span>
         </a>
-      <% } %>
       <a href="/status" class="nav-link <%= currentPage === 'status' ? 'active' : '' %>" title="حالة البوت">
         <i class="fas fa-heartbeat"></i>
         <span>حالة البوت</span>
@@ -43,6 +43,7 @@
         <i class="fas fa-info-circle"></i>
         <span>نظرة عامة</span>
       </a>
+      <% if (roleLevel >= 2) { %>
       <a href="/settings/<%= guild.id %>" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %>" title="الإعدادات">
         <i class="fas fa-sliders-h"></i>
         <span>الإعدادات</span>
@@ -51,31 +52,37 @@
         <i class="fas fa-terminal"></i>
         <span>الأوامر</span>
       </a>
+      <% } %>
       <a href="/tickets/<%= guild.id %>" class="nav-link <%= currentPage === 'tickets' ? 'active' : '' %>" title="التذاكر">
         <i class="fas fa-ticket-alt"></i>
         <span>التذاكر</span>
       </a>
+      <% if (roleLevel >= 1) { %>
       <a href="/voice/<%= guild.id %>" class="nav-link <%= currentPage === 'voice' ? 'active' : '' %>" title="الرومات المؤقتة">
         <i class="fas fa-microphone"></i>
         <span>الرومات المؤقتة</span>
       </a>
+      <a href="/logs/<%= guild.id %>" class="nav-link <%= currentPage === 'logs' ? 'active' : '' %>" title="سجل النشاط">
+        <i class="fas fa-history"></i>
+        <span>سجل النشاط</span>
+      </a>
+      <% } %>
+      <% if (roleLevel >= 2) { %>
       <a href="/protection/<%= guild.id %>" class="nav-link <%= currentPage === 'protection' ? 'active' : '' %>" title="الحماية">
         <i class="fas fa-shield-alt"></i>
         <span>الحماية</span>
       </a>
+      <% } %>
+      <% if (roleLevel >= 3) { %>
       <a href="/admins/<%= guild.id %>" class="nav-link <%= currentPage === 'admins' ? 'active' : '' %>" title="المدراء">
         <i class="fas fa-users-cog"></i>
         <span>المدراء</span>
-      </a>
-
-      <a href="/logs/<%= guild.id %>" class="nav-link <%= currentPage === 'logs' ? 'active' : '' %>" title="سجل النشاط">
-        <i class="fas fa-history"></i>
-        <span>سجل النشاط</span>
       </a>
       <a href="/backup/<%= guild.id %>" class="nav-link <%= currentPage === 'backup' ? 'active' : '' %>" title="النسخ الاحتياطي">
         <i class="fas fa-database"></i>
         <span>النسخ الاحتياطي</span>
       </a>
+      <% } %>
     </div>
     <% } %>
 
@@ -85,7 +92,7 @@
         <i class="fas fa-book"></i>
         <span>التوثيق</span>
       </a>
-      <% if (user && user.isOwner) { %>
+      <% if (roleLevel >= 4) { %>
       <a href="/dev" class="nav-link <%= currentPage === 'dev' ? 'active' : '' %>" title="لوحة المطور">
         <i class="fas fa-code"></i>
         <span>لوحة المطور</span>

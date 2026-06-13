@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
 import {
   getGuildAdmins, setAdminRole, removeAdmin, logActivity, logAudit,
   getGuildAdminRoles, setGuildAdminRole, removeGuildAdminRole, getGuildAdminRoleIds,
@@ -144,7 +144,7 @@ async function enrichAdminUsers(admins) {
   return enriched;
 }
 
-router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'), async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
   const adminRoles = await getGuildAdminRoles(guildId);
@@ -210,7 +210,9 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
 
 // ─── Role-based admin management ───────────────────────────────────────────
 
-router.post('/:guildId/set-role', isAuthenticated, hasGuildAccess, sanitizeInput, async (req, res) => {
+const mgrOnly = requireRole('manager');
+
+router.post('/:guildId/set-role', isAuthenticated, hasGuildAccess, mgrOnly, sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { roleId, level } = req.body;
@@ -220,7 +222,6 @@ router.post('/:guildId/set-role', isAuthenticated, hasGuildAccess, sanitizeInput
     await logActivity(req.session.user.id, guildId, 'set_admin_role', roleId, `تعيين رتبة ${level} للدور`, req.ip, req.sessionID);
     await logAudit(req.session.user.id, guildId, 'set_admin_role', 'admin_role', null, roleId, req.ip, req.sessionID);
 
-    // Auto-sync after adding a role
     const result = await autoSyncAdmins(guildId, req.session.user.id);
 
     res.json({ success: true, memberCount: result.memberCount, added: result.added, message: `تم تعيين الدور. تمت مزامنة ${result.added} أعضاء.` });
@@ -229,7 +230,7 @@ router.post('/:guildId/set-role', isAuthenticated, hasGuildAccess, sanitizeInput
   }
 });
 
-router.post('/:guildId/remove-role', isAuthenticated, hasGuildAccess, sanitizeInput, async (req, res) => {
+router.post('/:guildId/remove-role', isAuthenticated, hasGuildAccess, mgrOnly, sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { roleId } = req.body;
@@ -239,7 +240,6 @@ router.post('/:guildId/remove-role', isAuthenticated, hasGuildAccess, sanitizeIn
     await logActivity(req.session.user.id, guildId, 'remove_admin_role', roleId, 'إزالة دور إداري', req.ip, req.sessionID);
     await logAudit(req.session.user.id, guildId, 'remove_admin_role', 'admin_role', roleId, null, req.ip, req.sessionID);
 
-    // Auto-sync after removing a role
     const result = await autoSyncAdmins(guildId, req.session.user.id);
 
     res.json({ success: true, memberCount: result.memberCount, removed: result.removed, message: `تم إزالة الدور. تمت مزامنة إزالة ${result.removed} أعضاء.` });
@@ -248,7 +248,7 @@ router.post('/:guildId/remove-role', isAuthenticated, hasGuildAccess, sanitizeIn
   }
 });
 
-router.post('/:guildId/unlink', isAuthenticated, hasGuildAccess, sanitizeInput, async (req, res) => {
+router.post('/:guildId/unlink', isAuthenticated, hasGuildAccess, mgrOnly, sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { roleId } = req.body;
@@ -261,9 +261,7 @@ router.post('/:guildId/unlink', isAuthenticated, hasGuildAccess, sanitizeInput, 
   }
 });
 
-// ─── Individual User Admin Management ──────────────────────────────────────
-
-router.post('/:guildId/add', isAuthenticated, hasGuildAccess, sanitizeInput, async (req, res) => {
+router.post('/:guildId/add', isAuthenticated, hasGuildAccess, mgrOnly, sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { userId, role } = req.body;
@@ -279,7 +277,7 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, sanitizeInput, asy
   }
 });
 
-router.post('/:guildId/remove', isAuthenticated, hasGuildAccess, sanitizeInput, async (req, res) => {
+router.post('/:guildId/remove', isAuthenticated, hasGuildAccess, mgrOnly, sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { userId } = req.body;
@@ -295,7 +293,7 @@ router.post('/:guildId/remove', isAuthenticated, hasGuildAccess, sanitizeInput, 
   }
 });
 
-router.post('/:guildId/update-role', isAuthenticated, hasGuildAccess, sanitizeInput, async (req, res) => {
+router.post('/:guildId/update-role', isAuthenticated, hasGuildAccess, mgrOnly, sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { userId, role } = req.body;
@@ -355,7 +353,7 @@ router.post('/webhook/sync-member', async (req, res) => {
 
 // ─── Sync All ──────────────────────────────────────────────────────────────
 
-router.post('/:guildId/sync', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.post('/:guildId/sync', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   try {
     const { guildId } = req.params;
     const result = await autoSyncAdmins(guildId, req.session.user.id);

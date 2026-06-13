@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, isOwnerOrAdmin } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole, ROLE_HIERARCHY } from '../middleware/auth.js';
 import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
 import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
@@ -26,12 +26,11 @@ async function getBotGuildIds() {
 
 const router = Router();
 
-router.get('/', isAuthenticated, isOwnerOrAdmin, async (req, res) => {
+router.get('/', isAuthenticated, requireRole('support'), async (req, res) => {
   const allGuilds = req.session.user.guilds || [];
   const botGuildIds = await getBotGuildIds() || new Set();
   const userId = req.session.user.id;
 
-  // Get guild IDs where user has Admin records (for non-owner admins)
   let adminGuildIds = new Set();
   if (userId !== config.discord.ownerId) {
     const adminRecords = await getUserAdminGuilds(userId);

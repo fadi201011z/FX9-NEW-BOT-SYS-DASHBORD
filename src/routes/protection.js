@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
 import { logActivity, getGuildConfig, setGuildConfig } from '../database.js';
 import { sanitizeInput } from '../middleware/security.js';
 
 const router = Router();
 
-router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
 
@@ -38,7 +38,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   });
 });
 
-router.post('/:guildId/update', isAuthenticated, hasGuildAccess, sanitizeInput, async (req, res) => {
+router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('admin'), sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const updates = req.body;
