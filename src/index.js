@@ -134,8 +134,8 @@ app.get('/maintenance', (req, res) => {
 
 // ─── Landing Page ────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-  if (req.session?.user && req.session.user.isOwner) {
-    return res.redirect('/dashboard');
+  if (req.session?.user) {
+    return res.redirect(req.session.user.isOwner ? '/dashboard' : '/home');
   }
   const errorMap = {
     auth_failed: 'auth_failed',
