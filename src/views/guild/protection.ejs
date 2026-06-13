@@ -1,7 +1,7 @@
 <% currentPage = 'protection' %>
 <div class="page-header">
   <h1><i class="fas fa-shield-alt"></i> إعدادات الحماية — <%= guild.name %></h1>
-  <p>تحكم بجميع أنظمة الحماية التلقائية</p>
+  <p>تحكم بجميع أنظمة الحماية التلقائية والرومات المحضورة</p>
 </div>
 
 <form id="protectionForm" onsubmit="updateProtection(event)">
@@ -76,6 +76,46 @@
   </div>
 </form>
 
+<!-- ─── الرومات المحضورة ────────────────────────────────────────────── -->
+<div class="card glass" style="margin-top:20px">
+  <div class="card-header"><h3><i class="fas fa-ban"></i> الرومات المحضورة</h3></div>
+  <p class="card-desc" style="margin:0 20px 16px;color:var(--text-muted);font-size:.85rem">
+    أي شخص يرسل في هذه الرومات (حتى الإدارة) يتم طرده لمدة يوم — باستثناء المالك والبوت والمبرمج
+  </p>
+
+  <div style="display:flex;gap:10px;padding:0 20px 16px;flex-wrap:wrap">
+    <select id="restrictedChannelSelect" style="flex:1;min-width:200px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);font-family:inherit">
+      <option value="">-- اختر رومًا --</option>
+      <% (guildChannels || []).forEach(ch => { %>
+        <option value="<%= ch.id %>"><%= ch.name %></option>
+      <% }) %>
+    </select>
+    <button onclick="addRestrictedChannel()" class="btn-primary" style="display:flex;align-items:center;gap:6px;padding:10px 20px">
+      <i class="fas fa-plus"></i> إضافة روم محضور
+    </button>
+  </div>
+
+  <div style="padding:0 20px 20px">
+    <% if (restrictedChannels && restrictedChannels.length > 0) { %>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <% restrictedChannels.forEach(ch => { %>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-glass);border-radius:10px;border:1px solid var(--border)">
+            <span><i class="fas fa-hashtag" style="color:var(--text-muted);margin-left:8px"></i> <strong><%= ch.name || ch.id %></strong></span>
+            <button onclick="removeRestrictedChannel('<%= ch.id %>')" class="btn-sm" style="background:rgba(237,66,69,.15);color:#ed4245;border:1px solid rgba(237,66,69,.3);padding:6px 14px;border-radius:8px;cursor:pointer">
+              <i class="fas fa-trash"></i> حذف
+            </button>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div style="text-align:center;padding:30px 20px;color:var(--text-muted)">
+        <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:8px"></i>
+        لا توجد رومات محضورة — أضف رومًا من القائمة أعلاه
+      </div>
+    <% } %>
+  </div>
+</div>
+
 <script>
 async function updateProtection(e) {
   e.preventDefault();
@@ -87,5 +127,37 @@ async function updateProtection(e) {
     body: JSON.stringify(data),
   });
   if (res.ok) showToast('✅ تم حفظ إعدادات الحماية بنجاح');
+}
+
+async function addRestrictedChannel() {
+  const sel = document.getElementById('restrictedChannelSelect');
+  const channelId = sel.value;
+  if (!channelId) return showToast('⚠️ اختر رومًا أولاً');
+  const channelName = sel.options[sel.selectedIndex]?.text || channelId;
+  const res = await fetch('/protection/<%= guild.id %>/restricted-channel/add', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channelId, channelName }),
+  });
+  if (res.ok) {
+    showToast('✅ تمت الإضافة');
+    setTimeout(() => location.reload(), 1000);
+  } else {
+    const data = await res.json();
+    showToast('❌ ' + (data.error || 'فشل'));
+  }
+}
+
+async function removeRestrictedChannel(channelId) {
+  if (!confirm('هل أنت متأكد من إزالة هذا الروم المحضور؟')) return;
+  const res = await fetch('/protection/<%= guild.id %>/restricted-channel/remove', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channelId }),
+  });
+  if (res.ok) {
+    showToast('✅ تمت الإزالة');
+    setTimeout(() => location.reload(), 1000);
+  } else {
+    showToast('❌ فشل الإزالة');
+  }
 }
 </script>
