@@ -1,4 +1,5 @@
 import { readdir } from 'fs/promises';
+import { readdirSync, readFileSync, statSync } from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
 
@@ -86,4 +87,38 @@ export async function getDocumentation() {
   }
 
   return docs.length > 0 ? docs : FALLBACK_COMMANDS;
+}
+
+export function getCommandStats() {
+  const perCategory = {};
+  let total = 0;
+
+  try {
+    const dirs = readdirSync(COMMANDS_DIR);
+    for (const dir of dirs) {
+      const dirPath = path.join(COMMANDS_DIR, dir);
+      if (!statSync(dirPath).isDirectory()) continue;
+
+      const files = readdirSync(dirPath).filter(f => f.endsWith('.js'));
+      let count = 0;
+
+      for (const file of files) {
+        const content = readFileSync(path.join(dirPath, file), 'utf-8');
+        if (/\.setName\(['"`]/.test(content)) count++;
+      }
+
+      if (count > 0) {
+        perCategory[dir] = count;
+        total += count;
+      }
+    }
+  } catch {
+    // fallback: count from FALLBACK_COMMANDS
+    for (const cmd of FALLBACK_COMMANDS) {
+      perCategory[cmd.category] = (perCategory[cmd.category] || 0) + 1;
+    }
+    total = FALLBACK_COMMANDS.length;
+  }
+
+  return { total, categories: Object.keys(perCategory), perCategory };
 }

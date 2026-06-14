@@ -27,7 +27,7 @@
         <span class="ws-label">إجمالي السيرفرات</span>
       </div>
       <div class="ws-item">
-        <span class="ws-num">52</span>
+        <span class="ws-num" id="cmdCount">—</span>
         <span class="ws-label">أمر</span>
       </div>
     </div>
@@ -294,3 +294,10 @@
   .welcome-text h1 { font-size: 1.3rem; }
 }
 </style>
+
+<script>
+fetch('/api/commands/stats')
+  .then(r => r.json())
+  .then(s => { document.getElementById('cmdCount').textContent = s.total || '—'; })
+  .catch(() => {});
+</script>

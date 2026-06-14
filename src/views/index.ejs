@@ -84,7 +84,7 @@
           <span class="stat-label">أنظمة</span>
         </div>
         <div class="hero-stat">
-          <span class="stat-value">52</span>
+          <span class="stat-value" id="heroCmdCount">—</span>
           <span class="stat-label">أمر</span>
         </div>
         <div class="hero-stat">
@@ -150,22 +150,22 @@
     <div class="stats-container">
       <div class="stat-item">
         <i class="fas fa-shield-alt"></i>
-        <span class="stat-number" data-target="6">0</span>
+        <span class="stat-number" data-target="0">0</span>
         <span class="stat-desc">أنظمة حماية</span>
       </div>
       <div class="stat-item">
         <i class="fas fa-ticket-alt"></i>
-        <span class="stat-number" data-target="9">0</span>
+        <span class="stat-number" data-target="0">0</span>
         <span class="stat-desc">أوامر تذاكر</span>
       </div>
       <div class="stat-item">
         <i class="fas fa-microphone"></i>
-        <span class="stat-number" data-target="15">0</span>
+        <span class="stat-number" data-target="0">0</span>
         <span class="stat-desc">أوامر صوتية</span>
       </div>
       <div class="stat-item">
         <i class="fas fa-terminal"></i>
-        <span class="stat-number" data-target="52">0</span>
+        <span class="stat-number" data-target="0">0</span>
         <span class="stat-desc">إجمالي الأوامر</span>
       </div>
     </div>
@@ -196,5 +196,29 @@
   </footer>
 
   <script src="/js/main.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/commands/stats')
+      .then(r => r.json())
+      .then(stats => {
+        const map = stats.perCategory || {};
+        const totalStats = stats.total || 0;
+        document.querySelectorAll('.stat-number[data-target]').forEach(el => {
+          const label = el.closest('.stat-item')?.querySelector('.stat-desc')?.textContent || '';
+          let val = 0;
+          if (label.includes('أوامر تذاكر'))        val = map['ticket'] || 0;
+          else if (label.includes('أوامر صوتية'))    val = map['voice'] || 0;
+          else if (label.includes('إجمالي الأوامر')) val = totalStats;
+          else if (label.includes('أنظمة حماية'))    val = 6;
+          el.dataset.target = val;
+          el.textContent = '0';
+          if (typeof animateCount === 'function') animateCount(el);
+        });
+        const heroEl = document.getElementById('heroCmdCount');
+        if (heroEl) heroEl.textContent = totalStats || 0;
+      })
+      .catch(() => {});
+  });
+  </script>
 </body>
 </html>

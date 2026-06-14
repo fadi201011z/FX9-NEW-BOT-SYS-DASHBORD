@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess, isOwner, clearBotGuildCache } from '../middleware/auth.js';
 import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig } from '../database.js';
+import { getCommandStats } from '../services/syncService.js';
 import config from '../config.js';
 import Ticket from '../models/Ticket.js';
 import Admin from '../models/Admin.js';
@@ -14,6 +15,10 @@ import Alert from '../models/Alert.js';
 import Backup from '../models/Backup.js';
 
 const router = Router();
+
+router.get('/commands/stats', async (req, res) => {
+  res.json(getCommandStats());
+});
 
 router.get('/tickets/stats', async (req, res) => {
   const total = await Ticket.countDocuments();
