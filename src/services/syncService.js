@@ -43,6 +43,7 @@ const FALLBACK_COMMANDS = [
   {category:"ticket",name:"configt",description:"⚙️ إعداد نظام التكتات FX9 — للإدارة فقط",options:[]},
   {category:"ticket",name:"panel",description:"📋 إرسال بنل التكتات في القناة الحالية",options:[]},
   {category:"ticket",name:"ticket",description:"🎫 أدوات إدارة التكتات",options:[]},
+  {category:"ticket",name:"ticket-info",description:"🎫 عرض معلومات تكت برقمه",options:[]},
   {category:"voice",name:"vping",description:"فحص سرعة استجابة البوت الصوتي",options:[]},
   {category:"voice",name:"setup-voice",description:"إعداد نظام القنوات الصوتية المؤقتة",options:[]},
   {category:"voice",name:"volume",description:"ضبط مستوى الصوت",options:[]},

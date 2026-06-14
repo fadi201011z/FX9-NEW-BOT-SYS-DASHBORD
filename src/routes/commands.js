@@ -50,6 +50,7 @@ const FALLBACK_COMMANDS = [
   {category:"ticket",name:"configt",description:"⚙️ إعداد نظام التكتات FX9 — للإدارة فقط",file:"configt.js"},
   {category:"ticket",name:"panel",description:"📋 إرسال بنل التكتات في القناة الحالية",file:"panel.js"},
   {category:"ticket",name:"ticket",description:"🎫 أدوات إدارة التكتات",file:"ticket.js"},
+  {category:"ticket",name:"ticket-info",description:"🎫 عرض معلومات تكت برقمه",file:"ticketInfo.js"},
   {category:"voice",name:"vping",description:"فحص سرعة استجابة البوت الصوتي",file:"ping.js"},
   {category:"voice",name:"setup-voice",description:"إعداد نظام القنوات الصوتية المؤقتة",file:"setup-voice.js"},
   {category:"voice",name:"volume",description:"ضبط مستوى الصوت",file:"volume.js"},
