@@ -2,9 +2,9 @@
 <% currentPage = 'notifications' %>
 <%
 const platformLogos = {
-  youtube: 'https://www.youtube.com/s/desktop/92a3e22b/img/favicon_144x144.png',
-  kick:    'https://kick.com/favicon.ico',
-  twitter: 'https://abs.twimg.com/favicons/twitter.2.ico',
+  youtube: 'https://www.google.com/s2/favicons?domain=youtube.com&sz=64',
+  kick:    'https://www.google.com/s2/favicons?domain=kick.com&sz=64',
+  twitter: 'https://www.google.com/s2/favicons?domain=twitter.com&sz=64',
 };
 %>
 <div class="page-header fade-in-up">
@@ -17,12 +17,15 @@ const platformLogos = {
 <div class="glass-card fade-in-up" style="padding:24px;margin-bottom:20px">
   <h3 style="margin:0 0 16px">➕ إضافة إشتراك جديد</h3>
   <form id="addForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-    <select id="platform" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
-      <option value="">— المنصة —</option>
-      <option value="youtube" data-logo="<%= platformLogos.youtube %>">YouTube</option>
-      <option value="kick" data-logo="<%= platformLogos.kick %>">Kick</option>
-      <option value="twitter" data-logo="<%= platformLogos.twitter %>">Twitter/X</option>
-    </select>
+    <div style="position:relative">
+      <select id="platform" required style="padding:10px 14px 10px 40px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);appearance:none;width:100%">
+        <option value="">— المنصة —</option>
+        <option value="youtube">YouTube</option>
+        <option value="kick">Kick</option>
+        <option value="twitter">Twitter/X</option>
+      </select>
+      <img id="platformIcon" src="" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:20px;height:20px;display:none;pointer-events:none">
+    </div>
     <input type="url" id="url" required placeholder="رابط القناة (مثل https://youtube.com/@...)">
     <select id="discordChannelId" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
       <option value="">— قناة الإشعارات —</option>
@@ -44,8 +47,10 @@ const platformLogos = {
     <div style="display:grid;gap:12px">
       <% subscriptions.forEach(sub => { %>
         <div class="sub-item" style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--bg-secondary);border-radius:12px;border:1px solid var(--border)">
-          <img src="<%= platformLogos[sub.platform] || '' %>" alt="<%= sub.platform %>" style="width:24px;height:24px;border-radius:4px;flex-shrink:0">
-          <img class="channel-avatar" data-channelid="<%= sub.channelId %>" data-platform="<%= sub.platform %>" src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(sub.channelName || sub.channelId || '?') %>&size=32&background=random" style="width:32px;height:32px;border-radius:50%;flex-shrink:0;object-fit:cover" onerror="this.style.display='none'">
+          <img src="https://www.google.com/s2/favicons?domain=<%= sub.platform === 'youtube' ? 'youtube.com' : sub.platform === 'kick' ? 'kick.com' : 'twitter.com' %>&sz=64" alt="<%= sub.platform %>" style="width:22px;height:22px;border-radius:4px;flex-shrink:0">
+          <div class="channel-avatar-wrap" style="width:34px;height:34px;border-radius:50%;flex-shrink:0;overflow:hidden;background:var(--bg-primary);display:flex;align-items:center;justify-content:center">
+            <img class="channel-avatar" data-channelid="<%= sub.channelId %>" data-platform="<%= sub.platform %>" src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(sub.channelName || sub.channelId || '?') %>&size=32&background=random&color=fff" style="width:32px;height:32px;border-radius:50%;object-fit:cover" onerror="this.parentElement.innerHTML='<span style=font-size:14px;color:var(--text-muted)>?</span>'">
+          </div>
           <div style="flex:1;min-width:0">
             <div style="font-weight:600;font-size:.9rem"><%= sub.channelName || sub.channelId || '—' %></div>
             <div style="font-size:.78rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
@@ -64,12 +69,14 @@ const platformLogos = {
 </div>
 
 <script>
-// Replace platform select with logo-enhanced version
+// Show platform logo next to select
 const platSelect = document.getElementById('platform');
+const platIcon = document.getElementById('platformIcon');
+const platLogos = { youtube: '<%= platformLogos.youtube %>', kick: '<%= platformLogos.kick %>', twitter: '<%= platformLogos.twitter %>' };
 platSelect?.addEventListener('change', function() {
-  const opt = this.options[this.selectedIndex];
-  if (opt.value) this.style.backgroundImage = `url(${opt.dataset.logo})`;
-  else this.style.backgroundImage = '';
+  const logo = platLogos[this.value];
+  if (logo) { platIcon.src = logo; platIcon.style.display = 'block'; }
+  else platIcon.style.display = 'none';
 });
 
 // Fetch actual channel avatars asynchronously
