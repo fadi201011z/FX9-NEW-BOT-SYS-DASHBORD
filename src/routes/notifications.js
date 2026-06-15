@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess, canModify } from '../middleware/auth.js';
+import { getGuildChannels } from '../auth/discord.js';
 import Notification from '../models/Notification.js';
 import config from '../config.js';
 import axios from 'axios';
@@ -13,9 +14,17 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
 
   const subscriptions = await Notification.find({ guildId }).lean();
 
+  // Fetch actual channels from Discord API
+  let guildChannels = [];
+  try {
+    const channels = await getGuildChannels(guildId, config.discord.botToken);
+    guildChannels = channels.filter(c => c.type === 0).map(c => ({ id: c.id, name: c.name }));
+  } catch {}
+
   res.render('guild/notifications', {
     user: req.session.user,
     guild,
+    guildChannels,
     subscriptions,
     title: 'الإشعارات',
     currentPage: 'notifications',

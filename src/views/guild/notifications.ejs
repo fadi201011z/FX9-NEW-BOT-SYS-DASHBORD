@@ -19,7 +19,7 @@
     <input type="url" id="url" required placeholder="رابط القناة (مثل https://youtube.com/@...)">
     <select id="discordChannelId" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
       <option value="">— قناة الإشعارات —</option>
-      <% guild.channels?.filter(c => c.type === 0).forEach(ch => { %>
+      <% (guildChannels || []).forEach(ch => { %>
         <option value="<%= ch.id %>">#<%= ch.name %></option>
       <% }) %>
     </select>
@@ -42,7 +42,7 @@
             <div style="font-weight:600;font-size:.9rem"><%= sub.channelName || sub.channelId || '—' %></div>
             <div style="font-size:.78rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
               <a href="<%= sub.channelUrl %>" target="_blank" style="color:var(--primary)"><%= sub.channelUrl %></a>
-              &nbsp;→&nbsp; <code style="font-size:.75rem">#<%= sub.discordChannelId %></code>
+              &nbsp;→&nbsp; <code style="font-size:.75rem"><%= guildChannels.find(c => c.id === sub.discordChannelId)?.name || '#' + sub.discordChannelId %></code>
             </div>
           </div>
           <% if (sub.customMessage) { %>
