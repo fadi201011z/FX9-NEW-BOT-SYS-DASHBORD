@@ -38,6 +38,51 @@ const platformLogos = {
   </form>
 </div>
 
+<div class="glass-card fade-in-up" style="padding:24px;margin-bottom:20px">
+  <h3 style="margin:0 0 16px">📢 إرسال إعلان</h3>
+  <form id="announceForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+    <input type="text" id="announceTitle" required placeholder="عنوان الإعلان" style="grid-column:1/-1;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+    <textarea id="announceMessage" required placeholder="نص الإعلان..." style="grid-column:1/-1;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);min-height:120px;resize:vertical"></textarea>
+    <select id="announceChannel" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+      <option value="">— القناة المستهدفة —</option>
+      <% (guildChannels || []).forEach(ch => { %>
+        <option value="<%= ch.id %>">#<%= ch.name %></option>
+      <% }) %>
+    </select>
+    <select id="announceMention" style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+      <option value="none">لا منشن</option>
+      <option value="everyone">@everyone</option>
+      <option value="here">@here</option>
+    </select>
+    <select id="announceType" style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+      <option value="general">📢 إعلان عام</option>
+      <option value="maintenance">🔧 صيانة</option>
+      <option value="update">✅ تحديث</option>
+      <option value="warning">🚨 تحذير</option>
+      <option value="rules">📋 قواعد</option>
+    </select>
+    <select id="announceColor" style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+      <option value="blue">🔵 أزرق</option>
+      <option value="red">🔴 أحمر</option>
+      <option value="gold">🟡 ذهبي</option>
+      <option value="green">🟢 أخضر</option>
+      <option value="purple">🟣 بنفسجي</option>
+      <option value="orange">🟠 برتقالي</option>
+      <option value="black">⚫ أسود</option>
+    </select>
+    <input type="url" id="announceImage" placeholder="رابط صورة (اختياري)" style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+    <input type="text" id="announceFooter" placeholder="نص التذييل (اختياري)" style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+    <div style="grid-column:1/-1;display:flex;gap:12px">
+      <button type="submit" class="btn-primary" style="flex:1">📢 إرسال الإعلان</button>
+      <button type="button" id="previewBtn" style="flex:0;padding:10px 20px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);cursor:pointer">👁️ معاينة</button>
+    </div>
+  </form>
+  <div id="announcePreview" style="display:none;margin-top:16px;padding:16px;background:var(--bg-primary);border-radius:12px;border:1px solid var(--border)">
+    <div style="font-size:.85rem;color:var(--text-muted);margin-bottom:8px">👁️ المعاينة:</div>
+    <div id="previewContent"></div>
+  </div>
+</div>
+
 <div class="glass-card fade-in-up" style="padding:24px">
   <h3 style="margin:0 0 16px">📋 الإشتراكات الحالية (<%= subscriptions.length %>)</h3>
 
@@ -157,5 +202,80 @@ document.querySelectorAll('.delete-btn').forEach(btn => {
       else alert('❌ فشل الحذف');
     } catch { alert('❌ خطأ في الإتصال'); }
   });
+});
+
+// ── Announcement ──────────────────────────────────────────────────────
+const announceForm = document.getElementById('announceForm');
+const previewBtn = document.getElementById('previewBtn');
+const previewDiv = document.getElementById('announcePreview');
+const previewContent = document.getElementById('previewContent');
+const announceColors = { blue: '#1a6fff', red: '#e53935', gold: '#ffd700', green: '#00c853', purple: '#7c4dff', orange: '#ff9800', black: '#0d0d0d' };
+const announceEmojis = { general: '📢', maintenance: '🔧', update: '✅', warning: '🚨', rules: '📋' };
+const announceLabels = { general: 'إعلان عام', maintenance: 'صيانة', update: 'تحديث', warning: 'تحذير', rules: 'قواعد' };
+
+function updatePreview() {
+  const title = document.getElementById('announceTitle').value;
+  const msg = document.getElementById('announceMessage').value;
+  const type = document.getElementById('announceType').value;
+  const color = document.getElementById('announceColor').value;
+  if (!title && !msg) { previewDiv.style.display = 'none'; return; }
+  previewDiv.style.display = 'block';
+  previewContent.innerHTML = `
+    <div style="border-right:4px solid ${announceColors[color] || '#1a6fff'};padding:12px;background:var(--bg-secondary);border-radius:8px">
+      <div style="font-size:.85rem;color:var(--text-muted);margin-bottom:4px">${announceEmojis[type] || '📢'} ${announceLabels[type] || 'إعلان'}</div>
+      <div style="font-weight:700;font-size:1.1rem;margin-bottom:8px">${escapeHtml(title) || 'عنوان الإعلان'}</div>
+      <div style="font-size:.9rem;line-height:1.6;white-space:pre-wrap">${escapeHtml(msg) || 'نص الإعلان...'}</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:8px">━━━━━━━━━━━━━━━</div>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+['announceTitle','announceMessage','announceType','announceColor'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', updatePreview);
+  document.getElementById(id)?.addEventListener('change', updatePreview);
+});
+previewBtn?.addEventListener('click', updatePreview);
+
+announceForm?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+
+  const body = {
+    channelId: document.getElementById('announceChannel').value,
+    title: document.getElementById('announceTitle').value,
+    message: document.getElementById('announceMessage').value,
+    mention: document.getElementById('announceMention').value,
+    type: document.getElementById('announceType').value,
+    color: document.getElementById('announceColor').value,
+    image: document.getElementById('announceImage').value || undefined,
+    footer: document.getElementById('announceFooter').value || undefined,
+  };
+
+  if (!body.channelId) { alert('❌ اختر القناة المستهدفة'); btn.disabled = false; btn.textContent = '📢 إرسال الإعلان'; return; }
+
+  try {
+    const res = await fetch('/notifications/<%= guild.id %>/announce', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ تم إرسال الإعلان بنجاح');
+      announceForm.reset();
+      previewDiv.style.display = 'none';
+    } else {
+      alert('❌ ' + (data.error || 'فشل الإرسال'));
+    }
+  } catch (err) {
+    alert('❌ خطأ في الإتصال');
+  }
+  btn.disabled = false; btn.textContent = '📢 إرسال الإعلان';
 });
 </script>

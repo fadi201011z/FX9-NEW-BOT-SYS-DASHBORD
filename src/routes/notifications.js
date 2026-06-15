@@ -62,6 +62,26 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, canModify, async (
   }
 });
 
+// API: send announcement via bot
+router.post('/:guildId/announce', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+  const { guildId } = req.params;
+  const { channelId, title, message, mention, color, image, thumbnail, footer, type, timestamp } = req.body;
+
+  if (!channelId || !title || !message) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    await axios.post(`${config.botApiUrl}/api/announce`, {
+      guildId, channelId, title, message, mention, color, image, thumbnail, footer, type, timestamp: timestamp !== false,
+    }, { timeout: 10000 });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Announce] Bot send failed:', err.code || err.message);
+    res.status(500).json({ error: 'فشل إرسال الإعلان، تأكد من أن البوت متصل' });
+  }
+});
+
 // API: remove subscription
 router.delete('/:guildId/:id', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
   const { id } = req.params;
