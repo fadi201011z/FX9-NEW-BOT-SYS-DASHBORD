@@ -3,7 +3,7 @@
 <div class="page-header fade-in-up">
   <div>
     <h1><i class="fas fa-bell"></i> الإشعارات</h1>
-    <p>إشتراكات إشعارات يوتيوب وتويتش — يراقبها البوت تلقائياً</p>
+    <p>إشتراكات إشعارات يوتيوب، كيك، وتويتر — يراقبها البوت تلقائياً</p>
   </div>
 </div>
 
@@ -13,7 +13,8 @@
     <select id="platform" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
       <option value="">— المنصة —</option>
       <option value="youtube">📹 YouTube</option>
-      <option value="twitch">🔴 Twitch</option>
+      <option value="kick">🔴 Kick</option>
+      <option value="twitter">🐦 Twitter/X</option>
     </select>
     <input type="url" id="url" required placeholder="رابط القناة (مثل https://youtube.com/@...)">
     <select id="discordChannelId" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
@@ -36,7 +37,7 @@
     <div style="display:grid;gap:12px">
       <% subscriptions.forEach(sub => { %>
         <div class="sub-item" style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--bg-secondary);border-radius:12px;border:1px solid var(--border)">
-          <span style="font-size:1.4rem"><%= sub.platform === 'youtube' ? '📹' : sub.platform === 'twitch' ? '🔴' : '🐦' %></span>
+          <span style="font-size:1.4rem"><%= sub.platform === 'youtube' ? '📹' : sub.platform === 'kick' ? '🔴' : '🐦' %></span>
           <div style="flex:1;min-width:0">
             <div style="font-weight:600;font-size:.9rem"><%= sub.channelName || sub.channelId || '—' %></div>
             <div style="font-size:.78rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
