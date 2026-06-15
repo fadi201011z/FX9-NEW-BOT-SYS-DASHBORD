@@ -1,5 +1,12 @@
 <% layout = 'layouts/main' %>
 <% currentPage = 'notifications' %>
+<%
+const platformLogos = {
+  youtube: 'https://www.youtube.com/s/desktop/92a3e22b/img/favicon_144x144.png',
+  kick:    'https://kick.com/favicon.ico',
+  twitter: 'https://abs.twimg.com/favicons/twitter.2.ico',
+};
+%>
 <div class="page-header fade-in-up">
   <div>
     <h1><i class="fas fa-bell"></i> الإشعارات</h1>
@@ -12,9 +19,9 @@
   <form id="addForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
     <select id="platform" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
       <option value="">— المنصة —</option>
-      <option value="youtube">📹 YouTube</option>
-      <option value="kick">🔴 Kick</option>
-      <option value="twitter">🐦 Twitter/X</option>
+      <option value="youtube" data-logo="<%= platformLogos.youtube %>">YouTube</option>
+      <option value="kick" data-logo="<%= platformLogos.kick %>">Kick</option>
+      <option value="twitter" data-logo="<%= platformLogos.twitter %>">Twitter/X</option>
     </select>
     <input type="url" id="url" required placeholder="رابط القناة (مثل https://youtube.com/@...)">
     <select id="discordChannelId" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
@@ -37,7 +44,8 @@
     <div style="display:grid;gap:12px">
       <% subscriptions.forEach(sub => { %>
         <div class="sub-item" style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--bg-secondary);border-radius:12px;border:1px solid var(--border)">
-          <span style="font-size:1.4rem"><%= sub.platform === 'youtube' ? '📹' : sub.platform === 'kick' ? '🔴' : '🐦' %></span>
+          <img src="<%= platformLogos[sub.platform] || '' %>" alt="<%= sub.platform %>" style="width:24px;height:24px;border-radius:4px;flex-shrink:0">
+          <img class="channel-avatar" data-channelid="<%= sub.channelId %>" data-platform="<%= sub.platform %>" src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(sub.channelName || sub.channelId || '?') %>&size=32&background=random" style="width:32px;height:32px;border-radius:50%;flex-shrink:0;object-fit:cover" onerror="this.style.display='none'">
           <div style="flex:1;min-width:0">
             <div style="font-weight:600;font-size:.9rem"><%= sub.channelName || sub.channelId || '—' %></div>
             <div style="font-size:.78rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
@@ -56,6 +64,51 @@
 </div>
 
 <script>
+// Replace platform select with logo-enhanced version
+const platSelect = document.getElementById('platform');
+platSelect?.addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  if (opt.value) this.style.backgroundImage = `url(${opt.dataset.logo})`;
+  else this.style.backgroundImage = '';
+});
+
+// Fetch actual channel avatars asynchronously
+document.querySelectorAll('.channel-avatar').forEach(img => {
+  const platform = img.dataset.platform;
+  const channelId = img.dataset.channelid;
+  if (!channelId) return;
+
+  let url;
+  if (platform === 'youtube') {
+    url = `https://www.youtube.com/channel/${channelId}`;
+    fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+      .then(r => r.text())
+      .then(html => {
+        const m = html.match(/"avatar":\s*\[\s*\{\s*"url":\s*"([^"]+)"/);
+        if (m) img.src = m[1].replace(/\\u0026/g, '&');
+      }).catch(() => {});
+  } else if (platform === 'kick') {
+    fetch(`https://kick.com/api/v2/channels/${channelId}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+      .then(r => r.json())
+      .then(d => { if (d?.user?.profile_pic) img.src = d.user.profile_pic; })
+      .catch(() => {});
+  } else if (platform === 'twitter') {
+    const instances = ['nitter.net', 'nitter.privacydev.net', 'nitter.lqdev.tech'];
+    for (const inst of instances) {
+      fetch(`https://${inst}/${channelId}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+        .then(r => r.text())
+        .then(html => {
+          const m = html.match(/<img[^>]*class="avatar"[^>]*src="([^"]+)"/);
+          if (m) {
+            const src = m[1].startsWith('http') ? m[1] : `https://${inst}${m[1]}`;
+            img.src = src;
+          }
+        }).catch(() => {});
+      break;
+    }
+  }
+});
+
 document.getElementById('addForm')?.addEventListener('submit', async e => {
   e.preventDefault();
   const btn = e.target.querySelector('button[type=submit]');
