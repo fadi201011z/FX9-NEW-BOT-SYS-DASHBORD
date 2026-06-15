@@ -1,0 +1,100 @@
+<% layout = 'layouts/main' %>
+<% currentPage = 'notifications' %>
+<div class="page-header fade-in-up">
+  <div>
+    <h1><i class="fas fa-bell"></i> الإشعارات</h1>
+    <p>إشتراكات إشعارات يوتيوب وتويتش — يراقبها البوت تلقائياً</p>
+  </div>
+</div>
+
+<div class="glass-card fade-in-up" style="padding:24px;margin-bottom:20px">
+  <h3 style="margin:0 0 16px">➕ إضافة إشتراك جديد</h3>
+  <form id="addForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+    <select id="platform" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+      <option value="">— المنصة —</option>
+      <option value="youtube">📹 YouTube</option>
+      <option value="twitch">🔴 Twitch</option>
+    </select>
+    <input type="url" id="url" required placeholder="رابط القناة (مثل https://youtube.com/@...)">
+    <select id="discordChannelId" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+      <option value="">— قناة الإشعارات —</option>
+      <% guild.channels?.filter(c => c.type === 0).forEach(ch => { %>
+        <option value="<%= ch.id %>">#<%= ch.name %></option>
+      <% }) %>
+    </select>
+    <input type="text" id="customMessage" placeholder="رسالة إضافية (اختياري)">
+    <button type="submit" class="btn-primary" style="grid-column:1/-1">➕ إضافة</button>
+  </form>
+</div>
+
+<div class="glass-card fade-in-up" style="padding:24px">
+  <h3 style="margin:0 0 16px">📋 الإشتراكات الحالية (<%= subscriptions.length %>)</h3>
+
+  <% if (subscriptions.length === 0) { %>
+    <p style="color:var(--text-muted);text-align:center;padding:40px 0">لا يوجد أي إشتراكات بعد. أضف واحداً من الأعلى.</p>
+  <% } else { %>
+    <div style="display:grid;gap:12px">
+      <% subscriptions.forEach(sub => { %>
+        <div class="sub-item" style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--bg-secondary);border-radius:12px;border:1px solid var(--border)">
+          <span style="font-size:1.4rem"><%= sub.platform === 'youtube' ? '📹' : sub.platform === 'twitch' ? '🔴' : '🐦' %></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:.9rem"><%= sub.channelName || sub.channelId || '—' %></div>
+            <div style="font-size:.78rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+              <a href="<%= sub.channelUrl %>" target="_blank" style="color:var(--primary)"><%= sub.channelUrl %></a>
+              &nbsp;→&nbsp; <code style="font-size:.75rem">#<%= sub.discordChannelId %></code>
+            </div>
+          </div>
+          <% if (sub.customMessage) { %>
+            <span style="font-size:.78rem;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"<%= sub.customMessage %>"</span>
+          <% } %>
+          <button class="delete-btn" data-id="<%= sub._id %>" style="background:var(--danger);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">✕ حذف</button>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<script>
+document.getElementById('addForm')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = '⏳ جاري الإضافة...';
+
+  const body = {
+    platform: document.getElementById('platform').value,
+    url: document.getElementById('url').value,
+    discordChannelId: document.getElementById('discordChannelId').value,
+    customMessage: document.getElementById('customMessage').value,
+  };
+
+  try {
+    const res = await fetch('/notifications/<%= guild.id %>/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.success) {
+      location.reload();
+    } else {
+      alert('❌ ' + (data.error || 'فشل الإضافة'));
+    }
+  } catch (err) {
+    alert('❌ خطأ في الإتصال');
+  }
+  btn.disabled = false; btn.textContent = '➕ إضافة';
+});
+
+document.querySelectorAll('.delete-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if (!confirm('تأكيد حذف هذا الإشتراك؟')) return;
+    const id = btn.dataset.id;
+    btn.disabled = true; btn.textContent = '⏳';
+    try {
+      const res = await fetch('/notifications/<%= guild.id %>/' + id, { method: 'DELETE' });
+      if (res.ok) location.reload();
+      else alert('❌ فشل الحذف');
+    } catch { alert('❌ خطأ في الإتصال'); }
+  });
+});
+</script>

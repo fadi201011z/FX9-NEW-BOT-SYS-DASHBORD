@@ -28,6 +28,7 @@ import alertRoutes from './routes/alerts.js';
 import statusRoutes from './routes/status.js';
 import apiRoutes from './routes/api.js';
 import devRoutes from './routes/dev.js';
+import notificationRoutes from './routes/notifications.js';
 
 import homeRoutes from './routes/home.js';
 
@@ -98,6 +99,7 @@ app.use('/alerts', alertRoutes);
 app.use('/api', statusRoutes);
 app.use('/api/user', apiRoutes);
 app.use('/dev', devRoutes);
+app.use('/notifications', notificationRoutes);
 
 
 // ─── Documentation page ──────────────────────────────────────────────────

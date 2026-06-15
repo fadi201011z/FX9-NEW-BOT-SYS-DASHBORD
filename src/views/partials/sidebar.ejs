@@ -66,6 +66,10 @@
         <i class="fas fa-history"></i>
         <span>سجل النشاط</span>
       </a>
+      <a href="/notifications/<%= guild.id %>" class="nav-link <%= currentPage === 'notifications' ? 'active' : '' %>" title="الإشعارات">
+        <i class="fas fa-bell"></i>
+        <span>الإشعارات</span>
+      </a>
       <% } %>
       <% if (roleLevel >= 2) { %>
       <a href="/protection/<%= guild.id %>" class="nav-link <%= currentPage === 'protection' ? 'active' : '' %>" title="الحماية">
