@@ -82,6 +82,34 @@ app.use((req, res, next) => {
   next();
 });
 
+// ─── Maintenance mode check ────────────────────────────────────────────
+app.use(async (req, res, next) => {
+  const skipPaths = ['/auth/', '/maintenance'];
+  if (skipPaths.some(p => req.path.startsWith(p))) return next();
+  if (req.path.startsWith('/dev') || req.path.startsWith('/api/') || req.path === '/') return next();
+  if (req.path.startsWith('/docs') || req.path === '/status') return next();
+
+  // Session bypass for developers
+  if (req.session?.maintenanceBypass) return next();
+
+  const user = req.session?.user;
+  if (user) {
+    if (user.isOwner || (ROLE_HIERARCHY[user.dashboardRole || 'member'] ?? -1) >= 4) return next();
+  }
+
+  try {
+    const Maintenance = (await import('./models/Maintenance.js')).default;
+    const doc = await Maintenance.findOne().lean();
+    if (doc?.enabled) {
+      if (req.headers.accept?.includes('json')) {
+        return res.status(503).json({ error: 'maintenance', message: doc.message, endTime: doc.endTime });
+      }
+      return res.redirect('/maintenance');
+    }
+  } catch {}
+  next();
+});
+
 // ─── Routes ──────────────────────────────────────────────────────────────
 app.use('/home', homeRoutes);
 app.use('/auth', authRoutes);
@@ -134,8 +162,24 @@ app.get('/access-denied', (req, res) => {
 });
 
 // ─── Maintenance ─────────────────────────────────────────────────────────
-app.get('/maintenance', (req, res) => {
-  res.status(503).render('maintenance', { layout: false, user: req.session.user, title: 'تحت الصيانة' });
+app.get('/maintenance', async (req, res) => {
+  // Handle bypass
+  if (req.query.bypass === '1') {
+    const user = req.session?.user;
+    if (user?.isOwner || (ROLE_HIERARCHY[user?.dashboardRole || 'member'] ?? -1) >= 4) {
+      req.session.maintenanceBypass = true;
+      return res.redirect('/');
+    }
+  }
+
+  let maintenance = { enabled: true, endTime: null, message: 'الموقع تحت الصيانة حالياً. سنعود قريباً!' };
+  try {
+    const Maintenance = (await import('./models/Maintenance.js')).default;
+    const doc = await Maintenance.findOne().lean();
+    if (doc) maintenance = doc;
+  } catch {}
+  const canBypass = req.session?.user?.isOwner || (ROLE_HIERARCHY[req.session?.user?.dashboardRole || 'member'] ?? -1) >= 4;
+  res.status(503).render('maintenance', { layout: false, user: req.session.user, maintenance, canBypass, title: 'تحت الصيانة' });
 });
 
 // ─── Landing Page ────────────────────────────────────────────────────────

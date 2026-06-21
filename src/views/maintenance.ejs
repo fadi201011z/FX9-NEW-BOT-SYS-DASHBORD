@@ -7,122 +7,79 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f0f1a,#1a1a2e); direction:rtl; font-family:'Cairo',sans-serif; }
+    .mnt-box { width:100%; max-width:480px; padding:20px; }
+    .mnt-card { background:rgba(255,255,255,.04); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:48px 32px; text-align:center; }
+    .mnt-icon { width:80px; height:80px; border-radius:20px; background:rgba(250,166,26,.15); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:2.5rem; color:#faa61a; animation:spin 4s linear infinite; }
+    @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    .mnt-card h1 { margin:0 0 8px; font-size:1.5rem; font-weight:700; color:#fff; }
+    .mnt-card p { margin:0 0 4px; color:rgba(255,255,255,.6); line-height:1.8; font-size:.9rem; }
+    .mnt-divider { height:1px; background:rgba(255,255,255,.06); margin:24px 0; }
+    .mnt-countdown { display:flex; gap:12px; justify-content:center; margin:20px 0; }
+    .mnt-countdown > div { background:rgba(255,255,255,.06); border-radius:12px; padding:12px 16px; min-width:70px; }
+    .mnt-countdown > div span:first-child { display:block; font-size:1.6rem; font-weight:700; color:#fff; }
+    .mnt-countdown > div span:last-child { display:block; font-size:.7rem; color:rgba(255,255,255,.4); margin-top:2px; }
+    .mnt-actions { display:flex; flex-direction:column; gap:8px; }
+    .mnt-actions a,.mnt-actions button { display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 20px; border-radius:10px; text-decoration:none; font-weight:600; font-size:.9rem; transition:.2s; cursor:pointer; border:none; }
+    .mnt-actions .btn-discord { background:#5865f2; color:#fff; }
+    .mnt-actions .btn-discord:hover { background:#4752c4; transform:translateY(-1px); }
+    .mnt-actions .btn-ghost { background:rgba(255,255,255,.04); color:rgba(255,255,255,.7); border:1px solid rgba(255,255,255,.08); }
+    .mnt-actions .btn-ghost:hover { background:rgba(255,255,255,.08); }
+    .mnt-actions .btn-skip { background:rgba(88,101,242,.15); color:#5865f2; border:1px solid rgba(88,101,242,.3); }
+    .mnt-actions .btn-skip:hover { background:rgba(88,101,242,.25); }
+    .mnt-footer { margin-top:20px; font-size:.75rem; color:rgba(255,255,255,.3); }
+    .mnt-progress { width:100%; height:4px; background:rgba(255,255,255,.06); border-radius:4px; margin:16px 0; overflow:hidden; }
+    .mnt-progress-bar { height:100%; background:linear-gradient(90deg,#5865f2,#faa61a); border-radius:4px; transition:width 1s linear; }
+  </style>
 </head>
 <body>
-  <div class="denied-page">
-    <div class="denied-box glass fade-in-up">
-      <div class="denied-icon" style="color: #faa61a;">
-        <i class="fas fa-screwdriver-wrench"></i>
+  <div class="mnt-box">
+    <div class="mnt-card">
+      <div class="mnt-icon"><i class="fas fa-screwdriver-wrench"></i></div>
+      <h1>⚠️ الموقع تحت الصيانة</h1>
+      <p><%= maintenance?.message || 'الموقع تحت الصيانة حالياً. سنعود قريباً!' %></p>
+      <p style="font-size:.82rem;color:rgba(255,255,255,.4)">نعمل على تحسين تجربتك — شكراً لصبرك</p>
+
+      <% if (maintenance?.endTime) { %>
+        <div class="mnt-divider"></div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:8px">الوقت المتبقي</div>
+        <div class="mnt-countdown" id="countdown">
+          <div><span id="cd-days">00</span><span>أيام</span></div>
+          <div><span id="cd-hours">00</span><span>ساعات</span></div>
+          <div><span id="cd-minutes">00</span><span>دقائق</span></div>
+          <div><span id="cd-seconds">00</span><span>ثواني</span></div>
+        </div>
+        <div class="mnt-progress"><div class="mnt-progress-bar" id="progressBar" style="width:100%"></div></div>
+        <script>
+        (function() {
+          const endTime = <%= maintenance.endTime %>;
+          function update() {
+            const diff = Math.max(0, endTime - Date.now());
+            const total = endTime - <%= maintenance.endTime - (maintenance.endTime - Date.now()) %>;
+            const pct = total > 0 ? ((total - diff) / total) * 100 : 0;
+            document.getElementById('cd-days').textContent = String(Math.floor(diff / 86400000)).padStart(2,'0');
+            document.getElementById('cd-hours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0');
+            document.getElementById('cd-minutes').textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
+            document.getElementById('cd-seconds').textContent = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+            document.getElementById('progressBar').style.width = pct + '%';
+          }
+          update();
+          setInterval(update, 1000);
+        })();
+        </script>
+      <% } %>
+
+      <div class="mnt-divider"></div>
+      <div class="mnt-actions">
+        <a href="https://discord.gg/ENQut4HHKb" class="btn-discord" target="_blank"><i class="fab fa-discord"></i> سيرفر الدعم</a>
+        <% if (user) { %><a href="/auth/logout" class="btn-ghost"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a><% } %>
+        <% if (canBypass) { %>
+          <a href="/maintenance?bypass=1" class="btn-skip"><i class="fas fa-rocket"></i> تخطي — أنا مطور</a>
+        <% } %>
       </div>
-      <h1>إضافة البوت تحت الصيانة</h1>
-      <p>نعمل على تحسين تجربة إضافة البوت إلى السيرفرات.</p>
-      <p>الرجاء العودة لاحقاً. شكراً لتفهمك!</p>
-      <div class="denied-divider"></div>
-      <div class="denied-actions">
-        <a href="/" class="btn-primary">
-          <i class="fas fa-house"></i> العودة للرئيسية
-        </a>
-        <a href="https://discord.gg/ENQut4HHKb" class="btn-secondary" target="_blank">
-          <i class="fab fa-discord"></i> سيرفر الدعم
-        </a>
-        <a href="/auth/logout" class="btn-logout">
-          <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-        </a>
-      </div>
-      <div class="denied-footer">
-        <p>FX9 Dashboard &copy; 2026</p>
-      </div>
+      <div class="mnt-footer">FX9 Dashboard &copy; 2026</div>
     </div>
   </div>
-
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg-primary, #0f0f1a);
-      direction: rtl;
-    }
-    .denied-page {
-      width: 100%;
-      max-width: 440px;
-      padding: 20px;
-    }
-    .denied-box {
-      padding: 40px 28px;
-      text-align: center;
-      border-radius: 16px;
-    }
-    .denied-icon {
-      font-size: 3.5rem;
-      margin-bottom: 16px;
-    }
-    .denied-box h1 {
-      margin: 0 0 12px;
-      font-size: 1.3rem;
-      font-weight: 700;
-    }
-    .denied-box p {
-      margin: 0 0 6px;
-      color: var(--text-secondary, #aaa);
-      line-height: 1.7;
-      font-size: 0.9rem;
-    }
-    .denied-divider {
-      height: 1px;
-      background: var(--border-light, rgba(255,255,255,0.08));
-      margin: 20px 0;
-    }
-    .denied-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .denied-actions a {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.9rem;
-      transition: all 0.2s;
-    }
-    .denied-actions .btn-primary {
-      background: #5865f2;
-      color: #fff;
-    }
-    .denied-actions .btn-primary:hover {
-      background: #4752c4;
-      transform: translateY(-1px);
-    }
-    .denied-actions .btn-secondary {
-      background: var(--bg-glass-hover, rgba(255,255,255,0.06));
-      color: var(--text, #ddd);
-      border: 1px solid var(--border-light, rgba(255,255,255,0.08));
-    }
-    .denied-actions .btn-secondary:hover {
-      background: var(--bg-glass, rgba(255,255,255,0.1));
-    }
-    .denied-actions .btn-logout {
-      background: transparent;
-      color: #ed4245;
-      border: 1px solid #ed4245;
-    }
-    .denied-actions .btn-logout:hover {
-      background: rgba(237,66,69,0.1);
-    }
-    .denied-footer {
-      margin-top: 24px;
-    }
-    .denied-footer p {
-      font-size: 0.75rem;
-      color: var(--text-muted, #666);
-    }
-  </style>
 </body>
 </html>
