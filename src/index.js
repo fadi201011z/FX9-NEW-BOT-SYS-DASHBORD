@@ -84,16 +84,17 @@ app.use((req, res, next) => {
 
 // ─── Maintenance mode check ────────────────────────────────────────────
 app.use(async (req, res, next) => {
-  const p = req.path;
-  if (p === '/' || p.startsWith('/auth/') || p.startsWith('/maintenance')) return next();
-  if (p.startsWith('/dev') || p.startsWith('/api/') || p.startsWith('/static/')) return next();
-  if (p.startsWith('/docs') || p === '/status') return next();
-  if (p.startsWith('/css/') || p.startsWith('/js/') || p.startsWith('/fonts/')) return next();
+  try {
+    const skip = ['/', '/auth', '/maintenance', '/dev', '/api', '/static', '/docs', '/css', '/js', '/fonts', '/status', '/favicon'];
+    if (skip.some(s => req.path === s || req.path.startsWith(s + '/'))) return next();
+  } catch { return next(); }
 
   if (req.session.maintenanceBypass) return next();
 
-  const user = req.session.user;
-  if (user && (user.isOwner || (ROLE_HIERARCHY[user.dashboardRole || 'member'] ?? -1) >= 4)) return next();
+  try {
+    const user = req.session.user;
+    if (user && (user.isOwner || (user.dashboardRole === 'developer' || user.dashboardRole === 'owner'))) return next();
+  } catch { return next(); }
 
   try {
     const Maintenance = (await import('./models/Maintenance.js')).default;
@@ -161,14 +162,15 @@ app.get('/access-denied', (req, res) => {
 
 // ─── Maintenance ─────────────────────────────────────────────────────────
 app.get('/maintenance', async (req, res) => {
-  // Handle bypass
-  if (req.query.bypass === '1') {
-    const user = req.session?.user;
-    if (user?.isOwner || (ROLE_HIERARCHY[user?.dashboardRole || 'member'] ?? -1) >= 4) {
-      req.session.maintenanceBypass = true;
-      return res.redirect('/');
+  try {
+    if (req.query.bypass === '1') {
+      const user = req.session?.user;
+      if (user && (user.isOwner || user.dashboardRole === 'developer' || user.dashboardRole === 'owner')) {
+        req.session.maintenanceBypass = true;
+        return res.redirect('/');
+      }
     }
-  }
+  } catch {}
 
   let maintenanceRaw = null;
   try {
@@ -176,12 +178,13 @@ app.get('/maintenance', async (req, res) => {
     maintenanceRaw = await Maintenance.findOne().lean();
   } catch {}
   const maintenance = {
-    enabled: maintenanceRaw?.enabled === true,
+    enabled: !!(maintenanceRaw?.enabled),
     endTime: maintenanceRaw?.endTime || null,
     message: maintenanceRaw?.message || 'الموقع تحت الصيانة حالياً. سنعود قريباً!',
   };
-  const canBypass = req.session?.user?.isOwner || (ROLE_HIERARCHY[req.session?.user?.dashboardRole || 'member'] ?? -1) >= 4;
-  res.status(503).render('maintenance', { layout: false, user: req.session.user, maintenance, canBypass, title: 'تحت الصيانة' });
+  const user = req.session?.user;
+  const canBypass = !!(user && (user.isOwner || user.dashboardRole === 'developer' || user.dashboardRole === 'owner'));
+  res.status(503).render('maintenance', { layout: false, user, maintenance, canBypass, title: 'تحت الصيانة' });
 });
 
 // ─── Landing Page ────────────────────────────────────────────────────────

@@ -59,26 +59,34 @@ router.get('/guild/:guildId', isAuthenticated, isOwner, async (req, res) => {
 
 // ── Maintenance mode toggle ───────────────────────────────────────────
 router.post('/maintenance/toggle', isAuthenticated, isOwner, async (req, res) => {
-  const { enabled, endTime, message } = req.body;
   try {
+    // support both JSON and form submissions
+    const enabled = req.body.enabled === 'true' || req.body.enabled === true;
+    const minutes = parseInt(req.body.minutes || req.body.saveMinutes || '0') || 0;
+    const endTime = minutes > 0 ? Date.now() + minutes * 60 * 1000 : null;
+    const message = req.body.message || '';
+
     let doc = await Maintenance.findOne();
     if (!doc) doc = new Maintenance();
-    doc.enabled = enabled === true;
-    doc.endTime = endTime ? Number(endTime) : null;
-    if (message && message.trim()) doc.message = message.trim();
+    doc.enabled = enabled;
+    doc.endTime = endTime;
+    if (message.trim()) doc.message = message.trim();
     doc.updatedAt = Date.now();
     doc.updatedBy = req.session.user.id || '';
     await doc.save();
-    res.json({ success: true, enabled: doc.enabled, endTime: doc.endTime, message: doc.message });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
-router.get('/maintenance/status', async (req, res) => {
-  const doc = await Maintenance.findOne().lean();
-  if (!doc) return res.json({ enabled: false });
-  res.json({ enabled: doc.enabled, endTime: doc.endTime, message: doc.message });
+    // if JSON request, respond with JSON
+    if (req.xhr || req.headers.accept?.includes('json')) {
+      return res.json({ success: true, enabled: doc.enabled, endTime: doc.endTime, message: doc.message });
+    }
+    // otherwise redirect back to dev panel
+    res.redirect('/dev');
+  } catch (err) {
+    if (req.xhr || req.headers.accept?.includes('json')) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.redirect('/dev?error=' + encodeURIComponent(err.message));
+  }
 });
 
 export default router;
