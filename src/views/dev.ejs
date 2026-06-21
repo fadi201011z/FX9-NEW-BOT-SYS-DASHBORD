@@ -69,29 +69,38 @@
     <h3><i class="fas fa-screwdriver-wrench"></i> وضع الصيانة</h3>
   </div>
   <div class="card-body" style="padding:16px 20px">
-    <form method="POST" action="/dev/maintenance/toggle" id="mntForm">
-      <input type="hidden" name="enabled" id="mntEnabled" value="<%= maintenance.enabled ? 'true' : 'false' %>">
-      <input type="hidden" name="saveMinutes" id="mntSaveMinutes" value="">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <button type="button" id="mntToggleBtn" style="width:52px;height:28px;border-radius:14px;border:none;cursor:pointer;position:relative;flex-shrink:0;background:<%= maintenance.enabled ? '#e53935' : '#555' %>">
-          <span style="position:absolute;top:3px;left:<%= maintenance.enabled ? '27px' : '3px' %>;width:22px;height:22px;border-radius:50%;background:#fff;transition:.3s" id="mntCircle"></span>
-        </button>
-        <span id="mntStatus" style="font-weight:600;font-size:.95rem"><%= maintenance.enabled ? '🟢 الصيانة مفعلة' : '⚪ الصيانة معطلة' %></span>
-      </div>
-      <div id="mntFields" style="<%= maintenance.enabled ? '' : 'display:none' %>">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <% if (maintenance.enabled) { %>
+        <form method="POST" action="/dev/maintenance/stop" style="margin:0">
+          <button type="submit" style="background:#e53935;color:#fff;border:none;padding:8px 18px;border-radius:10px;font-weight:600;cursor:pointer;font-size:.9rem">
+            <i class="fas fa-power-off"></i> إيقاف الصيانة
+          </button>
+        </form>
+        <span style="font-weight:600;font-size:.95rem;color:#e53935">🟢 الصيانة مفعلة</span>
+      <% } else { %>
+        <form method="POST" action="/dev/maintenance/start" style="margin:0">
+          <button type="submit" style="background:#4caf50;color:#fff;border:none;padding:8px 18px;border-radius:10px;font-weight:600;cursor:pointer;font-size:.9rem">
+            <i class="fas fa-power-off"></i> تشغيل الصيانة
+          </button>
+        </form>
+        <span style="font-weight:600;font-size:.95rem;color:#888">⚪ الصيانة معطلة</span>
+      <% } %>
+    </div>
+    <div style="<%= maintenance.enabled ? '' : 'opacity:.5;pointer-events:none' %>">
+      <form method="POST" action="/dev/maintenance/save">
         <div style="margin-bottom:12px">
           <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:4px;color:var(--text-muted)">مدة الصيانة (بالدقائق) — 0 = غير محددة</label>
-          <input type="number" name="minutes" id="mntMinutes" value="<%= maintenance.endTime ? Math.max(1, Math.round((maintenance.endTime - Date.now()) / 60000)) : '' %>" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box">
+          <input type="number" name="minutes" value="<%= maintenance.endTime ? Math.max(1, Math.round((maintenance.endTime - Date.now()) / 60000)) : '' %>" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box">
         </div>
         <div style="margin-bottom:12px">
           <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:4px;color:var(--text-muted)">رسالة الصيانة</label>
-          <input type="text" name="message" id="mntMessage" value="<%= maintenance.message || '' %>" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box">
+          <input type="text" name="message" value="<%= maintenance.message || '' %>" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box">
         </div>
         <button type="submit" style="padding:10px 20px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer">
           💾 حفظ الإعدادات
         </button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -122,34 +131,5 @@ async function cleanupTickets() {
     }
   } catch { alert('❌ فشل التنظيف'); }
 }
-
-// ── Maintenance Mode ──────────────────────────────────────────────────
-(function() {
-  var mntOn = document.getElementById('mntEnabled').value === 'true';
-  var mntBtn = document.getElementById('mntToggleBtn');
-  var mntCircle = document.getElementById('mntCircle');
-  var mntStat = document.getElementById('mntStatus');
-  var mntFlds = document.getElementById('mntFields');
-
-  function setUI(on) {
-    mntBtn.style.background = on ? '#e53935' : '#555';
-    mntCircle.style.left = on ? '27px' : '3px';
-    mntFlds.style.display = on ? '' : 'none';
-    mntStat.textContent = on ? '🟢 الصيانة مفعلة' : '⚪ الصيانة معطلة';
-    document.getElementById('mntEnabled').value = on ? 'true' : 'false';
-    mntOn = on;
-  }
-
-  mntBtn.addEventListener('click', function() {
-    var newOn = !mntOn;
-    setUI(newOn);
-    document.getElementById('mntForm').submit();
-  });
-
-  document.getElementById('mntForm').addEventListener('submit', function() {
-    var mins = parseInt(document.getElementById('mntMinutes').value) || 0;
-    document.getElementById('mntSaveMinutes').value = mins;
-  });
-})();
 </script>
 

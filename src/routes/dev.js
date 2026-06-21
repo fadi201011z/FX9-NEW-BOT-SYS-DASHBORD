@@ -57,34 +57,52 @@ router.get('/guild/:guildId', isAuthenticated, isOwner, async (req, res) => {
   });
 });
 
-// ── Maintenance mode toggle ───────────────────────────────────────────
-router.post('/maintenance/toggle', isAuthenticated, isOwner, async (req, res) => {
-  try {
-    // support both JSON and form submissions
-    const enabled = req.body.enabled === 'true' || req.body.enabled === true;
-    const minutes = parseInt(req.body.minutes || req.body.saveMinutes || '0') || 0;
-    const endTime = minutes > 0 ? Date.now() + minutes * 60 * 1000 : null;
-    const message = req.body.message || '';
+// ── Maintenance mode start / stop / save ──────────────────────────────
+async function getOrCreateMaintenance() {
+  let doc = await Maintenance.findOne();
+  if (!doc) doc = new Maintenance();
+  return doc;
+}
 
-    let doc = await Maintenance.findOne();
-    if (!doc) doc = new Maintenance();
-    doc.enabled = enabled;
-    doc.endTime = endTime;
+router.post('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
+  try {
+    const doc = await getOrCreateMaintenance();
+    doc.enabled = true;
+    doc.updatedAt = Date.now();
+    doc.updatedBy = req.session.user.id || '';
+    await doc.save();
+    res.redirect('/dev');
+  } catch (err) {
+    res.redirect('/dev?error=' + encodeURIComponent(err.message));
+  }
+});
+
+router.post('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
+  try {
+    const doc = await getOrCreateMaintenance();
+    doc.enabled = false;
+    doc.endTime = null;
+    doc.updatedAt = Date.now();
+    doc.updatedBy = req.session.user.id || '';
+    await doc.save();
+    res.redirect('/dev');
+  } catch (err) {
+    res.redirect('/dev?error=' + encodeURIComponent(err.message));
+  }
+});
+
+router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
+  try {
+    const minutes = parseInt(req.body.minutes || '0') || 0;
+    const message = req.body.message || '';
+    const doc = await getOrCreateMaintenance();
+    doc.endTime = minutes > 0 ? Date.now() + minutes * 60 * 1000 : null;
     if (message.trim()) doc.message = message.trim();
     doc.updatedAt = Date.now();
     doc.updatedBy = req.session.user.id || '';
     await doc.save();
-
-    // if JSON request, respond with JSON
-    if (req.xhr || req.headers.accept?.includes('json')) {
-      return res.json({ success: true, enabled: doc.enabled, endTime: doc.endTime, message: doc.message });
-    }
-    // otherwise redirect back to dev panel
     res.redirect('/dev');
   } catch (err) {
-    if (req.xhr || req.headers.accept?.includes('json')) {
-      return res.status(500).json({ error: err.message });
-    }
     res.redirect('/dev?error=' + encodeURIComponent(err.message));
   }
 });
