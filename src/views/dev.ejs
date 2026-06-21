@@ -70,12 +70,9 @@
   </div>
   <div class="card-body" style="padding:16px 20px">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-      <label style="position:relative;display:inline-block;width:48px;height:26px">
-        <input type="checkbox" id="maintenanceToggle" <%= maintenance.enabled ? 'checked' : '' %> style="opacity:0;width:0;height:0">
-        <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:<%= maintenance.enabled ? '#e53935' : '#555' %>;border-radius:26px;transition:.3s">
-          <span style="position:absolute;content:'';height:20px;width:20px;left:<%= maintenance.enabled ? '24px' : '4px' %>;bottom:3px;background:#fff;border-radius:50%;transition:.3s"></span>
-        </span>
-      </label>
+      <button id="mntToggleBtn" style="width:52px;height:28px;border-radius:14px;border:none;cursor:pointer;position:relative;transition:.3s;flex-shrink:0;background:<%= maintenance.enabled ? '#e53935' : '#555' %>">
+        <span id="mntCircle" style="position:absolute;top:3px;left:<%= maintenance.enabled ? '27px' : '3px' %>;width:22px;height:22px;border-radius:50%;background:#fff;transition:.3s"></span>
+      </button>
       <span id="mntStatus" style="font-weight:600;font-size:.95rem"><%= maintenance.enabled ? '🟢 الصيانة مفعلة' : '⚪ الصيانة معطلة' %></span>
     </div>
     <div id="maintenanceFields" style="<%= maintenance.enabled ? '' : 'display:none' %>">
@@ -87,9 +84,12 @@
         <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:4px;color:var(--text-muted)">رسالة الصيانة</label>
         <input type="text" id="maintenanceMessage" placeholder="رسالة تظهر للمستخدمين" value="<%= maintenance.message || '' %>" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box">
       </div>
-      <button class="btn-primary" onclick="saveMaintenance()" style="border:none;cursor:pointer;padding:10px 20px;border-radius:10px;font-weight:600">
-        💾 حفظ التغييرات
-      </button>
+      <div style="display:flex;gap:8px">
+        <button id="mntSaveBtn" class="btn-primary" style="border:none;cursor:pointer;padding:10px 20px;border-radius:10px;font-weight:600">
+          💾 حفظ الإعدادات
+        </button>
+        <span id="mntFeedback" style="display:none;font-size:.85rem;align-self:center"></span>
+      </div>
     </div>
   </div>
 </div>
@@ -123,33 +123,37 @@ async function cleanupTickets() {
 }
 
 // ── Maintenance Mode ──────────────────────────────────────────────────
-const mntToggle = document.getElementById('maintenanceToggle');
-const mntStatus = document.getElementById('mntStatus');
-mntToggle?.addEventListener('change', function() {
+let mntActive = <%= maintenance.enabled ? 'true' : 'false' %>;
+
+function mntSetUI(on) {
+  const btn = document.getElementById('mntToggleBtn');
+  const circle = document.getElementById('mntCircle');
   const fields = document.getElementById('maintenanceFields');
-  const bg = this.parentElement.querySelector('span');
-  const circle = bg.querySelector('span');
-  if (this.checked) {
-    fields.style.display = 'block';
-    bg.style.background = '#e53935';
-    circle.style.left = '24px';
-    mntStatus.textContent = '🟢 الصيانة مفعلة';
-  } else {
-    fields.style.display = 'none';
-    bg.style.background = '#555';
-    circle.style.left = '4px';
-    mntStatus.textContent = '⚪ الصيانة معطلة';
-  }
-  saveMaintenance();
+  const status = document.getElementById('mntStatus');
+  btn.style.background = on ? '#e53935' : '#555';
+  circle.style.left = on ? '27px' : '3px';
+  fields.style.display = on ? '' : 'none';
+  status.textContent = on ? '🟢 الصيانة مفعلة' : '⚪ الصيانة معطلة';
+  mntActive = on;
+}
+
+document.getElementById('mntToggleBtn')?.addEventListener('click', async function() {
+  const on = !mntActive;
+  mntSetUI(on);
+  await saveMaintenance();
 });
 
+document.getElementById('mntSaveBtn')?.addEventListener('click', saveMaintenance);
+
 async function saveMaintenance() {
-  const enabled = document.getElementById('maintenanceToggle').checked;
+  const enabled = document.getElementById('mntToggleBtn') ? mntActive : false;
   const minutes = parseInt(document.getElementById('maintenanceMinutes').value) || 0;
   const message = document.getElementById('maintenanceMessage').value;
   const endTime = minutes > 0 ? Date.now() + minutes * 60 * 1000 : null;
+  const fb = document.getElementById('mntFeedback');
 
   try {
+    fb.style.display = 'none';
     const res = await fetch('/dev/maintenance/toggle', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -157,9 +161,18 @@ async function saveMaintenance() {
     });
     const data = await res.json();
     if (data.success) {
-      document.getElementById('maintenanceMinutes').value = minutes;
+      fb.textContent = '✅ تم الحفظ';
+      fb.style.color = '#4caf50';
+    } else {
+      fb.textContent = '⚠️ ' + (data.error || 'خطأ');
+      fb.style.color = '#ff9800';
     }
-  } catch {}
+  } catch (e) {
+    fb.textContent = '❌ فشل الاتصال';
+    fb.style.color = '#e53935';
+  }
+  fb.style.display = '';
+  setTimeout(() => { fb.style.display = 'none'; }, 3000);
 }
 </script>
 
