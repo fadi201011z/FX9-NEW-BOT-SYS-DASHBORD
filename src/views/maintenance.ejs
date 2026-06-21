@@ -41,7 +41,7 @@
       <p><%= maintenance?.message || 'الموقع تحت الصيانة حالياً. سنعود قريباً!' %></p>
       <p style="font-size:.82rem;color:rgba(255,255,255,.4)">نعمل على تحسين تجربتك — شكراً لصبرك</p>
 
-      <% if (maintenance?.endTime) { %>
+      <% if (maintenance.enabled && maintenance.endTime) { %>
         <div class="mnt-divider"></div>
         <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:8px">الوقت المتبقي</div>
         <div class="mnt-countdown" id="countdown">
@@ -53,16 +53,13 @@
         <div class="mnt-progress"><div class="mnt-progress-bar" id="progressBar" style="width:100%"></div></div>
         <script>
         (function() {
-          const endTime = <%= maintenance.endTime %>;
+          var endTime = <%= maintenance.endTime %>;
           function update() {
-            const diff = Math.max(0, endTime - Date.now());
-            const total = endTime - <%= maintenance.endTime - (maintenance.endTime - Date.now()) %>;
-            const pct = total > 0 ? ((total - diff) / total) * 100 : 0;
+            var diff = Math.max(0, endTime - Date.now());
             document.getElementById('cd-days').textContent = String(Math.floor(diff / 86400000)).padStart(2,'0');
             document.getElementById('cd-hours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0');
             document.getElementById('cd-minutes').textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
             document.getElementById('cd-seconds').textContent = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
-            document.getElementById('progressBar').style.width = pct + '%';
           }
           update();
           setInterval(update, 1000);

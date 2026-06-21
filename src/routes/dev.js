@@ -24,8 +24,14 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
     });
   }
 
-  let maintenance = await Maintenance.findOne().lean();
-  if (!maintenance) maintenance = { enabled: false, endTime: null, message: '' };
+  let maintenanceRaw = await Maintenance.findOne().lean();
+  const maintenance = {
+    enabled: maintenanceRaw?.enabled || false,
+    endTime: maintenanceRaw?.endTime || null,
+    message: maintenanceRaw?.message || '',
+    updatedAt: maintenanceRaw?.updatedAt || 0,
+    updatedBy: maintenanceRaw?.updatedBy || '',
+  };
 
   res.render('dev', {
     user: req.session.user,
@@ -55,14 +61,15 @@ router.get('/guild/:guildId', isAuthenticated, isOwner, async (req, res) => {
 router.post('/maintenance/toggle', isAuthenticated, isOwner, async (req, res) => {
   const { enabled, endTime, message } = req.body;
   try {
-    const doc = await Maintenance.findOne() || new Maintenance();
-    doc.enabled = !!enabled;
+    let doc = await Maintenance.findOne();
+    if (!doc) doc = new Maintenance();
+    doc.enabled = enabled === true;
     doc.endTime = endTime ? Number(endTime) : null;
-    if (message) doc.message = message;
+    if (message && message.trim()) doc.message = message.trim();
     doc.updatedAt = Date.now();
-    doc.updatedBy = req.session.user?.id || '';
+    doc.updatedBy = req.session.user.id || '';
     await doc.save();
-    res.json({ success: true, enabled: doc.enabled, endTime: doc.endTime });
+    res.json({ success: true, enabled: doc.enabled, endTime: doc.endTime, message: doc.message });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

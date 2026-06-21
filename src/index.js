@@ -84,24 +84,22 @@ app.use((req, res, next) => {
 
 // ─── Maintenance mode check ────────────────────────────────────────────
 app.use(async (req, res, next) => {
-  const skipPaths = ['/auth/', '/maintenance'];
-  if (skipPaths.some(p => req.path.startsWith(p))) return next();
-  if (req.path.startsWith('/dev') || req.path.startsWith('/api/') || req.path === '/') return next();
-  if (req.path.startsWith('/docs') || req.path === '/status') return next();
+  const p = req.path;
+  if (p === '/' || p.startsWith('/auth/') || p.startsWith('/maintenance')) return next();
+  if (p.startsWith('/dev') || p.startsWith('/api/') || p.startsWith('/static/')) return next();
+  if (p.startsWith('/docs') || p === '/status') return next();
+  if (p.startsWith('/css/') || p.startsWith('/js/') || p.startsWith('/fonts/')) return next();
 
-  // Session bypass for developers
-  if (req.session?.maintenanceBypass) return next();
+  if (req.session.maintenanceBypass) return next();
 
-  const user = req.session?.user;
-  if (user) {
-    if (user.isOwner || (ROLE_HIERARCHY[user.dashboardRole || 'member'] ?? -1) >= 4) return next();
-  }
+  const user = req.session.user;
+  if (user && (user.isOwner || (ROLE_HIERARCHY[user.dashboardRole || 'member'] ?? -1) >= 4)) return next();
 
   try {
     const Maintenance = (await import('./models/Maintenance.js')).default;
     const doc = await Maintenance.findOne().lean();
-    if (doc?.enabled) {
-      if (req.headers.accept?.includes('json')) {
+    if (doc && doc.enabled === true) {
+      if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
         return res.status(503).json({ error: 'maintenance', message: doc.message, endTime: doc.endTime });
       }
       return res.redirect('/maintenance');
@@ -172,12 +170,16 @@ app.get('/maintenance', async (req, res) => {
     }
   }
 
-  let maintenance = { enabled: true, endTime: null, message: 'الموقع تحت الصيانة حالياً. سنعود قريباً!' };
+  let maintenanceRaw = null;
   try {
     const Maintenance = (await import('./models/Maintenance.js')).default;
-    const doc = await Maintenance.findOne().lean();
-    if (doc) maintenance = doc;
+    maintenanceRaw = await Maintenance.findOne().lean();
   } catch {}
+  const maintenance = {
+    enabled: maintenanceRaw?.enabled === true,
+    endTime: maintenanceRaw?.endTime || null,
+    message: maintenanceRaw?.message || 'الموقع تحت الصيانة حالياً. سنعود قريباً!',
+  };
   const canBypass = req.session?.user?.isOwner || (ROLE_HIERARCHY[req.session?.user?.dashboardRole || 'member'] ?? -1) >= 4;
   res.status(503).render('maintenance', { layout: false, user: req.session.user, maintenance, canBypass, title: 'تحت الصيانة' });
 });
