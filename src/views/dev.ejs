@@ -64,42 +64,73 @@
   </div>
 </div>
 
-<div class="card glass" style="margin-top:20px">
-  <div class="card-header">
-    <h3><i class="fas fa-screwdriver-wrench"></i> وضع الصيانة</h3>
-  </div>
-  <div class="card-body" style="padding:16px 20px">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+<style>
+.mnt-card { overflow: hidden; }
+.mnt-header { padding:20px 24px; display:flex; align-items:center; justify-content:space-between; background:<%= maintenance.enabled ? 'rgba(229,57,53,.08)' : 'transparent' %>; border-bottom:1px solid var(--border); transition:.3s; }
+.mnt-status { display:flex; align-items:center; gap:14px; }
+.mnt-dot { width:14px;height:14px;border-radius:50%;background:<%= maintenance.enabled ? '#e53935' : '#666' %>;box-shadow:<%= maintenance.enabled ? '0 0 20px rgba(229,57,53,.5)' : 'none' %>;animation:<%= maintenance.enabled ? 'mntPulse 1.5s ease-in-out infinite' : 'none' %>; }
+@keyframes mntPulse { 0%,100%{box-shadow:0 0 8px rgba(229,57,53,.4)} 50%{box-shadow:0 0 24px rgba(229,57,53,.7)} }
+.mnt-label { font-weight:700;font-size:.95rem;color:<%= maintenance.enabled ? '#e53935' : '#888' %>; }
+.mnt-body { padding:20px 24px; }
+.mnt-actions { display:flex;gap:10px;flex-wrap:wrap; }
+.mnt-btn { display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;font-weight:700;font-size:.85rem;text-decoration:none;cursor:pointer;border:none;transition:.2s; }
+.mnt-btn:hover { transform:translateY(-1px); }
+.mnt-btn-start { background:linear-gradient(135deg,#4caf50,#388e3c);color:#fff;box-shadow:0 4px 15px rgba(76,175,80,.3); }
+.mnt-btn-start:hover { box-shadow:0 6px 20px rgba(76,175,80,.4); }
+.mnt-btn-stop { background:linear-gradient(135deg,#e53935,#c62828);color:#fff;box-shadow:0 4px 15px rgba(229,57,53,.3); }
+.mnt-btn-stop:hover { box-shadow:0 6px 20px rgba(229,57,53,.4); }
+.mnt-btn-save { background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#fff;box-shadow:0 4px 15px rgba(88,101,242,.3); }
+.mnt-btn-save:hover { box-shadow:0 6px 20px rgba(88,101,242,.4); }
+.mnt-btn-ghost { background:rgba(255,255,255,.04);color:var(--text-muted);border:1px solid var(--border); }
+.mnt-btn-ghost:hover { background:rgba(255,255,255,.08);color:var(--text); }
+.mnt-form-row { margin-bottom:14px; }
+.mnt-form-row:last-child { margin-bottom:0; }
+.mnt-form-row label { display:block;font-size:.82rem;font-weight:600;margin-bottom:5px;color:var(--text-muted); }
+.mnt-form-row input { width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s; }
+.mnt-form-row input:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(88,101,242,.15); }
+.mnt-divider { height:1px;background:var(--border);margin:16px 0; }
+</style>
+
+<div class="card glass mnt-card">
+  <div class="mnt-header">
+    <div class="mnt-status">
+      <div class="mnt-dot"></div>
+      <div>
+        <div class="mnt-label"><%= maintenance.enabled ? 'وضع الصيانة — مفعل' : 'وضع الصيانة — معطل' %></div>
+        <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">
+          <% if (maintenance.enabled) { %>
+            الصيانة عامة — جميع الزوار يتأثرون
+          <% } else { %>
+            كل الخدمات تعمل بشكل طبيعي
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <div class="mnt-actions">
       <% if (maintenance.enabled) { %>
-        <form method="POST" action="/dev/maintenance/stop" style="margin:0">
-          <button type="submit" style="background:#e53935;color:#fff;border:none;padding:8px 18px;border-radius:10px;font-weight:600;cursor:pointer;font-size:.9rem">
-            <i class="fas fa-power-off"></i> إيقاف الصيانة
-          </button>
-        </form>
-        <span style="font-weight:600;font-size:.95rem;color:#e53935">🟢 الصيانة مفعلة</span>
+        <a href="/dev/maintenance/stop" class="mnt-btn mnt-btn-stop"><i class="fas fa-power-off"></i> إيقاف الصيانة</a>
       <% } else { %>
-        <form method="POST" action="/dev/maintenance/start" style="margin:0">
-          <button type="submit" style="background:#4caf50;color:#fff;border:none;padding:8px 18px;border-radius:10px;font-weight:600;cursor:pointer;font-size:.9rem">
-            <i class="fas fa-power-off"></i> تشغيل الصيانة
-          </button>
-        </form>
-        <span style="font-weight:600;font-size:.95rem;color:#888">⚪ الصيانة معطلة</span>
+        <a href="/dev/maintenance/start" class="mnt-btn mnt-btn-start"><i class="fas fa-shield-halved"></i> تفعيل الصيانة</a>
       <% } %>
     </div>
-    <div style="<%= maintenance.enabled ? '' : 'opacity:.5;pointer-events:none' %>">
-      <form method="POST" action="/dev/maintenance/save">
-        <div style="margin-bottom:12px">
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:4px;color:var(--text-muted)">مدة الصيانة (بالدقائق) — 0 = غير محددة</label>
-          <input type="number" name="minutes" value="<%= maintenance.endTime ? Math.max(1, Math.round((maintenance.endTime - Date.now()) / 60000)) : '' %>" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box">
-        </div>
-        <div style="margin-bottom:12px">
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:4px;color:var(--text-muted)">رسالة الصيانة</label>
-          <input type="text" name="message" value="<%= maintenance.message || '' %>" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box">
-        </div>
-        <button type="submit" style="padding:10px 20px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer">
-          💾 حفظ الإعدادات
-        </button>
-      </form>
+  </div>
+  <div class="mnt-body" style="<%= maintenance.enabled ? '' : 'opacity:.5' %>">
+    <form method="POST" action="/dev/maintenance/save" style="display:flex;flex-wrap:wrap;gap:14px;align-items:end">
+      <div class="mnt-form-row" style="flex:1;min-width:160px">
+        <label>⏱ المدة (بالدقائق) <span style="color:var(--text-muted);font-weight:400">— 0 = غير محددة</span></label>
+        <input type="number" name="minutes" value="<%= maintenance.endTime ? Math.max(1, Math.round((maintenance.endTime - Date.now()) / 60000)) : '' %>">
+      </div>
+      <div class="mnt-form-row" style="flex:2;min-width:220px">
+        <label>💬 رسالة الصيانة</label>
+        <input type="text" name="message" value="<%= maintenance.message || '' %>" placeholder="الموقع تحت الصيانة حالياً...">
+      </div>
+      <div class="mnt-form-row">
+        <button type="submit" class="mnt-btn mnt-btn-save"><i class="fas fa-check"></i> حفظ</button>
+      </div>
+    </form>
+    <div class="mnt-divider"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a href="/maintenance" target="_blank" class="mnt-btn mnt-btn-ghost"><i class="fas fa-eye"></i> معاينة صفحة الصيانة</a>
     </div>
   </div>
 </div>

@@ -64,7 +64,7 @@ async function getOrCreateMaintenance() {
   return doc;
 }
 
-router.post('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
+router.get('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
   try {
     const doc = await getOrCreateMaintenance();
     doc.enabled = true;
@@ -77,7 +77,7 @@ router.post('/maintenance/start', isAuthenticated, isOwner, async (req, res) => 
   }
 });
 
-router.post('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
+router.get('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
   try {
     const doc = await getOrCreateMaintenance();
     doc.enabled = false;
