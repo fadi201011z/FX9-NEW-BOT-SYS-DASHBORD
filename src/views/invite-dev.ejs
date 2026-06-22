@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f0f1a,#1a1a2e); direction:rtl; font-family:'Cairo',sans-serif; }
+    .dv-box { width:100%; max-width:480px; padding:20px; }
+    .dv-card { background:rgba(255,255,255,.04); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:48px 32px; text-align:center; }
+    .dv-icon { width:80px; height:80px; border-radius:20px; background:rgba(88,101,242,.15); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:2.5rem; color:#5865f2; }
+    .dv-card h1 { margin:0 0 8px; font-size:1.5rem; font-weight:700; color:#fff; }
+    .dv-card p { margin:0 0 4px; color:rgba(255,255,255,.6); line-height:1.8; font-size:.9rem; }
+    .dv-divider { height:1px; background:rgba(255,255,255,.06); margin:24px 0; }
+    .dv-actions { display:flex; flex-direction:column; gap:8px; }
+    .dv-actions a { display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 20px; border-radius:10px; text-decoration:none; font-weight:600; font-size:.9rem; transition:.2s; }
+    .dv-actions .btn-discord { background:#5865f2; color:#fff; }
+    .dv-actions .btn-discord:hover { background:#4752c4; }
+    .dv-actions .btn-ghost { background:rgba(255,255,255,.04); color:rgba(255,255,255,.7); border:1px solid rgba(255,255,255,.08); }
+    .dv-actions .btn-ghost:hover { background:rgba(255,255,255,.08); }
+    .dv-actions .btn-home { background:rgba(250,166,26,.12); color:#faa61a; border:1px solid rgba(250,166,26,.25); }
+    .dv-actions .btn-home:hover { background:rgba(250,166,26,.2); }
+    .dv-footer { margin-top:20px; font-size:.75rem; color:rgba(255,255,255,.3); }
+  </style>
+</head>
+<body>
+  <div class="dv-box">
+    <div class="dv-card">
+      <div class="dv-icon"><i class="fas fa-code-branch"></i></div>
+      <h1>🚧 خاصية قيد التطوير</h1>
+      <p>خاصية إضافة البوت إلى السيرفرات في مرحلة التطوير حالياً.</p>
+      <p style="font-size:.82rem;color:rgba(255,255,255,.4)">سيتم تفعيل هذه الخاصية قريباً — تابعنا لمعرفة التحديثات</p>
+
+      <div class="dv-divider"></div>
+      <div class="dv-actions">
+        <a href="https://discord.gg/ENQut4HHKb" class="btn-discord" target="_blank"><i class="fab fa-discord"></i> سيرفر الدعم</a>
+        <a href="/" class="btn-home"><i class="fas fa-home"></i> العودة إلى الصفحة الرئيسية</a>
+        <% if (locals.user) { %><a href="/dashboard" class="btn-ghost"><i class="fas fa-th-large"></i> لوحة التحكم</a><% } %>
+      </div>
+      <div class="dv-footer">FX9 Dashboard &copy; 2026</div>
+    </div>
+  </div>
+</body>
+</html>

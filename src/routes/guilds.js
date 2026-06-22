@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess, requireRole, ROLE_HIERARCHY } from '../middleware/auth.js';
-import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
+import { getBotGuilds, getGuildInfo } from '../auth/discord.js';
 import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
 import { getGuildTickets, getTicketGuildConfig } from '../services/dataReader.js';
@@ -100,7 +100,6 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
       botInGuild,
       memberCount,
       tickets,
-      inviteUrl: getInviteUrl(),
       title: guild.name,
     });
   } catch (err) {

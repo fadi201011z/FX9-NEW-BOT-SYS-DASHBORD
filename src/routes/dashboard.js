@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { isAuthenticated, requireRole } from '../middleware/auth.js';
-import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
+import { getBotGuilds, getGuildInfo } from '../auth/discord.js';
 import { getAlerts, getUnreadAlerts, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
 import { getTotalTicketCount } from '../services/dataReader.js';
@@ -51,7 +51,6 @@ router.get('/', isAuthenticated, requireRole('manager'), async (req, res) => {
       totalMembers,
       botPing,
       totalTickets,
-      inviteUrl: getInviteUrl(),
       alerts,
       title: 'لوحة التحكم',
       clientId: config.discord.clientId,

@@ -35,9 +35,9 @@
       <i class="fas fa-exclamation-triangle"></i>
       <h3>لا توجد سيرفرات</h3>
       <p>يبدو أنك لا تملك صلاحيات إدارة في أي سيرفر أو أن البوت غير مضاف إلى سيرفراتك.</p>
-      <a href="/maintenance" class="btn-primary">
-        <i class="fas fa-screwdriver-wrench"></i>
-        الإضافة تحت الصيانة
+      <a href="/invite-dev" class="btn-primary">
+        <i class="fas fa-code-branch"></i>
+        الإضافة قيد التطوير
       </a>
     </div>
   <% } %>
@@ -47,7 +47,7 @@
   <div class="modal-box glass">
     <div class="modal-icon"><i class="fas fa-exclamation-triangle" style="color:#f0c040;font-size:2.5rem"></i></div>
     <h3>البوت غير موجود</h3>
-    <p id="guildWarningText">البوت غير مضاف إلى هذا السيرفر. إضافة البوت تحت الصيانة حالياً.</p>
+    <p id="guildWarningText">البوت غير مضاف إلى هذا السيرفر. خاصية إضافة البوت قيد التطوير حالياً.</p>
     <button class="btn-primary" id="guildWarningCloseBtn">حسناً</button>
   </div>
 </div>
@@ -79,7 +79,7 @@ document.querySelectorAll('.guild-card').forEach(function(card) {
     var name = this.dataset.guildname;
     if (!hasBot) {
       e.preventDefault();
-      text.textContent = 'البوت غير مضاف إلى "' + name + '". إضافة البوت تحت الصيانة حالياً.';
+      text.textContent = 'البوت غير مضاف إلى "' + name + '". خاصية إضافة البوت قيد التطوير حالياً.';
       modal.style.display = 'flex';
     } else {
       window.location.href = '/guilds/' + (this.dataset.guildid || '');

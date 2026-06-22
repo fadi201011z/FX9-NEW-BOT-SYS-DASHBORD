@@ -218,6 +218,11 @@ app.get('/maintenance', async (req, res) => {
   res.status(isPreview ? 200 : 503).render('maintenance', { layout: false, user, maintenance, canBypass, title: 'تحت الصيانة' });
 });
 
+// ─── Invite (Under Development) ──────────────────────────────────────────
+app.get('/invite-dev', (req, res) => {
+  res.status(200).render('invite-dev', { layout: false, user: req.session?.user || null, title: 'خاصية قيد التطوير' });
+});
+
 // ─── Landing Page ────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   if (req.session?.user) {
@@ -234,7 +239,6 @@ app.get('/', (req, res) => {
     layout: false,
     user: req.session?.user || null,
     title: 'FX9 Dashboard — لوحة تحكم البوت',
-    inviteUrl: '/maintenance',
     supportUrl: '#',
     error: errorMap[req.query.error] || null,
   });
