@@ -167,6 +167,18 @@ app.get('/access-denied', (req, res) => {
 });
 
 // ─── Maintenance ─────────────────────────────────────────────────────────
+app.post('/maintenance/autoend', async (req, res) => {
+  try {
+    const Maintenance = (await import('./models/Maintenance.js')).default;
+    const doc = await Maintenance.findOne();
+    if (doc && doc.enabled && doc.endTime && Date.now() >= doc.endTime) {
+      doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0;
+      await doc.save();
+    }
+    res.json({ ended: true });
+  } catch { res.json({ ended: true }); }
+});
+
 app.get('/maintenance', async (req, res) => {
   try {
     if (req.query.bypass === '1') {
@@ -195,6 +207,7 @@ app.get('/maintenance', async (req, res) => {
   const maintenance = {
     enabled: isPreview ? true : !!(maintenanceRaw?.enabled),
     endTime: maintenanceRaw?.endTime || null,
+    durationMinutes: maintenanceRaw?.durationMinutes || 0,
     message: maintenanceRaw?.message || 'الموقع تحت الصيانة حالياً. سنعود قريباً!',
   };
   const user = req.session?.user;

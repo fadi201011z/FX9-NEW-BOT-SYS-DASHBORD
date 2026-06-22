@@ -74,65 +74,49 @@ async function getOrCreateMaintenance() {
 router.get('/maintenance/status', async (req, res) => {
   try {
     const doc = await Maintenance.findOne();
-    if (doc && doc.enabled && doc.endTime && Date.now() >= doc.endTime) {
-      doc.enabled = false;
-      doc.endTime = null;
+    if (!doc) return res.json({ enabled: false });
+    if (doc.enabled && doc.endTime && Date.now() >= doc.endTime) {
+      doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0;
       await doc.save();
       return res.json({ enabled: false });
     }
-    if (!doc) return res.json({ enabled: false });
-    res.json({ enabled: doc.enabled, endTime: doc.endTime, message: doc.message });
+    const remain = doc.enabled && doc.endTime ? Math.max(0, doc.endTime - Date.now()) : 0;
+    res.json({ enabled: doc.enabled, remainMs: remain, message: doc.message, durationMinutes: doc.durationMinutes });
   } catch { res.json({ enabled: false }); }
 });
 
 router.get('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
   try {
     const doc = await getOrCreateMaintenance();
-    doc.enabled = true;
-    doc.updatedAt = Date.now();
-    doc.updatedBy = req.session.user.id || '';
+    doc.enabled = true; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
     res.redirect('/dev');
-  } catch (err) {
-    res.redirect('/dev?error=' + encodeURIComponent(err.message));
-  }
+  } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
 
 router.get('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
   try {
     const doc = await getOrCreateMaintenance();
-    doc.enabled = false;
-    doc.endTime = null;
-    doc.updatedAt = Date.now();
-    doc.updatedBy = req.session.user.id || '';
+    doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
     res.redirect('/dev');
-  } catch (err) {
-    res.redirect('/dev?error=' + encodeURIComponent(err.message));
-  }
+  } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
 
 router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
   try {
     const rawMinutes = parseInt(req.body.minutes || '0');
     const message = (req.body.message || '').trim();
-
     const doc = await getOrCreateMaintenance();
     if (rawMinutes > 0) {
       doc.endTime = Date.now() + rawMinutes * 60 * 1000;
       doc.durationMinutes = rawMinutes;
-    } else {
-      doc.endTime = null;
-      doc.durationMinutes = 0;
-    }
+    } else { doc.endTime = null; doc.durationMinutes = 0; }
     if (message) doc.message = message;
-    doc.updatedAt = Date.now();
-    doc.updatedBy = req.session.user.id || '';
+    doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
     res.redirect('/dev');
-  } catch (err) {
-    res.redirect('/dev?error=' + encodeURIComponent(err.message));
-  }
+  } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
 
 export default router;
