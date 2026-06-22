@@ -130,8 +130,7 @@ router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
     if (channelId) doc.channelId = channelId;
     doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
-    const action = doc.enabled ? 'start' : undefined;
-    syncMaintenanceToBot(action, doc.channelId);
+    syncMaintenanceToBot(undefined, doc.channelId);
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });

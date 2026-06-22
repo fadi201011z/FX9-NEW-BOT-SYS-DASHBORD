@@ -110,11 +110,14 @@
       <% if (maintenance.enabled) { %>
         <a href="/dev/maintenance/stop" class="mnt-btn mnt-btn-stop"><i class="fas fa-power-off"></i> إيقاف الصيانة</a>
       <% } else { %>
-        <a href="/dev/maintenance/start" class="mnt-btn mnt-btn-start"><i class="fas fa-shield-halved"></i> تفعيل الصيانة</a>
+        <a href="/dev/maintenance/start" id="mntStartBtn" class="mnt-btn mnt-btn-start" style="opacity:.5;pointer-events:none"><i class="fas fa-shield-halved"></i> تفعيل الصيانة</a>
       <% } %>
     </div>
   </div>
   <div class="mnt-body" style="<%= maintenance.enabled ? '' : 'opacity:.5' %>">
+    <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:12px;padding:8px 12px;background:rgba(255,152,0,.08);border-radius:8px;border:1px solid rgba(255,152,0,.2)">
+      ⚠️ <strong>ملاحظة:</strong> يجب اختيار المدة الزمنية أولاً لتفعيل زر البدء. يمكنك إدخال <strong>0</strong> للصيانة بدون وقت محدد (مفتوحة).
+    </div>
     <form method="POST" action="/dev/maintenance/save" id="mntSaveForm">
       <input type="hidden" name="minutes" id="mntMinutesField" value="">
       <div style="margin-bottom:12px">
@@ -129,7 +132,7 @@
           <button type="button" id="mntCustomBtn" style="padding:6px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">⌨️ مخصص</button>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
-          <input type="number" id="mntMinutes" min="0" placeholder="عدد الدقائق" style="flex:1;min-width:100px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+          <input type="number" id="mntMinutes" min="0" placeholder="عدد الدقائق (0 = بدون وقت محدد)" style="flex:1;min-width:100px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
           <input type="datetime-local" id="mntPicker" style="flex:1.5;min-width:170px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
         </div>
       </div>
@@ -146,6 +149,7 @@
         <button type="submit" class="mnt-btn mnt-btn-save"><i class="fas fa-check"></i> حفظ الإعدادات</button>
         <span style="font-size:.8rem;color:var(--text-muted)" id="mntSummary"></span>
       </div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px">💡 حفظ الإعدادات لا يرسل إشعار في الديسكورد. يتم الإرسال فقط عند تفعيل أو إيقاف الصيانة.</div>
     </form>
     <script>
     (function(){
@@ -223,6 +227,24 @@
         hidden.value = <%= maintenance.durationMinutes %>;
         summary.textContent = '🕐 تنتهي بعد <%= maintenance.durationMinutes %> دقيقة';
       <% } %>
+
+      function updateStartBtn() {
+        var btn = document.getElementById('mntStartBtn');
+        if (!btn) return;
+        var hasTime = !!(parseInt(mins.value) > 0) || !!(picker.value) || (parseInt(mins.value) === 0);
+        btn.style.opacity = hasTime ? '1' : '.5';
+        btn.style.pointerEvents = hasTime ? 'auto' : 'none';
+      }
+
+      updateStartBtn();
+      mins.addEventListener('input', updateStartBtn);
+      picker.addEventListener('input', updateStartBtn);
+      presets.forEach(function(b) {
+        b.addEventListener('click', updateStartBtn);
+      });
+      document.getElementById('mntCustomBtn').addEventListener('click', function() {
+        setTimeout(updateStartBtn, 50);
+      });
     })();
     </script>
     <% if (maintenance.enabled) { %>
