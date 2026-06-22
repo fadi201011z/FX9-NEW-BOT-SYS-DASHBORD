@@ -116,23 +116,26 @@
   </div>
   <div class="mnt-body" style="<%= maintenance.enabled ? '' : 'opacity:.5' %>">
     <form method="POST" action="/dev/maintenance/save" id="mntSaveForm">
+      <input type="hidden" name="endTime" id="mntEndTimeStamp" value="">
       <div style="margin-bottom:12px">
         <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">⏱ المدة</label>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-          <% var presets = [15,30,60,120,360,1440]; %>
-          <% presets.forEach(function(m) { %>
-            <button type="button" class="mnt-preset" data-minutes="<%= m %>" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s"><%= m < 60 ? m+'د' : (m/60)+'س' %></button>
-          <% }) %>
-          <button type="button" id="mntCustomBtn" class="mnt-preset mnt-preset-active" data-minutes="0" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--accent);color:#fff;cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">⌨️ مخصص</button>
+          <button type="button" class="mnt-preset" data-min="15" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">15د</button>
+          <button type="button" class="mnt-preset" data-min="30" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">30د</button>
+          <button type="button" class="mnt-preset" data-min="60" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">1س</button>
+          <button type="button" class="mnt-preset" data-min="120" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">2س</button>
+          <button type="button" class="mnt-preset" data-min="360" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">6س</button>
+          <button type="button" class="mnt-preset" data-min="1440" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">24س</button>
+          <button type="button" id="mntCustomBtn" style="padding:6px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">⌨️ مخصص</button>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
-          <input type="number" name="minutes" id="mntMinutes" min="0" placeholder="الدقائق" value="<%= maintenance.endTime ? Math.max(1, Math.round((maintenance.endTime - Date.now()) / 60000)) : '' %>" style="flex:1;min-width:100px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
-          <input type="datetime-local" name="endTime" id="mntEndTime" value="<%= maintenance.endTime ? new Date(maintenance.endTime).toLocaleString('sv-SE').replace(' ','T').slice(0,16) : '' %>" style="flex:1.5;min-width:170px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+          <input type="number" id="mntMinutes" min="0" placeholder="عدد الدقائق" style="flex:1;min-width:100px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+          <input type="datetime-local" id="mntPicker" style="flex:1.5;min-width:170px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
         </div>
       </div>
       <div style="margin-bottom:12px">
         <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">💬 رسالة الصيانة</label>
-        <input type="text" name="message" value="<%= maintenance.message || '' %>" placeholder="الموقع تحت الصيانة حالياً..." style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+        <input type="text" name="message" id="mntMessage" value="<%= maintenance.message || '' %>" placeholder="الموقع تحت الصيانة حالياً..." style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <button type="submit" class="mnt-btn mnt-btn-save"><i class="fas fa-check"></i> حفظ الإعدادات</button>
@@ -141,49 +144,86 @@
     </form>
     <script>
     (function(){
-      var f = document.getElementById('mntSaveForm');
       var mins = document.getElementById('mntMinutes');
-      var dt = document.getElementById('mntEndTime');
-      var presets = document.querySelectorAll('.mnt-preset');
+      var picker = document.getElementById('mntPicker');
+      var hidden = document.getElementById('mntEndTimeStamp');
       var summary = document.getElementById('mntSummary');
+      var presets = document.querySelectorAll('.mnt-preset');
 
-      function updateSummary() {
-        var v = parseInt(mins.value) || 0;
-        if (v > 0) summary.textContent = '🕐 تنتهي بعد ' + v + ' دقيقة';
-        else if (dt.value) summary.textContent = '📅 تنتهي في ' + dt.value;
-        else summary.textContent = '⏳ غير محددة';
+      function setActive(btn) {
+        presets.forEach(function(p) { p.style.background = 'rgba(255,255,255,.04)'; p.style.color = 'var(--text)'; p.style.borderColor = 'var(--border)'; });
+        var c = document.getElementById('mntCustomBtn');
+        c.style.background = 'rgba(255,255,255,.04)'; c.style.color = 'var(--text)'; c.style.borderColor = 'var(--border)';
+        if (btn) { btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--accent)'; }
+      }
+
+      function calcEndTime() {
+        var m = parseInt(mins.value) || 0;
+        if (m > 0) {
+          picker.value = '';
+          var et = Date.now() + m * 60000;
+          hidden.value = et;
+          summary.textContent = '🕐 تنتهي بعد ' + m + ' دقيقة';
+          return;
+        }
+        var d = picker.value;
+        if (d) {
+          mins.value = '';
+          var et = new Date(d).getTime();
+          if (!isNaN(et)) {
+            hidden.value = et;
+            summary.textContent = '📅 تنتهي ' + d;
+            return;
+          }
+        }
+        hidden.value = '';
+        summary.textContent = '⏳ غير محددة';
       }
 
       presets.forEach(function(b) {
         b.addEventListener('click', function() {
-          presets.forEach(function(p) { p.style.background = 'rgba(255,255,255,.04)'; p.style.color = 'var(--text)'; });
-          var m = parseInt(this.dataset.minutes);
-          if (m > 0) {
-            this.style.background = 'var(--accent)'; this.style.color = '#fff';
-            mins.value = m; dt.value = '';
-          } else {
-            document.getElementById('mntCustomBtn').style.background = 'var(--accent)'; document.getElementById('mntCustomBtn').style.color = '#fff';
-            mins.value = ''; dt.focus();
-          }
-          updateSummary();
+          setActive(this);
+          mins.value = this.dataset.min;
+          picker.value = '';
+          calcEndTime();
         });
       });
 
+      document.getElementById('mntCustomBtn').addEventListener('click', function() {
+        setActive(null);
+        this.style.background = 'var(--accent)'; this.style.color = '#fff'; this.style.borderColor = 'var(--accent)';
+        mins.value = '';
+        picker.value = '';
+        picker.focus();
+        calcEndTime();
+      });
+
       mins.addEventListener('input', function() {
-        if (this.value) dt.value = '';
-        presets.forEach(function(p) { p.style.background = 'rgba(255,255,255,.04)'; p.style.color = 'var(--text)'; });
-        document.getElementById('mntCustomBtn').style.background = 'var(--accent)'; document.getElementById('mntCustomBtn').style.color = '#fff';
-        updateSummary();
+        setActive(null);
+        if (this.value) picker.value = '';
+        calcEndTime();
       });
 
-      dt.addEventListener('input', function() {
+      picker.addEventListener('input', function() {
+        setActive(null);
         if (this.value) mins.value = '';
-        presets.forEach(function(p) { p.style.background = 'rgba(255,255,255,.04)'; p.style.color = 'var(--text)'; });
-        document.getElementById('mntCustomBtn').style.background = 'var(--accent)'; document.getElementById('mntCustomBtn').style.color = '#fff';
-        updateSummary();
+        calcEndTime();
       });
 
-      updateSummary();
+      document.getElementById('mntSaveForm').addEventListener('submit', function(e) {
+        calcEndTime();
+      });
+
+      // load saved endTime if exists
+      <% if (maintenance.endTime) { %>
+        var saved = <%= maintenance.endTime %>;
+        var diff = Math.round((saved - Date.now()) / 60000);
+        if (diff > 0) {
+          mins.value = diff;
+          hidden.value = saved;
+          summary.textContent = '🕐 تنتهي بعد ' + diff + ' دقيقة';
+        }
+      <% } %>
     })();
     </script>
     <% if (maintenance.enabled) { %>

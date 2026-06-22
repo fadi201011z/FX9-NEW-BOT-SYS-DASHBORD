@@ -93,16 +93,13 @@ router.get('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
 
 router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
   try {
-    const minutes = parseInt(req.body.minutes || '0') || 0;
-    const endTimeStr = (req.body.endTime || '').trim();
+    const rawEndTime = req.body.endTime;
     const message = (req.body.message || '').trim();
 
     let endTime = null;
-    if (minutes > 0) {
-      endTime = Date.now() + minutes * 60 * 1000;
-    } else if (endTimeStr) {
-      endTime = new Date(endTimeStr).getTime();
-      if (isNaN(endTime)) endTime = null;
+    if (rawEndTime) {
+      const ts = parseInt(rawEndTime);
+      if (!isNaN(ts)) endTime = ts;
     }
 
     const doc = await getOrCreateMaintenance();
