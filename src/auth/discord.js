@@ -167,10 +167,6 @@ export async function getAllGuildMembersPaginated(guildId, botToken) {
   return members;
 }
 
-export function getInviteUrl() {
-  return '/maintenance';
-}
-
 // ─── Bot API helpers (cache-first, fallback to Discord API) ─────────────
 
 export async function fetchBotMembers(guildId) {
