@@ -137,6 +137,11 @@
         <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">💬 رسالة الصيانة</label>
         <input type="text" name="message" id="mntMessage" value="<%= maintenance.message || '' %>" placeholder="الموقع تحت الصيانة حالياً..." style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
       </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">📢 روم إشعارات الصيانة (ID)</label>
+        <input type="text" name="channelId" id="mntChannel" value="<%= maintenance.channelId || '' %>" placeholder="أدخل ID الروم في الديسكورد" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s;direction:ltr;text-align:left;font-family:monospace">
+        <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">يُرسل إشعار عند بدء وانتهاء الصيانة في هذا الروم</div>
+      </div>
       <div style="display:flex;gap:8px;align-items:center">
         <button type="submit" class="mnt-btn mnt-btn-save"><i class="fas fa-check"></i> حفظ الإعدادات</button>
         <span style="font-size:.8rem;color:var(--text-muted)" id="mntSummary"></span>

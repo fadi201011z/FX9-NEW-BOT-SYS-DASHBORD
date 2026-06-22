@@ -37,6 +37,7 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
     endTime: maintenanceRaw?.endTime || null,
     durationMinutes: maintenanceRaw?.durationMinutes || 0,
     message: maintenanceRaw?.message || '',
+    channelId: maintenanceRaw?.channelId || '',
     updatedAt: maintenanceRaw?.updatedAt || 0,
     updatedBy: maintenanceRaw?.updatedBy || '',
   };
@@ -72,9 +73,12 @@ async function getOrCreateMaintenance() {
   return doc;
 }
 
-async function syncMaintenanceToBot() {
+async function syncMaintenanceToBot(action, channelId) {
   try {
-    await axios.post(`${config.botApiUrl}/api/maintenance/sync`, {}, { timeout: 3000 });
+    const body = {};
+    if (action) body.action = action;
+    if (channelId) body.channelId = channelId;
+    await axios.post(`${config.botApiUrl}/api/maintenance/sync`, body, { timeout: 3000 });
   } catch {}
 }
 
@@ -97,7 +101,7 @@ router.get('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
     const doc = await getOrCreateMaintenance();
     doc.enabled = true; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
-    syncMaintenanceToBot();
+    syncMaintenanceToBot('start', doc.channelId);
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
@@ -107,7 +111,7 @@ router.get('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
     const doc = await getOrCreateMaintenance();
     doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
-    syncMaintenanceToBot();
+    syncMaintenanceToBot('stop', doc.channelId);
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
@@ -116,15 +120,18 @@ router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
   try {
     const rawMinutes = parseInt(req.body.minutes || '0');
     const message = (req.body.message || '').trim();
+    const channelId = (req.body.channelId || '').trim();
     const doc = await getOrCreateMaintenance();
     if (rawMinutes > 0) {
       doc.endTime = Date.now() + rawMinutes * 60 * 1000;
       doc.durationMinutes = rawMinutes;
     } else { doc.endTime = null; doc.durationMinutes = 0; }
     if (message) doc.message = message;
+    if (channelId) doc.channelId = channelId;
     doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
-    syncMaintenanceToBot();
+    const action = doc.enabled ? 'start' : undefined;
+    syncMaintenanceToBot(action, doc.channelId);
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
