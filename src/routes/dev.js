@@ -4,6 +4,7 @@ import { getAllGuildConfig, getGuildAdmins, getActivity, getAuditLogs } from '..
 import { getBotGuilds } from '../auth/discord.js';
 import Maintenance from '../models/Maintenance.js';
 import config from '../config.js';
+import axios from 'axios';
 
 const router = Router();
 
@@ -71,6 +72,12 @@ async function getOrCreateMaintenance() {
   return doc;
 }
 
+async function syncMaintenanceToBot() {
+  try {
+    await axios.post(`${config.botApiUrl}/api/maintenance/sync`, {}, { timeout: 3000 });
+  } catch {}
+}
+
 router.get('/maintenance/status', async (req, res) => {
   try {
     const doc = await Maintenance.findOne();
@@ -90,6 +97,7 @@ router.get('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
     const doc = await getOrCreateMaintenance();
     doc.enabled = true; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
+    syncMaintenanceToBot();
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
@@ -99,6 +107,7 @@ router.get('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
     const doc = await getOrCreateMaintenance();
     doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
+    syncMaintenanceToBot();
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
@@ -115,6 +124,7 @@ router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
     if (message) doc.message = message;
     doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
+    syncMaintenanceToBot();
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
