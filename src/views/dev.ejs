@@ -213,10 +213,10 @@
         calcMins();
       });
 
-      <% if (maintenance.endTime) { %>
-        var saved = <%= maintenance.endTime %>;
-        var diff = Math.round((saved - Date.now()) / 60000);
-        if (diff > 0) { mins.value = diff; hidden.value = diff; summary.textContent = '🕐 تنتهي بعد ' + diff + ' دقيقة'; }
+      <% if (maintenance.durationMinutes > 0) { %>
+        mins.value = <%= maintenance.durationMinutes %>;
+        hidden.value = <%= maintenance.durationMinutes %>;
+        summary.textContent = '🕐 تنتهي بعد <%= maintenance.durationMinutes %> دقيقة';
       <% } %>
     })();
     </script>

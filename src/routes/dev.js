@@ -34,6 +34,7 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
   const maintenance = {
     enabled: maintenanceRaw?.enabled || false,
     endTime: maintenanceRaw?.endTime || null,
+    durationMinutes: maintenanceRaw?.durationMinutes || 0,
     message: maintenanceRaw?.message || '',
     updatedAt: maintenanceRaw?.updatedAt || 0,
     updatedBy: maintenanceRaw?.updatedBy || '',
@@ -119,8 +120,10 @@ router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
     const doc = await getOrCreateMaintenance();
     if (rawMinutes > 0) {
       doc.endTime = Date.now() + rawMinutes * 60 * 1000;
+      doc.durationMinutes = rawMinutes;
     } else {
       doc.endTime = null;
+      doc.durationMinutes = 0;
     }
     if (message) doc.message = message;
     doc.updatedAt = Date.now();
