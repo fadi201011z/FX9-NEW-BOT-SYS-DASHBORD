@@ -113,17 +113,15 @@ router.get('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
 
 router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
   try {
-    const rawEndTime = req.body.endTime;
+    const rawMinutes = parseInt(req.body.minutes || '0');
     const message = (req.body.message || '').trim();
 
-    let endTime = null;
-    if (rawEndTime) {
-      const ts = parseInt(rawEndTime);
-      if (!isNaN(ts)) endTime = ts;
-    }
-
     const doc = await getOrCreateMaintenance();
-    doc.endTime = endTime;
+    if (rawMinutes > 0) {
+      doc.endTime = Date.now() + rawMinutes * 60 * 1000;
+    } else {
+      doc.endTime = null;
+    }
     if (message) doc.message = message;
     doc.updatedAt = Date.now();
     doc.updatedBy = req.session.user.id || '';

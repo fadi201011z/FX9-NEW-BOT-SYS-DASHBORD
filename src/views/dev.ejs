@@ -116,7 +116,7 @@
   </div>
   <div class="mnt-body" style="<%= maintenance.enabled ? '' : 'opacity:.5' %>">
     <form method="POST" action="/dev/maintenance/save" id="mntSaveForm">
-      <input type="hidden" name="endTime" id="mntEndTimeStamp" value="">
+      <input type="hidden" name="minutes" id="mntMinutesField" value="">
       <div style="margin-bottom:12px">
         <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">⏱ المدة</label>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
@@ -146,7 +146,7 @@
     (function(){
       var mins = document.getElementById('mntMinutes');
       var picker = document.getElementById('mntPicker');
-      var hidden = document.getElementById('mntEndTimeStamp');
+      var hidden = document.getElementById('mntMinutesField');
       var summary = document.getElementById('mntSummary');
       var presets = document.querySelectorAll('.mnt-preset');
 
@@ -157,21 +157,20 @@
         if (btn) { btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--accent)'; }
       }
 
-      function calcEndTime() {
+      function calcMins() {
         var m = parseInt(mins.value) || 0;
         if (m > 0) {
           picker.value = '';
-          var et = Date.now() + m * 60000;
-          hidden.value = et;
+          hidden.value = m;
           summary.textContent = '🕐 تنتهي بعد ' + m + ' دقيقة';
           return;
         }
         var d = picker.value;
         if (d) {
           mins.value = '';
-          var et = new Date(d).getTime();
-          if (!isNaN(et)) {
-            hidden.value = et;
+          var diff = Math.round((new Date(d).getTime() - Date.now()) / 60000);
+          if (diff > 0) {
+            hidden.value = diff;
             summary.textContent = '📅 تنتهي ' + d;
             return;
           }
@@ -185,7 +184,7 @@
           setActive(this);
           mins.value = this.dataset.min;
           picker.value = '';
-          calcEndTime();
+          calcMins();
         });
       });
 
@@ -195,34 +194,29 @@
         mins.value = '';
         picker.value = '';
         picker.focus();
-        calcEndTime();
+        calcMins();
       });
 
       mins.addEventListener('input', function() {
         setActive(null);
         if (this.value) picker.value = '';
-        calcEndTime();
+        calcMins();
       });
 
       picker.addEventListener('input', function() {
         setActive(null);
         if (this.value) mins.value = '';
-        calcEndTime();
+        calcMins();
       });
 
       document.getElementById('mntSaveForm').addEventListener('submit', function(e) {
-        calcEndTime();
+        calcMins();
       });
 
-      // load saved endTime if exists
       <% if (maintenance.endTime) { %>
         var saved = <%= maintenance.endTime %>;
         var diff = Math.round((saved - Date.now()) / 60000);
-        if (diff > 0) {
-          mins.value = diff;
-          hidden.value = saved;
-          summary.textContent = '🕐 تنتهي بعد ' + diff + ' دقيقة';
-        }
+        if (diff > 0) { mins.value = diff; hidden.value = diff; summary.textContent = '🕐 تنتهي بعد ' + diff + ' دقيقة'; }
       <% } %>
     })();
     </script>
