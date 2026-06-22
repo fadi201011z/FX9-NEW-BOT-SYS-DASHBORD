@@ -104,6 +104,7 @@ app.use(async (req, res, next) => {
         doc.enabled = false;
         doc.endTime = null;
         await doc.save();
+        fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST' }).catch(() => {});
         return next();
       }
       if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
@@ -174,6 +175,7 @@ app.post('/maintenance/autoend', async (req, res) => {
     if (doc && doc.enabled && doc.endTime && Date.now() >= doc.endTime) {
       doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0;
       await doc.save();
+      fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST' }).catch(() => {});
     }
     res.json({ ended: true });
   } catch { res.json({ ended: true }); }
@@ -198,6 +200,7 @@ app.get('/maintenance', async (req, res) => {
       maintenanceRaw.enabled = false;
       maintenanceRaw.endTime = null;
       await maintenanceRaw.save();
+      fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST' }).catch(() => {});
       maintenanceRaw = maintenanceRaw.toObject();
     } else if (maintenanceRaw) {
       maintenanceRaw = maintenanceRaw.toObject();
