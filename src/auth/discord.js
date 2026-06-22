@@ -168,27 +168,7 @@ export async function getAllGuildMembersPaginated(guildId, botToken) {
 }
 
 export function getInviteUrl() {
-  const url = new URL('https://discord.com/api/oauth2/authorize');
-  url.searchParams.set('client_id', CLIENT_ID);
-  url.searchParams.set('permissions', '8');
-  url.searchParams.set('scope', 'bot applications.commands');
-  return url.toString();
-}
-
-export async function checkMaintenance() {
-  try {
-    const { default: Maintenance } = await import('../models/Maintenance.js');
-    const doc = await Maintenance.findOne();
-    if (!doc || !doc.enabled) return false;
-    if (doc.endTime && Date.now() >= doc.endTime) {
-      doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0;
-      await doc.save();
-      return false;
-    }
-    return true;
-  } catch {
-    return false;
-  }
+  return '/maintenance';
 }
 
 // ─── Bot API helpers (cache-first, fallback to Discord API) ─────────────

@@ -72,17 +72,10 @@
             <i class="fab fa-discord"></i>
             ابدأ الآن — سجل دخولك
           </a>
-          <% if (locals.isMaintenance) { %>
-            <a href="/maintenance" class="btn-secondary">
-              <i class="fas fa-screwdriver-wrench"></i>
-              الإضافة تحت الصيانة
-            </a>
-          <% } else { %>
-            <a href="<%= inviteUrl %>" target="_blank" class="btn-secondary">
-              <i class="fab fa-discord"></i>
-              إضافة البوت إلى سيرفرك
-            </a>
-          <% } %>
+          <a href="<%= inviteUrl %>" class="btn-secondary">
+            <i class="fas fa-screwdriver-wrench"></i>
+            الإضافة تحت الصيانة
+          </a>
         <% } %>
       </div>
       <div class="hero-stats">
