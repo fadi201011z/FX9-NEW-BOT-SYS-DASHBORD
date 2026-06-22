@@ -115,10 +115,14 @@
     </div>
   </div>
   <div class="mnt-body" style="<%= maintenance.enabled ? '' : 'opacity:.5' %>">
-    <form method="POST" action="/dev/maintenance/save" style="display:flex;flex-wrap:wrap;gap:14px;align-items:end">
-      <div class="mnt-form-row" style="flex:1;min-width:160px">
+    <form method="POST" action="/dev/maintenance/save" id="mntSaveForm" style="display:flex;flex-wrap:wrap;gap:14px;align-items:end">
+      <div class="mnt-form-row" style="flex:1;min-width:150px">
         <label>⏱ المدة (بالدقائق) <span style="color:var(--text-muted);font-weight:400">— 0 = غير محددة</span></label>
-        <input type="number" name="minutes" value="<%= maintenance.endTime ? Math.max(1, Math.round((maintenance.endTime - Date.now()) / 60000)) : '' %>">
+        <input type="number" name="minutes" id="mntMinutes" value="<%= maintenance.endTime ? Math.max(1, Math.round((maintenance.endTime - Date.now()) / 60000)) : '' %>">
+      </div>
+      <div class="mnt-form-row" style="flex:1;min-width:170px">
+        <label>📅 تنتهي في</label>
+        <input type="datetime-local" name="endTime" id="mntEndTime" value="<%= maintenance.endTime ? new Date(maintenance.endTime).toISOString().slice(0,16) : '' %>">
       </div>
       <div class="mnt-form-row" style="flex:2;min-width:220px">
         <label>💬 رسالة الصيانة</label>
@@ -128,10 +132,23 @@
         <button type="submit" class="mnt-btn mnt-btn-save"><i class="fas fa-check"></i> حفظ</button>
       </div>
     </form>
+    <script>
+    document.getElementById('mntSaveForm')?.addEventListener('submit', function() {
+      var mins = parseInt(document.getElementById('mntMinutes').value) || 0;
+      var dt = document.getElementById('mntEndTime').value;
+      if (mins > 0) document.getElementById('mntEndTime').disabled = true;
+      else if (dt) { document.getElementById('mntMinutes').disabled = true; }
+    });
+    </script>
+    <% if (maintenance.enabled) { %>
     <div class="mnt-divider"></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <a href="/maintenance" target="_blank" class="mnt-btn mnt-btn-ghost"><i class="fas fa-eye"></i> معاينة صفحة الصيانة</a>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <a href="/maintenance?preview=1" target="_blank" class="mnt-btn mnt-btn-ghost"><i class="fas fa-eye"></i> معاينة صفحة الصيانة</a>
+      <% if (maintenance.endTime) { %>
+        <span style="font-size:.8rem;color:var(--text-muted)">🕐 تنتهي <span dir="ltr"><%= new Date(maintenance.endTime).toLocaleString('ar-EG') %></span></span>
+      <% } %>
     </div>
+    <% } %>
   </div>
 </div>
 

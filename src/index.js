@@ -177,14 +177,15 @@ app.get('/maintenance', async (req, res) => {
     const Maintenance = (await import('./models/Maintenance.js')).default;
     maintenanceRaw = await Maintenance.findOne().lean();
   } catch {}
+  const isPreview = req.query.preview === '1';
   const maintenance = {
-    enabled: !!(maintenanceRaw?.enabled),
+    enabled: isPreview ? true : !!(maintenanceRaw?.enabled),
     endTime: maintenanceRaw?.endTime || null,
     message: maintenanceRaw?.message || 'الموقع تحت الصيانة حالياً. سنعود قريباً!',
   };
   const user = req.session?.user;
   const canBypass = !!(user && (user.isOwner || user.dashboardRole === 'developer' || user.dashboardRole === 'owner'));
-  res.status(503).render('maintenance', { layout: false, user, maintenance, canBypass, title: 'تحت الصيانة' });
+  res.status(isPreview ? 200 : 503).render('maintenance', { layout: false, user, maintenance, canBypass, title: 'تحت الصيانة' });
 });
 
 // ─── Landing Page ────────────────────────────────────────────────────────
