@@ -35,10 +35,17 @@
       <i class="fas fa-exclamation-triangle"></i>
       <h3>لا توجد سيرفرات</h3>
       <p>يبدو أنك لا تملك صلاحيات إدارة في أي سيرفر أو أن البوت غير مضاف إلى سيرفراتك.</p>
-      <a href="/maintenance" class="btn-primary">
-        <i class="fas fa-screwdriver-wrench"></i>
-        الإضافة تحت الصيانة
-      </a>
+      <% if (locals.isMaintenance) { %>
+        <a href="/maintenance" class="btn-primary">
+          <i class="fas fa-screwdriver-wrench"></i>
+          الإضافة تحت الصيانة
+        </a>
+      <% } else { %>
+        <a href="<%= locals.inviteUrl || inviteUrl %>" target="_blank" class="btn-primary">
+          <i class="fab fa-discord"></i>
+          إضافة البوت إلى سيرفرك
+        </a>
+      <% } %>
     </div>
   <% } %>
 </div>
@@ -72,6 +79,7 @@
 var modal = document.getElementById('guildWarningModal');
 var text = document.getElementById('guildWarningText');
 var closeBtn = document.getElementById('guildWarningCloseBtn');
+var isMaintenance = <%= locals.isMaintenance ? 'true' : 'false' %>;
 
 document.querySelectorAll('.guild-card').forEach(function(card) {
   card.addEventListener('click', function(e) {
@@ -79,7 +87,7 @@ document.querySelectorAll('.guild-card').forEach(function(card) {
     var name = this.dataset.guildname;
     if (!hasBot) {
       e.preventDefault();
-      text.textContent = 'البوت غير مضاف إلى "' + name + '". إضافة البوت تحت الصيانة حالياً.';
+      text.textContent = isMaintenance ? 'البوت غير مضاف إلى "' + name + '". إضافة البوت تحت الصيانة حالياً.' : 'البوت غير مضاف إلى "' + name + '".';
       modal.style.display = 'flex';
     } else {
       window.location.href = '/guilds/' + (this.dataset.guildid || '');

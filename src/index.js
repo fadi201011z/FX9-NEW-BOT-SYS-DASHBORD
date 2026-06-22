@@ -219,12 +219,17 @@ app.get('/maintenance', async (req, res) => {
 });
 
 // ─── Landing Page ────────────────────────────────────────────────────────
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   if (req.session?.user) {
     const role = req.session.user.dashboardRole || 'member';
     const level = ROLE_HIERARCHY[role] ?? -1;
     return res.redirect(level >= 3 ? '/dashboard' : '/home');
   }
+  const { checkMaintenance, getInviteUrl } = await import('./auth/discord.js');
+  const [isMaintenance, inviteUrl] = await Promise.all([
+    checkMaintenance(),
+    Promise.resolve(getInviteUrl()),
+  ]);
   const errorMap = {
     auth_failed: 'auth_failed',
     no_code: 'no_code',
@@ -234,7 +239,8 @@ app.get('/', (req, res) => {
     layout: false,
     user: req.session?.user || null,
     title: 'FX9 Dashboard — لوحة تحكم البوت',
-    inviteUrl: '/maintenance',
+    inviteUrl: isMaintenance ? '/maintenance' : inviteUrl,
+    isMaintenance,
     supportUrl: '#',
     error: errorMap[req.query.error] || null,
   });

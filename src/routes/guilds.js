@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess, requireRole, ROLE_HIERARCHY } from '../middleware/auth.js';
-import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
+import { getBotGuilds, getGuildInfo, getInviteUrl, checkMaintenance } from '../auth/discord.js';
 import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
 import { getGuildTickets, getTicketGuildConfig } from '../services/dataReader.js';
@@ -47,9 +47,13 @@ router.get('/', isAuthenticated, requireRole('support'), async (req, res) => {
     })
     .map(g => ({ ...g, hasBot: botGuildIds.has(g.id) }));
 
+  const isMaintenance = await checkMaintenance();
+
   res.render('guilds', {
     user: req.session.user,
     guilds,
+    isMaintenance,
+    inviteUrl: getInviteUrl(),
     title: 'اختر السيرفر',
   });
 });
@@ -89,6 +93,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
     }
 
     const tickets = await getGuildTickets(guildId);
+    const isMaintenance = await checkMaintenance();
 
     res.render('guild/overview', {
       user: req.session.user,
@@ -100,7 +105,8 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
       botInGuild,
       memberCount,
       tickets,
-      inviteUrl: getInviteUrl(),
+      inviteUrl: isMaintenance ? '/maintenance' : getInviteUrl(),
+      isMaintenance,
       title: guild.name,
     });
   } catch (err) {

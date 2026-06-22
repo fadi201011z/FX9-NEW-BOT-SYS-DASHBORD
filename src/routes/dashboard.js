@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { isAuthenticated, requireRole } from '../middleware/auth.js';
-import { getBotGuilds, getGuildInfo, getInviteUrl } from '../auth/discord.js';
+import { getBotGuilds, getGuildInfo, getInviteUrl, checkMaintenance } from '../auth/discord.js';
 import { getAlerts, getUnreadAlerts, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
 import { getTotalTicketCount } from '../services/dataReader.js';
@@ -43,6 +43,7 @@ router.get('/', isAuthenticated, requireRole('manager'), async (req, res) => {
     } catch {}
     const alerts = await getUnreadAlerts(null);
     const totalTickets = await getTotalTicketCount();
+    const isMaintenance = await checkMaintenance();
 
     res.render('dashboard', {
       user: req.session.user,
@@ -51,7 +52,8 @@ router.get('/', isAuthenticated, requireRole('manager'), async (req, res) => {
       totalMembers,
       botPing,
       totalTickets,
-      inviteUrl: getInviteUrl(),
+      inviteUrl: isMaintenance ? '/maintenance' : getInviteUrl(),
+      isMaintenance,
       alerts,
       title: 'لوحة التحكم',
       clientId: config.discord.clientId,
