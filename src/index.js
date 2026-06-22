@@ -98,8 +98,14 @@ app.use(async (req, res, next) => {
 
   try {
     const Maintenance = (await import('./models/Maintenance.js')).default;
-    const doc = await Maintenance.findOne().lean();
+    const doc = await Maintenance.findOne();
     if (doc && doc.enabled === true) {
+      if (doc.endTime && Date.now() >= doc.endTime) {
+        doc.enabled = false;
+        doc.endTime = null;
+        await doc.save();
+        return next();
+      }
       if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
         return res.status(503).json({ error: 'maintenance', message: doc.message, endTime: doc.endTime });
       }
@@ -175,7 +181,15 @@ app.get('/maintenance', async (req, res) => {
   let maintenanceRaw = null;
   try {
     const Maintenance = (await import('./models/Maintenance.js')).default;
-    maintenanceRaw = await Maintenance.findOne().lean();
+    maintenanceRaw = await Maintenance.findOne();
+    if (maintenanceRaw && maintenanceRaw.enabled && maintenanceRaw.endTime && Date.now() >= maintenanceRaw.endTime) {
+      maintenanceRaw.enabled = false;
+      maintenanceRaw.endTime = null;
+      await maintenanceRaw.save();
+      maintenanceRaw = maintenanceRaw.toObject();
+    } else if (maintenanceRaw) {
+      maintenanceRaw = maintenanceRaw.toObject();
+    }
   } catch {}
   const isPreview = req.query.preview === '1';
   const maintenance = {

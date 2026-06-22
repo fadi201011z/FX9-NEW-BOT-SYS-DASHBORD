@@ -24,7 +24,13 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
     });
   }
 
-  let maintenanceRaw = await Maintenance.findOne().lean();
+  let maintenanceDoc = await Maintenance.findOne();
+  if (maintenanceDoc && maintenanceDoc.enabled && maintenanceDoc.endTime && Date.now() >= maintenanceDoc.endTime) {
+    maintenanceDoc.enabled = false;
+    maintenanceDoc.endTime = null;
+    await maintenanceDoc.save();
+  }
+  const maintenanceRaw = maintenanceDoc ? maintenanceDoc.toObject() : null;
   const maintenance = {
     enabled: maintenanceRaw?.enabled || false,
     endTime: maintenanceRaw?.endTime || null,
@@ -63,6 +69,20 @@ async function getOrCreateMaintenance() {
   if (!doc) doc = new Maintenance();
   return doc;
 }
+
+router.get('/maintenance/status', async (req, res) => {
+  try {
+    const doc = await Maintenance.findOne();
+    if (doc && doc.enabled && doc.endTime && Date.now() >= doc.endTime) {
+      doc.enabled = false;
+      doc.endTime = null;
+      await doc.save();
+      return res.json({ enabled: false });
+    }
+    if (!doc) return res.json({ enabled: false });
+    res.json({ enabled: doc.enabled, endTime: doc.endTime, message: doc.message });
+  } catch { res.json({ enabled: false }); }
+});
 
 router.get('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
   try {
