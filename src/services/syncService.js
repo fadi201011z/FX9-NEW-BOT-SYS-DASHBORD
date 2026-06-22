@@ -29,6 +29,7 @@ const FALLBACK_COMMANDS = [
   {category:"moderation",name:"hide",description:"إخفاء قناة عن الأعضاء العاديين",options:[]},
   {category:"moderation",name:"clear",description:"مسح رسائل بشكل جماعي مع فلاتر اختيارية",options:[]},
   {category:"moderation",name:"ban",description:"حظر عضو من السيرفر مع إرسال إشعار له",options:[]},
+  {category:"moderation",name:"maintenance",description:"🛠️ إدارة وضع الصيانة للبوت",options:[]},
   {category:"setup",name:"setup",description:"⚙️ فتح قائمة الإعدادات المركزية لجميع الأنظمة",options:[]},
   {category:"setup",name:"setup-welcome",description:"تعيين قناة الترحيب — تُرسَل فيها بطاقة ترحيب عند انضمام كل عضو",options:[]},
   {category:"setup",name:"setup-stats",description:"إعداد قنوات الإحصائيات الصوتية (تتحدث كل دقيقة)",options:[]},
@@ -38,7 +39,6 @@ const FALLBACK_COMMANDS = [
   {category:"ticket",name:"ratings",description:"⭐ إدارة ومراقبة تقييمات المشرفين",options:[]},
   {category:"ticket",name:"remind",description:"⏰ تذكير العضو بالرد على التكت",options:[]},
   {category:"ticket",name:"botinfo",description:"ℹ️ معلومات حول بوت FX9 Ticket System",options:[]},
-  {category:"ticket",name:"announce",description:"📢 إرسال إعلان رسمي احترافي",options:[]},
   {category:"ticket",name:"stats",description:"📊 إحصائيات نظام التكتات FX9",options:[]},
   {category:"ticket",name:"helpt",description:"📖 دليل أوامر نظام التكتات FX9 — للإدارة فقط",options:[]},
   {category:"ticket",name:"configt",description:"⚙️ إعداد نظام التكتات FX9 — للإدارة فقط",options:[]},
@@ -60,11 +60,13 @@ const FALLBACK_COMMANDS = [
   {category:"voice",name:"loop",description:"وضع التكرار",options:[]},
   {category:"voice",name:"vchelp",description:"عرض أوامر الصوت والموسيقى",options:[]},
   {category:"voice",name:"clearqueue",description:"تفريغ قائمة التشغيل",options:[]},
+  {category:"notifications",name:"notify",description:"🔔 إدارة إشتراكات الإشعارات (يوتيوب / كيك / تويتر)",options:[]},
+  {category:"announcement",name:"announce",description:"📢 إرسال إعلان رسمي احترافي",options:[]},
 ];
 
 export async function getDocumentation() {
   const docs = [];
-  const categories = ['setup', 'moderation', 'info', 'members', 'ticket', 'voice'];
+  const categories = ['setup', 'moderation', 'info', 'members', 'ticket', 'voice', 'notifications', 'announcement'];
 
   for (const cat of categories) {
     const dir = path.join(COMMANDS_DIR, cat);

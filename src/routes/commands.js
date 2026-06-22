@@ -35,6 +35,7 @@ const FALLBACK_COMMANDS = [
   {category:"moderation",name:"hide",description:"إخفاء قناة عن الأعضاء العاديين",file:"hide.js"},
   {category:"moderation",name:"clear",description:"مسح رسائل بشكل جماعي مع فلاتر اختيارية",file:"clear.js"},
   {category:"moderation",name:"ban",description:"حظر عضو من السيرفر مع إرسال إشعار له",file:"ban.js"},
+  {category:"moderation",name:"maintenance",description:"🛠️ إدارة وضع الصيانة للبوت",file:"maintenance.js"},
   {category:"setup",name:"setup",description:"⚙️ فتح قائمة الإعدادات المركزية لجميع الأنظمة",file:"setup.js"},
   {category:"setup",name:"setup-welcome",description:"تعيين قناة الترحيب — تُرسَل فيها بطاقة ترحيب عند انضمام كل عضو",file:"setup-welcome.js"},
   {category:"setup",name:"setup-stats",description:"إعداد قنوات الإحصائيات الصوتية (تتحدث كل دقيقة)",file:"setup-stats.js"},
@@ -44,7 +45,6 @@ const FALLBACK_COMMANDS = [
   {category:"ticket",name:"ratings",description:"⭐ إدارة ومراقبة تقييمات المشرفين",file:"ratings.js"},
   {category:"ticket",name:"remind",description:"⏰ تذكير العضو بالرد على التكت",file:"remind.js"},
   {category:"ticket",name:"botinfo",description:"ℹ️ معلومات حول بوت FX9 Ticket System",file:"botinfo.js"},
-  {category:"ticket",name:"announce",description:"📢 إرسال إعلان رسمي احترافي",file:"announce.js"},
   {category:"ticket",name:"stats",description:"📊 إحصائيات نظام التكتات FX9",file:"stats.js"},
   {category:"ticket",name:"helpt",description:"📖 دليل أوامر نظام التكتات FX9 — للإدارة فقط",file:"helpt.js"},
   {category:"ticket",name:"configt",description:"⚙️ إعداد نظام التكتات FX9 — للإدارة فقط",file:"configt.js"},
@@ -66,6 +66,8 @@ const FALLBACK_COMMANDS = [
   {category:"voice",name:"loop",description:"وضع التكرار",file:"loop.js"},
   {category:"voice",name:"vchelp",description:"عرض أوامر الصوت والموسيقى",file:"help.js"},
   {category:"voice",name:"clearqueue",description:"تفريغ قائمة التشغيل",file:"clearqueue.js"},
+  {category:"notifications",name:"notify",description:"🔔 إدارة إشتراكات الإشعارات (يوتيوب / كيك / تويتر)",file:"notify.js"},
+  {category:"announcement",name:"announce",description:"📢 إرسال إعلان رسمي احترافي",file:"announce.js"},
 ];
 
 const router = Router();
