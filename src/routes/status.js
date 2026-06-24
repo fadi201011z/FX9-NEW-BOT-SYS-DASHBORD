@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess, isOwner, clearBotGuildCache } from '../middleware/auth.js';
 import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig } from '../database.js';
 import { getCommandStats } from '../services/syncService.js';
+import { getBotGuilds } from '../auth/discord.js';
 import config from '../config.js';
 import Ticket from '../models/Ticket.js';
 import Admin from '../models/Admin.js';
@@ -29,6 +30,11 @@ router.get('/tickets/stats', async (req, res) => {
 
 router.get('/status', async (req, res) => {
   const start = Date.now();
+  let guildCount = 0;
+  try {
+    const botGuilds = await getBotGuilds(config.discord.botToken);
+    guildCount = (botGuilds || []).length;
+  } catch {}
   res.json({
     status: 'online',
     timestamp: Date.now(),
@@ -37,6 +43,7 @@ router.get('/status', async (req, res) => {
     nodeVersion: process.version,
     platform: process.platform,
     responseTime: Date.now() - start,
+    guildCount,
   });
 });
 

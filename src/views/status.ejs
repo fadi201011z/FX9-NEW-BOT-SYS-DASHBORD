@@ -205,10 +205,10 @@ function formatUptime(seconds) {
 async function loadStatus() {
   try {
     const [statusRes, botInfoRes, cmdStatsRes, ticketStatsRes] = await Promise.all([
-      fetch('/status'),
-      fetch('/bot/info'),
-      fetch('/commands/stats'),
-      fetch('/tickets/stats')
+      fetch('/api/status'),
+      fetch('/api/bot/info'),
+      fetch('/api/commands/stats'),
+      fetch('/api/tickets/stats')
     ]);
     const status = await statusRes.json();
     const botInfo = await botInfoRes.json();
@@ -223,8 +223,8 @@ async function loadStatus() {
 
     // Stat cards
     document.getElementById('sResponseTime').textContent = status.responseTime + 'ms';
-    document.getElementById('sGuilds').textContent = cmdStats.guildCount || '?';
-    document.getElementById('sCommands').textContent = (cmdStats.totalCommands || cmdStats.total || '?');
+    document.getElementById('sGuilds').textContent = status.guildCount || (cmdStats.guildCount) || '?';
+    document.getElementById('sCommands').textContent = (cmdStats.total || '?');
     document.getElementById('sTickets').textContent = ticketStats.open || '0';
     document.getElementById('sMemory').textContent = (status.memory.heapUsed / 1024 / 1024).toFixed(1) + ' MB';
     document.getElementById('sPlatform').textContent = status.platform === 'win32' ? '🪟 Windows' : status.platform === 'linux' ? '🐧 Linux' : status.platform;
