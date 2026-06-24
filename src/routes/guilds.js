@@ -41,9 +41,8 @@ router.get('/', isAuthenticated, requireRole('support'), async (req, res) => {
     .filter(g => {
       const perms = BigInt(g.permissions);
       const canManage = (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n;
-      const hasBot = botGuildIds.has(g.id);
       const isAdmin = adminGuildIds.has(g.id);
-      return canManage || hasBot || isAdmin;
+      return canManage || isAdmin;
     })
     .map(g => ({ ...g, hasBot: botGuildIds.has(g.id) }));
 

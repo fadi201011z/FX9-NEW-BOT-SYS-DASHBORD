@@ -27,7 +27,11 @@ router.get('/', isAuthenticated, requireRole('manager'), async (req, res) => {
     }
 
     const guildsWithBot = userGuilds
-      .filter(g => botGuildIds.has(g.id) || adminGuildIds.has(g.id))
+      .filter(g => {
+        const perms = BigInt(g.permissions);
+        const canManage = (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n;
+        return canManage || adminGuildIds.has(g.id);
+      })
       .map(g => ({ ...g, hasBot: botGuildIds.has(g.id) }));
 
     const totalGuilds = botGuilds.length || guildsWithBot.length;
