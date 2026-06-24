@@ -1,42 +1,73 @@
 <% currentPage = 'status' %>
-<div class="page-header">
-  <h1><i class="fas fa-heartbeat"></i> حالة البوت</h1>
-  <p>مراقبة حالة البوت وأداء الخادم</p>
+<div class="page-header fade-in">
+  <h1><i class="fas fa-heartbeat" style="color:var(--danger)"></i> حالة البوت</h1>
+  <p>مراقبة مباشرة لحالة البوت وأداء الخادم</p>
 </div>
 
-<div class="stats-grid" id="statusGrid">
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287">
-      <i class="fas fa-circle"></i>
+<!-- Hero Status Banner -->
+<div class="status-hero glass fade-in-up" id="statusHero">
+  <div class="status-hero-glow"></div>
+  <div class="status-hero-icon">
+    <div class="status-hero-pulse"></div>
+    <i class="fas fa-robot"></i>
+  </div>
+  <div class="status-hero-info">
+    <div class="status-hero-name">FX9 Bot</div>
+    <div class="status-hero-status" id="heroStatus">
+      <span class="status-dot online" id="heroDot"></span>
+      <span id="heroStatusText">جاري التحميل...</span>
+    </div>
+  </div>
+  <div class="status-hero-meta" id="heroMeta">
+    <span><i class="fas fa-tag"></i> v<span id="heroVersion">---</span></span>
+    <span><i class="fas fa-clock"></i> <span id="heroUptime">---</span></span>
+  </div>
+</div>
+
+<!-- Status Cards -->
+<div class="stats-grid fade-in-up" id="statusGrid">
+  <div class="stat-card glass" style="animation-delay:0.05s">
+    <div class="stat-icon" style="--stat-color:#57f287">
+      <i class="fas fa-signal"></i>
     </div>
     <div class="stat-info">
-      <span class="stat-value" id="sBotStatus">جاري التحميل...</span>
-      <span class="stat-label">حالة البوت</span>
+      <span class="stat-value" id="sResponseTime">---</span>
+      <span class="stat-label">وقت الاستجابة</span>
     </div>
   </div>
 
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #5865f2">
-      <i class="fas fa-clock"></i>
+  <div class="stat-card glass" style="animation-delay:0.1s">
+    <div class="stat-icon" style="--stat-color:#5865f2">
+      <i class="fas fa-server"></i>
     </div>
     <div class="stat-info">
-      <span class="stat-value" id="sUptime">---</span>
-      <span class="stat-label">وقت التشغيل</span>
+      <span class="stat-value" id="sGuilds">---</span>
+      <span class="stat-label">السيرفرات النشطة</span>
     </div>
   </div>
 
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #fee75c">
-      <i class="fas fa-tachometer-alt"></i>
+  <div class="stat-card glass" style="animation-delay:0.15s">
+    <div class="stat-icon" style="--stat-color:#fee75c">
+      <i class="fas fa-terminal"></i>
     </div>
     <div class="stat-info">
-      <span class="stat-value" id="sPing">---</span>
-      <span class="stat-label">Ping</span>
+      <span class="stat-value" id="sCommands">---</span>
+      <span class="stat-label">الأوامر الكلية</span>
     </div>
   </div>
 
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #eb459e">
+  <div class="stat-card glass" style="animation-delay:0.2s">
+    <div class="stat-icon" style="--stat-color:#eb459e">
+      <i class="fas fa-ticket"></i>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value" id="sTickets">---</span>
+      <span class="stat-label">التذاكر المفتوحة</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass" style="animation-delay:0.25s">
+    <div class="stat-icon" style="--stat-color:#57f287">
       <i class="fas fa-microchip"></i>
     </div>
     <div class="stat-info">
@@ -44,76 +75,535 @@
       <span class="stat-label">استهلاك الذاكرة</span>
     </div>
   </div>
-</div>
 
-<div class="card glass">
-  <div class="card-header"><h3><i class="fas fa-server"></i> تفاصيل الخادم</h3></div>
-  <div class="status-details" id="statusDetails">
-    <div class="detail-row">
-      <span>إصدار Node.js</span>
-      <span id="sNodeVersion">---</span>
+  <div class="stat-card glass" style="animation-delay:0.3s">
+    <div class="stat-icon" style="--stat-color:#5865f2">
+      <i class="fas fa-globe"></i>
     </div>
-    <div class="detail-row">
-      <span>المنصة</span>
-      <span id="sPlatform">---</span>
-    </div>
-    <div class="detail-row">
-      <span>إصدار البوت</span>
-      <span>5.0.0</span>
-    </div>
-    <div class="detail-row">
-      <span>إصدار الداشبورد</span>
-      <span>1.0.0</span>
+    <div class="stat-info">
+      <span class="stat-value" id="sPlatform">---</span>
+      <span class="stat-label">المنصة</span>
     </div>
   </div>
 </div>
 
-<div class="status-timeline glass">
-  <h3><i class="fas fa-chart-area"></i> أداء الخادم</h3>
-  <canvas id="performanceChart"></canvas>
+<div class="dashboard-grid">
+  <!-- Server Details -->
+  <div class="card glass fade-in-up" style="animation-delay:0.35s">
+    <div class="card-header">
+      <h3><i class="fas fa-server" style="color:var(--primary)"></i> تفاصيل الخادم</h3>
+      <button class="btn-refresh" onclick="loadStatus()" title="تحديث">
+        <i class="fas fa-sync-alt"></i> تحديث
+      </button>
+    </div>
+    <div class="status-details" id="statusDetails">
+      <div class="detail-row">
+        <span><i class="fas fa-code"></i> Node.js</span>
+        <span id="sNodeVersion" class="detail-value">---</span>
+      </div>
+      <div class="detail-row">
+        <span><i class="fas fa-cube"></i> إصدار البوت</span>
+        <span id="sBotVersion" class="detail-value">---</span>
+      </div>
+      <div class="detail-row">
+        <span><i class="fas fa-columns"></i> إصدار الداشبورد</span>
+        <span class="detail-value">1.0.0</span>
+      </div>
+      <div class="detail-row">
+        <span><i class="fas fa-clock"></i> وقت التشغيل</span>
+        <span id="sUptimeDetail" class="detail-value">---</span>
+      </div>
+      <div class="detail-row">
+        <span><i class="fas fa-hourglass-half"></i> وقت الاستجابة</span>
+        <span id="sResponseDetail" class="detail-value">---</span>
+      </div>
+      <div class="detail-row">
+        <span><i class="fas fa-database"></i> الذاكرة المستخدمة</span>
+        <span id="sMemoryDetail" class="detail-value">---</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Stats -->
+  <div class="card glass fade-in-up" style="animation-delay:0.4s">
+    <div class="card-header">
+      <h3><i class="fas fa-ticket" style="color:var(--warning)"></i> إحصائيات التذاكر</h3>
+    </div>
+    <div class="ticket-stats-grid">
+      <div class="ticket-stat-item">
+        <div class="ticket-stat-icon" style="background:rgba(88,101,242,0.15);color:#5865f2">
+          <i class="fas fa-inbox"></i>
+        </div>
+        <div class="ticket-stat-info">
+          <span class="ticket-stat-number" id="tTotal">---</span>
+          <span class="ticket-stat-label">الإجمالي</span>
+        </div>
+      </div>
+      <div class="ticket-stat-item">
+        <div class="ticket-stat-icon" style="background:rgba(87,242,135,0.15);color:#57f287">
+          <i class="fas fa-envelope-open-text"></i>
+        </div>
+        <div class="ticket-stat-info">
+          <span class="ticket-stat-number" id="tOpen">---</span>
+          <span class="ticket-stat-label">مفتوحة</span>
+        </div>
+      </div>
+      <div class="ticket-stat-item">
+        <div class="ticket-stat-icon" style="background:rgba(237,66,69,0.15);color:#ed4245">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="ticket-stat-info">
+          <span class="ticket-stat-number" id="tClosed">---</span>
+          <span class="ticket-stat-label">مغلقة</span>
+        </div>
+      </div>
+    </div>
+    <div class="ticket-progress">
+      <div class="progress-header">
+        <span>نسبة الإنجاز</span>
+        <span id="tCompletion">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill success" id="tProgressBar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Performance Chart -->
+<div class="card glass fade-in-up" style="animation-delay:0.45s;padding:24px">
+  <div class="card-header">
+    <h3><i class="fas fa-chart-area" style="color:var(--primary)"></i> أداء الخادم</h3>
+    <div class="chart-legend">
+      <span><span class="legend-dot" style="background:#5865f2"></span> زمن الاستجابة</span>
+    </div>
+  </div>
+  <div class="chart-container">
+    <canvas id="performanceChart"></canvas>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+let perfChart = null;
+let historyData = [];
+const MAX_HISTORY = 40;
+
+function formatUptime(seconds) {
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  const parts = [];
+  if (d > 0) parts.push(d + 'd');
+  if (h > 0) parts.push(h + 'h');
+  if (m > 0) parts.push(m + 'm');
+  parts.push(s + 's');
+  return parts.join(' ');
+}
+
 async function loadStatus() {
   try {
-    const res = await fetch('/api/status');
-    const data = await res.json();
-    document.getElementById('sBotStatus').textContent = '🟢 متصل';
-    document.getElementById('sUptime').textContent = Math.floor(data.uptime / 3600) + 'h ' + Math.floor((data.uptime % 3600) / 60) + 'm';
-    document.getElementById('sPing').textContent = data.responseTime + 'ms';
-    document.getElementById('sMemory').textContent = (data.memory.heapUsed / 1024 / 1024).toFixed(1) + ' MB';
-    document.getElementById('sNodeVersion').textContent = data.nodeVersion;
-    document.getElementById('sPlatform').textContent = data.platform;
+    const [statusRes, botInfoRes, cmdStatsRes, ticketStatsRes] = await Promise.all([
+      fetch('/status'),
+      fetch('/bot/info'),
+      fetch('/commands/stats'),
+      fetch('/tickets/stats')
+    ]);
+    const status = await statusRes.json();
+    const botInfo = await botInfoRes.json();
+    const cmdStats = await cmdStatsRes.json();
+    const ticketStats = await ticketStatsRes.json();
+
+    // Hero
+    document.getElementById('heroStatusText').textContent = 'متصل';
+    document.getElementById('heroDot').className = 'status-dot online';
+    document.getElementById('heroVersion').textContent = botInfo.version || '---';
+    document.getElementById('heroUptime').textContent = formatUptime(status.uptime);
+
+    // Stat cards
+    document.getElementById('sResponseTime').textContent = status.responseTime + 'ms';
+    document.getElementById('sGuilds').textContent = cmdStats.guildCount || '?';
+    document.getElementById('sCommands').textContent = (cmdStats.totalCommands || cmdStats.total || '?');
+    document.getElementById('sTickets').textContent = ticketStats.open || '0';
+    document.getElementById('sMemory').textContent = (status.memory.heapUsed / 1024 / 1024).toFixed(1) + ' MB';
+    document.getElementById('sPlatform').textContent = status.platform === 'win32' ? '🪟 Windows' : status.platform === 'linux' ? '🐧 Linux' : status.platform;
+
+    // Details
+    document.getElementById('sNodeVersion').textContent = status.nodeVersion;
+    document.getElementById('sBotVersion').textContent = botInfo.version || '---';
+    document.getElementById('sUptimeDetail').textContent = formatUptime(status.uptime);
+    document.getElementById('sResponseDetail').textContent = status.responseTime + 'ms';
+    document.getElementById('sMemoryDetail').textContent = (status.memory.heapUsed / 1024 / 1024).toFixed(2) + ' / ' + (status.memory.heapTotal / 1024 / 1024).toFixed(2) + ' MB';
+
+    // Ticket stats
+    document.getElementById('tTotal').textContent = ticketStats.total || '0';
+    document.getElementById('tOpen').textContent = ticketStats.open || '0';
+    document.getElementById('tClosed').textContent = ticketStats.closed || '0';
+    const total = ticketStats.total || 1;
+    const closed = ticketStats.closed || 0;
+    const pct = Math.round((closed / total) * 100);
+    document.getElementById('tCompletion').textContent = pct + '%';
+    document.getElementById('tProgressBar').style.width = pct + '%';
+
+    // Chart history
+    const now = new Date();
+    const label = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    historyData.push({ label, value: status.responseTime });
+    if (historyData.length > MAX_HISTORY) historyData.shift();
+    updateChart();
   } catch {
-    document.getElementById('sBotStatus').textContent = '🔴 غير متصل';
+    document.getElementById('heroStatusText').textContent = 'غير متصل';
+    document.getElementById('heroDot').className = 'status-dot offline';
   }
 }
 
-const ctx = document.getElementById('performanceChart').getContext('2d');
-new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: Array.from({length: 20}, (_, i) => `${i * 5}ث`),
-    datasets: [{
-      label: 'استجابة (ms)',
-      data: Array.from({length: 20}, () => Math.floor(Math.random() * 50) + 10),
-      borderColor: '#5865f2',
-      backgroundColor: 'rgba(88, 101, 242, 0.1)',
-      fill: true,
-      tension: 0.4,
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: { legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text').trim() } } },
-    scales: {
-      x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted').trim() } },
-      y: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted').trim() } }
+function updateChart() {
+  if (perfChart) {
+    perfChart.data.labels = historyData.map(d => d.label);
+    perfChart.data.datasets[0].data = historyData.map(d => d.value);
+    perfChart.update('none');
+  } else {
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    const isDark = getComputedStyle(document.body).getPropertyValue('--bg-primary').trim() === '#0a0b1e';
+    const textColor = getComputedStyle(document.body).getPropertyValue('--text').trim();
+    const mutedColor = getComputedStyle(document.body).getPropertyValue('--text-muted').trim();
+
+    perfChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: historyData.map(d => d.label),
+        datasets: [{
+          label: 'زمن الاستجابة (ms)',
+          data: historyData.map(d => d.value),
+          borderColor: '#5865f2',
+          backgroundColor: (ctx) => {
+            const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
+            g.addColorStop(0, 'rgba(88,101,242,0.25)');
+            g.addColorStop(1, 'rgba(88,101,242,0)');
+            return g;
+          },
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointBackgroundColor: '#5865f2',
+          pointBorderColor: 'transparent',
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#5865f2',
+          pointHoverBorderWidth: 3,
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(10,11,30,0.9)',
+            titleColor: '#fff',
+            bodyColor: '#e8eaf0',
+            borderColor: 'rgba(255,255,255,0.08)',
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: (ctx) => ctx.parsed.y + 'ms'
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: mutedColor, font: { size: 10 } }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { color: mutedColor, font: { size: 10 }, callback: (v) => v + 'ms' },
+            beginAtZero: true
+          }
+        },
+        animation: { duration: 300 }
+      }
+    });
+  }
+}
+
+// Init
+loadStatus();
+setInterval(loadStatus, 15000);
+</script>
+
+<style>
+  .fade-in-up {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in {
+    animation: fadeIn 0.4s ease forwards;
+    opacity: 0;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .status-hero {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    border-radius: var(--radius);
+    position: relative;
+    overflow: hidden;
+  }
+  .status-hero-glow {
+    position: absolute;
+    top: -60px;
+    left: -60px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(88,101,242,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .status-hero-icon {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(88,101,242,0.2), rgba(88,101,242,0.05));
+    border: 1px solid rgba(88,101,242,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #5865f2;
+    flex-shrink: 0;
+  }
+  .status-hero-pulse {
+    position: absolute;
+    top: -4px; left: -4px; right: -4px; bottom: -4px;
+    border-radius: 22px;
+    border: 2px solid rgba(88,101,242,0.15);
+    animation: heroPulse 2s ease-in-out infinite;
+  }
+  @keyframes heroPulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.08); opacity: 0; }
+  }
+  .status-hero-info { flex: 1; }
+  .status-hero-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .status-hero-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  .status-hero-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: left;
+  }
+  .status-hero-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    border-radius: var(--radius);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+  .stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .stat-icon[style*="--stat-color"] {
+    background: color-mix(in srgb, var(--stat-color, var(--primary)) 15%, transparent);
+    color: var(--stat-color, var(--primary));
+  }
+  .stat-info { flex: 1; }
+  .stat-value {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+  }
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-glass-hover);
+    font-size: 0.85rem;
+    transition: background 0.2s;
+  }
+  .detail-row:hover {
+    background: color-mix(in srgb, var(--bg-glass-hover) 80%, var(--primary) 5%);
+  }
+  .detail-row span:first-child {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+  }
+  .detail-row span:first-child i {
+    width: 16px;
+    font-size: 0.8rem;
+  }
+  .detail-value {
+    font-weight: 700;
+    font-family: 'Cairo', monospace;
+    direction: ltr;
+    text-align: left;
+  }
+
+  .ticket-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .ticket-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-glass-hover);
+  }
+  .ticket-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .ticket-stat-number {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 800;
+  }
+  .ticket-stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  .ticket-progress {
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-glass-hover);
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .chart-container {
+    position: relative;
+    height: 220px;
+    width: 100%;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 12px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+  }
+
+  .btn-refresh {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.78rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-refresh:hover {
+    background: var(--bg-glass-hover);
+    color: var(--text);
+    border-color: var(--primary);
+  }
+  .btn-refresh i {
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 768px) {
+    .status-hero {
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+    .status-hero-meta {
+      flex-direction: row;
+      gap: 16px;
+      text-align: center;
+    }
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .ticket-stats-grid {
+      grid-template-columns: 1fr;
     }
   }
-});
-
-loadStatus();
-setInterval(loadStatus, 30000);
-</script>
+</style>
