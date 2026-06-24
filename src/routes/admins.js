@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole, clearDashboardRoleCache } from '../middleware/auth.js';
 import {
   getGuildAdmins, setAdminRole, removeAdmin, logActivity, logAudit,
   getGuildAdminRoles, setGuildAdminRole, removeGuildAdminRole, getGuildAdminRoleIds,
@@ -96,6 +96,7 @@ async function autoSyncAdmins(guildId, callerUserId) {
   for (const row of existing) {
     if (!validUserIds.has(row.userId)) {
       await removeAdminByUserGuildAddedBy(row.userId, guildId, 'role_sync');
+      clearDashboardRoleCache(row.userId);
       removed++;
     }
   }
@@ -104,6 +105,7 @@ async function autoSyncAdmins(guildId, callerUserId) {
     const exists = await getAdminRole(userId, guildId);
     if (!exists) {
       await addAdminRaw(userId, guildId, userRoleMap[userId] || 'moderator', 'role_sync');
+      clearDashboardRoleCache(userId);
       added++;
     }
   }
@@ -268,6 +270,7 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, mgrOnly, sanitizeI
     if (!userId || !role) return res.status(400).json({ error: 'User ID and role required' });
 
     await setAdminRole(userId, guildId, role, req.session.user.id);
+    clearDashboardRoleCache(userId);
     await logActivity(req.session.user.id, guildId, 'add_admin', userId, `إضافة مدير ${role}`, req.ip, req.sessionID);
     await logAudit(req.session.user.id, guildId, 'add_admin', 'admin_role', null, role, req.ip, req.sessionID);
 
@@ -284,6 +287,7 @@ router.post('/:guildId/remove', isAuthenticated, hasGuildAccess, mgrOnly, saniti
     if (!userId) return res.status(400).json({ error: 'User ID required' });
 
     await removeAdmin(userId, guildId);
+    clearDashboardRoleCache(userId);
     await logActivity(req.session.user.id, guildId, 'remove_admin', userId, 'إزالة مدير', req.ip, req.sessionID);
     await logAudit(req.session.user.id, guildId, 'remove_admin', 'admin', null, userId, req.ip, req.sessionID);
 
@@ -300,6 +304,7 @@ router.post('/:guildId/update-role', isAuthenticated, hasGuildAccess, mgrOnly, s
     if (!userId || !role) return res.status(400).json({ error: 'User ID and role required' });
 
     await setAdminRole(userId, guildId, role, req.session.user.id);
+    clearDashboardRoleCache(userId);
     await logActivity(req.session.user.id, guildId, 'update_admin_role', userId, `تغيير رتبة إلى ${role}`, req.ip, req.sessionID);
     await logAudit(req.session.user.id, guildId, 'update_admin_role', 'admin_role', null, role, req.ip, req.sessionID);
 
@@ -339,9 +344,11 @@ router.post('/webhook/sync-member', async (req, res) => {
 
     if (hasAdminRole && !existing) {
       await addAdminRaw(userId, guildId, matchedLevel, 'role_sync');
+      clearDashboardRoleCache(userId);
       res.json({ synced: true, action: 'added' });
     } else if (!hasAdminRole && existing && existing.addedBy === 'role_sync') {
       await removeAdminByUserGuildAddedBy(userId, guildId, 'role_sync');
+      clearDashboardRoleCache(userId);
       res.json({ synced: true, action: 'removed' });
     } else {
       res.json({ synced: false, action: 'no_change' });

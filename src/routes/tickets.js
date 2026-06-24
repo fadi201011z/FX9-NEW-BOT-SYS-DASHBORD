@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole, canModify } from '../middleware/auth.js';
 import { logActivity, logAudit } from '../database.js';
 import { sanitizeInput } from '../middleware/security.js';
 import { getGuildTickets } from '../services/dataReader.js';
@@ -20,7 +20,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('support'),
   });
 });
 
-router.post('/:guildId/close', isAuthenticated, hasGuildAccess, sanitizeInput, async (req, res) => {
+router.post('/:guildId/close', isAuthenticated, hasGuildAccess, canModify, sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { ticketId } = req.body;
@@ -33,7 +33,7 @@ router.post('/:guildId/close', isAuthenticated, hasGuildAccess, sanitizeInput, a
   }
 });
 
-router.post('/:guildId/reopen', isAuthenticated, hasGuildAccess, sanitizeInput, async (req, res) => {
+router.post('/:guildId/reopen', isAuthenticated, hasGuildAccess, canModify, sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { ticketId } = req.body;

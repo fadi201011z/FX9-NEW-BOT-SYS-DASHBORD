@@ -11,6 +11,10 @@ const CACHE_TTL = 300000;
 
 let roleRefreshCache = {};
 
+export function clearDashboardRoleCache(userId) {
+  delete roleRefreshCache[userId];
+}
+
 export async function refreshDashboardRole(req, res, next) {
   if (!req.session?.user || req.session.user.isOwner) return next();
   const userId = req.session.user.id;

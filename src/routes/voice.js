@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole, canModify } from '../middleware/auth.js';
 import { logActivity } from '../database.js';
 import { getGuildVoiceChannels } from '../services/dataReader.js';
 import VoiceChannel from '../models/VoiceChannel.js';
@@ -20,7 +20,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('moderator'
   });
 });
 
-router.post('/:guildId/delete', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.post('/:guildId/delete', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { channelId } = req.body;

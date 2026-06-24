@@ -4,28 +4,294 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>خطأ — FX9 Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
-  <div class="error-page">
-    <div class="error-content glass">
-      <i class="fas fa-exclamation-triangle error-icon"></i>
-      <h1>خطأ</h1>
-      <p><%= message %></p>
-      <div class="error-actions">
-        <a href="/dashboard" class="btn-primary">
-          <i class="fas fa-th-large"></i> لوحة التحكم
+  <div class="denied-page">
+    <div class="denied-box glass fade-in-up">
+      <div class="denied-icon-wrapper">
+        <div class="denied-lock-icon">
+          <i class="fas fa-shield-halved"></i>
+        </div>
+      </div>
+      <div class="denied-status-badge">صلاحية محدودة</div>
+      <h1>صلاحياتك غير كافية</h1>
+      <p class="denied-subtitle"><%= message %></p>
+      <div class="denied-features">
+        <div class="denied-feature">
+          <div class="denied-feature-icon"><i class="fas fa-user-shield"></i></div>
+          <div class="denied-feature-text">
+            <strong>رتبة غير كافية</strong>
+            <span>هذه الصفحة تتطلب رتبة أعلى من رتبتك الحالية في لوحة التحكم</span>
+          </div>
+        </div>
+        <div class="denied-feature">
+          <div class="denied-feature-icon"><i class="fas fa-server"></i></div>
+          <div class="denied-feature-text">
+            <strong>صلاحية السيرفر</strong>
+            <span>تأكد من أنك تمتلك صلاحية "إدارة السيرفر" في هذا السيرفر على ديسكورد</span>
+          </div>
+        </div>
+        <div class="denied-feature">
+          <div class="denied-feature-icon"><i class="fab fa-discord"></i></div>
+          <div class="denied-feature-text">
+            <strong>تحتاج مساعدة؟</strong>
+            <span>تواصل مع مالك البوت أو المسؤول لترقية صلاحياتك</span>
+          </div>
+        </div>
+      </div>
+      <div class="denied-divider"></div>
+      <div class="denied-actions">
+        <a href="/guilds" class="denied-btn denied-btn-primary">
+          <i class="fas fa-server"></i>
+          السيرفرات
         </a>
-        <a href="/" class="btn-secondary">
-          <i class="fas fa-home"></i> الصفحة الرئيسية
+        <a href="/" class="denied-btn denied-btn-secondary">
+          <i class="fas fa-home"></i>
+          الصفحة الرئيسية
         </a>
-        <a href="/auth/logout" class="btn-secondary" style="background:#ed4245;color:#fff;">
-          <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+        <a href="/auth/logout" class="denied-btn denied-btn-outline">
+          <i class="fas fa-sign-out-alt"></i>
+          تسجيل الخروج
         </a>
+      </div>
+      <div class="denied-footer">
+        <p>FX9 Dashboard &copy; 2026 — جميع الحقوق محفوظة</p>
       </div>
     </div>
   </div>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%);
+      direction: rtl;
+      font-family: 'Cairo', sans-serif;
+    }
+    .denied-page {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+    .denied-box {
+      padding: 44px 28px 32px;
+      text-align: center;
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .denied-box::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      left: -60px;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(237,66,69,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .denied-box::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      right: -80px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(237,66,69,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .denied-icon-wrapper {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px;
+    }
+    .denied-lock-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(237,66,69,0.2), rgba(237,66,69,0.05));
+      border: 2px solid rgba(237,66,69,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #ed4245;
+      position: relative;
+      z-index: 1;
+    }
+    .denied-icon-wrapper::before {
+      content: '';
+      position: absolute;
+      top: -8px; left: -8px; right: -8px; bottom: -8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(237,66,69,0.1) 0%, transparent 70%);
+      animation: deniedPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes deniedPulse {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.25); opacity: 0; }
+    }
+    .denied-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      background: rgba(237,66,69,0.12);
+      color: #ed4245;
+      border: 1px solid rgba(237,66,69,0.2);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+    .denied-box h1 {
+      margin: 0 0 8px;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text, #eee);
+      letter-spacing: -0.3px;
+    }
+    .denied-subtitle {
+      margin: 0 0 28px;
+      color: var(--text-secondary, #999);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .denied-features {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .denied-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.025);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
+      text-align: right;
+      transition: background 0.2s;
+    }
+    .denied-feature:hover {
+      background: rgba(255,255,255,0.04);
+    }
+    .denied-feature-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(237,66,69,0.12);
+      color: #ed4245;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .denied-feature-text {
+      flex: 1;
+    }
+    .denied-feature-text strong {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text, #ddd);
+      margin-bottom: 2px;
+    }
+    .denied-feature-text span {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted, #777);
+      line-height: 1.5;
+    }
+    .denied-divider {
+      height: 1px;
+      background: linear-gradient(to left, transparent, rgba(255,255,255,0.08), transparent);
+      margin: 24px 0 20px;
+    }
+    .denied-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .denied-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.88rem;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .denied-btn-primary {
+      background: linear-gradient(135deg, #5865f2, #4752c4);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(88,101,242,0.25);
+    }
+    .denied-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(88,101,242,0.35);
+    }
+    .denied-btn-primary:active {
+      transform: translateY(0);
+    }
+    .denied-btn-secondary {
+      background: rgba(255,255,255,0.04);
+      color: var(--text, #ddd);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .denied-btn-secondary:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.12);
+      transform: translateY(-1px);
+    }
+    .denied-btn-outline {
+      background: transparent;
+      color: #ed4245;
+      border: 1px solid rgba(237,66,69,0.3);
+    }
+    .denied-btn-outline:hover {
+      background: rgba(237,66,69,0.08);
+      border-color: rgba(237,66,69,0.5);
+      transform: translateY(-1px);
+    }
+    .denied-footer {
+      margin-top: 24px;
+    }
+    .denied-footer p {
+      margin: 0;
+      font-size: 0.7rem;
+      color: var(--text-muted, #555);
+      letter-spacing: 0.5px;
+    }
+    .fade-in-up {
+      animation: deniedFadeInUp 0.6s ease forwards;
+    }
+    @keyframes deniedFadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </body>
 </html>
