@@ -85,16 +85,11 @@ app.use((req, res, next) => {
 // ─── Maintenance mode check ────────────────────────────────────────────
 app.use(async (req, res, next) => {
   try {
-    const skip = ['/auth', '/maintenance', '/dev', '/static', '/css', '/js', '/fonts', '/favicon'];
+    const skip = ['/', '/auth', '/maintenance', '/dev', '/static', '/css', '/js', '/fonts', '/favicon'];
     if (skip.some(s => req.path === s || req.path.startsWith(s + '/'))) return next();
   } catch { return next(); }
 
   if (req.session.maintenanceBypass) return next();
-
-  try {
-    const user = req.session.user;
-    if (user && (user.isOwner || (user.dashboardRole === 'developer' || user.dashboardRole === 'owner'))) return next();
-  } catch { return next(); }
 
   try {
     const Maintenance = (await import('./models/Maintenance.js')).default;
