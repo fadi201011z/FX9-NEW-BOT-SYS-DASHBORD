@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { upsertUser, getUserAdminGuilds } from '../database.js';
 import { getAuthUrl, exchangeCode, getUserInfo, getUserGuilds, refreshToken } from '../auth/discord.js';
 import config from '../config.js';
-import { bruteForceProtection, resetBruteForce } from '../middleware/security.js';
 
 const router = Router();
 
@@ -12,14 +11,9 @@ router.get('/discord', (req, res) => {
 
 router.get('/discord/callback', async (req, res) => {
   try {
-    const ip = req.ip || req.connection?.remoteAddress;
-    if (bruteForceProtection(ip)) {
-      return res.status(429).render('error', { user: null, title: 'محظور مؤقتاً', message: 'تم حظر IP الخاص بك مؤقتاً بسبب محاولات تسجيل دخول كثيرة. حاول بعد 5 دقائق.' });
-    }
-
     const { code, error: discordError } = req.query;
-    if (discordError) { bruteForceProtection(req.ip); return res.redirect(`/?error=${discordError}`); }
-    if (!code) { bruteForceProtection(req.ip); return res.redirect('/?error=no_code'); }
+    if (discordError) return res.redirect(`/?error=${discordError}`);
+    if (!code) return res.redirect('/?error=no_code');
 
     const tokenData = await exchangeCode(code);
     const discordUser = await getUserInfo(tokenData.access_token);
@@ -47,7 +41,6 @@ router.get('/discord/callback', async (req, res) => {
     const canAccess = isOwner || hasManageGuild || bestAdmin !== null;
 
     if (!canAccess) {
-      bruteForceProtection(req.ip);
       return res.redirect('/access-denied');
     }
 
@@ -67,8 +60,6 @@ router.get('/discord/callback', async (req, res) => {
       dashboardRole,
       isOwner,
     };
-
-    resetBruteForce(req.ip);
 
     req.session.save(() => {
       res.redirect('/');
