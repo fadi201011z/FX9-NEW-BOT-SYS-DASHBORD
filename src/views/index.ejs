@@ -330,13 +330,13 @@
     let mntBannerBuilt = false;
 
     function formatDuration(ms) {
-      if (ms <= 0) return '0s';
+      if (ms <= 0) return '0ث';
       const h = Math.floor(ms / 3600000);
       const m = Math.floor((ms % 3600000) / 60000);
       const s = Math.floor((ms % 60000) / 1000);
-      if (h > 0) return h + 'h ' + m.toString().padStart(2, '0') + 'm ' + s.toString().padStart(2, '0') + 's';
-      if (m > 0) return m + 'm ' + s.toString().padStart(2, '0') + 's';
-      return s + 's';
+      if (h > 0) return h + 'س ' + m + 'د ' + s + 'ث';
+      if (m > 0) return m + 'د ' + s + 'ث';
+      return s + 'ث';
     }
 
     function buildBanner() {
