@@ -340,6 +340,7 @@
     let mntData = null;
     let mntStartTime = null;
     let mntEndTime = null;
+    let mntRemainMs = null;
     let mntBannerBuilt = false;
 
     function formatDuration(ms) {
@@ -391,9 +392,9 @@
     function tickTimer() {
       const el = document.getElementById('mntTimer');
       if (!el || !mntData || !mntData.enabled) return;
-      if (mntEndTime) {
-        const remain = Math.max(0, mntEndTime - Date.now());
-        el.textContent = 'متبقي ' + formatDuration(remain);
+      if (mntEndTime && mntRemainMs !== null) {
+        el.textContent = 'متبقي ' + formatDuration(mntRemainMs);
+        if (mntRemainMs > 0) mntRemainMs = Math.max(0, mntRemainMs - 1000);
       } else if (mntStartTime) {
         el.textContent = 'مستمر منذ ' + formatDuration(Date.now() - mntStartTime);
       }
@@ -406,11 +407,13 @@
         if (data.enabled) {
           mntStartTime = Number(data.startedAt) || Date.now();
           mntEndTime = data.endTime ? Number(data.endTime) : null;
+          mntRemainMs = typeof data.remainMs === 'number' ? data.remainMs : null;
           mntData = data;
         } else {
           mntData = null;
           mntStartTime = null;
           mntEndTime = null;
+          mntRemainMs = null;
         }
         updateBanner();
       } catch {}
