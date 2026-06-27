@@ -38,7 +38,6 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
     durationMinutes: maintenanceRaw?.durationMinutes || 0,
     message: maintenanceRaw?.message || '',
     channelId: maintenanceRaw?.channelId || '',
-    startedAt: maintenanceRaw?.startedAt || 0,
     updatedAt: maintenanceRaw?.updatedAt || 0,
     updatedBy: maintenanceRaw?.updatedBy || '',
     changelog: maintenanceRaw?.changelog || { botUpdates: '', siteUpdates: '' },
@@ -95,14 +94,14 @@ router.get('/maintenance/status', async (req, res) => {
       return res.json({ enabled: false });
     }
     const remain = doc.enabled && doc.endTime ? Math.max(0, doc.endTime - Date.now()) : 0;
-    res.json({ enabled: doc.enabled, remainMs: remain, message: doc.message, durationMinutes: doc.durationMinutes, startedAt: doc.startedAt || null, endTime: doc.endTime || null, changelog: doc.changelog || { botUpdates: '', siteUpdates: '' } });
+    res.json({ enabled: doc.enabled, remainMs: remain, message: doc.message, durationMinutes: doc.durationMinutes, startedAt: doc.updatedAt || null, endTime: doc.endTime || null, changelog: doc.changelog || { botUpdates: '', siteUpdates: '' } });
   } catch { res.json({ enabled: false }); }
 });
 
 router.get('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
   try {
     const doc = await getOrCreateMaintenance();
-    doc.enabled = true; doc.changelog = { botUpdates: '', siteUpdates: '' }; doc.startedAt = Date.now(); doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
+    doc.enabled = true; doc.changelog = { botUpdates: '', siteUpdates: '' }; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
     syncMaintenanceToBot('start', doc.channelId);
     res.redirect('/dev');
@@ -119,7 +118,7 @@ router.post('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
       siteUpdates: siteUpdates || 'لم يتم إضافة تحديثات',
     };
     doc.changelog = changelog;
-    doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0; doc.startedAt = null; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
+    doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
     syncMaintenanceToBot('stop', doc.channelId, changelog);
     res.redirect('/dev');
