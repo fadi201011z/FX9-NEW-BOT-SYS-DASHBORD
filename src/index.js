@@ -212,13 +212,13 @@ app.get('/', (req, res) => {
 
 // ─── 404 ─────────────────────────────────────────────────────────────────
 app.use((req, res) => {
-  res.status(404).render('error', { layout: false, message: 'الصفحة غير موجودة.', user: req.session.user });
+  res.status(404).render('error', { layout: false, message: 'الصفحة غير موجودة.', user: req.session?.user || null });
 });
 
 // ─── Error Handler ───────────────────────────────────────────────────────
 app.use((err, req, res, _next) => {
   console.error('[Server Error]', err);
-  res.status(500).render('error', { layout: false, message: 'حدث خطأ داخلي في الخادم.', user: req.session.user });
+  res.status(500).render('error', { layout: false, message: 'حدث خطأ داخلي في الخادم.', user: req.session?.user || null });
 });
 
 // ─── Start Server ────────────────────────────────────────────────────────
