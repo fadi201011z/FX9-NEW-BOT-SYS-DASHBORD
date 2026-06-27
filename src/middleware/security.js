@@ -69,17 +69,17 @@ function resetBruteForce(ip) {
 
 // ─── CSRF ──────────────────────────────────────────────────────────────
 function generateCsrfToken(req, res, next) {
-  if (req.session && !req.session.csrfToken) {
+  if (!req.session.csrfToken) {
     req.session.csrfToken = uuidv4();
   }
-  res.locals.csrfToken = req.session?.csrfToken || '';
+  res.locals.csrfToken = req.session.csrfToken;
   next();
 }
 
 function validateCsrfToken(req, res, next) {
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
     const token = req.body?._csrf || req.headers['x-csrf-token'];
-    if (!token || !req.session || token !== req.session.csrfToken) {
+    if (!token || token !== req.session.csrfToken) {
       console.warn(`[Security] CSRF failed for ${req.method} ${req.path} from ${req.ip}`);
       return res.status(403).json({ error: 'طلب غير مصرح به (CSRF)' });
     }
