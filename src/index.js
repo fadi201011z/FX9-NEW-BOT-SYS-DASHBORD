@@ -89,7 +89,7 @@ app.use(async (req, res, next) => {
     if (skip.some(s => req.path === s || req.path.startsWith(s + '/'))) return next();
   } catch { return next(); }
 
-  if (req.session.maintenanceBypass) return next();
+  if (req.session?.maintenanceBypass) return next();
 
   try {
     const Maintenance = (await import('./models/Maintenance.js')).default;
