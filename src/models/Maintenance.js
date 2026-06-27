@@ -8,6 +8,7 @@ const maintenanceSchema = new mongoose.Schema({
   channelId:{ type: String, default: '' },
   updatedAt:{ type: Number, default: Date.now },
   updatedBy:{ type: String, default: '' },
+  changelog:{ type: Object, default: { botUpdates: '', siteUpdates: '' } },
 }, { timestamps: true });
 
 export default mongoose.model('Maintenance', maintenanceSchema);

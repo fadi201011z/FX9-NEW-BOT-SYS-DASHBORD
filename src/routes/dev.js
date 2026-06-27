@@ -40,6 +40,7 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
     channelId: maintenanceRaw?.channelId || '',
     updatedAt: maintenanceRaw?.updatedAt || 0,
     updatedBy: maintenanceRaw?.updatedBy || '',
+    changelog: maintenanceRaw?.changelog || { botUpdates: '', siteUpdates: '' },
   };
 
   res.render('dev', {
@@ -73,11 +74,12 @@ async function getOrCreateMaintenance() {
   return doc;
 }
 
-async function syncMaintenanceToBot(action, channelId) {
+async function syncMaintenanceToBot(action, channelId, changelog) {
   try {
     const body = {};
     if (action) body.action = action;
     if (channelId) body.channelId = channelId;
+    if (changelog) body.changelog = changelog;
     await axios.post(`${config.botApiUrl}/api/maintenance/sync`, body, { timeout: 3000 });
   } catch {}
 }
@@ -92,26 +94,33 @@ router.get('/maintenance/status', async (req, res) => {
       return res.json({ enabled: false });
     }
     const remain = doc.enabled && doc.endTime ? Math.max(0, doc.endTime - Date.now()) : 0;
-    res.json({ enabled: doc.enabled, remainMs: remain, message: doc.message, durationMinutes: doc.durationMinutes, startedAt: doc.updatedAt || null, endTime: doc.endTime || null });
+    res.json({ enabled: doc.enabled, remainMs: remain, message: doc.message, durationMinutes: doc.durationMinutes, startedAt: doc.updatedAt || null, endTime: doc.endTime || null, changelog: doc.changelog || { botUpdates: '', siteUpdates: '' } });
   } catch { res.json({ enabled: false }); }
 });
 
 router.get('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
   try {
     const doc = await getOrCreateMaintenance();
-    doc.enabled = true; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
+    doc.enabled = true; doc.changelog = { botUpdates: '', siteUpdates: '' }; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
     syncMaintenanceToBot('start', doc.channelId);
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
 
-router.get('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
+router.post('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
   try {
     const doc = await getOrCreateMaintenance();
+    const botUpdates = (req.body.botUpdates || '').trim();
+    const siteUpdates = (req.body.siteUpdates || '').trim();
+    const changelog = {
+      botUpdates: botUpdates || 'لم يتم إضافة تحديثات',
+      siteUpdates: siteUpdates || 'لم يتم إضافة تحديثات',
+    };
+    doc.changelog = changelog;
     doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
     await doc.save();
-    syncMaintenanceToBot('stop', doc.channelId);
+    syncMaintenanceToBot('stop', doc.channelId, changelog);
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });

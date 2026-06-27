@@ -108,7 +108,7 @@
     </div>
     <div class="mnt-actions">
       <% if (maintenance.enabled) { %>
-        <a href="/dev/maintenance/stop" class="mnt-btn mnt-btn-stop"><i class="fas fa-power-off"></i> إيقاف الصيانة</a>
+        <button type="button" class="mnt-btn mnt-btn-stop" id="mntShowChangelogBtn"><i class="fas fa-power-off"></i> إيقاف الصيانة</button>
       <% } else { %>
         <a href="/dev/maintenance/start" id="mntStartBtn" class="mnt-btn mnt-btn-start" style="opacity:.5;pointer-events:none"><i class="fas fa-shield-halved"></i> تفعيل الصيانة</a>
       <% } %>
@@ -255,6 +255,57 @@
         <span style="font-size:.8rem;color:var(--text-muted)">🕐 تنتهي <span dir="ltr"><%= new Date(maintenance.endTime).toLocaleString('ar-EG') %></span></span>
       <% } %>
     </div>
+    <!-- Changelog form (hidden, shown when clicking stop) -->
+    <div class="mnt-divider"></div>
+    <div id="mntChangelogSection" style="display:none">
+      <div style="font-size:.9rem;font-weight:700;margin-bottom:10px;color:var(--text)">
+        <i class="fas fa-scroll"></i> سجل التحديثات — أضف ملخصاً للتغييرات التي تمت أثناء الصيانة
+      </div>
+      <form method="POST" action="/dev/maintenance/stop" id="mntStopForm">
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
+            <i class="fas fa-robot"></i> تحديثات البوت — الأوامر، الأنظمة، الحماية، الصوت، التكتات...
+          </label>
+          <textarea name="botUpdates" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.9rem;outline:none;transition:.2s;resize:vertical;box-sizing:border-box;direction:rtl" placeholder="مثال: تم إصلاح مشكلة /ping↵تم إضافة أمر /newcommand↵تم تحسين أداء البوت"><%= maintenance.changelog && maintenance.changelog.botUpdates || '' %></textarea>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
+            <i class="fas fa-globe"></i> تحديثات الموقع — لوحة التحكم، التصميم، API، السرعة...
+          </label>
+          <textarea name="siteUpdates" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.9rem;outline:none;transition:.2s;resize:vertical;box-sizing:border-box;direction:rtl" placeholder="مثال: إعادة تصميم صفحة الإحصائيات↵إصلاح مشكلة الوقت في العدّاد↵تحسين سرعة تحميل الصفحات"><%= maintenance.changelog && maintenance.changelog.siteUpdates || '' %></textarea>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+          <button type="submit" class="mnt-btn mnt-btn-stop" style="font-size:1rem;padding:12px 30px">
+            <i class="fas fa-power-off"></i> تأكيد إيقاف الصيانة وإرسال الإشعار
+          </button>
+          <button type="button" class="mnt-btn mnt-btn-ghost" id="mntCancelChangelog">
+            <i class="fas fa-times"></i> إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+    <script>
+    (function(){
+      var showBtn = document.getElementById('mntShowChangelogBtn');
+      var section = document.getElementById('mntChangelogSection');
+      var cancelBtn = document.getElementById('mntCancelChangelog');
+      if (showBtn && section) {
+        showBtn.addEventListener('click', function() {
+          section.style.display = 'block';
+          showBtn.style.display = 'none';
+          section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      }
+      if (cancelBtn && section && showBtn) {
+        cancelBtn.addEventListener('click', function() {
+          section.style.display = 'none';
+          showBtn.style.display = '';
+        });
+      }
+    })();
+    </script>
     <% } %>
   </div>
 </div>
