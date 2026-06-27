@@ -304,7 +304,7 @@
       document.querySelectorAll('.stat-number').forEach(function(el) {
         var label = (el.closest('.stat-item')?.querySelector('.stat-desc')?.textContent || '').trim();
         for (var key in fb) {
-          if (label.includes(key)) { el.dataset.target = fb[key]; el.textContent = fb[key]; break; }
+          if (label.includes(key)) { el.dataset.target = fb[key]; el.textContent = '0'; if (typeof animateCount === 'function') animateCount(el); break; }
         }
       });
       var heroEl = document.getElementById('heroCmdCount');
@@ -404,8 +404,8 @@
         const res = await fetch('/dev/maintenance/status');
         const data = await res.json();
         if (data.enabled) {
-          mntStartTime = data.startedAt || Date.now();
-          mntEndTime = data.endTime || null;
+          mntStartTime = Number(data.startedAt) || Date.now();
+          mntEndTime = data.endTime ? Number(data.endTime) : null;
           mntData = data;
         } else {
           mntData = null;
