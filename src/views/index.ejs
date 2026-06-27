@@ -374,7 +374,7 @@
         const data = await res.json();
         if (data.enabled) {
           if (!mntData || !mntData.enabled) {
-            mntStartTime = data.remainMs ? Date.now() - (data.durationMinutes * 60000 - data.remainMs) : Date.now();
+            mntStartTime = data.startedAt || Date.now();
           }
           mntData = data;
         } else {
