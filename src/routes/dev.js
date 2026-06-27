@@ -92,7 +92,7 @@ router.get('/maintenance/status', async (req, res) => {
       return res.json({ enabled: false });
     }
     const remain = doc.enabled && doc.endTime ? Math.max(0, doc.endTime - Date.now()) : 0;
-    res.json({ enabled: doc.enabled, remainMs: remain, message: doc.message, durationMinutes: doc.durationMinutes, startedAt: doc.updatedAt || null });
+    res.json({ enabled: doc.enabled, remainMs: remain, message: doc.message, durationMinutes: doc.durationMinutes, startedAt: doc.updatedAt || null, endTime: doc.endTime || null });
   } catch { res.json({ enabled: false }); }
 });
 

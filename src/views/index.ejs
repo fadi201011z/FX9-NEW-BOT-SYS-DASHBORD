@@ -326,6 +326,8 @@
 
     let mntData = null;
     let mntStartTime = null;
+    let mntEndTime = null;
+    let mntBannerBuilt = false;
 
     function formatDuration(ms) {
       if (ms <= 0) return '0s';
@@ -337,13 +339,7 @@
       return s + 's';
     }
 
-    function renderBanner() {
-      if (!mntData || !mntData.enabled) {
-        mntContainer.innerHTML = '';
-        document.body.classList.remove('mnt-active');
-        return;
-      }
-      const elapsed = mntStartTime ? Date.now() - mntStartTime : 0;
+    function buildBanner() {
       mntContainer.innerHTML = `
         <div class="mnt-banner">
           <div class="mnt-banner-inner">
@@ -351,21 +347,42 @@
             <div class="mnt-banner-text">
               <div class="mnt-banner-title">FADIX9 SYSTEM Bot v1.0.11 — وضع الصيانة مفعل</div>
               <div class="mnt-banner-desc">
-                <span class="mnt-banner-time"><i class="fas fa-circle"></i> <span id="mntTimer">${formatDuration(elapsed)}</span></span>
-                <span>${mntData.message || 'الموقع تحت الصيانة حالياً'}</span>
+                <span class="mnt-banner-time"><i class="fas fa-circle"></i> <span id="mntTimer">...</span></span>
+                <span id="mntMessage"></span>
               </div>
             </div>
           </div>
         </div>
       `;
       document.body.classList.add('mnt-active');
+      mntBannerBuilt = true;
+    }
+
+    function removeBanner() {
+      mntContainer.innerHTML = '';
+      document.body.classList.remove('mnt-active');
+      mntBannerBuilt = false;
+    }
+
+    function updateBanner() {
+      if (!mntData || !mntData.enabled) {
+        removeBanner();
+        return;
+      }
+      if (!mntBannerBuilt) buildBanner();
+      const msgEl = document.getElementById('mntMessage');
+      if (msgEl) msgEl.textContent = mntData.message || 'الموقع تحت الصيانة حالياً';
     }
 
     function tickTimer() {
       const el = document.getElementById('mntTimer');
-      if (!el || !mntStartTime) return;
-      const elapsed = Date.now() - mntStartTime;
-      el.textContent = formatDuration(elapsed);
+      if (!el || !mntData || !mntData.enabled) return;
+      if (mntEndTime) {
+        const remain = Math.max(0, mntEndTime - Date.now());
+        el.textContent = 'متبقي ' + formatDuration(remain);
+      } else if (mntStartTime) {
+        el.textContent = 'مستمر منذ ' + formatDuration(Date.now() - mntStartTime);
+      }
     }
 
     async function checkMaintenance() {
@@ -375,13 +392,15 @@
         if (data.enabled) {
           if (!mntData || !mntData.enabled) {
             mntStartTime = data.startedAt || Date.now();
+            mntEndTime = data.endTime || null;
           }
           mntData = data;
         } else {
           mntData = null;
           mntStartTime = null;
+          mntEndTime = null;
         }
-        renderBanner();
+        updateBanner();
       } catch {}
     }
     checkMaintenance();
