@@ -291,17 +291,43 @@
       var showBtn = document.getElementById('mntShowChangelogBtn');
       var section = document.getElementById('mntChangelogSection');
       var cancelBtn = document.getElementById('mntCancelChangelog');
+      var botField = document.querySelector('textarea[name="botUpdates"]');
+      var siteField = document.querySelector('textarea[name="siteUpdates"]');
+      var stopForm = document.getElementById('mntStopForm');
+
+      // Restore from localStorage if DB is empty (user was typing before refresh)
+      if (botField && siteField) {
+        var savedBot = localStorage.getItem('mntChangelogBot');
+        var savedSite = localStorage.getItem('mntChangelogSite');
+        if (savedBot && !botField.value.trim()) botField.value = savedBot;
+        if (savedSite && !siteField.value.trim()) siteField.value = savedSite;
+        // Auto-save on input
+        botField.addEventListener('input', function() { localStorage.setItem('mntChangelogBot', botField.value); });
+        siteField.addEventListener('input', function() { localStorage.setItem('mntChangelogSite', siteField.value); });
+      }
+
       if (showBtn && section) {
         showBtn.addEventListener('click', function() {
           section.style.display = 'block';
           showBtn.style.display = 'none';
           section.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
+        // Auto-open if there's unsaved text in localStorage
+        if (localStorage.getItem('mntChangelogBot') || localStorage.getItem('mntChangelogSite')) {
+          showBtn.click();
+        }
       }
       if (cancelBtn && section && showBtn) {
         cancelBtn.addEventListener('click', function() {
           section.style.display = 'none';
           showBtn.style.display = '';
+        });
+      }
+      // Clear localStorage on successful form submit
+      if (stopForm) {
+        stopForm.addEventListener('submit', function() {
+          localStorage.removeItem('mntChangelogBot');
+          localStorage.removeItem('mntChangelogSite');
         });
       }
     })();
