@@ -298,8 +298,20 @@
   <script src="/js/main.js"></script>
   <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // ─── Stats ──────────────────────────────────────────────────────────
+    function setStatsFallback() {
+      document.querySelectorAll('.stat-number[data-target]').forEach(el => {
+        const label = el.closest('.stat-item')?.querySelector('.stat-desc')?.textContent || '';
+        if (label.includes('أنظمة حماية'))    { el.dataset.target = '6'; el.textContent = '6'; }
+        else if (label.includes('أوامر تذاكر')){ el.dataset.target = '9'; el.textContent = '9'; }
+        else if (label.includes('أوامر صوتية')){ el.dataset.target = '15'; el.textContent = '15'; }
+      });
+      const heroEl = document.getElementById('heroCmdCount');
+      if (heroEl) heroEl.textContent = '55';
+    }
+
     fetch('/api/commands/stats')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(stats => {
         const map = stats.perCategory || {};
         const totalStats = stats.total || 0;
@@ -317,9 +329,9 @@
         const heroEl = document.getElementById('heroCmdCount');
         if (heroEl) heroEl.textContent = totalStats || 0;
       })
-      .catch(() => {});
+      .catch(setStatsFallback);
 
-    // Maintenance status check
+    // ─── Maintenance banner ──────────────────────────────────────────────
     const mntContainer = document.createElement('div');
     mntContainer.id = 'mntBanner';
     document.body.prepend(mntContainer);
@@ -356,6 +368,7 @@
       `;
       document.body.classList.add('mnt-active');
       mntBannerBuilt = true;
+      tickTimer();
     }
 
     function removeBanner() {
@@ -390,10 +403,8 @@
         const res = await fetch('/dev/maintenance/status');
         const data = await res.json();
         if (data.enabled) {
-          if (!mntData || !mntData.enabled) {
-            mntStartTime = data.startedAt || Date.now();
-            mntEndTime = data.endTime || null;
-          }
+          mntStartTime = data.startedAt || Date.now();
+          mntEndTime = data.endTime || null;
           mntData = data;
         } else {
           mntData = null;
