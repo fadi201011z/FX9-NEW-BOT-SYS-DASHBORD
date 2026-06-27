@@ -50,7 +50,8 @@
       <p style="font-size:.82rem;color:rgba(255,255,255,.4)">نعمل على تحسين تجربتك — شكراً لصبرك</p>
 
       <div class="mnt-divider"></div>
-      <div id="mntTimerSection" style="display:<%= (maintenance.enabled && maintenance.durationMinutes > 0) ? '' : 'none' %>">
+      <% var hasEndTime = maintenance.enabled && maintenance.endTime != null; %>
+      <div id="mntTimerSection" style="display:<%= hasEndTime ? '' : 'none' %>">
         <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:8px">الوقت المتبقي</div>
         <div class="mnt-countdown" id="mntClock">
           <div><span id="cdDays">00</span><span>أيام</span></div>
@@ -58,6 +59,11 @@
           <div><span id="cdMins">00</span><span>دقائق</span></div>
           <div><span id="cdSecs">00</span><span>ثواني</span></div>
         </div>
+      </div>
+
+      <div id="mntElapsedSection" style="display:<%= (!hasEndTime && maintenance.enabled) ? '' : 'none' %>">
+        <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:8px">مدة الصيانة</div>
+        <div style="font-size:1.4rem;font-weight:700;color:#faa61a" id="mntElapsedTimer">...</div>
       </div>
 
       <div id="mntExpiredMsg" style="display:none">
@@ -69,50 +75,65 @@
 
       <script>
       (function(){
-        var durMins = <%= maintenance.durationMinutes || 0 %>;
-        var remainMs = <%= (maintenance.endTime && maintenance.enabled) ? Math.max(0, maintenance.endTime - Date.now()) : 0 %>;
+        var hasEndTime = <%= hasEndTime ? 'true' : 'false' %>;
+        var remainMs = <%= hasEndTime ? Math.max(0, maintenance.endTime - Date.now()) : 0 %>;
+        var elapsedFrom = <%= maintenance.enabled && !hasEndTime && maintenance.startedAt ? maintenance.startedAt : 0 %>;
 
-        if (durMins < 1 || remainMs < 1) return;
-        document.getElementById('mntTimerSection').style.display = '';
-
-        var clock = { days: document.getElementById('cdDays'), hours: document.getElementById('cdHours'), mins: document.getElementById('cdMins'), secs: document.getElementById('cdSecs') };
-
-        function show(ms) {
-          if (ms < 1) { end(); return; }
-          var d = Math.floor(ms / 86400000);
-          var h = Math.floor((ms % 86400000) / 3600000);
-          var m = Math.floor((ms % 3600000) / 60000);
-          var s = Math.floor((ms % 60000) / 1000);
-          clock.days.textContent = String(d).padStart(2,'0');
-          clock.hours.textContent = String(h).padStart(2,'0');
-          clock.mins.textContent = String(m).padStart(2,'0');
-          clock.secs.textContent = String(s).padStart(2,'0');
+        if (hasEndTime) {
+          document.getElementById('mntTimerSection').style.display = '';
+          var clock = { days: document.getElementById('cdDays'), hours: document.getElementById('cdHours'), mins: document.getElementById('cdMins'), secs: document.getElementById('cdSecs') };
+          function show(ms) {
+            if (ms < 1) { end(); return; }
+            var d = Math.floor(ms / 86400000);
+            var h = Math.floor((ms % 86400000) / 3600000);
+            var m = Math.floor((ms % 3600000) / 60000);
+            var s = Math.floor((ms % 60000) / 1000);
+            clock.days.textContent = String(d).padStart(2,'0');
+            clock.hours.textContent = String(h).padStart(2,'0');
+            clock.mins.textContent = String(m).padStart(2,'0');
+            clock.secs.textContent = String(s).padStart(2,'0');
+          }
+          var lastServerMs = remainMs;
+          var lastSync = Date.now();
+          show(lastServerMs);
+          var timer = setInterval(function() {
+            var elapsed = Date.now() - lastSync;
+            var cur = Math.max(0, lastServerMs - elapsed);
+            show(cur);
+            if (cur < 1) end();
+          }, 200);
+          var syncTimer = setInterval(function() {
+            fetch('/dev/maintenance/status').then(function(r) { return r.json(); }).then(function(d) {
+              if (!d.enabled) { end(); return; }
+              if (d.remainMs < 1) { end(); return; }
+              lastServerMs = d.remainMs;
+              lastSync = Date.now();
+            }).catch(function(){});
+          }, 15000);
+        } else if (elapsedFrom > 0) {
+          document.getElementById('mntElapsedSection').style.display = '';
+          var elapsedEl = document.getElementById('mntElapsedTimer');
+          function fmtElapsed(ms) {
+            if (ms <= 0) return '0ث';
+            var h = Math.floor(ms / 3600000);
+            var m = Math.floor((ms % 3600000) / 60000);
+            var s = Math.floor((ms % 60000) / 1000);
+            if (h > 0) return h + 'س ' + m + 'د ' + s + 'ث';
+            if (m > 0) return m + 'د ' + s + 'ث';
+            return s + 'ث';
+          }
+          function tickElapsed() {
+            var dur = Date.now() - elapsedFrom;
+            if (dur < 0) dur = 0;
+            elapsedEl.textContent = fmtElapsed(dur);
+          }
+          tickElapsed();
+          setInterval(tickElapsed, 1000);
         }
 
-        var lastServerMs = remainMs;
-        var lastSync = Date.now();
-        show(lastServerMs);
-
-        var timer = setInterval(function() {
-          var elapsed = Date.now() - lastSync;
-          var cur = Math.max(0, lastServerMs - elapsed);
-          show(cur);
-          if (cur < 1) end();
-        }, 200);
-
-        var syncTimer = setInterval(function() {
-          fetch('/dev/maintenance/status').then(function(r) { return r.json(); }).then(function(d) {
-            if (!d.enabled) { end(); return; }
-            if (d.remainMs < 1) { end(); return; }
-            lastServerMs = d.remainMs;
-            lastSync = Date.now();
-          }).catch(function(){});
-        }, 15000);
-
         function end() {
-          clearInterval(timer);
-          clearInterval(syncTimer);
           document.getElementById('mntTimerSection').style.display = 'none';
+          document.getElementById('mntElapsedSection').style.display = 'none';
           document.getElementById('mntExpiredMsg').style.display = '';
           setTimeout(function() { window.location.href = '/'; }, 2000);
           fetch('/maintenance/autoend', { method: 'POST' }).catch(function(){});

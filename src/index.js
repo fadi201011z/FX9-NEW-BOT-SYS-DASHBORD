@@ -98,6 +98,7 @@ app.use(async (req, res, next) => {
       if (doc.endTime && Date.now() >= doc.endTime) {
         doc.enabled = false;
         doc.endTime = null;
+        doc.startedAt = null;
         await doc.save();
         fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
         return next();
@@ -168,7 +169,7 @@ app.post('/maintenance/autoend', async (req, res) => {
     const Maintenance = (await import('./models/Maintenance.js')).default;
     const doc = await Maintenance.findOne();
     if (doc && doc.enabled && doc.endTime && Date.now() >= doc.endTime) {
-      doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0;
+      doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0; doc.startedAt = null;
       await doc.save();
       fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
     }
@@ -182,7 +183,8 @@ app.get('/maintenance', async (req, res) => {
       const user = req.session?.user;
       if (user && (user.isOwner || user.dashboardRole === 'developer' || user.dashboardRole === 'owner')) {
         req.session.maintenanceBypass = true;
-        return res.redirect('/');
+        req.session.save(() => { res.redirect('/'); });
+        return;
       }
     }
   } catch {}
@@ -194,6 +196,7 @@ app.get('/maintenance', async (req, res) => {
     if (maintenanceRaw && maintenanceRaw.enabled && maintenanceRaw.endTime && Date.now() >= maintenanceRaw.endTime) {
       maintenanceRaw.enabled = false;
       maintenanceRaw.endTime = null;
+      maintenanceRaw.startedAt = null;
       await maintenanceRaw.save();
       fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
       maintenanceRaw = maintenanceRaw.toObject();
@@ -207,6 +210,7 @@ app.get('/maintenance', async (req, res) => {
     endTime: maintenanceRaw?.endTime || null,
     durationMinutes: maintenanceRaw?.durationMinutes || 0,
     message: maintenanceRaw?.message || 'الموقع تحت الصيانة حالياً. سنعود قريباً!',
+    startedAt: maintenanceRaw?.startedAt || 0,
   };
   const user = req.session?.user;
   const canBypass = !!(user && (user.isOwner || user.dashboardRole === 'developer' || user.dashboardRole === 'owner'));
