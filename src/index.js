@@ -9,7 +9,7 @@ import 'dotenv/config';
 
 import expressLayouts from 'express-ejs-layouts';
 import config from './config.js';
-import { securityMiddleware } from './middleware/security.js';
+import { securityMiddleware, validateCsrfToken } from './middleware/security.js';
 import { setupWebSocket } from './websocket/index.js';
 import { ROLE_HIERARCHY } from './middleware/auth.js';
 
@@ -54,11 +54,12 @@ app.use(session({
   secret: config.session.secret,
   resave: false,
   saveUninitialized: false,
+  rolling: true,
   cookie: {
     secure: !config.isDev,
     maxAge: config.session.maxAge,
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'strict',
   },
 }));
 
@@ -115,6 +116,22 @@ app.use(async (req, res, next) => {
 app.use('/home', homeRoutes);
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
+
+// ─── Maintenance auto-end (called server-side, no CSRF) ────────────────
+app.post('/maintenance/autoend', async (req, res) => {
+  try {
+    const Maintenance = (await import('./models/Maintenance.js')).default;
+    const doc = await Maintenance.findOne();
+    if (doc && doc.enabled && doc.endTime && Date.now() >= doc.endTime) {
+      doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0;
+      await doc.save();
+      fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
+    }
+    res.json({ ended: true });
+  } catch { res.json({ ended: true }); }
+});
+
+app.use(validateCsrfToken);
 app.use('/guilds', guildRoutes);
 app.use('/settings', settingsRoutes);
 app.use('/tickets', ticketRoutes);
@@ -129,52 +146,6 @@ app.use('/api', statusRoutes);
 app.use('/api/user', apiRoutes);
 app.use('/dev', devRoutes);
 app.use('/notifications', notificationRoutes);
-
-
-// ─── Documentation page ──────────────────────────────────────────────────
-app.get('/docs', async (req, res) => {
-  try {
-    const { getDocumentation } = await import('./services/syncService.js');
-    const commands = await getDocumentation();
-    res.render('docs', { user: req.session.user, commands, title: 'التوثيق' });
-  } catch {
-    res.render('docs', { user: req.session.user, commands: [], title: 'التوثيق' });
-  }
-});
-
-app.get('/docs/:category', async (req, res) => {
-  try {
-    const { getDocumentation } = await import('./services/syncService.js');
-    const all = await getDocumentation();
-    const commands = all.filter(c => c.category === req.params.category);
-    res.render('docs', { user: req.session.user, commands, category: req.params.category, title: `التوثيق — ${req.params.category}` });
-  } catch {
-    res.render('docs', { user: req.session.user, commands: [], title: 'التوثيق' });
-  }
-});
-
-app.get('/status', (req, res) => {
-  res.render('status', { user: req.session.user, title: 'حالة البوت' });
-});
-
-// ─── Access Denied ───────────────────────────────────────────────────────
-app.get('/access-denied', (req, res) => {
-  res.status(403).render('access-denied', { layout: false, user: req.session.user, title: 'لا يمكنك الدخول', clientId: config.discord.clientId, reason: req.query.reason || 'owner' });
-});
-
-// ─── Maintenance ─────────────────────────────────────────────────────────
-app.post('/maintenance/autoend', async (req, res) => {
-  try {
-    const Maintenance = (await import('./models/Maintenance.js')).default;
-    const doc = await Maintenance.findOne();
-    if (doc && doc.enabled && doc.endTime && Date.now() >= doc.endTime) {
-      doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0;
-      await doc.save();
-      fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
-    }
-    res.json({ ended: true });
-  } catch { res.json({ ended: true }); }
-});
 
 app.get('/maintenance', async (req, res) => {
   try {

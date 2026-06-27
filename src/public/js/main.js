@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  initCsrf();
   initSidebar();
   initUserMenu();
   initNotifications();
@@ -8,6 +9,37 @@ document.addEventListener('DOMContentLoaded', () => {
   initFadeAnimations();
   initTooltips();
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  CSRF Protection — auto-inject token into all AJAX calls
+// ═══════════════════════════════════════════════════════════════════════════
+
+function initCsrf() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  if (!meta) return;
+  const token = meta.getAttribute('content');
+  if (!token) return;
+
+  // Patch fetch to add CSRF header to mutating methods
+  const origFetch = window.fetch;
+  window.fetch = function(input, init) {
+    init = init || {};
+    const method = (init.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      init.headers = init.headers || {};
+      if (init.headers instanceof Headers) {
+        if (!init.headers.has('x-csrf-token')) init.headers.set('x-csrf-token', token);
+      } else if (Array.isArray(init.headers)) {
+        if (!init.headers.some(h => h[0].toLowerCase() === 'x-csrf-token')) {
+          init.headers.push(['x-csrf-token', token]);
+        }
+      } else {
+        if (!init.headers['x-csrf-token']) init.headers['x-csrf-token'] = token;
+      }
+    }
+    return origFetch.call(window, input, init);
+  };
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  Sidebar — 3 modes: full / collapsed / hidden
