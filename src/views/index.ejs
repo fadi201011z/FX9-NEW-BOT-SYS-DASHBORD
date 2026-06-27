@@ -391,12 +391,14 @@
 
     function tickTimer() {
       const el = document.getElementById('mntTimer');
-      if (!el || !mntData || !mntData.enabled) return;
+      const timeWrap = el && el.parentElement;
+      if (!el || !timeWrap || !mntData || !mntData.enabled) return;
       if (mntEndTime && mntRemainMs !== null) {
+        timeWrap.style.display = '';
         el.textContent = 'متبقي ' + formatDuration(mntRemainMs);
         if (mntRemainMs > 0) mntRemainMs = Math.max(0, mntRemainMs - 1000);
-      } else if (mntStartTime) {
-        el.textContent = 'مستمر منذ ' + formatDuration(Date.now() - mntStartTime);
+      } else {
+        timeWrap.style.display = 'none';
       }
     }
 
