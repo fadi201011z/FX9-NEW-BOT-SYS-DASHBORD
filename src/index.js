@@ -47,7 +47,6 @@ app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-securityMiddleware(app);
 
 // ─── Sessions ────────────────────────────────────────────────────────────
 app.use(session({
@@ -62,6 +61,9 @@ app.use(session({
     sameSite: 'strict',
   },
 }));
+
+// ─── Security middleware (after session — needs req.session for CSRF) ───
+securityMiddleware(app);
 
 // ─── View Engine ─────────────────────────────────────────────────────────
 app.set('view engine', 'ejs');
