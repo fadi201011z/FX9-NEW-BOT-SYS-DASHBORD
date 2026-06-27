@@ -300,13 +300,14 @@
   document.addEventListener('DOMContentLoaded', () => {
     // ─── Stats ──────────────────────────────────────────────────────────
     function setStatsFallback() {
-      document.querySelectorAll('.stat-number[data-target]').forEach(el => {
-        const label = el.closest('.stat-item')?.querySelector('.stat-desc')?.textContent || '';
-        if (label.includes('أنظمة حماية'))    { el.dataset.target = '6'; el.textContent = '6'; }
-        else if (label.includes('أوامر تذاكر')){ el.dataset.target = '9'; el.textContent = '9'; }
-        else if (label.includes('أوامر صوتية')){ el.dataset.target = '15'; el.textContent = '15'; }
+      var fb = { 'أنظمة حماية': 6, 'أوامر تذاكر': 9, 'أوامر صوتية': 15, 'إجمالي الأوامر': 55 };
+      document.querySelectorAll('.stat-number[data-target]').forEach(function(el) {
+        var label = (el.closest('.stat-item')?.querySelector('.stat-desc')?.textContent || '').trim();
+        for (var key in fb) {
+          if (label.includes(key)) { el.dataset.target = fb[key]; el.textContent = fb[key]; break; }
+        }
       });
-      const heroEl = document.getElementById('heroCmdCount');
+      var heroEl = document.getElementById('heroCmdCount');
       if (heroEl) heroEl.textContent = '55';
     }
 
