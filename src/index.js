@@ -136,9 +136,9 @@ app.get('/docs', async (req, res) => {
   try {
     const { getDocumentation } = await import('./services/syncService.js');
     const commands = await getDocumentation();
-    res.render('docs', { user: req.session.user, commands, title: 'التوثيق' });
+    res.render('docs', { user: req.session?.user || null, commands, title: 'التوثيق' });
   } catch {
-    res.render('docs', { user: req.session.user, commands: [], title: 'التوثيق' });
+    res.render('docs', { user: req.session?.user || null, commands: [], title: 'التوثيق' });
   }
 });
 
@@ -147,19 +147,19 @@ app.get('/docs/:category', async (req, res) => {
     const { getDocumentation } = await import('./services/syncService.js');
     const all = await getDocumentation();
     const commands = all.filter(c => c.category === req.params.category);
-    res.render('docs', { user: req.session.user, commands, category: req.params.category, title: `التوثيق — ${req.params.category}` });
+    res.render('docs', { user: req.session?.user || null, commands, category: req.params.category, title: `التوثيق — ${req.params.category}` });
   } catch {
-    res.render('docs', { user: req.session.user, commands: [], title: 'التوثيق' });
+    res.render('docs', { user: req.session?.user || null, commands: [], title: 'التوثيق' });
   }
 });
 
 app.get('/status', (req, res) => {
-  res.render('status', { user: req.session.user, title: 'حالة البوت' });
+  res.render('status', { user: req.session?.user || null, title: 'حالة البوت' });
 });
 
 // ─── Access Denied ───────────────────────────────────────────────────────
 app.get('/access-denied', (req, res) => {
-  res.status(403).render('access-denied', { layout: false, user: req.session.user, title: 'لا يمكنك الدخول', clientId: config.discord.clientId, reason: req.query.reason || 'owner' });
+  res.status(403).render('access-denied', { layout: false, user: req.session?.user || null, title: 'لا يمكنك الدخول', clientId: config.discord.clientId, reason: req.query.reason || 'owner' });
 });
 
 // ─── Maintenance ─────────────────────────────────────────────────────────
@@ -241,13 +241,13 @@ app.get('/', (req, res) => {
 
 // ─── 404 ─────────────────────────────────────────────────────────────────
 app.use((req, res) => {
-  res.status(404).render('error', { layout: false, message: 'الصفحة غير موجودة.', user: req.session.user });
+  res.status(404).render('error', { layout: false, message: 'الصفحة غير موجودة.', user: req.session?.user || null });
 });
 
 // ─── Error Handler ───────────────────────────────────────────────────────
 app.use((err, req, res, _next) => {
   console.error('[Server Error]', err);
-  res.status(500).render('error', { layout: false, message: 'حدث خطأ داخلي في الخادم.', user: req.session.user });
+  res.status(500).render('error', { layout: false, message: 'حدث خطأ داخلي في الخادم.', user: req.session?.user || null });
 });
 
 // ─── Start Server ────────────────────────────────────────────────────────
