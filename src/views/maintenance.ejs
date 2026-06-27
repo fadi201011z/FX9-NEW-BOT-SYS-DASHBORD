@@ -51,6 +51,7 @@
 
       <div class="mnt-divider"></div>
       <% var hasEndTime = maintenance.enabled && maintenance.endTime != null; %>
+      <% var hasStartTime = maintenance.enabled && maintenance.startedAt > 0; %>
       <div id="mntTimerSection" style="display:<%= hasEndTime ? '' : 'none' %>">
         <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:8px">الوقت المتبقي</div>
         <div class="mnt-countdown" id="mntClock">
@@ -61,7 +62,7 @@
         </div>
       </div>
 
-      <div id="mntElapsedSection" style="display:<%= (!hasEndTime && maintenance.enabled) ? '' : 'none' %>">
+      <div id="mntElapsedSection" style="display:<%= (maintenance.enabled && !hasEndTime) ? '' : 'none' %>">
         <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:8px">مدة الصيانة</div>
         <div style="font-size:1.4rem;font-weight:700;color:#faa61a" id="mntElapsedTimer">...</div>
       </div>
@@ -77,7 +78,7 @@
       (function(){
         var hasEndTime = <%= hasEndTime ? 'true' : 'false' %>;
         var remainMs = <%= hasEndTime ? Math.max(0, maintenance.endTime - Date.now()) : 0 %>;
-        var elapsedFrom = <%= maintenance.enabled && !hasEndTime && maintenance.startedAt ? maintenance.startedAt : 0 %>;
+        var elapsedFrom = <%= hasStartTime ? maintenance.startedAt : 'null' %>;
 
         if (hasEndTime) {
           document.getElementById('mntTimerSection').style.display = '';
@@ -110,9 +111,10 @@
               lastSync = Date.now();
             }).catch(function(){});
           }, 15000);
-        } else if (elapsedFrom > 0) {
+        } else {
           document.getElementById('mntElapsedSection').style.display = '';
           var elapsedEl = document.getElementById('mntElapsedTimer');
+          if (elapsedFrom === null) elapsedFrom = Date.now();
           function fmtElapsed(ms) {
             if (ms <= 0) return '0ث';
             var h = Math.floor(ms / 3600000);
