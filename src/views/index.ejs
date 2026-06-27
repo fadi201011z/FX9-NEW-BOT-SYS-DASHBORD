@@ -210,12 +210,21 @@
 
   <style>
     .mnt-banner {
-      position: relative;
-      z-index: 9999;
+      position: sticky;
+      top: 0;
+      z-index: 10000;
       background: linear-gradient(135deg, rgba(237,66,69,0.95), rgba(200,40,40,0.95));
       backdrop-filter: blur(12px);
       border-bottom: 2px solid rgba(255,255,255,0.1);
       animation: mntSlideDown 0.4s ease;
+    }
+    body.mnt-active .landing-nav {
+      top: 56px;
+    }
+    body.mnt-active .mnt-banner {
+      position: fixed;
+      left: 0;
+      right: 0;
     }
     @keyframes mntSlideDown {
       from { transform: translateY(-100%); }
@@ -322,8 +331,10 @@
               </div>
             </div>
           `;
+          document.body.classList.add('mnt-active');
         } else {
           mntContainer.innerHTML = '';
+          document.body.classList.remove('mnt-active');
         }
       } catch {}
     }
