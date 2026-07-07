@@ -70,8 +70,9 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, canModify, async (
     let channelId = url;
     if (platform === 'youtube') channelId = await resolveYouTubeChannelId(url) || '';
     else if (platform === 'kick') {
-      const m = url.match(/kick\.com\/([\w-]+)/i);
-      channelId = m ? m[1] : url.trim().replace(/^@/, '');
+      const clean = url.trim().replace(/\/[?#].*$/, '').replace(/\/$/, '');
+      const m = clean.match(/kick\.com\/(?:@?)([\w-]+)/i);
+      channelId = m ? m[1] : clean.replace(/^@/, '').replace(/^https?:\/\/[^/]+\//, '').replace(/\/.*$/, '');
     } else if (platform === 'twitter') {
       const m = url.match(/(?:twitter\.com|x\.com)\/(\w+)/i);
       channelId = m ? m[1] : url.trim().replace(/^@/, '');
