@@ -7,6 +7,31 @@ import axios from 'axios';
 
 const router = Router();
 
+async function resolveYouTubeChannelId(url) {
+  const clean = url.trim().replace(/\/[?#].*$/, '').replace(/\/$/, '');
+  const chMatch = clean.match(/youtube\.com\/channel\/(UC[\w-]+)/i);
+  if (chMatch) return chMatch[1];
+  let handle = null;
+  const handleMatch = clean.match(/youtube\.com\/@([\w-]+)/i);
+  if (handleMatch) handle = handleMatch[1];
+  const userMatch = clean.match(/youtube\.com\/user\/([\w-]+)/i);
+  if (!handle && userMatch) handle = userMatch[1];
+  const cMatch = clean.match(/youtube\.com\/c\/([\w-]+)/i);
+  if (!handle && cMatch) handle = cMatch[1];
+  if (!handle) return null;
+  for (const page of [`https://www.youtube.com/@${handle}`, `https://www.youtube.com/@${handle}/about`]) {
+    try {
+      const res = await fetch(page, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+      });
+      const html = await res.text();
+      const idMatch = html.match(/"channelId":"(UC[\w-]+)"/) || html.match(/"externalId":"(UC[\w-]+)"/);
+      if (idMatch) return idMatch[1];
+    } catch {}
+  }
+  return null;
+}
+
 router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
@@ -41,19 +66,41 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, canModify, async (
   }
 
   try {
-    // Save to local DB
+    // Resolve channelId (especially for YouTube)
+    let channelId = url;
+    if (platform === 'youtube') channelId = await resolveYouTubeChannelId(url) || '';
+    else if (platform === 'kick') {
+      const m = url.match(/kick\.com\/([\w-]+)/i);
+      channelId = m ? m[1] : url.trim().replace(/^@/, '');
+    } else if (platform === 'twitter') {
+      const m = url.match(/(?:twitter\.com|x\.com)\/(\w+)/i);
+      channelId = m ? m[1] : url.trim().replace(/^@/, '');
+    }
+
+    // Save to local DB (with resolved channelId)
     const doc = await Notification.create({
-      guildId, platform, channelUrl: url,
+      guildId, platform, channelUrl: url, channelId,
       discordChannelId, customMessage: customMessage || '',
     });
 
-    // Attempt bot sync (non-blocking)
+    // Attempt bot sync (non-blocking) — retry once if fails
+    let syncOk = false;
     try {
       await axios.post(`${config.botApiUrl}/api/notifications/add`, {
-        guildId, platform, url, discordChannelId, customMessage,
+        guildId, platform, url, discordChannelId, customMessage, channelId,
       }, { timeout: 5000 });
+      syncOk = true;
     } catch (e) {
-      console.error('[Notif] Bot sync failed:', e.code || e.message);
+      console.error('[Notif] Bot sync failed (1st try):', e.code || e.message);
+    }
+    if (!syncOk) {
+      try {
+        await axios.post(`${config.botApiUrl}/api/notifications/add`, {
+          guildId, platform, url, discordChannelId, customMessage, channelId,
+        }, { timeout: 5000 });
+      } catch (e) {
+        console.error('[Notif] Bot sync failed (2nd try):', e.code || e.message);
+      }
     }
 
     res.json({ success: true, id: doc._id });
