@@ -41,7 +41,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
   let guildChannels = [];
   try {
     guildChannels = await getGuildChannels(guildId, config.discord.botToken);
-    guildChannels = guildChannels.filter(c => c.type === 0).map(c => ({ id: c.id, name: c.name }));
+    guildChannels = guildChannels.filter(c => c.type === 0 || c.type === 5).map(c => ({ id: c.id, name: c.name }));
   } catch {}
 
   res.render('guild/protection', {

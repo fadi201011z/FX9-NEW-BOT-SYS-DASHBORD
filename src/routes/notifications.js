@@ -43,7 +43,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   let guildChannels = [];
   try {
     const channels = await getGuildChannels(guildId, config.discord.botToken);
-    guildChannels = channels.filter(c => c.type === 0).map(c => ({ id: c.id, name: c.name }));
+    guildChannels = channels.filter(c => c.type === 0 || c.type === 5).map(c => ({ id: c.id, name: c.name }));
   } catch {}
 
   res.render('guild/notifications', {
