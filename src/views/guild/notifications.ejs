@@ -162,15 +162,6 @@ const platformLogos = {
   <% } %>
 </div>
 
-<style>
-@media (max-width: 600px) {
-  #announceForm > div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
-  .sub-item { flex-wrap: wrap; gap: 10px !important; }
-  .sub-item > div:first-of-type + div + div { max-width: 100% !important; width: 100%; order: 10; }
-  .sub-item .delete-btn { margin-right: auto; }
-  #addForm { grid-template-columns: 1fr !important; }
-}
-</style>
 <script>
 // Show platform logo next to select
 const platSelect = document.getElementById('platform');
