@@ -59,6 +59,7 @@
 
   <section class="hero">
     <div class="hero-bg">
+      <div class="hero-grid"></div>
       <div class="hero-shape shape-1"></div>
       <div class="hero-shape shape-2"></div>
       <div class="hero-shape shape-3"></div>
@@ -66,26 +67,27 @@
     <div class="hero-content">
       <div class="hero-badge">
         <i class="fas fa-bolt"></i>
-        FADIX9 SYSTEM  Bot v1.0.11
+        FADIX9 SYSTEM Bot v1.0.11
+        <span style="background:rgba(52,211,153,0.15);color:var(--success);padding:2px 10px;border-radius:20px;font-size:0.7rem;margin-right:4px">متصل</span>
       </div>
       <h1>لوحة تحكم متكاملة<br>لإدارة <span class="gradient-text">بوتك بالكامل</span></h1>
-      <p>تحكم بجميع أنظمة البوت — الإدارة، التذاكر، الصوت المؤقت، الحماية — من لوحة واحدة احترافية مع مزامنة فورية</p>
+      <p style="font-size:1.05rem;color:var(--text-muted);max-width:580px">حكّم بجميع أنظمة البوت — الإدارة، التذاكر، الصوت المؤقت، الحماية، الإشعارات — من لوحة واحدة احترافية مع مزامنة فورية</p>
       <div class="hero-buttons">
         <% if (locals.user) { %>
-          <a href="/home" class="btn-primary btn-glow">
+          <a href="/home" class="btn-primary btn-glow" style="padding:12px 32px;font-size:1rem">
             <i class="fas fa-th-large"></i>
             الصفحة الرئيسية
           </a>
-          <a href="/auth/logout" class="btn-secondary">
+          <a href="/auth/logout" class="btn-secondary" style="padding:12px 32px;font-size:1rem">
             <i class="fas fa-sign-out-alt"></i>
             تسجيل الخروج
           </a>
         <% } else { %>
-          <a href="/auth/discord" class="btn-primary btn-glow">
+          <a href="/auth/discord" class="btn-primary btn-glow" style="padding:12px 32px;font-size:1rem">
             <i class="fab fa-discord"></i>
             ابدأ الآن — سجل دخولك
           </a>
-          <a href="/invite-dev" class="btn-secondary">
+          <a href="/invite-dev" class="btn-secondary" style="padding:12px 32px;font-size:1rem">
             <i class="fas fa-code-branch"></i>
             الإضافة قيد التطوير
           </a>
@@ -106,55 +108,64 @@
         </div>
       </div>
     </div>
+    <div class="hero-wave">
+      <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+        <path d="M0,60 C360,120 720,0 1440,60 L1440,120 L0,120 Z" fill="var(--bg-primary)"/>
+      </svg>
+    </div>
   </section>
 
   <section class="features" id="features">
     <div class="section-header">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:var(--blue-soft);border:1px solid rgba(79,108,247,0.15);padding:6px 16px;border-radius:20px;font-size:0.8rem;color:var(--blue);margin-bottom:16px">
+        <i class="fas fa-cubes"></i>
+        أنظمة متكاملة
+      </div>
       <h2>كل ما تحتاجه في <span class="gradient-text">لوحة واحدة</span></h2>
-      <p>أنظمة متكاملة مع واجهة استخدام احترافية وسهلة</p>
+      <p style="color:var(--text-muted);font-size:1.05rem">أنظمة متكاملة مع واجهة استخدام احترافية وسهلة — كل الأدوات التي يحتاجها مشرف السيرفر</p>
     </div>
     <div class="features-grid">
       <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #5865f2">
+        <div class="feature-icon" style="--icon-color: #4f6cf7">
           <i class="fas fa-shield-alt"></i>
         </div>
         <h3>الحماية</h3>
-        <p>نظام حماية متكامل ضد السبام، النيوك، الرايد، واللينكات</p>
+        <p>نظام حماية متكامل ضد السبام، النيوك، الرايد، واللينكات مع إعدادات مرنة</p>
       </div>
       <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #57f287">
+        <div class="feature-icon" style="--icon-color: #34d399">
           <i class="fas fa-ticket-alt"></i>
         </div>
         <h3>التذاكر</h3>
-        <p>نظام تذاكر دعم فني متكامل مع تقييم وإدارة متقدمة</p>
+        <p>نظام تذاكر دعم فني متكامل مع تقييم، إدارة متقدمة، وصلاحيات مخصصة</p>
       </div>
       <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #fee75c">
+        <div class="feature-icon" style="--icon-color: #fbbf24">
           <i class="fas fa-microphone"></i>
         </div>
         <h3>الرومات المؤقتة</h3>
-        <p>قنوات صوتية مؤقتة بنظام Join-to-Create مع لوحة تحكم خاصة</p>
+        <p>قنوات صوتية مؤقتة بنظام Join-to-Create مع لوحة تحكم كاملة</p>
       </div>
       <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #ed4245">
+        <div class="feature-icon" style="--icon-color: #f87171">
           <i class="fas fa-gavel"></i>
         </div>
         <h3>الإشراف</h3>
-        <p>أوامر إشراف متكاملة مع سجلات ونظام تحذيرات</p>
+        <p>أوامر إشراف متكاملة مع سجلات مفصلة ونظام تحذيرات وإدارة الأعضاء</p>
       </div>
       <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #eb459e">
-          <i class="fas fa-music"></i>
+        <div class="feature-icon" style="--icon-color: #a78bfa">
+          <i class="fas fa-bell"></i>
         </div>
-        <h3>الموسيقى</h3>
-        <p>مشغل موسيقى متكامل مع يوتيوب وقائمة تشغيل</p>
+        <h3>الإشعارات</h3>
+        <p>إشعارات يوتيوب، تويتر، كيك، وتويتش مع نظام متابعة تلقائي</p>
       </div>
       <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #5865f2">
+        <div class="feature-icon" style="--icon-color: #60a5fa">
           <i class="fas fa-chart-line"></i>
         </div>
         <h3>الإحصائيات</h3>
-        <p>إحصائيات ورسوم بيانية لأداء السيرفر والبوت</p>
+        <p>إحصائيات ورسوم بيانية لأداء السيرفر والبوت مع تقارير دورية</p>
       </div>
     </div>
   </section>

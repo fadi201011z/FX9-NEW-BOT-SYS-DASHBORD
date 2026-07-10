@@ -1,29 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0b0d17"/>
-      <stop offset="50%" stop-color="#11131f"/>
-      <stop offset="100%" stop-color="#0b0d17"/>
+      <stop offset="0%" stop-color="#080b1a"/>
+      <stop offset="50%" stop-color="#0c1025"/>
+      <stop offset="100%" stop-color="#080b1a"/>
     </linearGradient>
     <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6c5ce7"/>
-      <stop offset="100%" stop-color="#00cec9"/>
+      <stop offset="0%" stop-color="#4f6cf7"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
     </linearGradient>
     <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="rgba(108,92,231,0.15)"/>
+      <stop offset="0%" stop-color="rgba(79,108,247,0.15)"/>
       <stop offset="100%" stop-color="transparent"/>
     </linearGradient>
   </defs>
 
-  <!-- Background -->
   <rect width="1200" height="630" fill="url(#bg)"/>
 
-  <!-- Glow effects -->
   <circle cx="200" cy="315" r="300" fill="url(#glow)"/>
-  <circle cx="1000" cy="315" r="250" fill="rgba(0,206,201,0.06)"/>
+  <circle cx="1000" cy="315" r="250" fill="rgba(139,92,246,0.06)"/>
 
-  <!-- Grid lines (subtle) -->
-  <g stroke="rgba(255,255,255,0.02)" stroke-width="1">
+  <g stroke="rgba(79,108,247,0.03)" stroke-width="1">
     <line x1="0" y1="105" x2="1200" y2="105"/>
     <line x1="0" y1="210" x2="1200" y2="210"/>
     <line x1="0" y1="315" x2="1200" y2="315"/>
@@ -31,42 +28,33 @@
     <line x1="0" y1="525" x2="1200" y2="525"/>
   </g>
 
-  <!-- Accent bar at top -->
   <rect width="1200" height="6" fill="url(#accent)"/>
 
-  <!-- Logo icon -->
   <rect x="80" y="180" width="90" height="90" rx="22" fill="url(#accent)"/>
   <text x="125" y="245" text-anchor="middle" font-size="44" font-weight="bold" fill="white" font-family="Arial, sans-serif">FX</text>
 
-  <!-- Title -->
-  <text x="80" y="340" font-size="52" font-weight="800" fill="#e4e9f2" font-family="Arial, sans-serif">FX9 Dashboard</text>
+  <text x="80" y="340" font-size="52" font-weight="800" fill="#f0f4ff" font-family="Arial, sans-serif">FX9 Dashboard</text>
 
-  <!-- Subtitle -->
-  <text x="80" y="400" font-size="24" fill="#6b7280" font-family="Arial, sans-serif">لوحة تحكم متقدمة لإدارة بوت FX9 على ديسكورد</text>
+  <text x="80" y="400" font-size="24" fill="#7b8cbd" font-family="Arial, sans-serif">لوحة تحكم متقدمة لإدارة بوت FX9 على ديسكورد</text>
 
-  <!-- Status dots -->
-  <circle cx="80" cy="460" r="6" fill="#00b894"/>
-  <text x="96" y="465" font-size="18" fill="#6b7280" font-family="Arial, sans-serif">البوت متصل — جميع الأنظمة تعمل</text>
+  <circle cx="80" cy="460" r="6" fill="#34d399"/>
+  <text x="96" y="465" font-size="18" fill="#7b8cbd" font-family="Arial, sans-serif">البوت متصل — جميع الأنظمة تعمل</text>
 
-  <!-- Features row -->
   <g transform="translate(80, 500)">
-    <rect x="0" y="0" width="170" height="36" rx="18" fill="rgba(108,92,231,0.12)" stroke="rgba(108,92,231,0.2)" stroke-width="1"/>
-    <text x="85" y="24" text-anchor="middle" font-size="15" fill="#6c5ce7" font-family="Arial, sans-serif" font-weight="600">⚙️ إدارة متقدمة</text>
+    <rect x="0" y="0" width="170" height="36" rx="18" fill="rgba(79,108,247,0.12)" stroke="rgba(79,108,247,0.2)" stroke-width="1"/>
+    <text x="85" y="24" text-anchor="middle" font-size="15" fill="#4f6cf7" font-family="Arial, sans-serif" font-weight="600">⚙️ إدارة متقدمة</text>
 
-    <rect x="185" y="0" width="170" height="36" rx="18" fill="rgba(253,203,110,0.12)" stroke="rgba(253,203,110,0.2)" stroke-width="1"/>
-    <text x="270" y="24" text-anchor="middle" font-size="15" fill="#fdcb6e" font-family="Arial, sans-serif" font-weight="600">🎫 نظام تذاكر</text>
+    <rect x="185" y="0" width="170" height="36" rx="18" fill="rgba(251,191,36,0.12)" stroke="rgba(251,191,36,0.2)" stroke-width="1"/>
+    <text x="270" y="24" text-anchor="middle" font-size="15" fill="#fbbf24" font-family="Arial, sans-serif" font-weight="600">🎫 نظام تذاكر</text>
 
-    <rect x="370" y="0" width="170" height="36" rx="18" fill="rgba(0,184,148,0.12)" stroke="rgba(0,184,148,0.2)" stroke-width="1"/>
-    <text x="455" y="24" text-anchor="middle" font-size="15" fill="#00b894" font-family="Arial, sans-serif" font-weight="600">🔊 صوتيات</text>
+    <rect x="370" y="0" width="170" height="36" rx="18" fill="rgba(52,211,153,0.12)" stroke="rgba(52,211,153,0.2)" stroke-width="1"/>
+    <text x="455" y="24" text-anchor="middle" font-size="15" fill="#34d399" font-family="Arial, sans-serif" font-weight="600">🔊 صوتيات</text>
   </g>
 
-  <!-- Version badge -->
-  <rect x="1020" y="48" width="100" height="32" rx="16" fill="rgba(108,92,231,0.12)" stroke="rgba(108,92,231,0.2)" stroke-width="1"/>
-  <text x="1070" y="69" text-anchor="middle" font-size="14" fill="#6c5ce7" font-family="Arial, sans-serif" font-weight="700">v5.0.0</text>
+  <rect x="1020" y="48" width="100" height="32" rx="16" fill="rgba(79,108,247,0.12)" stroke="rgba(79,108,247,0.2)" stroke-width="1"/>
+  <text x="1070" y="69" text-anchor="middle" font-size="14" fill="#4f6cf7" font-family="Arial, sans-serif" font-weight="700">v5.0.0</text>
 
-  <!-- URL -->
-  <text x="80" y="570" font-size="16" fill="#00cec9" font-family="Arial, sans-serif">fx9-dashboard.onrender.com</text>
+  <text x="80" y="570" font-size="16" fill="#8b5cf6" font-family="Arial, sans-serif">fx9-dashboard.onrender.com</text>
 
-  <!-- Bottom accent bar -->
   <rect x="0" y="624" width="1200" height="6" fill="url(#accent)"/>
 </svg>

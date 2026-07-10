@@ -6,29 +6,31 @@
 <div class="home-page fade-in-up">
   <!-- بطاقة الترحيب -->
   <div class="home-welcome glass">
-    <div class="welcome-avatar">
-      <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="Avatar">
-      <span class="status-dot"></span>
+    <div style="position:absolute;top:-40%;left:-20%;width:300px;height:300px;background:radial-gradient(circle,rgba(79,108,247,0.1),transparent 70%);border-radius:50%;pointer-events:none"></div>
+    <div style="position:absolute;bottom:-30%;right:-10%;width:200px;height:200px;background:radial-gradient(circle,rgba(139,92,246,0.08),transparent 70%);border-radius:50%;pointer-events:none"></div>
+    <div class="welcome-avatar" style="position:relative;flex-shrink:0">
+      <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="Avatar" style="width:72px;height:72px;border-radius:50%;border:3px solid var(--blue);box-shadow:0 0 30px var(--blue-glow)">
+      <span style="position:absolute;bottom:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--success);border:3px solid var(--bg-secondary);box-shadow:0 0 10px var(--success-soft)"></span>
     </div>
-    <div class="welcome-text">
-      <div class="welcome-badge">
-        <i class="fas fa-bolt"></i> FX9 Bot v5.0
+    <div class="welcome-text" style="flex:1">
+      <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;background:var(--blue-soft);color:var(--blue);font-size:0.75rem;font-weight:600;margin-bottom:10px">
+        <i class="fas fa-bolt"></i> FX9 Bot v5.0 <span style="background:rgba(52,211,153,0.15);color:var(--success);padding:1px 8px;border-radius:10px;font-size:0.65rem">متصل</span>
       </div>
-      <h1>مرحباً بك، <span class="gradient-text"><%= user.username %></span></h1>
-      <p>لوحة تحكم متكاملة — تحكم بجميع أنظمة البوت من مكان واحد</p>
+      <h1 style="font-size:1.6rem;margin:0 0 6px">مرحباً بك، <span class="gradient-text"><%= user.username %></span></h1>
+      <p style="color:var(--text-muted);font-size:0.95rem;margin:0">لوحة تحكم متكاملة — تحكم بجميع أنظمة البوت من مكان واحد</p>
     </div>
-    <div class="welcome-stats">
-      <div class="ws-item">
-        <span class="ws-num"><%= managedGuilds.length %></span>
-        <span class="ws-label">سيرفراتك</span>
+    <div class="welcome-stats" style="display:flex;gap:20px;flex-shrink:0">
+      <div style="text-align:center">
+        <span style="display:block;font-size:1.5rem;font-weight:800;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text"><%= managedGuilds.length %></span>
+        <span style="font-size:0.75rem;color:var(--text-muted)">سيرفراتك</span>
       </div>
-      <div class="ws-item">
-        <span class="ws-num"><%= guilds.length %></span>
-        <span class="ws-label">إجمالي السيرفرات</span>
+      <div style="text-align:center">
+        <span style="display:block;font-size:1.5rem;font-weight:800;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text"><%= guilds.length %></span>
+        <span style="font-size:0.75rem;color:var(--text-muted)">إجمالي السيرفرات</span>
       </div>
-      <div class="ws-item">
-        <span class="ws-num" id="cmdCount">—</span>
-        <span class="ws-label">أمر</span>
+      <div style="text-align:center">
+        <span style="display:block;font-size:1.5rem;font-weight:800;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="cmdCount">—</span>
+        <span style="font-size:0.75rem;color:var(--text-muted)">أمر</span>
       </div>
     </div>
   </div>

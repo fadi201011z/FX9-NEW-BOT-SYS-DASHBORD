@@ -38,9 +38,9 @@
       </div>
       <div class="user-menu">
         <button class="user-btn" onclick="toggleUserMenu()">
-          <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="" class="user-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+          <i class="fas fa-chevron-down" style="font-size:0.65rem;color:var(--text-dim);order:-1"></i>
           <span class="user-name"><%= user.globalName || user.username %></span>
-          <i class="fas fa-chevron-down"></i>
+          <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="" class="user-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
         </button>
         <div class="user-menu-dropdown glass" id="userMenu">
           <div class="user-menu-header">
