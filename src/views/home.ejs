@@ -3,301 +3,164 @@
 <%
   const guilds = user?.guilds || [];
 %>
-<div class="home-page fade-in-up">
-  <!-- بطاقة الترحيب -->
-  <div class="home-welcome glass">
-    <div class="welcome-avatar">
-      <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="Avatar">
-      <span class="status-dot"></span>
+<div class="h-page">
+  <div class="h-hero">
+    <div class="h-hero-bg"></div>
+    <div class="h-avatar">
+      <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="">
+      <span class="h-dot"></span>
     </div>
-    <div class="welcome-text">
-      <div class="welcome-badge">
-        <i class="fas fa-bolt"></i> FX9 Bot v5.0
-      </div>
-      <h1>مرحباً بك، <span class="gradient-text"><%= user.username %></span></h1>
-      <p>لوحة تحكم متكاملة — تحكم بجميع أنظمة البوت من مكان واحد</p>
+    <div class="h-hero-text">
+      <div class="h-badge"><i class="fas fa-bolt"></i> FX9 Bot v5.0</div>
+      <h1>مرحباً، <span class="h-grad"><%= user.globalName || user.username %></span></h1>
+      <p>لوحة تحكم متكاملة — كل أنظمة البوت بين يديك</p>
     </div>
-    <div class="welcome-stats">
-      <div class="ws-item">
-        <span class="ws-num"><%= managedGuilds.length %></span>
-        <span class="ws-label">سيرفراتك</span>
+    <div class="h-metrics">
+      <div class="h-metric">
+        <span class="h-mnum"><%= managedGuilds.length %></span>
+        <span class="h-mlbl">سيرفر تديره</span>
       </div>
-      <div class="ws-item">
-        <span class="ws-num"><%= guilds.length %></span>
-        <span class="ws-label">إجمالي السيرفرات</span>
+      <div class="h-metric">
+        <span class="h-mnum"><%= guilds.length %></span>
+        <span class="h-mlbl">إجمالي سيرفراتك</span>
       </div>
-      <div class="ws-item">
-        <span class="ws-num" id="cmdCount">—</span>
-        <span class="ws-label">أمر</span>
+      <div class="h-metric">
+        <span class="h-mnum" id="cmdCount">—</span>
+        <span class="h-mlbl">أمر منفذ</span>
       </div>
     </div>
   </div>
 
-  <!-- بطاقات الأنظمة -->
-  <div class="home-section-label">
-    <i class="fas fa-cubes"></i> أنظمة البوت
-  </div>
-  <div class="home-systems">
+  <div class="h-label"><i class="fas fa-cubes"></i> أنظمة البوت</div>
+  <div class="h-grid">
     <% if (roleLevel >= 3) { %>
-    <a href="/dashboard" class="sys-card glass" style="--sc: #5865f2">
-      <div class="sys-icon"><i class="fas fa-th-large"></i></div>
-      <div class="sys-info">
+    <a href="/dashboard" class="h-card" style="--hc:#6366f1">
+      <div class="h-ico" style="background:rgba(99,102,241,0.1);color:#6366f1"><i class="fas fa-th-large"></i></div>
+      <div class="h-ci">
         <h3>لوحة التحكم</h3>
-        <p>نظرة عامة على كل سيرفراتك وإحصائيات سريعة</p>
+        <p>نظرة عامة على كل سيرفراتك</p>
       </div>
-      <i class="fas fa-chevron-left sys-arrow"></i>
+      <i class="fas fa-chevron-left h-arr"></i>
     </a>
     <% } %>
-    <a href="/guilds" class="sys-card glass" style="--sc: #57f287">
-      <div class="sys-icon"><i class="fas fa-server"></i></div>
-      <div class="sys-info">
+    <a href="/guilds" class="h-card" style="--hc:#34d399">
+      <div class="h-ico" style="background:rgba(52,211,153,0.1);color:#34d399"><i class="fas fa-server"></i></div>
+      <div class="h-ci">
         <h3>السيرفرات</h3>
-        <p>تصفح السيرفرات وإدارة إعداداتها</p>
+        <p>تصفح وإدارة السيرفرات</p>
       </div>
-      <i class="fas fa-chevron-left sys-arrow"></i>
+      <i class="fas fa-chevron-left h-arr"></i>
     </a>
-    <% if (roleLevel >= 2) { %>
-    <a href="/docs#protection" class="sys-card glass" style="--sc: #ed4245">
-      <div class="sys-icon"><i class="fas fa-shield-alt"></i></div>
-      <div class="sys-info">
-        <h3>الحماية</h3>
-        <p>حماية السيرفر من السبام، النيوك، الرايد واللينكات</p>
-      </div>
-      <i class="fas fa-chevron-left sys-arrow"></i>
-    </a>
-    <% } %>
-    <a href="/guilds" class="sys-card glass" style="--sc: #fee75c">
-      <div class="sys-icon"><i class="fas fa-ticket-alt"></i></div>
-      <div class="sys-info">
+    <a href="/guilds" class="h-card" style="--hc:#fbbf24">
+      <div class="h-ico" style="background:rgba(251,191,36,0.1);color:#fbbf24"><i class="fas fa-ticket-alt"></i></div>
+      <div class="h-ci">
         <h3>التذاكر</h3>
-        <p>نظام دعم فني متكامل مع إدارة وتقييم التذاكر</p>
+        <p>نظام دعم فني متكامل</p>
       </div>
-      <i class="fas fa-chevron-left sys-arrow"></i>
+      <i class="fas fa-chevron-left h-arr"></i>
     </a>
-    <% if (roleLevel >= 1) { %>
-    <a href="/docs#voice" class="sys-card glass" style="--sc: #eb459e">
-      <div class="sys-icon"><i class="fas fa-microphone"></i></div>
-      <div class="sys-info">
-        <h3>الرومات المؤقتة</h3>
-        <p>قنوات صوتية بنظام Join-to-Create مع لوحة تحكم</p>
+    <% if (roleLevel >= 2) { %>
+    <a href="/docs#protection" class="h-card" style="--hc:#f87171">
+      <div class="h-ico" style="background:rgba(248,113,113,0.1);color:#f87171"><i class="fas fa-shield-alt"></i></div>
+      <div class="h-ci">
+        <h3>الحماية</h3>
+        <p>حماية السيرفر بالكامل</p>
       </div>
-      <i class="fas fa-chevron-left sys-arrow"></i>
+      <i class="fas fa-chevron-left h-arr"></i>
+    </a>
+    <% } %>
+    <% if (roleLevel >= 1) { %>
+    <a href="/docs#voice" class="h-card" style="--hc:#a78bfa">
+      <div class="h-ico" style="background:rgba(167,139,250,0.1);color:#a78bfa"><i class="fas fa-microphone"></i></div>
+      <div class="h-ci">
+        <h3>الغرف الصوتية</h3>
+        <p>رومات مؤقتة بلمسة زر</p>
+      </div>
+      <i class="fas fa-chevron-left h-arr"></i>
     </a>
     <% } %>
     <% if (roleLevel >= 2) { %>
-    <a href="/docs#commands" class="sys-card glass" style="--sc: #5865f2">
-      <div class="sys-icon"><i class="fas fa-terminal"></i></div>
-      <div class="sys-info">
+    <a href="/docs#commands" class="h-card" style="--hc:#60a5fa">
+      <div class="h-ico" style="background:rgba(96,165,250,0.1);color:#60a5fa"><i class="fas fa-terminal"></i></div>
+      <div class="h-ci">
         <h3>الأوامر</h3>
-        <p>تشغيل/إيقاف الأوامر وتغيير صلاحياتها</p>
+        <p>إدارة صلاحيات الأوامر</p>
       </div>
-      <i class="fas fa-chevron-left sys-arrow"></i>
+      <i class="fas fa-chevron-left h-arr"></i>
     </a>
     <% } %>
   </div>
 
-  <!-- روابط سريعة -->
-  <div class="home-section-label">
-    <i class="fas fa-bolt"></i> إجراءات سريعة
-  </div>
-  <div class="home-quick">
-    <a href="/status" class="quick-card glass">
-      <i class="fas fa-heartbeat"></i>
+  <div class="h-label"><i class="fas fa-bolt"></i> إجراءات سريعة</div>
+  <div class="h-actions">
+    <a href="/status" class="h-act">
+      <i class="fas fa-heartbeat" style="color:#6366f1"></i>
       <span>حالة البوت</span>
     </a>
     <% if (roleLevel >= 4) { %>
-    <a href="/dev" class="quick-card glass">
-      <i class="fas fa-code"></i>
+    <a href="/dev" class="h-act">
+      <i class="fas fa-code" style="color:#a78bfa"></i>
       <span>المطور</span>
     </a>
     <% } %>
-    <a href="/docs" class="quick-card glass">
-      <i class="fas fa-book"></i>
+    <a href="/docs" class="h-act">
+      <i class="fas fa-book" style="color:#34d399"></i>
       <span>التوثيق</span>
     </a>
-    <button onclick="theme && theme.toggle()" class="quick-card glass" style="cursor:pointer;border:none;font-family:var(--font)">
-      <i class="fas fa-palette"></i>
-      <span>تغيير الثيم</span>
+    <button onclick="toggleTheme()" class="h-act" style="cursor:pointer;border:none;font-family:var(--font)">
+      <i class="fas fa-palette" style="color:#fbbf24"></i>
+      <span>السمة</span>
     </button>
   </div>
 </div>
 
 <style>
-.home-page {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 32px 24px;
-}
+.h-page{max-width:1000px;margin:0 auto;padding:28px 20px}
 
-/* 📌 بطاقة الترحيب */
-.home-welcome {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 32px;
-  border-radius: 20px;
-  margin-bottom: 28px;
-  position: relative;
-  overflow: hidden;
-}
-.home-welcome::before {
-  content: '';
-  position: absolute;
-  top: -50%; right: -20%;
-  width: 300px; height: 300px;
-  background: radial-gradient(circle, rgba(88,101,242,.12) 0%, transparent 70%);
-  pointer-events: none;
-}
-.welcome-avatar {
-  position: relative;
-  flex-shrink: 0;
-}
-.welcome-avatar img {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  border: 3px solid var(--primary);
-  box-shadow: 0 0 30px var(--primary-glow);
-}
-.status-dot {
-  position: absolute;
-  bottom: 2px; right: 2px;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--success);
-  border: 3px solid var(--bg-secondary);
-}
-.welcome-text { flex: 1; }
-.welcome-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 14px;
-  border-radius: 20px;
-  background: rgba(88,101,242,.15);
-  color: #5865f2;
-  font-size: .75rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-.welcome-text h1 { font-size: 1.6rem; margin: 0 0 6px; }
-.welcome-text p { color: var(--text-muted); font-size: .95rem; margin: 0; }
-.welcome-stats {
-  display: flex;
-  gap: 20px;
-  flex-shrink: 0;
-}
-.ws-item { text-align: center; }
-.ws-num {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.ws-label { font-size: .75rem; color: var(--text-muted); }
+.h-hero{position:relative;overflow:hidden;padding:28px 32px;border-radius:16px;background:rgba(12,12,26,0.5);border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:22px;margin-bottom:28px}
+.h-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 0% 50%,rgba(99,102,241,0.06) 0%,transparent 70%);pointer-events:none}
+.h-avatar{position:relative;flex-shrink:0;z-index:1}
+.h-avatar img{width:64px;height:64px;border-radius:50%;border:2px solid rgba(99,102,241,0.3);box-shadow:0 0 24px rgba(99,102,241,0.15)}
+.h-dot{position:absolute;bottom:1px;right:1px;width:14px;height:14px;border-radius:50%;background:#57f287;border:3px solid #0c0c1a}
+.h-hero-text{flex:1;z-index:1}
+.h-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:20px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.08);font-size:0.7rem;font-weight:600;color:#818cf8;margin-bottom:8px}
+.h-hero-text h1{font-size:1.4rem;margin:0 0 4px}
+.h-grad{background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.h-hero-text p{font-size:0.85rem;color:rgba(255,255,255,0.35);margin:0}
+.h-metrics{display:flex;gap:22px;flex-shrink:0;z-index:1}
+.h-metric{text-align:center}
+.h-mnum{display:block;font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.h-mlbl{font-size:0.7rem;color:rgba(255,255,255,0.3)}
 
-/* 📌 عناوين الأقسام */
-.home-section-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: .9rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  margin-bottom: 14px;
-  padding-right: 4px;
-}
-.home-section-label i { font-size: .85rem; }
+.h-label{display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:12px;padding-right:4px}
 
-/* 📌 بطاقات الأنظمة */
-.home-systems {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 12px;
-  margin-bottom: 28px;
-}
-.sys-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 18px 20px;
-  border-radius: 14px;
-  transition: all var(--transition);
-  position: relative;
-  overflow: hidden;
-}
-.sys-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--sc, #5865f2) 10%, transparent), transparent);
-  opacity: 0;
-  transition: opacity var(--transition);
-}
-.sys-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--sc, #5865f2);
-}
-.sys-card:hover::before { opacity: 1; }
-.sys-icon {
-  width: 46px; height: 46px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  background: color-mix(in srgb, var(--sc, #5865f2) 18%, transparent);
-  color: var(--sc, #5865f2);
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
-}
-.sys-info { flex: 1; position: relative; z-index: 1; }
-.sys-info h3 { margin: 0; font-size: .95rem; }
-.sys-info p { margin: 2px 0 0; font-size: .78rem; color: var(--text-muted); }
-.sys-arrow { color: var(--text-muted); font-size: .8rem; position: relative; z-index: 1; }
-.sys-card:hover .sys-arrow { color: var(--sc, #5865f2); transform: translateX(-3px); transition: all var(--transition); }
+.h-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:28px}
+.h-card{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:12px;background:rgba(12,12,26,0.3);border:1px solid rgba(255,255,255,0.04);transition:all 0.3s;position:relative;overflow:hidden}
+.h-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--hc,#6366f1)8%,transparent),transparent);opacity:0;transition:opacity 0.3s}
+.h-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--hc,#6366f1)25%,transparent)}
+.h-card:hover::before{opacity:1}
+.h-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;position:relative;z-index:1}
+.h-ci{flex:1;position:relative;z-index:1}
+.h-ci h3{font-size:0.88rem;font-weight:700;margin:0}
+.h-ci p{font-size:0.75rem;color:rgba(255,255,255,0.3);margin:1px 0 0}
+.h-arr{color:rgba(255,255,255,0.15);font-size:0.75rem;transition:all 0.3s;position:relative;z-index:1}
+.h-card:hover .h-arr{color:var(--hc,#6366f1);transform:translateX(-3px)}
 
-/* 📌 الإجراءات السريعة */
-.home-quick {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-}
-.quick-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 20px 16px;
-  border-radius: 14px;
-  text-align: center;
-  color: var(--text);
-  transition: all var(--transition);
-}
-.quick-card:hover {
-  transform: translateY(-2px);
-  background: var(--bg-glass-hover);
-  color: var(--text);
-}
-.quick-card i { font-size: 1.3rem; color: var(--primary); }
-.quick-card span { font-size: .85rem; font-weight: 600; }
+.h-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.h-act{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 14px;border-radius:12px;background:rgba(12,12,26,0.3);border:1px solid rgba(255,255,255,0.04);text-align:center;transition:all 0.3s;color:rgba(255,255,255,0.7)}
+.h-act:hover{transform:translateY(-2px);background:rgba(12,12,26,0.5);border-color:rgba(255,255,255,0.06);color:white}
+.h-act i{font-size:1.2rem}
+.h-act span{font-size:0.82rem;font-weight:600}
 
-/* 📌 استجابة */
-@media (max-width: 720px) {
-  .home-welcome { flex-direction: column; text-align: center; padding: 28px 20px; }
-  .welcome-stats { width: 100%; justify-content: center; }
-  .home-systems { grid-template-columns: 1fr; }
-  .home-quick { grid-template-columns: repeat(2, 1fr); }
-  .welcome-text h1 { font-size: 1.3rem; }
+@media(max-width:720px){
+  .h-hero{flex-direction:column;text-align:center;padding:24px 18px}
+  .h-metrics{width:100%;justify-content:center}
+  .h-grid{grid-template-columns:1fr}
+  .h-actions{grid-template-columns:repeat(2,1fr)}
+  .h-hero-text h1{font-size:1.2rem}
 }
 </style>
 
 <script>
-fetch('/api/commands/stats')
-  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  .then(s => { document.getElementById('cmdCount').textContent = s.total || '—'; })
-  .catch(() => { document.getElementById('cmdCount').textContent = '55'; });
+fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('cmdCount');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('cmdCount');if(e)e.textContent='55'});
 </script>
