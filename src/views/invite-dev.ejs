@@ -4,53 +4,92 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %></title>
-  <meta name="description" content="خاصية إضافة البوت إلى السيرفرات قيد التطوير في FX9 Dashboard">
+  <meta name="description" content="خاصية إضافة البوت إلى السيرفرات قيد التطوير">
   <meta property="og:title" content="FX9 Dashboard — قيد التطوير" />
   <meta property="og:description" content="خاصية إضافة البوت إلى السيرفرات في مرحلة التطوير. سيتم تفعيلها قريباً!" />
-  <meta property="og:image" content="https://fx9-dashboard.onrender.com/og-image.svg" />
   <meta property="og:url" content="https://fx9-dashboard.onrender.com" />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="FX9 Dashboard" />
-  <meta property="og:locale" content="ar_AR" />
-  <meta name="theme-color" content="#FF0000" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display:swap" rel="stylesheet">
+  <meta name="theme-color" content="#6366f1" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f0f1a,#1a1a2e); direction:rtl; font-family:'Cairo',sans-serif; }
-    .dv-box { width:100%; max-width:480px; padding:20px; }
-    .dv-card { background:rgba(255,255,255,.04); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:48px 32px; text-align:center; }
-    .dv-icon { width:80px; height:80px; border-radius:20px; background:rgba(88,101,242,.15); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:2.5rem; color:#5865f2; }
-    .dv-card h1 { margin:0 0 8px; font-size:1.5rem; font-weight:700; color:#fff; }
-    .dv-card p { margin:0 0 4px; color:rgba(255,255,255,.6); line-height:1.8; font-size:.9rem; }
-    .dv-divider { height:1px; background:rgba(255,255,255,.06); margin:24px 0; }
-    .dv-actions { display:flex; flex-direction:column; gap:8px; }
-    .dv-actions a { display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 20px; border-radius:10px; text-decoration:none; font-weight:600; font-size:.9rem; transition:.2s; }
-    .dv-actions .btn-discord { background:#5865f2; color:#fff; }
-    .dv-actions .btn-discord:hover { background:#4752c4; }
-    .dv-actions .btn-ghost { background:rgba(255,255,255,.04); color:rgba(255,255,255,.7); border:1px solid rgba(255,255,255,.08); }
-    .dv-actions .btn-ghost:hover { background:rgba(255,255,255,.08); }
-    .dv-actions .btn-home { background:rgba(250,166,26,.12); color:#faa61a; border:1px solid rgba(250,166,26,.25); }
-    .dv-actions .btn-home:hover { background:rgba(250,166,26,.2); }
-    .dv-footer { margin-top:20px; font-size:.75rem; color:rgba(255,255,255,.3); }
+:root{--ib:#06060e;--ic:#0c0c1a;--ibo:rgba(255,255,255,0.04);--it:rgba(255,255,255,0.87);--im:rgba(255,255,255,0.3);--ip:#6366f1;--ip2:#8b5cf6;--ig:rgba(99,102,241,0.18)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo',sans-serif;background:var(--ib);color:var(--it);overflow-x:hidden;direction:rtl}
+a{text-decoration:none;color:inherit}
+.i-page{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:linear-gradient(180deg,#06060e 0%,#0a0a1e 40%,#06060e 100%)}
+.i-bg{position:absolute;inset:0;background:radial-gradient(ellipse 55% 40% at 30% 0%,rgba(99,102,241,0.07) 0%,transparent 60%),radial-gradient(ellipse 45% 35% at 70% 100%,rgba(139,92,246,0.05) 0%,transparent 55%)}
+.i-grid{position:absolute;inset:0;opacity:0.2;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:50px 50px}
+.i-orb{position:absolute;border-radius:50%;filter:blur(130px);animation:iDrift 16s ease-in-out infinite}
+.i-o1{width:380px;height:380px;background:var(--ip);top:-120px;right:15%;opacity:0.07}
+.i-o2{width:280px;height:280px;background:var(--ip2);bottom:-100px;left:15%;opacity:0.05;animation-delay:-8s}
+@keyframes iDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(25px,-30px) scale(1.08)}}
+.i-wrap{position:relative;z-index:1;width:100%;max-width:520px;padding:24px}
+.i-card{background:rgba(12,12,26,0.7);backdrop-filter:blur(24px);border:1px solid var(--ibo);border-radius:18px;padding:44px 32px;text-align:center;position:relative;overflow:hidden}
+.i-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--ip),var(--ip2),transparent);opacity:0.5}
+.i-icon{width:72px;height:72px;border-radius:18px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:2rem;background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.12));border:1px solid rgba(99,102,241,0.08);position:relative}
+.i-icon-inner{background:linear-gradient(135deg,var(--ip),var(--ip2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.i-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.1);padding:4px 14px;border-radius:100px;font-size:0.68rem;font-weight:500;color:#fbbf24;margin-bottom:14px}
+.i-pill i{font-size:0.45rem;color:#fbbf24}
+.i-card h1{font-size:1.4rem;font-weight:800;margin-bottom:6px}
+.i-card h1 em{font-style:normal;background:linear-gradient(135deg,var(--ip),var(--ip2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.i-card .i-sub{font-size:0.88rem;color:var(--im);line-height:1.8;margin-bottom:20px}
+.i-div{height:1px;background:var(--ibo);margin:20px 0}
+.i-road{display:flex;flex-direction:column;gap:14px;text-align:right;margin-bottom:20px}
+.i-road-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid var(--ibo);font-size:0.82rem;color:var(--im)}
+.i-road-item i{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0}
+.i-road-item span{flex:1}
+.i-actions{display:flex;flex-direction:column;gap:8px}
+.i-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:10px;font-family:'Cairo',sans-serif;font-weight:600;font-size:0.85rem;transition:all 0.25s;cursor:pointer;border:none}
+.i-btn-p{background:linear-gradient(135deg,var(--ip),var(--ip2));color:white;box-shadow:0 3px 14px var(--ig)}
+.i-btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 24px var(--ig)}
+.i-btn-g{background:rgba(255,255,255,0.04);color:var(--im);border:1px solid var(--ibo)}
+.i-btn-g:hover{background:rgba(255,255,255,0.07);color:white}
+.i-btn-d{background:rgba(88,101,242,0.12);color:#818cf8;border:1px solid rgba(88,101,242,0.15)}
+.i-btn-d:hover{background:rgba(88,101,242,0.18)}
+.i-foot{margin-top:18px;font-size:0.72rem;color:rgba(255,255,255,0.2)}
+@media(max-width:600px){.i-card{padding:32px 20px}.i-wrap{padding:16px}}
   </style>
 </head>
 <body>
-  <div class="dv-box">
-    <div class="dv-card">
-      <div class="dv-icon"><i class="fas fa-code-branch"></i></div>
-      <h1>🚧 خاصية قيد التطوير</h1>
-      <p>خاصية إضافة البوت إلى السيرفرات في مرحلة التطوير حالياً.</p>
-      <p style="font-size:.82rem;color:rgba(255,255,255,.4)">سيتم تفعيل هذه الخاصية قريباً — تابعنا لمعرفة التحديثات</p>
+  <div class="i-page">
+    <div class="i-bg"></div>
+    <div class="i-grid"></div>
+    <div class="i-orb i-o1"></div>
+    <div class="i-orb i-o2"></div>
+    <div class="i-wrap">
+      <div class="i-card">
+        <div class="i-icon">
+          <span class="i-icon-inner"><i class="fas fa-code-branch"></i></span>
+        </div>
+        <div class="i-pill"><i class="fas fa-circle"></i> تحت الإنشاء</div>
+        <h1>إضافة البوت <em>قريباً</em></h1>
+        <p class="i-sub">خاصية إضافة البوت إلى سيرفراتك في مرحلة التطوير. نشتغل عليها عشان نوصلك بأفضل تجربة</p>
 
-      <div class="dv-divider"></div>
-      <div class="dv-actions">
-        <a href="https://discord.gg/ENQut4HHKb" class="btn-discord" target="_blank"><i class="fab fa-discord"></i> سيرفر الدعم</a>
-        <a href="/" class="btn-home"><i class="fas fa-home"></i> العودة إلى الصفحة الرئيسية</a>
-        <% if (locals.user) { %><a href="/dashboard" class="btn-ghost"><i class="fas fa-th-large"></i> لوحة التحكم</a><% } %>
+        <div class="i-road">
+          <div class="i-road-item">
+            <i style="background:rgba(99,102,241,0.08);color:var(--ip)"><i class="fas fa-check"></i></i>
+            <span>واجهة اختيار السيرفرات — <strong style="color:rgba(255,255,255,0.4)">تم</strong></span>
+          </div>
+          <div class="i-road-item">
+            <i style="background:rgba(251,191,36,0.08);color:#fbbf24"><i class="fas fa-gear"></i></i>
+            <span>نظام الصلاحيات والأذونات — <strong style="color:#fbbf24">قيد العمل</strong></span>
+          </div>
+          <div class="i-road-item">
+            <i style="background:rgba(248,113,113,0.08);color:#f87171"><i class="fas fa-clock"></i></i>
+            <span>الإعداد المبدئي والتوجيه — <strong style="color:rgba(255,255,255,0.4)">قريباً</strong></span>
+          </div>
+        </div>
+
+        <div class="i-div"></div>
+
+        <div class="i-actions">
+          <a href="https://discord.gg/ENQut4HHKb" target="_blank" class="i-btn i-btn-d"><i class="fab fa-discord"></i> تواصل معنا عبر الديسكورد</a>
+          <a href="/" class="i-btn i-btn-g"><i class="fas fa-arrow-right"></i> العودة للصفحة الرئيسية</a>
+          <% if (locals.user) { %><a href="/home" class="i-btn i-btn-p"><i class="fas fa-th-large"></i> لوحة التحكم</a><% } %>
+        </div>
+        <div class="i-foot">FX9 Dashboard &copy; 2026</div>
       </div>
-      <div class="dv-footer">FX9 Dashboard &copy; 2026</div>
     </div>
   </div>
 </body>
