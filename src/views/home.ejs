@@ -2,152 +2,98 @@
 <% currentPage = 'home' %>
 <%
   const guilds = user?.guilds || [];
-  const tips = ['جرب تخصيص الرومات الصوتية من الإعدادات', 'نظام الحماية يمنع هجمات السبام تلقائياً', 'التذاكر تساعدك في تنظيم طلبات الدعم', 'تابع قنوات يوتيوب وتويتر من الإشعارات'];
-  const rnd = Math.floor(Math.random() * tips.length);
 %>
-<div class="dash">
-  <div class="dash-head">
-    <h1>أهلاً بعودتك</h1>
-    <p>آخر دخول: <span id="lastSeen">اليوم</span> &middot; <span id="dashTime"></span></p>
+<div class="x">
+  <div class="x-top">
+    <div>
+      <div class="x-tag"><i class="fas fa-bolt"></i> FX9 Bot v5.0</div>
+      <h1 class="x-hi"><%= user.globalName || user.username %></h1>
+      <p class="x-sub">لوحة تحكم متكاملة — جميع الأنظمة تحت سيطرتك</p>
+    </div>
+    <div class="x-now" id="xNow"></div>
   </div>
 
-  <div class="dash-row">
-    <div class="dash-box dash-box-accent" style="--ac:#6366f1">
-      <i class="fas fa-server"></i>
-      <div>
-        <span class="dash-box-n"><%= managedGuilds.length %></span>
-        <span class="dash-box-l">سيرفر تديره</span>
-      </div>
+  <div class="x-bar">
+    <div class="x-item">
+      <span class="x-n"><%= managedGuilds.length %></span>
+      <span class="x-l">سيرفراتك</span>
     </div>
-    <div class="dash-box dash-box-accent" style="--ac:#34d399">
-      <i class="fas fa-layer-group"></i>
-      <div>
-        <span class="dash-box-n"><%= guilds.length %></span>
-        <span class="dash-box-l">إجمالي سيرفراتك</span>
-      </div>
+    <div class="x-item">
+      <span class="x-n"><%= guilds.length %></span>
+      <span class="x-l">إجمالي</span>
     </div>
-    <div class="dash-box dash-box-accent" style="--ac:#fbbf24">
-      <i class="fas fa-terminal"></i>
-      <div>
-        <span class="dash-box-n" id="dashCmd">—</span>
-        <span class="dash-box-l">أمر منفذ</span>
-      </div>
+    <div class="x-item">
+      <span class="x-n" id="xCt">—</span>
+      <span class="x-l">أمر</span>
     </div>
-    <div class="dash-box dash-box-accent" style="--ac:#a78bfa">
-      <i class="fas fa-user-check"></i>
-      <div>
-        <span class="dash-box-n"><%= user.dashboardRole || 'member' %></span>
-        <span class="dash-box-l">صلاحياتك</span>
-      </div>
+    <div class="x-item">
+      <span class="x-n"><%= user.dashboardRole || 'member' %></span>
+      <span class="x-l">دورك</span>
     </div>
   </div>
 
-  <div class="dash-sect">
-    <div class="dash-shead">
-      <i class="fas fa-th-large"></i>
-      <span>لوحة التحكم</span>
-    </div>
-    <div class="dash-grid">
-      <% if (roleLevel >= 3) { %>
-      <a href="/dashboard" class="dash-card" style="--dc:#6366f1">
-        <span class="dash-cir" style="background:rgba(99,102,241,0.1);color:#6366f1"><i class="fas fa-th-large"></i></span>
-        <span class="dash-cn">لوحة التحكم</span>
-        <span class="dash-cd">إحصائيات ونظرة عامة</span>
-      </a>
-      <% } %>
-      <a href="/guilds" class="dash-card" style="--dc:#34d399">
-        <span class="dash-cir" style="background:rgba(52,211,153,0.1);color:#34d399"><i class="fas fa-server"></i></span>
-        <span class="dash-cn">السيرفرات</span>
-        <span class="dash-cd">إدارة السيرفرات</span>
-      </a>
-      <a href="/guilds" class="dash-card" style="--dc:#fbbf24">
-        <span class="dash-cir" style="background:rgba(251,191,36,0.1);color:#fbbf24"><i class="fas fa-ticket-alt"></i></span>
-        <span class="dash-cn">التذاكر</span>
-        <span class="dash-cd">دعم وتذاكر</span>
-      </a>
-      <% if (roleLevel >= 2) { %>
-      <a href="/docs#protection" class="dash-card" style="--dc:#f87171">
-        <span class="dash-cir" style="background:rgba(248,113,113,0.1);color:#f87171"><i class="fas fa-shield-alt"></i></span>
-        <span class="dash-cn">الحماية</span>
-        <span class="dash-cd">أمان السيرفر</span>
-      </a>
-      <% } %>
-      <% if (roleLevel >= 1) { %>
-      <a href="/docs#voice" class="dash-card" style="--dc:#a78bfa">
-        <span class="dash-cir" style="background:rgba(167,139,250,0.1);color:#a78bfa"><i class="fas fa-microphone"></i></span>
-        <span class="dash-cn">الغرف الصوتية</span>
-        <span class="dash-cd">رومات مؤقتة</span>
-      </a>
-      <% } %>
-      <% if (roleLevel >= 2) { %>
-      <a href="/docs#commands" class="dash-card" style="--dc:#60a5fa">
-        <span class="dash-cir" style="background:rgba(96,165,250,0.1);color:#60a5fa"><i class="fas fa-terminal"></i></span>
-        <span class="dash-cn">الأوامر</span>
-        <span class="dash-cd">صلاحيات وتحكم</span>
-      </a>
-      <% } %>
-    </div>
+  <div class="x-g">
+    <% if (roleLevel >= 3) { %>
+    <a href="/dashboard" class="x-c" style="--c:#6366f1"><i class="fas fa-th-large" style="background:rgba(99,102,241,0.08);color:#6366f1"></i><span>لوحة التحكم</span></a>
+    <% } %>
+    <a href="/guilds" class="x-c" style="--c:#34d399"><i class="fas fa-server" style="background:rgba(52,211,153,0.08);color:#34d399"></i><span>السيرفرات</span></a>
+    <a href="/guilds" class="x-c" style="--c:#fbbf24"><i class="fas fa-ticket-alt" style="background:rgba(251,191,36,0.08);color:#fbbf24"></i><span>التذاكر</span></a>
+    <% if (roleLevel >= 2) { %>
+    <a href="/docs#protection" class="x-c" style="--c:#f87171"><i class="fas fa-shield-alt" style="background:rgba(248,113,113,0.08);color:#f87171"></i><span>الحماية</span></a>
+    <% } %>
+    <% if (roleLevel >= 1) { %>
+    <a href="/docs#voice" class="x-c" style="--c:#a78bfa"><i class="fas fa-microphone" style="background:rgba(167,139,250,0.08);color:#a78bfa"></i><span>الغرف</span></a>
+    <% } %>
+    <% if (roleLevel >= 2) { %>
+    <a href="/docs#commands" class="x-c" style="--c:#60a5fa"><i class="fas fa-terminal" style="background:rgba(96,165,250,0.08);color:#60a5fa"></i><span>الأوامر</span></a>
+    <% } %>
   </div>
 
-  <div class="dash-sect">
-    <div class="dash-shead">
-      <i class="fas fa-bolt"></i>
-      <span>وصول سريع</span>
-    </div>
-    <div class="dash-tools">
-      <a href="/status" class="dash-t"><i class="fas fa-heartbeat" style="color:#6366f1"></i> حالة البوت</a>
-      <% if (roleLevel >= 4) { %>
-      <a href="/dev" class="dash-t"><i class="fas fa-code" style="color:#a78bfa"></i> المطور</a>
-      <% } %>
-      <a href="/docs" class="dash-t"><i class="fas fa-book" style="color:#34d399"></i> التوثيق</a>
-      <button onclick="toggleTheme()" class="dash-t" style="cursor:pointer;border:none;font-family:var(--font)"><i class="fas fa-palette" style="color:#fbbf24"></i> السمة</button>
-    </div>
-  </div>
-
-  <div class="dash-tip">
-    <i class="fas fa-lightbulb" style="color:#fbbf24"></i>
-    <span><%= tips[rnd] %></span>
+  <div class="x-q">
+    <a href="/status" class="x-qc"><i class="fas fa-heartbeat" style="color:#6366f1"></i><span>حالة البوت</span></a>
+    <% if (roleLevel >= 4) { %><a href="/dev" class="x-qc"><i class="fas fa-code" style="color:#a78bfa"></i><span>المطور</span></a><% } %>
+    <a href="/docs" class="x-qc"><i class="fas fa-book" style="color:#34d399"></i><span>التوثيق</span></a>
+    <button onclick="toggleTheme()" class="x-qc" style="cursor:pointer;border:none;font-family:var(--font)"><i class="fas fa-palette" style="color:#fbbf24"></i><span>السمة</span></button>
   </div>
 </div>
 
 <style>
-.dash{max-width:1000px;margin:0 auto}
-.dash-head{margin-bottom:22px}
-.dash-head h1{font-size:1.35rem;font-weight:800;margin:0;color:rgba(255,255,255,0.85)}
-.dash-head p{font-size:0.72rem;color:rgba(255,255,255,0.2);margin:2px 0 0}
+.x{max-width:1000px;margin:0 auto}
+.x-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.x-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:20px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.07);font-size:0.62rem;font-weight:600;color:#818cf8;margin-bottom:4px}
+.x-hi{font-size:1.5rem;font-weight:800;margin:0;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.x-sub{font-size:0.78rem;color:rgba(255,255,255,0.25);margin:0}
+.x-now{font-size:0.75rem;color:rgba(255,255,255,0.15);font-weight:500;text-align:left;flex-shrink:0}
 
-.dash-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
-@media(max-width:800px){.dash-row{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:450px){.dash-row{grid-template-columns:1fr}}
-.dash-box{position:relative;display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);overflow:hidden}
-.dash-box::before{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:var(--ac,#6366f1);border-radius:0 3px 3px 0;opacity:0.5}
-.dash-box i{font-size:1.3rem;color:var(--ac,#6366f1);flex-shrink:0}
-.dash-box-n{display:block;font-size:1.1rem;font-weight:800;color:rgba(255,255,255,0.85);line-height:1.2}
-.dash-box-l{font-size:0.65rem;color:rgba(255,255,255,0.22)}
+.x-bar{display:flex;gap:0;margin-bottom:22px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);background:#0c0c1a}
+.x-item{flex:1;padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.04)}
+.x-item:first-child{border-right:none}
+.x-n{display:block;font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.x-l{display:block;font-size:0.62rem;color:rgba(255,255,255,0.2);margin-top:1px}
 
-.dash-sect{margin-bottom:22px}
-.dash-shead{display:flex;align-items:center;gap:7px;font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.3);margin-bottom:12px}
+.x-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+@media(max-width:800px){.x-g{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:450px){.x-g{grid-template-columns:1fr}}
 
-.dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-@media(max-width:800px){.dash-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:450px){.dash-grid{grid-template-columns:1fr}}
-.dash-card{position:relative;padding:16px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);text-align:center;transition:all 0.25s}
-.dash-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.06)}
-.dash-cir{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;margin:0 auto 6px;transition:all 0.25s}
-.dash-card:hover .dash-cir{box-shadow:0 0 16px color-mix(in srgb,var(--dc,#6366f1)12%,transparent)}
-.dash-cn{display:block;font-size:0.85rem;font-weight:700;margin-bottom:1px}
-.dash-cd{display:block;font-size:0.65rem;color:rgba(255,255,255,0.22)}
+.x-c{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 12px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);transition:all 0.25s}
+.x-c::after{content:'';position:absolute;bottom:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,var(--c,#6366f1),transparent);opacity:0;transition:opacity 0.25s}
+.x-c:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.06)}
+.x-c:hover::after{opacity:1}
+.x-c i{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all 0.25s}
+.x-c:hover i{box-shadow:0 0 16px color-mix(in srgb,var(--c,#6366f1)10%,transparent)}
+.x-c span{font-size:0.82rem;font-weight:700;color:rgba(255,255,255,0.8)}
 
-.dash-tools{display:flex;gap:6px;flex-wrap:wrap}
-.dash-t{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);transition:all 0.25s;font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.5)}
-.dash-t:hover{border-color:rgba(255,255,255,0.06);color:white}
+.x-q{display:flex;gap:6px;flex-wrap:wrap}
+.x-qc{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.45);transition:all 0.25s}
+.x-qc:hover{border-color:rgba(255,255,255,0.06);color:white}
 
-.dash-tip{display:flex;align-items:center;gap:8px;margin-top:18px;padding:10px 16px;border-radius:8px;background:rgba(251,191,36,0.04);border:1px solid rgba(251,191,36,0.06);font-size:0.75rem;color:rgba(255,255,255,0.35)}
-
-@media(max-width:720px){
-  .dash-head h1{font-size:1.15rem}
+@media(max-width:600px){
+  .x-top{flex-direction:column;gap:6px}
+  .x-hi{font-size:1.25rem}
+  .x-q{flex-direction:column}
+  .x-qc{justify-content:center}
 }
 </style>
 <script>
-(function(){var d=new Date();var h=d.getHours().toString().padStart(2,'0'),m=d.getMinutes().toString().padStart(2,'0');var e=document.getElementById('dashTime');if(e)e.textContent=h+':'+m;fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var c=document.getElementById('dashCmd');if(c)c.textContent=s.total||'—'}).catch(function(){var c=document.getElementById('dashCmd');if(c)c.textContent='55'})})();
+(function(){var n=document.getElementById('xNow');if(n){var d=new Date();n.textContent=d.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' | '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')}fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('xCt');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('xCt');if(e)e.textContent='55'})})();
 </script>
