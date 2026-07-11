@@ -3,95 +3,95 @@
 <%
   const guilds = user?.guilds || [];
 %>
-<div class="z-page">
-  <div class="z-card z-welcome">
-    <div class="z-wbg"></div>
-    <div class="z-wuser">
-      <div class="z-wavatar">
+<div class="f-home">
+  <div class="f-hcard">
+    <div class="f-hcard-bg"></div>
+    <div class="f-huser">
+      <div class="f-hav">
         <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="">
-        <span class="z-wdot"></span>
+        <span class="f-hdot"></span>
       </div>
       <div>
-        <div class="z-wbadge"><i class="fas fa-bolt"></i> FX9 Bot v5.0</div>
-        <h2 class="z-wname"><%= user.globalName || user.username %></h2>
-        <p class="z-wsub">لوحة تحكم متكاملة — كل الأنظمة بين يديك</p>
+        <div class="f-hpill"><i class="fas fa-bolt"></i> FX9 Bot v5.0</div>
+        <h2 class="f-hname"><%= user.globalName || user.username %></h2>
+        <p class="f-hsub">لوحة تحكم متكاملة — كل الأنظمة بين يديك</p>
       </div>
     </div>
-    <div class="z-wstats">
-      <div class="z-ws">
-        <span class="z-wsn"><%= managedGuilds.length %></span>
-        <span class="z-wsl">سيرفراتك</span>
+    <div class="f-hmet">
+      <div class="f-hm">
+        <span class="f-hmn"><%= managedGuilds.length %></span>
+        <span class="f-hml">سيرفراتك</span>
       </div>
-      <div class="z-ws">
-        <span class="z-wsn"><%= guilds.length %></span>
-        <span class="z-wsl">إجمالي</span>
+      <div class="f-hm">
+        <span class="f-hmn"><%= guilds.length %></span>
+        <span class="f-hml">إجمالي</span>
       </div>
-      <div class="z-ws">
-        <span class="z-wsn" id="zCmd">—</span>
-        <span class="z-wsl">أمر</span>
+      <div class="f-hm">
+        <span class="f-hmn" id="fHomeCmd">—</span>
+        <span class="f-hml">أمر</span>
       </div>
     </div>
   </div>
 
-  <div class="z-label"><i class="fas fa-cubes"></i> الأنظمة</div>
-  <div class="z-grid">
+  <div class="f-label f-label-p" style="margin-bottom:14px"><i class="fas fa-cubes"></i> الأنظمة</div>
+  <div class="f-cards" style="margin-bottom:28px">
     <% if (roleLevel >= 3) { %>
-    <a href="/dashboard" class="z-feat" style="--zc:#6366f1">
-      <div class="z-ficon" style="background:rgba(99,102,241,0.08);color:#6366f1"><i class="fas fa-th-large"></i></div>
-      <h4>لوحة التحكم</h4>
+    <a href="/dashboard" class="f-card" style="--fcc:#6366f1;text-align:center">
+      <div class="f-cicon" style="background:rgba(99,102,241,0.08);color:#6366f1"><i class="fas fa-th-large"></i></div>
+      <h3>لوحة التحكم</h3>
       <p>نظرة عامة وإحصائيات</p>
     </a>
     <% } %>
-    <a href="/guilds" class="z-feat" style="--zc:#34d399">
-      <div class="z-ficon" style="background:rgba(52,211,153,0.08);color:#34d399"><i class="fas fa-server"></i></div>
-      <h4>السيرفرات</h4>
+    <a href="/guilds" class="f-card" style="--fcc:#34d399;text-align:center">
+      <div class="f-cicon" style="background:rgba(52,211,153,0.08);color:#34d399"><i class="fas fa-server"></i></div>
+      <h3>السيرفرات</h3>
       <p>تصفح وإدارة</p>
     </a>
-    <a href="/guilds" class="z-feat" style="--zc:#fbbf24">
-      <div class="z-ficon" style="background:rgba(251,191,36,0.08);color:#fbbf24"><i class="fas fa-ticket-alt"></i></div>
-      <h4>التذاكر</h4>
+    <a href="/guilds" class="f-card" style="--fcc:#fbbf24;text-align:center">
+      <div class="f-cicon" style="background:rgba(251,191,36,0.08);color:#fbbf24"><i class="fas fa-ticket-alt"></i></div>
+      <h3>التذاكر</h3>
       <p>نظام دعم متكامل</p>
     </a>
     <% if (roleLevel >= 2) { %>
-    <a href="/docs#protection" class="z-feat" style="--zc:#f87171">
-      <div class="z-ficon" style="background:rgba(248,113,113,0.08);color:#f87171"><i class="fas fa-shield-alt"></i></div>
-      <h4>الحماية</h4>
+    <a href="/docs#protection" class="f-card" style="--fcc:#f87171;text-align:center">
+      <div class="f-cicon" style="background:rgba(248,113,113,0.08);color:#f87171"><i class="fas fa-shield-alt"></i></div>
+      <h3>الحماية</h3>
       <p>أمان وحظر ذكي</p>
     </a>
     <% } %>
     <% if (roleLevel >= 1) { %>
-    <a href="/docs#voice" class="z-feat" style="--zc:#a78bfa">
-      <div class="z-ficon" style="background:rgba(167,139,250,0.08);color:#a78bfa"><i class="fas fa-microphone"></i></div>
-      <h4>الغرف الصوتية</h4>
+    <a href="/docs#voice" class="f-card" style="--fcc:#a78bfa;text-align:center">
+      <div class="f-cicon" style="background:rgba(167,139,250,0.08);color:#a78bfa"><i class="fas fa-microphone"></i></div>
+      <h3>الغرف الصوتية</h3>
       <p>رومات مؤقتة</p>
     </a>
     <% } %>
     <% if (roleLevel >= 2) { %>
-    <a href="/docs#commands" class="z-feat" style="--zc:#60a5fa">
-      <div class="z-ficon" style="background:rgba(96,165,250,0.08);color:#60a5fa"><i class="fas fa-terminal"></i></div>
-      <h4>الأوامر</h4>
+    <a href="/docs#commands" class="f-card" style="--fcc:#60a5fa;text-align:center">
+      <div class="f-cicon" style="background:rgba(96,165,250,0.08);color:#60a5fa"><i class="fas fa-terminal"></i></div>
+      <h3>الأوامر</h3>
       <p>صلاحيات وتحكم</p>
     </a>
     <% } %>
   </div>
 
-  <div class="z-label"><i class="fas fa-link"></i> روابط سريعة</div>
-  <div class="z-qt">
-    <a href="/status" class="z-q">
+  <div class="f-label f-label-p" style="margin-bottom:14px"><i class="fas fa-link"></i> روابط سريعة</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a href="/status" class="f-q">
       <i class="fas fa-heartbeat" style="color:#6366f1"></i>
       <span>حالة البوت</span>
     </a>
     <% if (roleLevel >= 4) { %>
-    <a href="/dev" class="z-q">
+    <a href="/dev" class="f-q">
       <i class="fas fa-code" style="color:#a78bfa"></i>
       <span>المطور</span>
     </a>
     <% } %>
-    <a href="/docs" class="z-q">
+    <a href="/docs" class="f-q">
       <i class="fas fa-book" style="color:#34d399"></i>
       <span>التوثيق</span>
     </a>
-    <button onclick="toggleTheme()" class="z-q" style="cursor:pointer;border:none;font-family:var(--font)">
+    <button onclick="toggleTheme()" class="f-q" style="cursor:pointer;border:none;font-family:var(--font)">
       <i class="fas fa-palette" style="color:#fbbf24"></i>
       <span>السمة</span>
     </button>
@@ -99,45 +99,44 @@
 </div>
 
 <style>
-.z-page{max-width:1000px;margin:0 auto;padding:24px 20px}
-.z-card{background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);border-radius:12px}
-.z-welcome{position:relative;overflow:hidden;padding:22px 24px;display:flex;align-items:center;gap:18px;margin-bottom:24px}
-.z-wbg{position:absolute;inset:0;background:radial-gradient(ellipse 50% 50% at 0% 50%,rgba(99,102,241,0.04) 0%,transparent 70%);pointer-events:none}
-.z-wuser{display:flex;align-items:center;gap:14px;position:relative;z-index:1;flex:1}
-.z-wavatar{position:relative;flex-shrink:0}
-.z-wavatar img{width:48px;height:48px;border-radius:50%;border:2px solid rgba(99,102,241,0.2);box-shadow:0 0 18px rgba(99,102,241,0.08)}
-.z-wdot{position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;background:#57f287;border:2px solid #0c0c1a}
-.z-wbadge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:20px;background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.07);font-size:0.65rem;font-weight:600;color:#818cf8;margin-bottom:3px}
-.z-wname{font-size:1.15rem;font-weight:800;margin:0;color:rgba(255,255,255,0.9)}
-.z-wsub{font-size:0.75rem;color:rgba(255,255,255,0.28);margin:0}
-.z-wstats{display:flex;gap:16px;position:relative;z-index:1;flex-shrink:0}
-.z-ws{text-align:center}
-.z-wsn{display:block;font-size:1.15rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.z-wsl{font-size:0.65rem;color:rgba(255,255,255,0.22)}
-.z-label{display:flex;align-items:center;gap:7px;font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.32);margin-bottom:10px;padding-right:2px}
-.z-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
-@media(max-width:900px){.z-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:500px){.z-grid{grid-template-columns:1fr}}
-.z-feat{position:relative;padding:20px 16px;border-radius:12px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);text-align:center;transition:all 0.35s;overflow:hidden}
-.z-feat::after{content:'';position:absolute;bottom:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,var(--zc,#6366f1),transparent);opacity:0;transition:opacity 0.35s}
-.z-feat:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--zc,#6366f1)15%,rgba(255,255,255,0.04));box-shadow:0 6px 24px rgba(0,0,0,0.12)}
-.z-feat:hover::after{opacity:1}
-.z-ficon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;margin:0 auto 8px;transition:all 0.35s}
-.z-feat:hover .z-ficon{background:color-mix(in srgb,var(--zc,#6366f1)14%,transparent)!important;box-shadow:0 0 18px color-mix(in srgb,var(--zc,#6366f1)10%,transparent)}
-.z-feat h4{font-size:0.85rem;font-weight:700;margin:0 0 2px}
-.z-feat p{font-size:0.7rem;color:rgba(255,255,255,0.26);margin:0}
-.z-qt{display:flex;gap:8px;flex-wrap:wrap}
-.z-q{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);transition:all 0.3s;font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.55)}
-.z-q:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.06);color:white}
+.f-home{max-width:1000px;margin:0 auto}
+.f-hcard{position:relative;overflow:hidden;padding:22px 24px;border-radius:12px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:18px;margin-bottom:26px}
+.f-hcard-bg{position:absolute;inset:0;background:radial-gradient(ellipse 50% 50% at 0% 50%,rgba(99,102,241,0.04) 0%,transparent 70%);pointer-events:none}
+.f-huser{display:flex;align-items:center;gap:14px;position:relative;z-index:1;flex:1}
+.f-hav{position:relative;flex-shrink:0}
+.f-hav img{width:48px;height:48px;border-radius:50%;border:2px solid rgba(99,102,241,0.2);box-shadow:0 0 18px rgba(99,102,241,0.08)}
+.f-hdot{position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;background:#57f287;border:2px solid #0c0c1a}
+.f-hpill{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:20px;background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.07);font-size:0.65rem;font-weight:600;color:#818cf8;margin-bottom:3px}
+.f-hname{font-size:1.15rem;font-weight:800;margin:0;color:rgba(255,255,255,0.9)}
+.f-hsub{font-size:0.75rem;color:rgba(255,255,255,0.28);margin:0}
+.f-hmet{display:flex;gap:16px;position:relative;z-index:1;flex-shrink:0}
+.f-hm{text-align:center}
+.f-hmn{display:block;font-size:1.15rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.f-hml{font-size:0.65rem;color:rgba(255,255,255,0.22)}
+
+.f-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:900px){.f-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.f-cards{grid-template-columns:1fr}}
+
+.f-card{position:relative;padding:22px 16px 18px;border-radius:12px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);transition:all 0.35s;overflow:hidden;display:block;color:rgba(255,255,255,0.87)}
+.f-card::after{content:'';position:absolute;bottom:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,var(--fcc,#6366f1),transparent);opacity:0;transition:opacity 0.35s}
+.f-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,0.06);box-shadow:0 6px 24px rgba(0,0,0,0.12)}
+.f-card:hover::after{opacity:1}
+.f-cicon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;margin:0 auto 8px;transition:all 0.35s}
+.f-card:hover .f-cicon{box-shadow:0 0 18px color-mix(in srgb,var(--fcc,#6366f1)10%,transparent)}
+.f-card h3{font-size:0.85rem;font-weight:700;margin:0 0 2px}
+.f-card p{font-size:0.7rem;color:rgba(255,255,255,0.26);margin:0}
+
+.f-q{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);transition:all 0.3s;font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.55)}
+.f-q:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.06);color:white}
+
 @media(max-width:720px){
-  .z-welcome{flex-direction:column;align-items:flex-start;padding:18px}
-  .z-wstats{width:100%;justify-content:flex-start;gap:20px}
-  .z-wname{font-size:1rem}
-  .z-qt{flex-direction:column}
-  .z-q{justify-content:center}
+  .f-hcard{flex-direction:column;align-items:flex-start;padding:18px}
+  .f-hmet{width:100%;justify-content:flex-start;gap:20px}
+  .f-hname{font-size:1rem}
 }
 </style>
 
 <script>
-fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('zCmd');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('zCmd');if(e)e.textContent='55'});
+fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('fHomeCmd');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('fHomeCmd');if(e)e.textContent='55'});
 </script>
