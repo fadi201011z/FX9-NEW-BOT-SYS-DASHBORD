@@ -3,164 +3,162 @@
 <%
   const guilds = user?.guilds || [];
 %>
-<div class="h-page">
-  <div class="h-hero">
-    <div class="h-hero-bg"></div>
-    <div class="h-avatar">
-      <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="">
-      <span class="h-dot"></span>
-    </div>
-    <div class="h-hero-text">
-      <div class="h-badge"><i class="fas fa-bolt"></i> FX9 Bot v5.0</div>
-      <h1>مرحباً، <span class="h-grad"><%= user.globalName || user.username %></span></h1>
-      <p>لوحة تحكم متكاملة — كل أنظمة البوت بين يديك</p>
-    </div>
-    <div class="h-metrics">
-      <div class="h-metric">
-        <span class="h-mnum"><%= managedGuilds.length %></span>
-        <span class="h-mlbl">سيرفر تديره</span>
+<div class="hm-page">
+  <div class="hm-top">
+    <div class="hm-user">
+      <div class="hm-avatar">
+        <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="">
+        <span class="hm-online"></span>
       </div>
-      <div class="h-metric">
-        <span class="h-mnum"><%= guilds.length %></span>
-        <span class="h-mlbl">إجمالي سيرفراتك</span>
+      <div>
+        <div class="hm-tag"><i class="fas fa-bolt"></i> FX9 Bot v5.0</div>
+        <h1 class="hm-title"><%= user.globalName || user.username %></h1>
+        <p class="hm-desc">لوحة تحكم متكاملة — أنظمة البوت بين يديك</p>
       </div>
-      <div class="h-metric">
-        <span class="h-mnum" id="cmdCount">—</span>
-        <span class="h-mlbl">أمر منفذ</span>
+    </div>
+    <div class="hm-stats">
+      <div class="hm-stat">
+        <span class="hm-stat-n"><%= managedGuilds.length %></span>
+        <span class="hm-stat-l">سيرفراتك</span>
+      </div>
+      <div class="hm-stat">
+        <span class="hm-stat-n"><%= guilds.length %></span>
+        <span class="hm-stat-l">إجمالي</span>
+      </div>
+      <div class="hm-stat">
+        <span class="hm-stat-n" id="cmdCount2">—</span>
+        <span class="hm-stat-l">أمر</span>
       </div>
     </div>
   </div>
 
-  <div class="h-label"><i class="fas fa-cubes"></i> أنظمة البوت</div>
-  <div class="h-grid">
-    <% if (roleLevel >= 3) { %>
-    <a href="/dashboard" class="h-card" style="--hc:#6366f1">
-      <div class="h-ico" style="background:rgba(99,102,241,0.1);color:#6366f1"><i class="fas fa-th-large"></i></div>
-      <div class="h-ci">
+  <div class="hm-sect">
+    <div class="hm-sect-head">
+      <i class="fas fa-cubes"></i>
+      <span>الأنظمة</span>
+    </div>
+    <div class="hm-grid">
+      <% if (roleLevel >= 3) { %>
+      <a href="/dashboard" class="hm-card" style="--a:#6366f1">
+        <div class="hm-card-bg" style="background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.02))"></div>
+        <div class="hm-card-icon" style="background:rgba(99,102,241,0.12);color:#6366f1"><i class="fas fa-th-large"></i></div>
         <h3>لوحة التحكم</h3>
-        <p>نظرة عامة على كل سيرفراتك</p>
-      </div>
-      <i class="fas fa-chevron-left h-arr"></i>
-    </a>
-    <% } %>
-    <a href="/guilds" class="h-card" style="--hc:#34d399">
-      <div class="h-ico" style="background:rgba(52,211,153,0.1);color:#34d399"><i class="fas fa-server"></i></div>
-      <div class="h-ci">
+        <p>نظرة عامة وإحصائيات</p>
+      </a>
+      <% } %>
+      <a href="/guilds" class="hm-card" style="--a:#34d399">
+        <div class="hm-card-bg" style="background:linear-gradient(135deg,rgba(52,211,153,0.08),rgba(52,211,153,0.02))"></div>
+        <div class="hm-card-icon" style="background:rgba(52,211,153,0.12);color:#34d399"><i class="fas fa-server"></i></div>
         <h3>السيرفرات</h3>
-        <p>تصفح وإدارة السيرفرات</p>
-      </div>
-      <i class="fas fa-chevron-left h-arr"></i>
-    </a>
-    <a href="/guilds" class="h-card" style="--hc:#fbbf24">
-      <div class="h-ico" style="background:rgba(251,191,36,0.1);color:#fbbf24"><i class="fas fa-ticket-alt"></i></div>
-      <div class="h-ci">
+        <p>تصفح وإدارة</p>
+      </a>
+      <a href="/guilds" class="hm-card" style="--a:#fbbf24">
+        <div class="hm-card-bg" style="background:linear-gradient(135deg,rgba(251,191,36,0.08),rgba(251,191,36,0.02))"></div>
+        <div class="hm-card-icon" style="background:rgba(251,191,36,0.12);color:#fbbf24"><i class="fas fa-ticket-alt"></i></div>
         <h3>التذاكر</h3>
-        <p>نظام دعم فني متكامل</p>
-      </div>
-      <i class="fas fa-chevron-left h-arr"></i>
-    </a>
-    <% if (roleLevel >= 2) { %>
-    <a href="/docs#protection" class="h-card" style="--hc:#f87171">
-      <div class="h-ico" style="background:rgba(248,113,113,0.1);color:#f87171"><i class="fas fa-shield-alt"></i></div>
-      <div class="h-ci">
+        <p>دعم فني متكامل</p>
+      </a>
+      <% if (roleLevel >= 2) { %>
+      <a href="/docs#protection" class="hm-card" style="--a:#f87171">
+        <div class="hm-card-bg" style="background:linear-gradient(135deg,rgba(248,113,113,0.08),rgba(248,113,113,0.02))"></div>
+        <div class="hm-card-icon" style="background:rgba(248,113,113,0.12);color:#f87171"><i class="fas fa-shield-alt"></i></div>
         <h3>الحماية</h3>
-        <p>حماية السيرفر بالكامل</p>
-      </div>
-      <i class="fas fa-chevron-left h-arr"></i>
-    </a>
-    <% } %>
-    <% if (roleLevel >= 1) { %>
-    <a href="/docs#voice" class="h-card" style="--hc:#a78bfa">
-      <div class="h-ico" style="background:rgba(167,139,250,0.1);color:#a78bfa"><i class="fas fa-microphone"></i></div>
-      <div class="h-ci">
+        <p>أمان وحظر ذكي</p>
+      </a>
+      <% } %>
+      <% if (roleLevel >= 1) { %>
+      <a href="/docs#voice" class="hm-card" style="--a:#a78bfa">
+        <div class="hm-card-bg" style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(167,139,250,0.02))"></div>
+        <div class="hm-card-icon" style="background:rgba(167,139,250,0.12);color:#a78bfa"><i class="fas fa-microphone"></i></div>
         <h3>الغرف الصوتية</h3>
-        <p>رومات مؤقتة بلمسة زر</p>
-      </div>
-      <i class="fas fa-chevron-left h-arr"></i>
-    </a>
-    <% } %>
-    <% if (roleLevel >= 2) { %>
-    <a href="/docs#commands" class="h-card" style="--hc:#60a5fa">
-      <div class="h-ico" style="background:rgba(96,165,250,0.1);color:#60a5fa"><i class="fas fa-terminal"></i></div>
-      <div class="h-ci">
+        <p>رومات مؤقتة</p>
+      </a>
+      <% } %>
+      <% if (roleLevel >= 2) { %>
+      <a href="/docs#commands" class="hm-card" style="--a:#60a5fa">
+        <div class="hm-card-bg" style="background:linear-gradient(135deg,rgba(96,165,250,0.08),rgba(96,165,250,0.02))"></div>
+        <div class="hm-card-icon" style="background:rgba(96,165,250,0.12);color:#60a5fa"><i class="fas fa-terminal"></i></div>
         <h3>الأوامر</h3>
-        <p>إدارة صلاحيات الأوامر</p>
-      </div>
-      <i class="fas fa-chevron-left h-arr"></i>
-    </a>
-    <% } %>
+        <p>صلاحيات وتحكم</p>
+      </a>
+      <% } %>
+    </div>
   </div>
 
-  <div class="h-label"><i class="fas fa-bolt"></i> إجراءات سريعة</div>
-  <div class="h-actions">
-    <a href="/status" class="h-act">
-      <i class="fas fa-heartbeat" style="color:#6366f1"></i>
-      <span>حالة البوت</span>
-    </a>
-    <% if (roleLevel >= 4) { %>
-    <a href="/dev" class="h-act">
-      <i class="fas fa-code" style="color:#a78bfa"></i>
-      <span>المطور</span>
-    </a>
-    <% } %>
-    <a href="/docs" class="h-act">
-      <i class="fas fa-book" style="color:#34d399"></i>
-      <span>التوثيق</span>
-    </a>
-    <button onclick="toggleTheme()" class="h-act" style="cursor:pointer;border:none;font-family:var(--font)">
-      <i class="fas fa-palette" style="color:#fbbf24"></i>
-      <span>السمة</span>
-    </button>
+  <div class="hm-sect">
+    <div class="hm-sect-head">
+      <i class="fas fa-link"></i>
+      <span>روابط سريعة</span>
+    </div>
+    <div class="hm-links">
+      <a href="/status" class="hm-link">
+        <i class="fas fa-heartbeat" style="color:#6366f1"></i>
+        <span>حالة البوت</span>
+      </a>
+      <% if (roleLevel >= 4) { %>
+      <a href="/dev" class="hm-link">
+        <i class="fas fa-code" style="color:#a78bfa"></i>
+        <span>المطور</span>
+      </a>
+      <% } %>
+      <a href="/docs" class="hm-link">
+        <i class="fas fa-book" style="color:#34d399"></i>
+        <span>التوثيق</span>
+      </a>
+      <button onclick="toggleTheme()" class="hm-link" style="cursor:pointer;border:none;font-family:var(--font)">
+        <i class="fas fa-palette" style="color:#fbbf24"></i>
+        <span>السمة</span>
+      </button>
+    </div>
   </div>
 </div>
 
 <style>
-.h-page{max-width:1000px;margin:0 auto;padding:28px 20px}
+.hm-page{max-width:1000px;margin:0 auto;padding:24px 20px}
 
-.h-hero{position:relative;overflow:hidden;padding:28px 32px;border-radius:16px;background:rgba(12,12,26,0.5);border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:22px;margin-bottom:28px}
-.h-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 0% 50%,rgba(99,102,241,0.06) 0%,transparent 70%);pointer-events:none}
-.h-avatar{position:relative;flex-shrink:0;z-index:1}
-.h-avatar img{width:64px;height:64px;border-radius:50%;border:2px solid rgba(99,102,241,0.3);box-shadow:0 0 24px rgba(99,102,241,0.15)}
-.h-dot{position:absolute;bottom:1px;right:1px;width:14px;height:14px;border-radius:50%;background:#57f287;border:3px solid #0c0c1a}
-.h-hero-text{flex:1;z-index:1}
-.h-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:20px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.08);font-size:0.7rem;font-weight:600;color:#818cf8;margin-bottom:8px}
-.h-hero-text h1{font-size:1.4rem;margin:0 0 4px}
-.h-grad{background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.h-hero-text p{font-size:0.85rem;color:rgba(255,255,255,0.35);margin:0}
-.h-metrics{display:flex;gap:22px;flex-shrink:0;z-index:1}
-.h-metric{text-align:center}
-.h-mnum{display:block;font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.h-mlbl{font-size:0.7rem;color:rgba(255,255,255,0.3)}
+.hm-top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 24px;margin-bottom:28px;border-radius:14px;background:rgba(12,12,26,0.4);border:1px solid rgba(255,255,255,0.04);position:relative;overflow:hidden}
+.hm-top::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 50% at 0% 50%,rgba(99,102,241,0.05) 0%,transparent 70%);pointer-events:none}
+.hm-user{display:flex;align-items:center;gap:16px;position:relative;z-index:1}
+.hm-avatar{position:relative;flex-shrink:0}
+.hm-avatar img{width:52px;height:52px;border-radius:50%;border:2px solid rgba(99,102,241,0.25);box-shadow:0 0 20px rgba(99,102,241,0.1)}
+.hm-online{position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#57f287;border:2px solid #0c0c1a}
+.hm-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:20px;background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.07);font-size:0.65rem;font-weight:600;color:#818cf8;margin-bottom:4px}
+.hm-title{font-size:1.2rem;font-weight:800;margin:0;color:rgba(255,255,255,0.9)}
+.hm-desc{font-size:0.78rem;color:rgba(255,255,255,0.3);margin:0}
+.hm-stats{display:flex;gap:18px;position:relative;z-index:1}
+.hm-stat{text-align:center}
+.hm-stat-n{display:block;font-size:1.2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hm-stat-l{font-size:0.68rem;color:rgba(255,255,255,0.25)}
 
-.h-label{display:flex;align-items:center;gap:8px;font-size:0.85rem;font-weight:700;color:rgba(255,255,255,0.4);margin-bottom:12px;padding-right:4px}
+.hm-sect{margin-bottom:28px}
+.hm-sect-head{display:flex;align-items:center;gap:7px;font-size:0.82rem;font-weight:700;color:rgba(255,255,255,0.35);margin-bottom:12px;padding-right:2px}
 
-.h-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:28px}
-.h-card{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:12px;background:rgba(12,12,26,0.3);border:1px solid rgba(255,255,255,0.04);transition:all 0.3s;position:relative;overflow:hidden}
-.h-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--hc,#6366f1)8%,transparent),transparent);opacity:0;transition:opacity 0.3s}
-.h-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--hc,#6366f1)25%,transparent)}
-.h-card:hover::before{opacity:1}
-.h-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;position:relative;z-index:1}
-.h-ci{flex:1;position:relative;z-index:1}
-.h-ci h3{font-size:0.88rem;font-weight:700;margin:0}
-.h-ci p{font-size:0.75rem;color:rgba(255,255,255,0.3);margin:1px 0 0}
-.h-arr{color:rgba(255,255,255,0.15);font-size:0.75rem;transition:all 0.3s;position:relative;z-index:1}
-.h-card:hover .h-arr{color:var(--hc,#6366f1);transform:translateX(-3px)}
+.hm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:900px){.hm-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.hm-grid{grid-template-columns:1fr}}
 
-.h-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
-.h-act{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 14px;border-radius:12px;background:rgba(12,12,26,0.3);border:1px solid rgba(255,255,255,0.04);text-align:center;transition:all 0.3s;color:rgba(255,255,255,0.7)}
-.h-act:hover{transform:translateY(-2px);background:rgba(12,12,26,0.5);border-color:rgba(255,255,255,0.06);color:white}
-.h-act i{font-size:1.2rem}
-.h-act span{font-size:0.82rem;font-weight:600}
+.hm-card{position:relative;padding:22px 18px;border-radius:12px;background:rgba(12,12,26,0.25);border:1px solid rgba(255,255,255,0.03);overflow:hidden;text-align:center;transition:all 0.35s ease}
+.hm-card-bg{position:absolute;inset:0;opacity:0;transition:opacity 0.35s}
+.hm-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--a,#6366f1)20%,transparent);box-shadow:0 8px 30px rgba(0,0,0,0.15)}
+.hm-card:hover .hm-card-bg{opacity:1}
+.hm-card-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;margin:0 auto 10px;position:relative;z-index:1;transition:all 0.35s}
+.hm-card:hover .hm-card-icon{background:color-mix(in srgb,var(--a,#6366f1)18%,transparent)!important;box-shadow:0 0 24px color-mix(in srgb,var(--a,#6366f1)15%,transparent)}
+.hm-card h3{font-size:0.88rem;font-weight:700;margin:0 0 2px;position:relative;z-index:1}
+.hm-card p{font-size:0.72rem;color:rgba(255,255,255,0.28);margin:0;position:relative;z-index:1}
+
+.hm-links{display:flex;gap:10px;flex-wrap:wrap}
+.hm-link{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;background:rgba(12,12,26,0.25);border:1px solid rgba(255,255,255,0.03);transition:all 0.3s;font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.6)}
+.hm-link:hover{transform:translateY(-2px);background:rgba(12,12,26,0.45);border-color:rgba(255,255,255,0.06);color:white}
 
 @media(max-width:720px){
-  .h-hero{flex-direction:column;text-align:center;padding:24px 18px}
-  .h-metrics{width:100%;justify-content:center}
-  .h-grid{grid-template-columns:1fr}
-  .h-actions{grid-template-columns:repeat(2,1fr)}
-  .h-hero-text h1{font-size:1.2rem}
+  .hm-top{flex-direction:column;align-items:flex-start;padding:18px}
+  .hm-stats{width:100%;justify-content:flex-start;gap:24px}
+  .hm-title{font-size:1.05rem}
+  .hm-links{flex-direction:column}
+  .hm-link{justify-content:center}
 }
 </style>
 
 <script>
-fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('cmdCount');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('cmdCount');if(e)e.textContent='55'});
+fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('cmdCount2');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('cmdCount2');if(e)e.textContent='55'});
 </script>
