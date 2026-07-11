@@ -6,401 +6,461 @@
   <title>FX9 Dashboard — لوحة تحكم البوت</title>
   <meta name="description" content="FX9 Dashboard — لوحة تحكم متقدمة لإدارة بوت FX9 على ديسكورد">
   <meta property="og:title" content="FX9 Dashboard — لوحة تحكم البوت" />
-  <meta property="og:description" content="FX9 Dashboard — لوحة تحكم متقدمة لإدارة بوت FX9 على ديسكورد. إدارة السيرفرات، نظام تذاكر، قنوات صوتية مؤقتة، والمزيد." />
-  <meta property="og:image" content="https://fx9-dashboard.onrender.com/og-image.svg" />
-  <meta property="og:url" content="https://fx9-dashboard.onrender.com" />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="FX9 Dashboard" />
-  <meta property="og:locale" content="ar_AR" />
-  <meta name="theme-color" content="#3b82f6" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="FX9 Dashboard — لوحة تحكم البوت" />
-  <meta name="twitter:description" content="FX9 Dashboard — لوحة تحكم متقدمة لإدارة بوت FX9 على ديسكورد." />
-  <meta name="twitter:image" content="https://fx9-dashboard.onrender.com/og-image.svg" />
+  <meta name="theme-color" content="#6366f1" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <style>
 :root {
-  --xbg: #06060e;
-  --xcard: #0b0b18;
-  --xborder: rgba(255,255,255,0.04);
-  --xtext: rgba(255,255,255,0.88);
-  --xmuted: rgba(255,255,255,0.3);
-  --xblue: #3b82f6;
-  --xpurple: #8b5cf6;
-  --xcyan: #22d3ee;
-  --xglow: rgba(59,130,246,0.15);
+  --fb: #06060e;
+  --fc: #0c0c1a;
+  --fbo: rgba(255,255,255,0.04);
+  --ft: rgba(255,255,255,0.87);
+  --fm: rgba(255,255,255,0.28);
+  --fp: #6366f1;
+  --fb2: #3b82f6;
+  --fp2: #8b5cf6;
+  --fa: #a78bfa;
+  --fg: rgba(99,102,241,0.18);
 }
-
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Cairo',sans-serif; background:var(--xbg); color:var(--xtext); overflow-x:hidden; }
+body { font-family:'Cairo',sans-serif; background:var(--fb); color:var(--ft); overflow-x:hidden; }
 a { text-decoration:none; color:inherit; }
 
-.x-nav {
+.f-nav {
   position:fixed; top:0; left:0; right:0; z-index:1000;
   display:flex; align-items:center; justify-content:space-between;
-  padding:0 32px; height:64px;
-  background:rgba(6,6,14,0.7); backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--xborder);
+  padding:0 28px; height:64px;
+  background:rgba(6,6,14,0.7); backdrop-filter:blur(20px) saturate(1.4);
+  border-bottom:1px solid var(--fbo);
 }
-.x-brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:1rem; color:white; letter-spacing:0.3px; }
-.x-brand-tag {
+.f-brand { display:flex; align-items:center; gap:9px; font-size:1.05rem; font-weight:800; color:white; }
+.f-brand-badge {
   width:28px; height:28px; border-radius:6px;
-  background:linear-gradient(135deg,var(--xblue),var(--xpurple));
+  background:linear-gradient(135deg,var(--fp),var(--fp2));
   display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:white;
-  box-shadow:0 0 16px var(--xglow);
+  box-shadow:0 0 14px var(--fg);
 }
-.x-nav-wrap { display:flex; align-items:center; gap:6px; }
-.x-nav-a {
-  display:inline-flex; align-items:center; gap:6px; padding:7px 18px; border-radius:8px;
-  font-family:'Cairo',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer;
-  transition:all 0.25s; border:none;
+.f-nbtn {
+  display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+  padding:7px 18px; border-radius:8px; font-family:'Cairo',sans-serif;
+  font-size:0.82rem; font-weight:600; transition:all 0.25s; border:none;
 }
-.x-nav-pri {
-  background:linear-gradient(135deg,var(--xblue),var(--xpurple)); color:white;
-  box-shadow:0 4px 16px var(--xglow);
-}
-.x-nav-pri:hover { transform:translateY(-1px); box-shadow:0 6px 24px var(--xglow); }
-.x-nav-ghost { background:rgba(255,255,255,0.03); color:var(--xmuted); border:1px solid var(--xborder); }
-.x-nav-ghost:hover { background:rgba(255,255,255,0.06); color:white; }
-.x-nav-red { background:rgba(237,66,69,0.1); color:#f87171; border:1px solid rgba(237,66,69,0.12); }
-.x-nav-red:hover { background:rgba(237,66,69,0.16); }
+.f-nbtn-p { background:linear-gradient(135deg,var(--fp),var(--fp2)); color:white; box-shadow:0 3px 14px var(--fg); }
+.f-nbtn-p:hover { transform:translateY(-1px); box-shadow:0 5px 22px var(--fg); }
+.f-nbtn-g { background:rgba(255,255,255,0.04); color:var(--fm); border:1px solid var(--fbo); }
+.f-nbtn-g:hover { background:rgba(255,255,255,0.07); color:white; }
+.f-nbtn-d { background:rgba(237,66,69,0.12); color:#f87171; border:1px solid rgba(237,66,69,0.15); }
 
-.x-hero {
+.f-hero {
   position:relative; min-height:100vh; display:flex; align-items:center;
-  background:linear-gradient(180deg, #06060e 0%, #0a0a1a 30%, #0d0d20 60%, #06060e 100%);
+  background:linear-gradient(180deg, #06060e 0%, #0a0a1e 40%, #06060e 100%);
   overflow:hidden;
 }
-.x-hero-bg {
+.f-hero-bg {
   position:absolute; inset:0;
   background:
-    radial-gradient(ellipse 70% 45% at 20% 20%, rgba(59,130,246,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 50% at 80% 70%, rgba(139,92,246,0.04) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 40% at 50% 100%, rgba(34,211,238,0.03) 0%, transparent 50%);
+    radial-gradient(ellipse 60% 45% at 25% 0%, rgba(99,102,241,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 75% 100%, rgba(139,92,246,0.06) 0%, transparent 55%);
 }
-.x-hero-grid {
-  position:absolute; inset:0; opacity:0.2;
-  background-image:
-    linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px);
-  background-size:50px 50px;
-  mask-image:radial-gradient(ellipse 60% 50% at 50% 50%, black 30%, transparent 70%);
-  -webkit-mask-image:radial-gradient(ellipse 60% 50% at 50% 50%, black 30%, transparent 70%);
+.f-grid {
+  position:absolute; inset:0; opacity:0.25;
+  background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);
+  background-size:52px 52px;
 }
-.x-hero-shape {
-  position:absolute; border-radius:50%; filter:blur(100px);
+.f-orb {
+  position:absolute; border-radius:50%; filter:blur(130px);
+  animation:fDrift 16s ease-in-out infinite;
 }
-.x-hs1 { width:400px; height:400px; background:var(--xblue); top:-100px; left:20%; opacity:0.08; }
-.x-hs2 { width:300px; height:300px; background:var(--xpurple); bottom:-80px; right:15%; opacity:0.06; }
-.x-hero-inner {
-  position:relative; z-index:1; max-width:800px; margin:0 auto;
-  padding:130px 28px 80px; display:grid; grid-template-columns:1fr 1fr; gap:50px; align-items:center;
+.f-o1 { width:500px; height:500px; background:var(--fp); top:-150px; left:10%; opacity:0.08; }
+.f-o2 { width:380px; height:380px; background:var(--fp2); bottom:-120px; right:15%; opacity:0.06; animation-delay:-8s; }
+@keyframes fDrift {
+  0%,100% { transform:translate(0,0) scale(1); }
+  50% { transform:translate(30px,-35px) scale(1.1); }
 }
-@media (max-width:850px) { .x-hero-inner { grid-template-columns:1fr; text-align:center; gap:30px; } }
-.x-hero-main h1 {
-  font-size:2.6rem; font-weight:800; line-height:1.3; margin-bottom:14px;
+.f-hero-inner {
+  position:relative; z-index:1; max-width:1150px; margin:0 auto; padding:120px 28px 80px;
+  display:grid; grid-template-columns:1fr 1fr; gap:50px; align-items:center;
 }
-.x-hero-main h1 span {
-  background:linear-gradient(135deg, var(--xblue), var(--xpurple), var(--xcyan));
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-}
-.x-hero-main p {
-  font-size:0.95rem; color:var(--xmuted); line-height:1.8; margin-bottom:24px;
-}
-@media (max-width:850px) { .x-hero-main p { margin-inline:auto; } }
-.x-hero-tag {
-  display:inline-flex; align-items:center; gap:6px; margin-bottom:16px;
-  background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.12);
+@media (max-width:900px) { .f-hero-inner { grid-template-columns:1fr; text-align:center; gap:50px; } }
+.f-left { max-width:500px; }
+@media (max-width:900px) { .f-left { margin:0 auto; } }
+.f-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(99,102,241,0.06); border:1px solid rgba(99,102,241,0.1);
   padding:4px 14px; border-radius:100px; font-size:0.72rem; font-weight:500;
-  color:rgba(59,130,246,0.8);
+  color:var(--fa); margin-bottom:18px;
 }
-.x-hero-tag i { font-size:0.5rem; color:var(--xcyan); }
-.x-hero-acts { display:flex; gap:10px; }
-@media (max-width:850px) { .x-hero-acts { justify-content:center; } }
-.x-btn {
+.f-pill i { font-size:0.45rem; color:#57f287; }
+.f-left h1 { font-size:2.8rem; font-weight:800; line-height:1.2; margin-bottom:14px; }
+.f-left h1 em { font-style:normal; background:linear-gradient(135deg,var(--fp),var(--fp2),var(--fa)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.f-left p { font-size:0.95rem; color:var(--fm); line-height:1.8; margin-bottom:26px; }
+.f-acts { display:flex; gap:10px; }
+@media (max-width:900px) { .f-acts { justify-content:center; } }
+.f-btn {
   display:inline-flex; align-items:center; gap:7px;
   padding:11px 28px; border-radius:10px; font-family:'Cairo',sans-serif;
   font-size:0.9rem; font-weight:600; cursor:pointer; transition:all 0.3s; border:none;
 }
-.x-btn-pri {
-  background:linear-gradient(135deg,var(--xblue),var(--xpurple)); color:white;
-  box-shadow:0 4px 20px var(--xglow);
-}
-.x-btn-pri:hover { transform:translateY(-2px); box-shadow:0 8px 36px var(--xglow); color:white; }
-.x-btn-out {
-  background:transparent; color:var(--xmuted); border:1px solid var(--xborder);
-}
-.x-btn-out:hover { border-color:rgba(255,255,255,0.12); color:white; }
+.f-btn-p { background:linear-gradient(135deg,var(--fp),var(--fp2)); color:white; box-shadow:0 4px 22px var(--fg); }
+.f-btn-p:hover { transform:translateY(-2px); box-shadow:0 8px 36px var(--fg); color:white; }
+.f-btn-s { background:transparent; color:var(--fm); border:1px solid var(--fbo); }
+.f-btn-s:hover { border-color:rgba(255,255,255,0.12); color:white; }
 
-.x-hero-art {
-  display:flex; align-items:center; justify-content:center;
+.f-right { display:flex; align-items:center; justify-content:center; }
+@media (max-width:900px) { .f-right { display:none; } }
+.f-frame {
+  width:100%; max-width:440px;
+  background:rgba(12,12,26,0.7); backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:14px; overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
 }
-@media (max-width:850px) { .x-hero-art { display:none; } }
-.x-hero-art-inner {
-  width:100%; max-width:380px;
-  background:rgba(11,11,24,0.5); backdrop-filter:blur(20px);
-  border:1px solid var(--xborder); border-radius:14px; padding:18px;
+.f-frame-h {
+  display:flex; align-items:center; gap:10px; padding:14px 18px;
+  background:rgba(255,255,255,0.02); border-bottom:1px solid var(--fbo);
 }
-.x-art-head { display:flex; align-items:center; gap:8px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--xborder); }
-.x-art-dot { display:flex; gap:4px; }
-.x-art-dot span { width:6px; height:6px; border-radius:50%; }
-.x-art-d1 { background:rgba(237,66,69,0.5); } .x-art-d2 { background:rgba(254,231,92,0.5); } .x-art-d3 { background:rgba(87,242,135,0.5); }
-.x-art-title { font-size:0.72rem; color:var(--xmuted); margin-right:auto; }
-.x-art-row {
-  display:flex; align-items:center; gap:10px; padding:7px 0;
-  border-bottom:1px solid var(--xborder); font-size:0.78rem;
+.f-frame-dots { display:flex; gap:5px; }
+.f-frame-dot { width:8px; height:8px; border-radius:50%; }
+.f-frame-dot:nth-child(1) { background:#ed4245; }
+.f-frame-dot:nth-child(2) { background:#fbbf24; }
+.f-frame-dot:nth-child(3) { background:#57f287; }
+.f-frame-title { font-size:0.72rem; color:var(--fm); flex:1; text-align:center; }
+.f-frame-b { padding:18px; display:flex; flex-direction:column; gap:12px; }
+.f-frame-row {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:8px;
+  background:rgba(255,255,255,0.02); border:1px solid var(--fbo);
 }
-.x-art-row:last-child { border-bottom:none; padding-bottom:0; }
-.x-art-ico {
-  width:24px; height:24px; border-radius:5px; display:flex;
-  align-items:center; justify-content:center; font-size:0.6rem; flex-shrink:0;
-}
-.x-art-txt { flex:1; color:rgba(255,255,255,0.5); }
-.x-art-val { font-size:0.65rem; color:var(--xmuted); direction:ltr; }
+.f-frame-row:hover { background:rgba(99,102,241,0.04); border-color:rgba(99,102,241,0.08); }
+.f-row-icon { width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; flex-shrink:0; }
+.f-row-info { flex:1; }
+.f-row-title { font-size:0.75rem; font-weight:600; color:rgba(255,255,255,0.75); }
+.f-row-sub { font-size:0.65rem; color:var(--fm); }
+.f-row-val { font-size:0.75rem; font-weight:700; color:var(--fa); }
 
-.x-sec { padding:80px 28px; position:relative; }
-.x-sec-inner { max-width:1050px; margin:0 auto; }
-.x-head { text-align:center; margin-bottom:50px; }
-.x-tag {
+.f-band {
+  padding:28px 24px;
+  background:linear-gradient(90deg, rgba(99,102,241,0.03), rgba(139,92,246,0.03));
+  border-top:1px solid var(--fbo); border-bottom:1px solid var(--fbo);
+}
+.f-band-inner {
+  display:flex; justify-content:center; gap:80px; max-width:900px; margin:0 auto;
+}
+@media (max-width:600px) { .f-band-inner { flex-direction:column; gap:16px; align-items:center; } }
+.f-band-item { display:flex; align-items:center; gap:14px; }
+.f-band-num { font-size:1.5rem; font-weight:800; background:linear-gradient(135deg,var(--fp),var(--fp2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.f-band-lbl { font-size:0.82rem; color:var(--fm); }
+
+.f-sec { padding:90px 28px; }
+.f-sec-inner { max-width:1100px; margin:0 auto; }
+.f-label {
   display:inline-flex; align-items:center; gap:5px;
-  padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:600; margin-bottom:10px;
+  padding:4px 12px; border-radius:20px; font-size:0.68rem; font-weight:600;
+  margin-bottom:10px; letter-spacing:0.3px;
 }
-.x-tag-blue { background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.1); color:var(--xblue); }
-.x-tag-purple { background:rgba(139,92,246,0.06); border:1px solid rgba(139,92,246,0.1); color:var(--xpurple); }
-.x-head h2 { font-size:2rem; font-weight:800; margin-bottom:6px; }
-.x-head h2 em { font-style:normal; background:linear-gradient(135deg,var(--xblue),var(--xpurple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.x-head p { color:var(--xmuted); font-size:0.92rem; max-width:450px; margin:0 auto; line-height:1.8; }
+.f-label-p { background:rgba(99,102,241,0.06); border:1px solid rgba(99,102,241,0.08); color:var(--fa); }
+.f-label-v { background:rgba(139,92,246,0.06); border:1px solid rgba(139,92,246,0.08); color:var(--fp2); }
+.f-center { text-align:center; margin-bottom:55px; }
+.f-center h2 { font-size:2rem; font-weight:800; margin-bottom:8px; }
+.f-center h2 em { font-style:normal; background:linear-gradient(135deg,var(--fp),var(--fp2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.f-center p { color:var(--fm); font-size:0.9rem; max-width:480px; margin:0 auto; line-height:1.8; }
 
-.x-feats {
-  display:grid; grid-template-columns:repeat(2,1fr); gap:18px;
+.f-cards {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
 }
-@media (max-width:700px) { .x-feats { grid-template-columns:1fr; } }
-.x-feat {
-  display:flex; align-items:flex-start; gap:16px;
-  padding:22px; border-radius:12px;
-  background:var(--xcard); border:1px solid var(--xborder);
-  transition:all 0.3s;
+@media (max-width:1000px) { .f-cards { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:600px) { .f-cards { grid-template-columns:1fr; } }
+.f-card {
+  padding:22px 20px; border-radius:12px;
+  background:var(--fc); border:1px solid var(--fbo);
+  transition:all 0.35s ease; position:relative; overflow:hidden;
 }
-.x-feat:hover { border-color:rgba(59,130,246,0.12); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,0.2); }
-.x-feat-ico {
-  width:44px; height:44px; border-radius:10px; display:flex;
-  align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;
+.f-card::after {
+  content:''; position:absolute; bottom:0; left:20px; right:20px;
+  height:1px; background:linear-gradient(90deg,transparent,var(--fp),var(--fp2),transparent);
+  opacity:0; transition:opacity 0.35s;
 }
-.x-feat-body { flex:1; }
-.x-feat-body h3 { font-size:0.9rem; font-weight:700; margin-bottom:3px; }
-.x-feat-body p { font-size:0.78rem; color:var(--xmuted); line-height:1.7; }
+.f-card:hover { transform:translateY(-3px); border-color:rgba(99,102,241,0.08); box-shadow:0 8px 30px rgba(0,0,0,0.2); }
+.f-card:hover::after { opacity:1; }
+.f-cicon {
+  width:36px; height:36px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:10px; font-size:0.85rem;
+}
+.f-card h3 { font-size:0.88rem; font-weight:700; margin-bottom:4px; }
+.f-card p { font-size:0.76rem; color:var(--fm); line-height:1.7; }
 
-.x-strip {
-  background:linear-gradient(135deg, rgba(59,130,246,0.04), rgba(139,92,246,0.04));
-  border-top:1px solid var(--xborder);
-  border-bottom:1px solid var(--xborder);
-  padding:60px 28px;
+.f-steps {
+  display:flex; justify-content:center; gap:40px; max-width:900px; margin:0 auto;
+  position:relative;
 }
-.x-strip-inner { max-width:900px; margin:0 auto; }
-.x-strip-head { text-align:center; margin-bottom:40px; }
-.x-strip-head h2 { font-size:1.8rem; font-weight:800; }
-.x-strip-head h2 em { font-style:normal; background:linear-gradient(135deg,var(--xblue),var(--xpurple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.x-stats {
-  display:flex; justify-content:center; gap:80px;
+.f-steps::before {
+  content:''; position:absolute; top:32px; left:calc(16.66% + 60px); right:calc(16.66% + 60px);
+  height:1px; background:linear-gradient(90deg,var(--fp),var(--fp2),var(--fp));
+  opacity:0.15;
 }
-@media (max-width:600px) { .x-stats { flex-direction:column; gap:20px; align-items:center; } }
-.x-stat { text-align:center; }
-.x-stat-num {
-  font-size:2.2rem; font-weight:800; display:block;
-  background:linear-gradient(135deg,var(--xblue),var(--xpurple));
+@media (max-width:800px) { .f-steps { flex-direction:column; gap:24px; align-items:center; } .f-steps::before { display:none; } }
+.f-step { text-align:center; max-width:240px; position:relative; }
+.f-step-num {
+  width:36px; height:36px; border-radius:50%; margin:0 auto 12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.85rem; font-weight:800; color:white;
+  background:linear-gradient(135deg,var(--fp),var(--fp2));
+  box-shadow:0 0 20px var(--fg); position:relative; z-index:1;
+}
+.f-step h4 { font-size:0.9rem; font-weight:700; margin-bottom:4px; }
+.f-step p { font-size:0.76rem; color:var(--fm); line-height:1.7; }
+
+.f-stats {
+  display:flex; justify-content:center; gap:80px; max-width:800px; margin:0 auto;
+}
+@media (max-width:600px) { .f-stats { flex-direction:column; gap:20px; align-items:center; } }
+.f-sitem { text-align:center; }
+.f-sval {
+  font-size:2rem; font-weight:800; display:block;
+  background:linear-gradient(135deg,var(--fp),var(--fp2));
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
 }
-.x-stat-lbl { font-size:0.82rem; color:var(--xmuted); }
+.f-slbl { font-size:0.8rem; color:var(--fm); margin-top:2px; }
 
-.x-cta {
-  padding:80px 28px; text-align:center;
+.f-cta {
+  max-width:600px; margin:0 auto; text-align:center;
+  padding:48px 44px; border-radius:16px;
+  background:linear-gradient(135deg, rgba(99,102,241,0.03), rgba(139,92,246,0.03));
+  border:1px solid var(--fbo); position:relative; overflow:hidden;
 }
-.x-cta-box {
-  max-width:580px; margin:0 auto;
-  padding:48px 40px; border-radius:16px;
-  background:linear-gradient(135deg, rgba(59,130,246,0.04), rgba(139,92,246,0.04));
-  border:1px solid var(--xborder);
-  position:relative; overflow:hidden;
-}
-.x-cta-box::before {
+.f-cta::before {
   content:''; position:absolute; top:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg,transparent,var(--xblue),var(--xpurple),var(--xcyan),transparent);
+  background:linear-gradient(90deg,transparent,var(--fp),var(--fp2),var(--fa),transparent);
+  opacity:0.4;
 }
-.x-cta-box h2 { font-size:1.5rem; font-weight:800; margin-bottom:8px; }
-.x-cta-box p { color:var(--xmuted); font-size:0.88rem; margin-bottom:22px; line-height:1.7; }
+.f-cta h2 { font-size:1.5rem; font-weight:800; margin-bottom:8px; }
+.f-cta p { color:var(--fm); margin-bottom:22px; font-size:0.88rem; line-height:1.7; }
 
-.x-foot {
-  border-top:1px solid var(--xborder); padding:16px 28px;
+.f-footer {
+  border-top:1px solid var(--fbo); padding:18px 28px;
 }
-.x-foot-inner {
+.f-footer-inner {
   display:flex; justify-content:space-between; align-items:center;
-  max-width:1050px; margin:0 auto; font-size:0.74rem; color:var(--xmuted);
+  max-width:1100px; margin:0 auto; font-size:0.74rem; color:var(--fm);
 }
-.x-foot-links { display:flex; gap:12px; }
-.x-foot-links a { color:var(--xmuted); transition:color 0.3s; }
-.x-foot-links a:hover { color:rgba(255,255,255,0.5); }
+.f-fsocial { display:flex; gap:14px; }
+.f-fsocial a { color:var(--fm); transition:color 0.3s; }
+.f-fsocial a:hover { color:rgba(255,255,255,0.5); }
 
 @media (max-width:768px) {
-  .x-nav { padding:0 16px; height:58px; }
-  .x-hero-inner { padding:110px 16px 60px; }
-  .x-hero-main h1 { font-size:1.7rem; }
-  .x-hero-main p { font-size:0.85rem; }
-  .x-hero-acts { flex-direction:column; align-items:center; }
-  .x-sec { padding:50px 16px; }
-  .x-head h2 { font-size:1.4rem; }
-  .x-strip { padding:40px 16px; }
-  .x-strip-head h2 { font-size:1.4rem; }
-  .x-stats { gap:20px; }
-  .x-cta { padding:50px 16px; }
-  .x-cta-box { padding:32px 18px; }
-  .x-cta-box h2 { font-size:1.2rem; }
-  .x-foot-inner { flex-direction:column; gap:6px; text-align:center; }
+  .f-nav { padding:0 16px; height:58px; }
+  .f-hero-inner { padding:100px 16px 60px; }
+  .f-left h1 { font-size:1.8rem; }
+  .f-left p { font-size:0.85rem; }
+  .f-acts { flex-direction:column; align-items:center; }
+  .f-sec { padding:55px 16px; }
+  .f-center h2 { font-size:1.4rem; }
+  .f-cta { padding:28px 18px; }
+  .f-cta h2 { font-size:1.2rem; }
+  .f-footer-inner { flex-direction:column; gap:6px; text-align:center; }
+  .f-band-inner { gap:30px; }
+  .f-band-item { gap:10px; }
+  .f-band-num { font-size:1.2rem; }
+  .f-stats { gap:24px; }
+  .f-steps { gap:20px; }
 }
 
-.x-err {
+.f-toast {
   position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:9999;
-  background:rgba(237,66,69,0.12); backdrop-filter:blur(20px);
-  border:1px solid rgba(237,66,69,0.12); border-radius:9px;
-  padding:10px 20px; font-size:0.82rem; color:#f87171; direction:rtl;
+  background:rgba(237,66,69,0.14); backdrop-filter:blur(20px);
+  border:1px solid rgba(237,66,69,0.14); border-radius:10px;
+  padding:11px 22px; font-size:0.82rem; color:#f87171; direction:rtl;
 }
   </style>
 </head>
 <body>
-  <nav class="x-nav">
-    <a href="/" class="x-brand">
-      <div class="x-brand-tag"><i class="fas fa-bolt"></i></div>
-      <span>FX9 DASHBOARD</span>
+  <nav class="f-nav">
+    <a href="/" class="f-brand">
+      <div class="f-brand-badge"><i class="fas fa-bolt"></i></div>
+      <span>FX9</span>
     </a>
-    <div class="x-nav-wrap">
+    <div style="display:flex;align-items:center;gap:8px">
       <% if (locals.user) { %>
-        <a href="/home" class="x-nav-a x-nav-pri"><i class="fas fa-th-large"></i> لوحة التحكم</a>
-        <a href="/auth/logout" class="x-nav-a x-nav-red"><i class="fas fa-sign-out-alt"></i> خروج</a>
+        <a href="/home" class="f-nbtn f-nbtn-p"><i class="fas fa-th-large"></i> لوحة التحكم</a>
+        <a href="/auth/logout" class="f-nbtn f-nbtn-d"><i class="fas fa-sign-out-alt"></i> خروج</a>
       <% } else { %>
-        <a href="/auth/discord" class="x-nav-a x-nav-pri"><i class="fab fa-discord"></i> Login with Discord</a>
+        <a href="/auth/discord" class="f-nbtn f-nbtn-p"><i class="fab fa-discord"></i> Login with Discord</a>
       <% } %>
     </div>
   </nav>
 
   <% if (locals.error) { %>
-    <div class="x-err"><i class="fas fa-circle-exclamation"></i> <%= error === 'auth_failed' ? 'فشل تسجيل الدخول — تحقق من Redirect URI' : error === 'no_code' ? 'لم يتم استلام رمز التوثيق' : error %></div>
+    <div class="f-toast"><i class="fas fa-circle-exclamation"></i> <%= error %></div>
   <% } %>
 
-  <section class="x-hero">
-    <div class="x-hero-bg"></div>
-    <div class="x-hero-grid"></div>
-    <div class="x-hero-shape x-hs1"></div>
-    <div class="x-hero-shape x-hs2"></div>
-    <div class="x-hero-inner">
-      <div class="x-hero-main">
-        <div class="x-hero-tag">
-          <i class="fas fa-circle"></i>
-          FADIX9 SYSTEM Bot v1.0.11
-        </div>
-        <h1>أداة متكاملة<br>لإدارة <span>سيرفر ديسكورد</span></h1>
-        <p>لوحة تحكم شاملة تجمع أنظمة الحماية، التذاكر، الغرف الصوتية المؤقتة، الإشراف، والإشعارات — بمزامنة فورية</p>
-        <div class="x-hero-acts">
+  <section class="f-hero">
+    <div class="f-hero-bg"></div>
+    <div class="f-grid"></div>
+    <div class="f-orb f-o1"></div>
+    <div class="f-orb f-o2"></div>
+    <div class="f-hero-inner">
+      <div class="f-left">
+        <div class="f-pill"><i class="fas fa-circle"></i> FADIX9 SYSTEM v1.0.11 — شغال</div>
+        <h1>أداة متكاملة<br>لإدارة <em>السيرفر</em></h1>
+        <p>لوحة تحكم شاملة تجمع الحماية، التذاكر، الغرف الصوتية، الإشراف، والإشعارات — كلها في واجهة واحدة بمزامنة فورية</p>
+        <div class="f-acts">
           <% if (locals.user) { %>
-            <a href="/home" class="x-btn x-btn-pri"><i class="fas fa-th-large"></i> افتح لوحة التحكم</a>
-            <a href="/auth/logout" class="x-btn x-btn-out"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
+            <a href="/home" class="f-btn f-btn-p"><i class="fas fa-th-large"></i> لوحة التحكم</a>
+            <a href="/auth/logout" class="f-btn f-btn-s"><i class="fas fa-sign-out-alt"></i> خروج</a>
           <% } else { %>
-            <a href="/auth/discord" class="x-btn x-btn-pri"><i class="fab fa-discord"></i> ابدأ — سجل بدقيقة</a>
-            <a href="/invite-dev" class="x-btn x-btn-out"><i class="fas fa-code-branch"></i> أضف البوت</a>
+            <a href="/auth/discord" class="f-btn f-btn-p"><i class="fab fa-discord"></i> سجل بدقيقة</a>
+            <a href="/invite-dev" class="f-btn f-btn-s"><i class="fas fa-code-branch"></i> أضف البوت</a>
           <% } %>
         </div>
       </div>
-      <div class="x-hero-art">
-        <div class="x-hero-art-inner">
-          <div class="x-art-head">
-            <div class="x-art-dot"><span class="x-art-d1"></span><span class="x-art-d2"></span><span class="x-art-d3"></span></div>
-            <span class="x-art-title">مراقبة البوت</span>
+      <div class="f-right">
+        <div class="f-frame">
+          <div class="f-frame-h">
+            <div class="f-frame-dots">
+              <div class="f-frame-dot"></div>
+              <div class="f-frame-dot"></div>
+              <div class="f-frame-dot"></div>
+            </div>
+            <span class="f-frame-title">FX9 Dashboard — نظرة عامة</span>
           </div>
-          <div class="x-art-row">
-            <div class="x-art-ico" style="background:rgba(59,130,246,0.1);color:var(--xblue)"><i class="fas fa-shield-halved"></i></div>
-            <span class="x-art-txt">حظر 12 هجوم — 3 سيرفرات</span>
-            <span class="x-art-val">2ث</span>
-          </div>
-          <div class="x-art-row">
-            <div class="x-art-ico" style="background:rgba(139,92,246,0.1);color:var(--xpurple)"><i class="fas fa-ticket-alt"></i></div>
-            <span class="x-art-txt">3 تذاكر جديدة بقسم الدعم</span>
-            <span class="x-art-val">15ث</span>
-          </div>
-          <div class="x-art-row">
-            <div class="x-art-ico" style="background:rgba(34,211,238,0.1);color:var(--xcyan)"><i class="fas fa-microphone"></i></div>
-            <span class="x-art-txt">5 غرف صوتية مؤقتة نشطة</span>
-            <span class="x-art-val">1د</span>
-          </div>
-          <div class="x-art-row">
-            <div class="x-art-ico" style="background:rgba(248,113,113,0.1);color:#f87171"><i class="fas fa-bell"></i></div>
-            <span class="x-art-txt">إشعار جديد — يوتيوب</span>
-            <span class="x-art-val">3د</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="x-sec">
-    <div class="x-sec-inner">
-      <div class="x-head">
-        <div class="x-tag x-tag-blue"><i class="fas fa-cubes"></i> الأنظمة</div>
-        <h2>أدوات متكاملة <em>لسيرفرك</em></h2>
-        <p>ستة أنظمة احترافية في لوحة واحدة — كل ما تحتاجه لإدارة سيرفر ديسكورد</p>
-      </div>
-      <div class="x-feats">
-        <div class="x-feat">
-          <div class="x-feat-ico" style="background:rgba(59,130,246,0.08);color:var(--xblue)"><i class="fas fa-robot"></i></div>
-          <div class="x-feat-body">
-            <h3>نظام حماية</h3>
-            <p>كشف تلقائي للهجمات والروابط الضارة مع فلترة ذكية وإعدادات أمان لكل سيرفر</p>
-          </div>
-        </div>
-        <div class="x-feat">
-          <div class="x-feat-ico" style="background:rgba(139,92,246,0.08);color:var(--xpurple)"><i class="fas fa-headset"></i></div>
-          <div class="x-feat-body">
-            <h3>نظام تذاكر</h3>
-            <p>فريق دعم بصلاحيات مخصصة ونظام تقييم وأرشفة ذكية للتذاكر المغلقة</p>
-          </div>
-        </div>
-        <div class="x-feat">
-          <div class="x-feat-ico" style="background:rgba(34,211,238,0.08);color:var(--xcyan)"><i class="fas fa-wave-square"></i></div>
-          <div class="x-feat-body">
-            <h3>غرف صوتية</h3>
-            <p>غرف مؤقتة بنظام Join-to-Create مع توليد تلقائي وتحكم كامل بالصلاحيات</p>
-          </div>
-        </div>
-        <div class="x-feat">
-          <div class="x-feat-ico" style="background:rgba(248,113,113,0.08);color:#f87171"><i class="fas fa-gavel"></i></div>
-          <div class="x-feat-body">
-            <h3>الإشراف</h3>
-            <p>أوامر إشراف متقدمة مع سجل مخالفات ونظام تحذيرات تدريجي حتى الحظر</p>
-          </div>
-        </div>
-        <div class="x-feat">
-          <div class="x-feat-ico" style="background:rgba(52,211,153,0.08);color:#34d399"><i class="fas fa-broadcast-tower"></i></div>
-          <div class="x-feat-body">
-            <h3>متابعة منصات</h3>
-            <p>إشعارات فورية ليوتيوب، تويتر، تويتش، كيك مع نظام متابعة تلقائي بالكامل</p>
-          </div>
-        </div>
-        <div class="x-feat">
-          <div class="x-feat-ico" style="background:rgba(251,191,36,0.08);color:#fbbf24"><i class="fas fa-chart-pie"></i></div>
-          <div class="x-feat-body">
-            <h3>تحليلات</h3>
-            <p>لوحة بيانات تفاعلية مع رسوم بيانية وتقارير دورية عن نشاط البوت والسيرفر</p>
+          <div class="f-frame-b">
+            <div class="f-frame-row">
+              <div class="f-row-icon" style="background:rgba(99,102,241,0.08);color:var(--fp)"><i class="fas fa-shield-alt"></i></div>
+              <div class="f-row-info">
+                <div class="f-row-title">نظام الحماية</div>
+                <div class="f-row-sub">12 هجوم تم حظره</div>
+              </div>
+              <span class="f-row-val">نشط</span>
+            </div>
+            <div class="f-frame-row">
+              <div class="f-row-icon" style="background:rgba(139,92,246,0.08);color:var(--fp2)"><i class="fas fa-ticket-alt"></i></div>
+              <div class="f-row-info">
+                <div class="f-row-title">التذاكر</div>
+                <div class="f-row-sub">3 تذاكر مفتوحة</div>
+              </div>
+              <span class="f-row-val">جديد</span>
+            </div>
+            <div class="f-frame-row">
+              <div class="f-row-icon" style="background:rgba(52,211,153,0.08);color:#34d399"><i class="fas fa-microphone"></i></div>
+              <div class="f-row-info">
+                <div class="f-row-title">الغرف الصوتية</div>
+                <div class="f-row-sub">5 غرف نشطة حالياً</div>
+              </div>
+              <span class="f-row-val">مباشر</span>
+            </div>
+            <div class="f-frame-row">
+              <div class="f-row-icon" style="background:rgba(248,113,113,0.08);color:#f87171"><i class="fas fa-bell"></i></div>
+              <div class="f-row-info">
+                <div class="f-row-title">الإشعارات</div>
+                <div class="f-row-sub">إشعار جديد من يوتيوب</div>
+              </div>
+              <span class="f-row-val">جديد</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <div class="x-strip">
-    <div class="x-strip-inner">
-      <div class="x-strip-head">
-        <div class="x-tag x-tag-purple" style="margin:0 auto 10px"><i class="fas fa-chart-simple"></i> إحصائيات</div>
-        <h2>منصة <em>بأرقام</em></h2>
+  <div class="f-band">
+    <div class="f-band-inner">
+      <div class="f-band-item">
+        <span class="f-band-num">6</span>
+        <span class="f-band-lbl">أنظمة أمان</span>
+      </div>
+      <div class="f-band-item">
+        <span class="f-band-num" id="heroCmdCount">—</span>
+        <span class="f-band-lbl">أمر منفذ</span>
+      </div>
+      <div class="f-band-item">
+        <span class="f-band-num">100%</span>
+        <span class="f-band-lbl">وقت تشغيل</span>
+      </div>
+      <div class="f-band-item">
+        <span class="f-band-num">24/7</span>
+        <span class="f-band-lbl">دعم فني</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="f-sec">
+    <div class="f-sec-inner">
+      <div class="f-center">
+        <div class="f-label f-label-p"><i class="fas fa-cubes"></i> المزايا</div>
+        <h2>كل أدوات <em>الإدارة</em> في مكان</h2>
+        <p>مجموعة أنظمة متكاملة صممت خصيصاً لتسهيل إدارة سيرفر ديسكورد بشكل احترافي</p>
+      </div>
+      <div class="f-cards">
+        <div class="f-card">
+          <div class="f-cicon" style="background:rgba(99,102,241,0.08);color:var(--fp)"><i class="fas fa-robot"></i></div>
+          <h3>حماية تلقائية</h3>
+          <p>كشف وحظر تلقائي للهجمات، السبام، والروابط الضارة مع إعدادات أمان ذكية وفلترة مخصصة</p>
+        </div>
+        <div class="f-card">
+          <div class="f-cicon" style="background:rgba(139,92,246,0.08);color:var(--fp2)"><i class="fas fa-headset"></i></div>
+          <h3>نظام دعم فني</h3>
+          <p>تذاكر دعم بصلاحيات متعددة المستويات مع تقييم الأداء وإدارة متقدمة لفريق الدعم</p>
+        </div>
+        <div class="f-card">
+          <div class="f-cicon" style="background:rgba(52,211,153,0.08);color:#34d399"><i class="fas fa-wave-square"></i></div>
+          <h3>رومات ديناميكية</h3>
+          <p>قنوات صوتية مؤقتة مع إنشاء تلقائي، تخصيص كامل، وتحكم دقيق بالصلاحيات والإعدادات</p>
+        </div>
+        <div class="f-card">
+          <div class="f-cicon" style="background:rgba(248,113,113,0.08);color:#f87171"><i class="fas fa-gavel"></i></div>
+          <h3>إشراف متقدم</h3>
+          <p>أوامر مراقبة وإدارة مع سجل مخالفات مفصل، تحذيرات تدريجية، ونظام عقوبات متكامل</p>
+        </div>
+        <div class="f-card">
+          <div class="f-cicon" style="background:rgba(251,191,36,0.08);color:#fbbf24"><i class="fas fa-broadcast-tower"></i></div>
+          <h3>متابعة ذكية</h3>
+          <p>رصد فوري لقنوات يوتيوب، تويتر، تويتش، كيك مع إشعارات لحظية وإدارة تلقائية بالكامل</p>
+        </div>
+        <div class="f-card">
+          <div class="f-cicon" style="background:rgba(96,165,250,0.08);color:#60a5fa"><i class="fas fa-chart-pie"></i></div>
+          <h3>تحليلات دقيقة</h3>
+          <p>إحصائيات ورسوم بيانية تفاعلية عن أداء السيرفر ونشاط البوت مع تقارير دورية شاملة</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="f-sec" style="padding-top:0">
+    <div class="f-sec-inner">
+      <div class="f-center">
+        <div class="f-label f-label-v"><i class="fas fa-arrow-right"></i> خطوات التشغيل</div>
+        <h2>ابدأ في <em>3 خطوات</em></h2>
+        <p>من التسجيل إلى الإدارة الكاملة — وصول سريع ومباشر بدون تعقيد</p>
+      </div>
+      <div class="f-steps">
+        <div class="f-step">
+          <div class="f-step-num">1</div>
+          <h4>سجل دخولك</h4>
+          <p>استخدم حساب ديسكورد الخاص بك للدخول المباشر والآمن إلى لوحة التحكم</p>
+        </div>
+        <div class="f-step">
+          <div class="f-step-num">2</div>
+          <h4>اختر سيرفرك</h4>
+          <p>اختر السيرفر الذي تديره من القائمة وابدأ في استكشاف الأدوات المتاحة</p>
+        </div>
+        <div class="f-step">
+          <div class="f-step-num">3</div>
+          <h4>فعّل الإعدادات</h4>
+          <p>خصص إعدادات الحماية، التذاكر، والصلاحيات حسب احتياجات سيرفرك</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="f-sec" style="padding-top:0">
+    <div class="f-sec-inner">
+      <div class="f-center">
+        <div class="f-label f-label-p"><i class="fas fa-chart-simple"></i> إحصائيات</div>
+        <h2>البوت <em>بالأرقام</em></h2>
+        <p>إحصائيات حية تعكس أداء البوت وانتشاره</p>
       </div>
       <div class="lp-stats" style="display:none">
         <div class="lp-stat">
@@ -420,43 +480,45 @@ a { text-decoration:none; color:inherit; }
           <span class="lp-stat-desc">إجمالي الأوامر</span>
         </div>
       </div>
-      <div class="x-stats">
-        <div class="x-stat">
-          <span class="x-stat-num">6</span>
-          <span class="x-stat-lbl">أنظمة أمان</span>
+      <div class="f-stats">
+        <div class="f-sitem">
+          <span class="f-sval">6</span>
+          <span class="f-slbl">أنظمة أمان</span>
         </div>
-        <div class="x-stat">
-          <span class="x-stat-num" id="statTickets">—</span>
-          <span class="x-stat-lbl">تذاكر</span>
+        <div class="f-sitem">
+          <span class="f-sval" id="statTickets">—</span>
+          <span class="f-slbl">تذاكر</span>
         </div>
-        <div class="x-stat">
-          <span class="x-stat-num" id="statVoice">—</span>
-          <span class="x-stat-lbl">أوامر صوتية</span>
+        <div class="f-sitem">
+          <span class="f-sval" id="statVoice">—</span>
+          <span class="f-slbl">أوامر صوتية</span>
         </div>
-        <div class="x-stat">
-          <span class="x-stat-num" id="statTotal">—</span>
-          <span class="x-stat-lbl">إجمالي الأوامر</span>
+        <div class="f-sitem">
+          <span class="f-sval" id="statTotal">—</span>
+          <span class="f-slbl">إجمالي الأوامر</span>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <section class="x-cta">
-    <div class="x-cta-box">
-      <h2>انطلق مع FX9</h2>
-      <p>حوّل سيرفرك إلى بيئة منظمة وآمنة — كل الأدوات التي تحتاجها في مكان واحد</p>
-      <% if (locals.user) { %>
-        <a href="/home" class="x-btn x-btn-pri"><i class="fas fa-th-large"></i> ابدأ الآن</a>
-      <% } else { %>
-        <a href="/auth/discord" class="x-btn x-btn-pri"><i class="fab fa-discord"></i> سجل وانطلق</a>
-      <% } %>
+  <section class="f-sec" style="padding-top:0">
+    <div class="f-sec-inner">
+      <div class="f-cta">
+        <h2>انطلق مع FX9</h2>
+        <p>أقوى أدوات إدارة السيرفرات — مجانية، سريعة، ومتاحة الآن</p>
+        <% if (locals.user) { %>
+          <a href="/home" class="f-btn f-btn-p"><i class="fas fa-th-large"></i> ابدأ الإدارة</a>
+        <% } else { %>
+          <a href="/auth/discord" class="f-btn f-btn-p"><i class="fab fa-discord"></i> سجل وانطلق</a>
+        <% } %>
+      </div>
     </div>
   </section>
 
-  <footer class="x-foot">
-    <div class="x-foot-inner">
+  <footer class="f-footer">
+    <div class="f-footer-inner">
       <span>© 2026 FX9 — جميع الحقوق محفوظة</span>
-      <div class="x-foot-links">
+      <div class="f-fsocial">
         <a href="#"><i class="fab fa-discord"></i></a>
         <a href="#"><i class="fab fa-github"></i></a>
       </div>
@@ -465,123 +527,67 @@ a { text-decoration:none; color:inherit; }
 
   <style>
     .mnt-banner {
-      position: sticky; top: 0; z-index: 10000;
-      background: rgba(237,66,69,0.18);
-      backdrop-filter: blur(24px) saturate(1.8);
-      -webkit-backdrop-filter: blur(24px) saturate(1.8);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      animation: mntSlideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      position: sticky; top:0; z-index:10000;
+      background:rgba(237,66,69,0.18); backdrop-filter:blur(24px) saturate(1.8);
+      -webkit-backdrop-filter:blur(24px) saturate(1.8);
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      animation:mntSD 0.5s cubic-bezier(0.16,1,0.3,1);
     }
-    @keyframes mntSlideDown {
-      from { transform: translateY(-100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
+    @keyframes mntSD { from{transform:translateY(-100%);opacity:0} to{transform:translateY(0);opacity:1} }
     .mnt-banner-inner {
-      max-width: 1100px; margin: 0 auto; padding: 8px 20px;
-      display: flex; align-items: center; gap: 12px; direction: rtl;
+      max-width:1100px; margin:0 auto; padding:8px 20px;
+      display:flex; align-items:center; gap:12px; direction:rtl;
     }
     .mnt-banner-icon {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: rgba(237,66,69,0.2); border: 1px solid rgba(237,66,69,0.25);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.85rem; color: #ed4245; flex-shrink: 0;
+      width:32px; height:32px; border-radius:50%;
+      background:rgba(237,66,69,0.2); border:1px solid rgba(237,66,69,0.25);
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.85rem; color:#ed4245; flex-shrink:0;
     }
-    .mnt-banner-text { flex: 1; }
-    .mnt-banner-title {
-      font-weight: 700; font-size: 0.82rem;
-      color: rgba(255,255,255,0.85); margin-bottom: 1px;
-    }
-    .mnt-banner-desc {
-      font-size: 0.72rem; color: rgba(255,255,255,0.45);
-      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    }
+    .mnt-banner-text { flex:1; }
+    .mnt-banner-title { font-weight:700; font-size:0.82rem; color:rgba(255,255,255,0.85); margin-bottom:1px; }
+    .mnt-banner-desc { font-size:0.72rem; color:rgba(255,255,255,0.45); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
     .mnt-banner-time {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 1px 10px; border-radius: 20px;
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06);
-      font-family: 'Cairo', monospace; font-size: 0.72rem;
-      color: rgba(255,255,255,0.6); direction: ltr;
+      display:inline-flex; align-items:center; gap:4px;
+      padding:1px 10px; border-radius:20px;
+      background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.06);
+      font-family:'Cairo',monospace; font-size:0.72rem; color:rgba(255,255,255,0.6); direction:ltr;
     }
-    .mnt-banner-time i {
-      font-size: 0.55rem; color: #ed4245;
-      animation: mntBlink 1.2s ease-in-out infinite;
-    }
-    @keyframes mntBlink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.2; }
-    }
-    body.mnt-active .x-nav { top: 52px; }
-    body.mnt-active .mnt-banner { position: fixed; left: 0; right: 0; }
-    @media (max-width: 768px) {
-      .mnt-banner-inner { flex-direction: row; text-align: right; padding: 6px 14px; gap: 8px; }
-      .mnt-banner-title { font-size: 0.75rem; }
-    }
+    .mnt-banner-time i { font-size:0.55rem; color:#ed4245; animation:mntBl 1.2s ease-in-out infinite; }
+    @keyframes mntBl { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    body.mnt-active .f-nav { top:52px; }
+    body.mnt-active .mnt-banner { position:fixed; left:0; right:0; }
+    @media(max-width:768px){ .mnt-banner-inner{flex-direction:row;text-align:right;padding:6px 14px;gap:8px} .mnt-banner-title{font-size:0.75rem} }
   </style>
   <script src="/js/main.js"></script>
   <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    function setStatsFallback() {
-      var fb = { 'أنظمة حماية': 6, 'أوامر تذاكر': 9, 'أوامر صوتية': 15, 'إجمالي الأوامر': 55 };
-      document.querySelectorAll('.lp-stat-num').forEach(function(el) {
-        var label = (el.closest('.lp-stat')?.querySelector('.lp-stat-desc')?.textContent || '').trim();
-        for (var key in fb) {
-          if (label.includes(key)) {
-            var val = fb[key];
-            el.textContent = val;
-            var id = '';
-            if (label.includes('أوامر تذاكر')) id = 'statTickets';
-            else if (label.includes('أوامر صوتية')) id = 'statVoice';
-            else if (label.includes('إجمالي الأوامر')) id = 'statTotal';
-            var pg = document.getElementById(id);
-            if (pg) pg.textContent = val;
-            break;
-          }
-        }
+  document.addEventListener('DOMContentLoaded',function(){
+    function sfb(){
+      var fb={'أنظمة حماية':6,'أوامر تذاكر':9,'أوامر صوتية':15,'إجمالي الأوامر':55};
+      document.querySelectorAll('.lp-stat-num').forEach(function(el){
+        var lb=(el.closest('.lp-stat')?.querySelector('.lp-stat-desc')?.textContent||'').trim();
+        for(var k in fb){if(lb.includes(k)){var v=fb[k];el.textContent=v;var id='';if(lb.includes('أوامر تذاكر'))id='statTickets';else if(lb.includes('أوامر صوتية'))id='statVoice';else if(lb.includes('إجمالي الأوامر'))id='statTotal';var pg=document.getElementById(id);if(pg)pg.textContent=v;break}}
       });
-      var h = document.getElementById('heroCmdCount');
-      if (h) h.textContent = '55';
+      var h=document.getElementById('heroCmdCount');if(h)h.textContent='55';
     }
-    function setStatsFromApi(map, totalStats) {
-      document.querySelectorAll('.lp-stat-num').forEach(function(el) {
-        var label = (el.closest('.lp-stat')?.querySelector('.lp-stat-desc')?.textContent || '').trim();
-        var val = 0;
-        if (label.includes('أوامر تذاكر'))        val = map['ticket'] || 0;
-        else if (label.includes('أوامر صوتية'))    val = map['voice'] || 0;
-        else if (label.includes('إجمالي الأوامر')) val = totalStats;
-        else if (label.includes('أنظمة حماية'))    val = 6;
-        el.textContent = val;
-        var id = '';
-        if (label.includes('أوامر تذاكر')) id = 'statTickets';
-        else if (label.includes('أوامر صوتية')) id = 'statVoice';
-        else if (label.includes('إجمالي الأوامر')) id = 'statTotal';
-        var pg = document.getElementById(id);
-        if (pg) pg.textContent = val;
+    function sfa(map,ttl){
+      document.querySelectorAll('.lp-stat-num').forEach(function(el){
+        var lb=(el.closest('.lp-stat')?.querySelector('.lp-stat-desc')?.textContent||'').trim();
+        var v=0;if(lb.includes('أوامر تذاكر'))v=map['ticket']||0;else if(lb.includes('أوامر صوتية'))v=map['voice']||0;else if(lb.includes('إجمالي الأوامر'))v=ttl;else if(lb.includes('أنظمة حماية'))v=6;
+        el.textContent=v;var id='';if(lb.includes('أوامر تذاكر'))id='statTickets';else if(lb.includes('أوامر صوتية'))id='statVoice';else if(lb.includes('إجمالي الأوامر'))id='statTotal';var pg=document.getElementById(id);if(pg)pg.textContent=v;
       });
-      var h = document.getElementById('heroCmdCount');
-      if (h) h.textContent = totalStats || 0;
+      var h=document.getElementById('heroCmdCount');if(h)h.textContent=ttl||0;
     }
-    fetch('/api/commands/stats')
-      .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
-      .then(function(s) { setStatsFromApi(s.perCategory || {}, s.total || 0); })
-      .catch(setStatsFallback);
-    var mc = document.createElement('div');
-    mc.id = 'mntBanner';
-    document.body.prepend(mc);
-    var md = null, ms = null, me = null, mr = null, mb = false;
-    function fmt(t) {
-      if (t <= 0) return '0ث';
-      var h = Math.floor(t / 3600000), m = Math.floor((t % 3600000) / 60000), s = Math.floor((t % 60000) / 1000);
-      return (h ? h + 'س ' : '') + (m ? m + 'د ' : '') + s + 'ث';
-    }
-    function build() {
-      mc.innerHTML = '<div class="mnt-banner"><div class="mnt-banner-inner"><div class="mnt-banner-icon"><i class="fas fa-shield-halved"></i></div><div class="mnt-banner-text"><div class="mnt-banner-title">FADIX9 SYSTEM Bot v1.0.11 — وضع الصيانة مفعل</div><div class="mnt-banner-desc"><span class="mnt-banner-time"><i class="fas fa-circle"></i> <span id="mntTimer">...</span></span><span id="mntMessage"></span></div></div></div></div>';
-      document.body.classList.add('mnt-active'); mb = true; tick();
-    }
-    function remove() { mc.innerHTML = ''; document.body.classList.remove('mnt-active'); mb = false; }
-    function upd() { if (!md || !md.enabled) { remove(); return; } if (!mb) build(); var e = document.getElementById('mntMessage'); if (e) e.textContent = md.message || 'الموقع تحت الصيانة حالياً'; }
-    function tick() { var e = document.getElementById('mntTimer'), w = e && e.parentElement; if (!e || !w || !md || !md.enabled) return; if (me && mr !== null) { w.style.display = ''; e.textContent = 'متبقي ' + fmt(mr); if (mr > 0) mr = Math.max(0, mr - 1000); } else { w.style.display = 'none'; } }
-    async function chk() { try { var r = await fetch('/dev/maintenance/status'), d = await r.json(); if (d.enabled) { ms = Number(d.startedAt) || Date.now(); me = d.endTime ? Number(d.endTime) : null; mr = typeof d.remainMs === 'number' ? d.remainMs : null; md = d; } else { md = null; ms = null; me = null; mr = null; } upd(); } catch {} }
-    chk(); setInterval(chk, 30000); setInterval(tick, 1000);
+    fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){sfa(s.perCategory||{},s.total||0)}).catch(sfb);
+    var mc=document.createElement('div');mc.id='mntBanner';document.body.prepend(mc);
+    var md=null,ms=null,me=null,mr=null,mb=false;
+    function fmt(t){if(t<=0)return'0ث';var h=Math.floor(t/3600000),m=Math.floor((t%3600000)/60000),s=Math.floor((t%60000)/1000);return(h?h+'س ':'')+(m?m+'د ':'')+s+'ث'}
+    function bld(){mc.innerHTML='<div class="mnt-banner"><div class="mnt-banner-inner"><div class="mnt-banner-icon"><i class="fas fa-shield-halved"></i></div><div class="mnt-banner-text"><div class="mnt-banner-title">FADIX9 SYSTEM Bot v1.0.11 — وضع الصيانة مفعل</div><div class="mnt-banner-desc"><span class="mnt-banner-time"><i class="fas fa-circle"></i> <span id="mntTimer">...</span></span><span id="mntMessage"></span></div></div></div></div>';document.body.classList.add('mnt-active');mb=true;tick()}
+    function rem(){mc.innerHTML='';document.body.classList.remove('mnt-active');mb=false}
+    function upd(){if(!md||!md.enabled){rem();return}if(!mb)bld();var e=document.getElementById('mntMessage');if(e)e.textContent=md.message||'الموقع تحت الصيانة حالياً'}
+    function tick(){var e=document.getElementById('mntTimer'),w=e&&e.parentElement;if(!e||!w||!md||!md.enabled)return;if(me&&mr!==null){w.style.display='';e.textContent='متبقي '+fmt(mr);if(mr>0)mr=Math.max(0,mr-1000)}else{w.style.display='none'}}
+    async function chk(){try{var r=await fetch('/dev/maintenance/status'),d=await r.json();if(d.enabled){ms=Number(d.startedAt)||Date.now();me=d.endTime?Number(d.endTime):null;mr=typeof d.remainMs==='number'?d.remainMs:null;md=d}else{md=null;ms=null;me=null;mr=null}upd()}catch{}}
+    chk();setInterval(chk,30000);setInterval(tick,1000);
   });
   </script>
 </body>
