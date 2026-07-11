@@ -3,97 +3,183 @@
 <%
   const guilds = user?.guilds || [];
 %>
-<div class="x">
-  <div class="x-top">
-    <div>
-      <div class="x-tag"><i class="fas fa-bolt"></i> FX9 Bot v5.0</div>
-      <h1 class="x-hi"><%= user.globalName || user.username %></h1>
-      <p class="x-sub">لوحة تحكم متكاملة — جميع الأنظمة تحت سيطرتك</p>
+<div class="p">
+  <div class="p-bg">
+    <div class="p-orb p-o1"></div>
+    <div class="p-orb p-o2"></div>
+    <div class="p-orb p-o3"></div>
+  </div>
+  <div class="p-grid"></div>
+
+  <div class="p-hero">
+    <div class="p-h-left">
+      <div class="p-avatar-ring">
+        <div class="p-avatar">
+          <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="">
+          <span class="p-dot"></span>
+        </div>
+      </div>
+      <div class="p-badge"><i class="fas fa-bolt"></i> FX9 Bot v5.0</div>
+      <h1 class="p-greeting">مرحباً، <span class="p-grad"><%= user.globalName || user.username %></span></h1>
+      <p class="p-bio">لوحة تحكم متكاملة — أنظمة الحماية، التذاكر، الصوت، والإشراف في مكان واحد</p>
     </div>
-    <div class="x-now" id="xNow"></div>
+    <div class="p-h-right">
+      <div class="p-stat p-stat-p">
+        <div class="p-stat-ring"><i class="fas fa-server"></i></div>
+        <div class="p-stat-body">
+          <span class="p-sn"><%= managedGuilds.length %></span>
+          <span class="p-sl">سيرفر تديره</span>
+        </div>
+      </div>
+      <div class="p-stat p-stat-g">
+        <div class="p-stat-ring"><i class="fas fa-layer-group"></i></div>
+        <div class="p-stat-body">
+          <span class="p-sn"><%= guilds.length %></span>
+          <span class="p-sl">إجمالي سيرفراتك</span>
+        </div>
+      </div>
+      <div class="p-stat p-stat-a">
+        <div class="p-stat-ring"><i class="fas fa-terminal"></i></div>
+        <div class="p-stat-body">
+          <span class="p-sn" id="pCmd">—</span>
+          <span class="p-sl">أمر منفذ</span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="x-bar">
-    <div class="x-item">
-      <span class="x-n"><%= managedGuilds.length %></span>
-      <span class="x-l">سيرفراتك</span>
-    </div>
-    <div class="x-item">
-      <span class="x-n"><%= guilds.length %></span>
-      <span class="x-l">إجمالي</span>
-    </div>
-    <div class="x-item">
-      <span class="x-n" id="xCt">—</span>
-      <span class="x-l">أمر</span>
-    </div>
-    <div class="x-item">
-      <span class="x-n"><%= user.dashboardRole || 'member' %></span>
-      <span class="x-l">دورك</span>
-    </div>
-  </div>
+  <div class="p-divider"><span><i class="fas fa-cubes"></i> الأنظمة</span></div>
 
-  <div class="x-g">
+  <div class="p-grid-c">
     <% if (roleLevel >= 3) { %>
-    <a href="/dashboard" class="x-c" style="--c:#6366f1"><i class="fas fa-th-large" style="background:rgba(99,102,241,0.08);color:#6366f1"></i><span>لوحة التحكم</span></a>
+    <a href="/dashboard" class="p-card" style="--pc:#6366f1">
+      <div class="p-card-glow"></div>
+      <div class="p-card-head"><div class="p-ci" style="background:rgba(99,102,241,0.1);color:#6366f1"><i class="fas fa-th-large"></i></div></div>
+      <h3>لوحة التحكم</h3>
+      <p>نظرة عامة وإحصائيات</p>
+      <div class="p-card-line"></div>
+    </a>
     <% } %>
-    <a href="/guilds" class="x-c" style="--c:#34d399"><i class="fas fa-server" style="background:rgba(52,211,153,0.08);color:#34d399"></i><span>السيرفرات</span></a>
-    <a href="/guilds" class="x-c" style="--c:#fbbf24"><i class="fas fa-ticket-alt" style="background:rgba(251,191,36,0.08);color:#fbbf24"></i><span>التذاكر</span></a>
+    <a href="/guilds" class="p-card" style="--pc:#34d399">
+      <div class="p-card-glow"></div>
+      <div class="p-card-head"><div class="p-ci" style="background:rgba(52,211,153,0.1);color:#34d399"><i class="fas fa-server"></i></div></div>
+      <h3>السيرفرات</h3>
+      <p>تصفح وإدارة</p>
+      <div class="p-card-line"></div>
+    </a>
+    <a href="/guilds" class="p-card" style="--pc:#fbbf24">
+      <div class="p-card-glow"></div>
+      <div class="p-card-head"><div class="p-ci" style="background:rgba(251,191,36,0.1);color:#fbbf24"><i class="fas fa-ticket-alt"></i></div></div>
+      <h3>التذاكر</h3>
+      <p>دعم فني متكامل</p>
+      <div class="p-card-line"></div>
+    </a>
     <% if (roleLevel >= 2) { %>
-    <a href="/docs#protection" class="x-c" style="--c:#f87171"><i class="fas fa-shield-alt" style="background:rgba(248,113,113,0.08);color:#f87171"></i><span>الحماية</span></a>
+    <a href="/docs#protection" class="p-card" style="--pc:#f87171">
+      <div class="p-card-glow"></div>
+      <div class="p-card-head"><div class="p-ci" style="background:rgba(248,113,113,0.1);color:#f87171"><i class="fas fa-shield-alt"></i></div></div>
+      <h3>الحماية</h3>
+      <p>أمان وحظر ذكي</p>
+      <div class="p-card-line"></div>
+    </a>
     <% } %>
     <% if (roleLevel >= 1) { %>
-    <a href="/docs#voice" class="x-c" style="--c:#a78bfa"><i class="fas fa-microphone" style="background:rgba(167,139,250,0.08);color:#a78bfa"></i><span>الغرف</span></a>
+    <a href="/docs#voice" class="p-card" style="--pc:#a78bfa">
+      <div class="p-card-glow"></div>
+      <div class="p-card-head"><div class="p-ci" style="background:rgba(167,139,250,0.1);color:#a78bfa"><i class="fas fa-microphone"></i></div></div>
+      <h3>الغرف الصوتية</h3>
+      <p>رومات مؤقتة</p>
+      <div class="p-card-line"></div>
+    </a>
     <% } %>
     <% if (roleLevel >= 2) { %>
-    <a href="/docs#commands" class="x-c" style="--c:#60a5fa"><i class="fas fa-terminal" style="background:rgba(96,165,250,0.08);color:#60a5fa"></i><span>الأوامر</span></a>
+    <a href="/docs#commands" class="p-card" style="--pc:#60a5fa">
+      <div class="p-card-glow"></div>
+      <div class="p-card-head"><div class="p-ci" style="background:rgba(96,165,250,0.1);color:#60a5fa"><i class="fas fa-terminal"></i></div></div>
+      <h3>الأوامر</h3>
+      <p>صلاحيات وتحكم</p>
+      <div class="p-card-line"></div>
+    </a>
     <% } %>
   </div>
 
-  <div class="x-q">
-    <a href="/status" class="x-qc"><i class="fas fa-heartbeat" style="color:#6366f1"></i><span>حالة البوت</span></a>
-    <% if (roleLevel >= 4) { %><a href="/dev" class="x-qc"><i class="fas fa-code" style="color:#a78bfa"></i><span>المطور</span></a><% } %>
-    <a href="/docs" class="x-qc"><i class="fas fa-book" style="color:#34d399"></i><span>التوثيق</span></a>
-    <button onclick="toggleTheme()" class="x-qc" style="cursor:pointer;border:none;font-family:var(--font)"><i class="fas fa-palette" style="color:#fbbf24"></i><span>السمة</span></button>
+  <div class="p-divider"><span><i class="fas fa-link"></i> روابط</span></div>
+
+  <div class="p-qs">
+    <a href="/status" class="p-q" style="--qc:#6366f1"><i class="fas fa-heartbeat"></i><span>حالة البوت</span></a>
+    <% if (roleLevel >= 4) { %><a href="/dev" class="p-q" style="--qc:#a78bfa"><i class="fas fa-code"></i><span>المطور</span></a><% } %>
+    <a href="/docs" class="p-q" style="--qc:#34d399"><i class="fas fa-book"></i><span>التوثيق</span></a>
+    <button onclick="toggleTheme()" class="p-q" style="--qc:#fbbf24;cursor:pointer;border:none;font-family:var(--font)"><i class="fas fa-palette"></i><span>السمة</span></button>
   </div>
 </div>
 
 <style>
-.x{max-width:1000px;margin:0 auto}
-.x-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-.x-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:20px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.07);font-size:0.62rem;font-weight:600;color:#818cf8;margin-bottom:4px}
-.x-hi{font-size:1.5rem;font-weight:800;margin:0;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
-.x-sub{font-size:0.78rem;color:rgba(255,255,255,0.25);margin:0}
-.x-now{font-size:0.75rem;color:rgba(255,255,255,0.15);font-weight:500;text-align:left;flex-shrink:0}
+.p{max-width:1100px;margin:0 auto;position:relative}
+.p-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
+.p-orb{position:absolute;border-radius:50%;filter:blur(150px)}
+.p-o1{width:600px;height:600px;background:#6366f1;top:-300px;left:-150px;opacity:0.04;animation:pF 18s ease-in-out infinite}
+.p-o2{width:400px;height:400px;background:#8b5cf6;bottom:-200px;right:-100px;opacity:0.03;animation:pF 18s ease-in-out infinite;animation-delay:-6s}
+.p-o3{width:300px;height:300px;background:#fbbf24;top:40%;right:30%;opacity:0.02;animation:pF 18s ease-in-out infinite;animation-delay:-12s}
+@keyframes pF{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.05)}66%{transform:translate(-20px,30px) scale(0.95)}}
+.p-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;opacity:0.5}
 
-.x-bar{display:flex;gap:0;margin-bottom:22px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);background:#0c0c1a}
-.x-item{flex:1;padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.04)}
-.x-item:first-child{border-right:none}
-.x-n{display:block;font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.x-l{display:block;font-size:0.62rem;color:rgba(255,255,255,0.2);margin-top:1px}
+.p-hero{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;padding:28px 0 20px}
+@media(max-width:800px){.p-hero{grid-template-columns:1fr;gap:24px}}
+.p-h-left{}
+.p-avatar-ring{width:72px;height:72px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#6366f1,#8b5cf6,#fbbf24);margin-bottom:14px;box-shadow:0 0 40px rgba(99,102,241,0.15)}
+.p-avatar{position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#06060e}
+.p-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.p-dot{position:absolute;bottom:1px;right:1px;width:14px;height:14px;border-radius:50%;background:#57f287;border:3px solid #06060e}
+.p-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:100px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.08);font-size:0.68rem;font-weight:600;color:#818cf8;margin-bottom:12px}
+.p-greeting{font-size:2rem;font-weight:800;margin:0 0 6px;line-height:1.2}
+.p-grad{background:linear-gradient(135deg,#6366f1,#8b5cf6,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.p-bio{font-size:0.88rem;color:rgba(255,255,255,0.3);margin:0;line-height:1.7}
 
-.x-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
-@media(max-width:800px){.x-g{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:450px){.x-g{grid-template-columns:1fr}}
+.p-h-right{display:flex;flex-direction:column;gap:10px;justify-content:center}
+.p-stat{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:12px;background:rgba(12,12,26,0.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.04);transition:all 0.35s}
+.p-stat:hover{transform:translateX(-4px);border-color:rgba(255,255,255,0.06)}
+.p-stat-p .p-stat-ring{background:rgba(99,102,241,0.1);color:#6366f1}
+.p-stat-g .p-stat-ring{background:rgba(52,211,153,0.1);color:#34d399}
+.p-stat-a .p-stat-ring{background:rgba(251,191,36,0.1);color:#fbbf24}
+.p-stat-ring{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.p-stat-body{}
+.p-sn{display:block;font-size:1.2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.p-sl{font-size:0.7rem;color:rgba(255,255,255,0.22)}
 
-.x-c{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 12px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);transition:all 0.25s}
-.x-c::after{content:'';position:absolute;bottom:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,var(--c,#6366f1),transparent);opacity:0;transition:opacity 0.25s}
-.x-c:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.06)}
-.x-c:hover::after{opacity:1}
-.x-c i{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all 0.25s}
-.x-c:hover i{box-shadow:0 0 16px color-mix(in srgb,var(--c,#6366f1)10%,transparent)}
-.x-c span{font-size:0.82rem;font-weight:700;color:rgba(255,255,255,0.8)}
+.p-divider{display:flex;align-items:center;gap:14px;margin:28px 0 18px;position:relative;z-index:1}
+.p-divider::before,.p-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,0.12),transparent)}
+.p-divider span{display:inline-flex;align-items:center;gap:7px;font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.2);padding:0 8px}
 
-.x-q{display:flex;gap:6px;flex-wrap:wrap}
-.x-qc{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.45);transition:all 0.25s}
-.x-qc:hover{border-color:rgba(255,255,255,0.06);color:white}
+.p-grid-c{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;position:relative;z-index:1}
+@media(max-width:900px){.p-grid-c{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.p-grid-c{grid-template-columns:1fr}}
+.p-card{position:relative;padding:24px 16px 18px;border-radius:14px;background:rgba(12,12,26,0.5);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.04);text-align:center;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);overflow:hidden;display:block}
+.p-card-glow{position:absolute;top:50%;left:50%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--pc,#6366f1)8%,transparent),transparent 70%);transform:translate(-50%,-50%) scale(0);transition:transform 0.6s cubic-bezier(0.16,1,0.3,1);pointer-events:none}
+.p-card:hover{transform:translateY(-4px) scale(1.01);border-color:color-mix(in srgb,var(--pc,#6366f1)25%,transparent);box-shadow:0 12px 48px rgba(0,0,0,0.2),0 0 60px color-mix(in srgb,var(--pc,#6366f1)4%,transparent)}
+.p-card:hover .p-card-glow{transform:translate(-50%,-50%) scale(1)}
+.p-card-head{display:flex;justify-content:center;margin-bottom:10px}
+.p-ci{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all 0.4s;position:relative;z-index:1}
+.p-card:hover .p-ci{transform:scale(1.1);box-shadow:0 0 30px color-mix(in srgb,var(--pc,#6366f1)15%,transparent)}
+.p-card h3{font-size:0.88rem;font-weight:700;margin:0 0 3px;position:relative;z-index:1}
+.p-card p{font-size:0.7rem;color:rgba(255,255,255,0.22);margin:0;position:relative;z-index:1}
+.p-card-line{position:absolute;bottom:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,var(--pc,#6366f1),transparent);opacity:0;transition:opacity 0.4s;z-index:1}
+.p-card:hover .p-card-line{opacity:1}
 
-@media(max-width:600px){
-  .x-top{flex-direction:column;gap:6px}
-  .x-hi{font-size:1.25rem}
-  .x-q{flex-direction:column}
-  .x-qc{justify-content:center}
+.p-qs{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1}
+.p-q{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:10px;background:rgba(12,12,26,0.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.04);font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.5);transition:all 0.35s;position:relative;overflow:hidden}
+.p-q::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--qc,#6366f1)6%,transparent),transparent);opacity:0;transition:opacity 0.35s}
+.p-q:hover::before{opacity:1}
+.p-q i{position:relative;z-index:1}
+.p-q span{position:relative;z-index:1}
+.p-q:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.06);color:white}
+
+@media(max-width:720px){
+  .p-greeting{font-size:1.5rem}
+  .p-hero{padding:16px 0}
+  .p-qs{flex-direction:column}
+  .p-q{justify-content:center}
 }
 </style>
 <script>
-(function(){var n=document.getElementById('xNow');if(n){var d=new Date();n.textContent=d.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' | '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')}fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('xCt');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('xCt');if(e)e.textContent='55'})})();
+(function(){fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('pCmd');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('pCmd');if(e)e.textContent='55'})})();
 </script>
