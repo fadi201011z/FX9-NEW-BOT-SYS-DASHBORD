@@ -324,40 +324,40 @@ a { text-decoration:none; color:inherit; }
               <div class="f-frame-dot"></div>
               <div class="f-frame-dot"></div>
             </div>
-            <span class="f-frame-title">FX9 Dashboard — نظرة عامة</span>
+            <span class="f-frame-title">إحصائيات البوت — بيانات حية</span>
           </div>
           <div class="f-frame-b">
             <div class="f-frame-row">
-              <div class="f-row-icon" style="background:rgba(99,102,241,0.08);color:var(--fp)"><i class="fas fa-shield-alt"></i></div>
+              <div class="f-row-icon" style="background:rgba(99,102,241,0.08);color:var(--fp)"><i class="fas fa-server"></i></div>
               <div class="f-row-info">
-                <div class="f-row-title">نظام الحماية</div>
-                <div class="f-row-sub">12 هجوم تم حظره</div>
+                <div class="f-row-title">السيرفرات</div>
+                <div class="f-row-sub"><%= (locals.stats && stats.bot && stats.bot.guilds) ? stats.bot.guilds + ' سيرفر' : '— سيرفر' %></div>
               </div>
-              <span class="f-row-val">نشط</span>
+              <span class="f-row-val">متصل</span>
             </div>
             <div class="f-frame-row">
-              <div class="f-row-icon" style="background:rgba(139,92,246,0.08);color:var(--fp2)"><i class="fas fa-ticket-alt"></i></div>
+              <div class="f-row-icon" style="background:rgba(139,92,246,0.08);color:var(--fp2)"><i class="fas fa-users"></i></div>
               <div class="f-row-info">
-                <div class="f-row-title">التذاكر</div>
-                <div class="f-row-sub">3 تذاكر مفتوحة</div>
+                <div class="f-row-title">الأعضاء</div>
+                <div class="f-row-sub"><%= (locals.stats && stats.bot && stats.bot.members) ? Number(stats.bot.members).toLocaleString() + ' عضو' : '— عضو' %></div>
               </div>
-              <span class="f-row-val">جديد</span>
+              <span class="f-row-val"><%= (locals.stats && stats.bot && stats.bot.members) ? 'مُسجَّل' : '—' %></span>
             </div>
             <div class="f-frame-row">
-              <div class="f-row-icon" style="background:rgba(52,211,153,0.08);color:#34d399"><i class="fas fa-microphone"></i></div>
+              <div class="f-row-icon" style="background:rgba(52,211,153,0.08);color:#34d399"><i class="fas fa-terminal"></i></div>
               <div class="f-row-info">
-                <div class="f-row-title">الغرف الصوتية</div>
-                <div class="f-row-sub">5 غرف نشطة حالياً</div>
+                <div class="f-row-title">إجمالي الأوامر</div>
+                <div class="f-row-sub"><%= (locals.stats && stats.cmd) ? (stats.cmd.total || 0) + ' أمر' : '— أمر' %></div>
               </div>
-              <span class="f-row-val">مباشر</span>
+              <span class="f-row-val"><%= (locals.stats && stats.cmd && stats.cmd.total) ? 'منفَّذ' : '—' %></span>
             </div>
             <div class="f-frame-row">
-              <div class="f-row-icon" style="background:rgba(248,113,113,0.08);color:#f87171"><i class="fas fa-bell"></i></div>
+              <div class="f-row-icon" style="background:rgba(248,113,113,0.08);color:#f87171"><i class="fas fa-gauge-high"></i></div>
               <div class="f-row-info">
-                <div class="f-row-title">الإشعارات</div>
-                <div class="f-row-sub">إشعار جديد من يوتيوب</div>
+                <div class="f-row-title">سرعة الاستجابة</div>
+                <div class="f-row-sub"><%= (locals.stats && stats.bot && stats.bot.ping) ? stats.bot.ping + 'ms' : '—' %></div>
               </div>
-              <span class="f-row-val">جديد</span>
+              <span class="f-row-val"><%= (locals.stats && stats.bot && stats.bot.ping && stats.bot.ping < 200) ? 'ممتاز' : (stats.bot && stats.bot.ping ? 'جيد' : '—') %></span>
             </div>
           </div>
         </div>
@@ -578,14 +578,14 @@ a { text-decoration:none; color:inherit; }
       });
       var h=document.getElementById('heroCmdCount');if(h)h.textContent=ttl||0;
     }
-    function updateBandStats(botData){
-      if(!botData)return;
-      var g=document.getElementById('bandGuilds');if(g&&botData.guilds)g.textContent=botData.guilds;
-      var m=document.getElementById('bandMembers');if(m&&botData.members)m.textContent=Number(botData.members).toLocaleString();
-      var p=document.getElementById('bandPing');if(p&&botData.ping)p.textContent=botData.ping+'ms';
+    function updateFrameStats(botData){
+      if(!botData||!botData.guildCount)return;
+      var sd=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v};
+      sd('bandGuilds',botData.guildCount);
+      ['heroCmdCount','bandGuilds','bandMembers','bandPing'].forEach(function(id){var e=document.getElementById(id);if(e&&e.textContent==='—')e.textContent='0'});
     }
     fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){sfa(s.perCategory||{},s.total||0)}).catch(sfb);
-    fetch('/api/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(d){updateBandStats(d)}).catch(function(){});
+    fetch('/api/status').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(d){updateFrameStats(d)}).catch(function(){});
     var mc=document.createElement('div');mc.id='mntBanner';document.body.prepend(mc);
     var md=null,ms=null,me=null,mr=null,mb=false;
     function fmt(t){if(t<=0)return'0ث';var h=Math.floor(t/3600000),m=Math.floor((t%3600000)/60000),s=Math.floor((t%60000)/1000);return(h?h+'س ':'')+(m?m+'د ':'')+s+'ث'}
