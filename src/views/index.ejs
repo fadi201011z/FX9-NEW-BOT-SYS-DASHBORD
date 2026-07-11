@@ -12,7 +12,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="FX9 Dashboard" />
   <meta property="og:locale" content="ar_AR" />
-  <meta name="theme-color" content="#FF0000" />
+  <meta name="theme-color" content="#5865f2" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="FX9 Dashboard — لوحة تحكم البوت" />
   <meta name="twitter:description" content="FX9 Dashboard — لوحة تحكم متقدمة لإدارة بوت FX9 على ديسكورد." />
@@ -21,27 +21,197 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+:root { --lp-primary: #5865f2; --lp-accent: #8b5cf6; --lp-glow: rgba(88,101,242,0.25); }
+.lp-hero {
+  position:relative; min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(160deg, #080a1a 0%, #0c0f28 30%, #0f1230 60%, #080a1a 100%);
+  overflow:hidden;
+}
+.lp-grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(88,101,242,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(88,101,242,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.lp-orb {
+  position:absolute; border-radius:50%; filter:blur(120px);
+  animation: lpFloat 12s ease-in-out infinite;
+}
+.lp-orb-1 { width:600px; height:600px; background:#5865f2; top:-200px; left:-150px; opacity:0.1; animation-delay:0s; }
+.lp-orb-2 { width:450px; height:450px; background:#8b5cf6; bottom:-150px; right:-100px; opacity:0.08; animation-delay:-4s; }
+.lp-orb-3 { width:250px; height:250px; background:#57f287; top:40%; left:60%; opacity:0.05; animation-delay:-8s; }
+@keyframes lpFloat {
+  0%, 100% { transform:translate(0,0) scale(1); }
+  33% { transform:translate(30px,-40px) scale(1.05); }
+  66% { transform:translate(-20px,20px) scale(0.95); }
+}
+.lp-hero-inner {
+  position:relative; z-index:1; text-align:center; max-width:800px; padding:24px;
+}
+.lp-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(88,101,242,0.1); backdrop-filter:blur(10px);
+  border:1px solid rgba(88,101,242,0.2); padding:8px 20px; border-radius:100px;
+  font-size:0.82rem; font-weight:600; color:#818cf8; margin-bottom:28px;
+}
+.lp-badge-dot {
+  width:6px; height:6px; border-radius:50%; background:#57f287;
+  box-shadow:0 0 10px rgba(87,242,135,0.5);
+}
+.lp-hero-inner h1 {
+  font-size:3rem; font-weight:800; line-height:1.3; margin-bottom:16px;
+}
+.lp-hero-inner h1 span {
+  background:linear-gradient(135deg, #5865f2, #8b5cf6, #57f287);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 30px var(--lp-glow));
+}
+.lp-hero-inner p {
+  font-size:1.1rem; color:rgba(255,255,255,0.55); margin-bottom:32px;
+  max-width:560px; margin-inline:auto; line-height:1.8;
+}
+.lp-actions { display:flex; gap:12px; justify-content:center; margin-bottom:48px; }
+.lp-actions .btn {
+  display:inline-flex; align-items:center; gap:8px; padding:12px 32px;
+  border-radius:12px; font-family:var(--font); font-size:0.95rem; font-weight:600;
+  cursor:pointer; transition:all 0.3s; border:none;
+}
+.lp-primary {
+  background:linear-gradient(135deg, #5865f2, #8b5cf6); color:white;
+  box-shadow:0 4px 24px rgba(88,101,242,0.35);
+}
+.lp-primary:hover { transform:translateY(-2px); box-shadow:0 8px 40px rgba(88,101,242,0.5); color:white; }
+.lp-secondary {
+  background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.7);
+  border:1px solid rgba(255,255,255,0.1);
+}
+.lp-secondary:hover { background:rgba(255,255,255,0.1); color:white; border-color:rgba(255,255,255,0.2); }
+.lp-hero-stats {
+  display:flex; gap:48px; justify-content:center;
+}
+.lp-hero-stat { text-align:center; }
+.lp-hero-num { display:block; font-size:1.8rem; font-weight:800; background:linear-gradient(135deg, #5865f2, #8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.lp-hero-label { font-size:0.82rem; color:rgba(255,255,255,0.4); }
+
+.lp-divider { position:relative; height:1px; background:linear-gradient(90deg, transparent, rgba(88,101,242,0.2), transparent); margin:0 24px; }
+
+.lp-section { padding:80px 24px; }
+.lp-section-header { text-align:center; margin-bottom:56px; }
+.lp-section-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(88,101,242,0.08); border:1px solid rgba(88,101,242,0.12);
+  padding:5px 14px; border-radius:20px; font-size:0.75rem; color:#818cf8; font-weight:600;
+  margin-bottom:12px;
+}
+.lp-section-header h2 { font-size:2rem; font-weight:800; margin-bottom:8px; }
+.lp-section-header h2 span { background:linear-gradient(135deg, #5865f2, #8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.lp-section-header p { color:rgba(255,255,255,0.4); font-size:1rem; }
+
+.lp-grid-3 {
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:20px;
+  max-width:1100px; margin:0 auto;
+}
+@media (max-width:900px) { .lp-grid-3 { grid-template-columns:repeat(2, 1fr); } }
+@media (max-width:600px) { .lp-grid-3 { grid-template-columns:1fr; } }
+
+.lp-card {
+  padding:28px 24px; border-radius:14px; text-align:center;
+  background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);
+  transition:all 0.3s; position:relative; overflow:hidden;
+}
+.lp-card::before {
+  content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:50%; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(88,101,242,0.4), transparent);
+  opacity:0; transition:opacity 0.3s;
+}
+.lp-card:hover { transform:translateY(-4px); border-color:rgba(88,101,242,0.15); box-shadow:0 8px 32px rgba(0,0,0,0.3); }
+.lp-card:hover::before { opacity:1; }
+.lp-card-icon {
+  width:50px; height:50px; margin:0 auto 14px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.2rem; color:#5865f2;
+  background:rgba(88,101,242,0.1); box-shadow:0 0 20px rgba(88,101,242,0.1);
+}
+.lp-card h3 { font-size:0.95rem; font-weight:700; margin-bottom:6px; color:rgba(255,255,255,0.9); }
+.lp-card p { font-size:0.8rem; color:rgba(255,255,255,0.35); line-height:1.7; }
+
+.lp-stats {
+  display:flex; justify-content:center; gap:60px; max-width:900px; margin:0 auto;
+}
+@media (max-width:600px) { .lp-stats { flex-direction:column; gap:24px; align-items:center; } }
+.lp-stat { text-align:center; }
+.lp-stat i { font-size:1.5rem; display:block; margin-bottom:8px; color:#5865f2; text-shadow:0 0 16px var(--lp-glow); }
+.lp-stat-num { font-size:2rem; font-weight:800; display:block; background:linear-gradient(135deg, #5865f2, #8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.lp-stat-desc { font-size:0.82rem; color:rgba(255,255,255,0.4); }
+
+.lp-cta {
+  max-width:600px; margin:0 auto; text-align:center;
+  padding:48px; border-radius:16px;
+  background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);
+  position:relative; overflow:hidden;
+}
+.lp-cta::before {
+  content:''; position:absolute; top:0; left:0; right:0;
+  height:2px; background:linear-gradient(90deg, #5865f2, #8b5cf6, #57f287);
+  opacity:0.6;
+}
+.lp-cta h2 { font-size:1.6rem; margin-bottom:8px; }
+.lp-cta p { color:rgba(255,255,255,0.4); margin-bottom:24px; font-size:0.9rem; }
+
+.lp-footer { padding:20px 24px; border-top:1px solid rgba(255,255,255,0.04); margin-top:40px; }
+.lp-footer-inner {
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:0.78rem; color:rgba(255,255,255,0.3); max-width:1100px; margin:0 auto;
+}
+.lp-footer-links { display:flex; gap:16px; }
+.lp-footer-links a { color:rgba(255,255,255,0.3); transition:color 0.3s; }
+.lp-footer-links a:hover { color:rgba(255,255,255,0.6); }
+
+.lp-nav-fixed {
+  position:fixed; top:0; left:0; right:0; z-index:1000;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px; height:64px;
+  background:rgba(8,10,26,0.85); backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.lp-brand { display:flex; align-items:center; gap:8px; font-size:1.05rem; font-weight:800; color:white; }
+.lp-brand i { font-size:1.15rem; color:#5865f2; filter:drop-shadow(0 0 8px rgba(88,101,242,0.4)); }
+
+@media (max-width:768px) {
+  .lp-hero-inner h1 { font-size:2rem; }
+  .lp-hero-inner p { font-size:0.95rem; }
+  .lp-actions { flex-direction:column; align-items:center; }
+  .lp-hero-stats { gap:24px; }
+  .lp-hero-num { font-size:1.3rem; }
+  .lp-section { padding:48px 16px; }
+  .lp-section-header h2 { font-size:1.5rem; }
+  .lp-cta { padding:32px 20px; }
+  .lp-cta h2 { font-size:1.3rem; }
+  .lp-footer-inner { flex-direction:column; gap:8px; text-align:center; }
+}
+  </style>
 </head>
-<body class="landing-page">
-  <nav class="navbar glass landing-nav">
-    <div class="nav-left">
-      <a href="/" class="nav-brand">
-        <i class="fas fa-bolt"></i>
-        <span>FX9 Dashboard</span>
-      </a>
-    </div>
-    <div class="nav-right">
+<body>
+  <nav class="lp-nav-fixed">
+    <a href="/" class="lp-brand">
+      <i class="fas fa-bolt"></i>
+      <span>FX9 Dashboard</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:8px">
       <% if (locals.user) { %>
-        <a href="/home" class="btn-discord" style="margin-left:8px">
+        <a href="/home" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#5865f2,#8b5cf6);color:white;padding:8px 20px;border-radius:10px;font-size:0.85rem;font-weight:600;transition:all 0.3s">
           <i class="fas fa-th-large"></i>
           الصفحة الرئيسية
         </a>
-        <a href="/auth/logout" class="btn-discord" style="background:#ed4245;">
+        <a href="/auth/logout" style="display:inline-flex;align-items:center;gap:6px;background:rgba(237,66,69,0.15);color:#f87171;padding:8px 20px;border-radius:10px;font-size:0.85rem;font-weight:600;transition:all 0.3s">
           <i class="fas fa-sign-out-alt"></i>
-          تسجيل الخروج
+          خروج
         </a>
       <% } else { %>
-        <a href="/auth/discord" class="btn-discord">
+        <a href="/auth/discord" style="display:inline-flex;align-items:center;gap:8px;background:#5865f2;color:white;padding:8px 24px;border-radius:10px;font-size:0.85rem;font-weight:600;transition:all 0.3s">
           <i class="fab fa-discord"></i>
           Login with Discord
         </a>
@@ -50,151 +220,154 @@
   </nav>
 
   <% if (locals.error) { %>
-    <div class="toast-container">
-      <div class="toast glass fade-in-up" style="background:var(--danger);color:white">
-        ⚠️ <%= error === 'auth_failed' ? 'فشل تسجيل الدخول — تحقق من Redirect URI في Discord Developer Portal' : error === 'no_code' ? 'لم يتم استلام رمز التوثيق — حاول مرة أخرى' : error %>
-      </div>
+    <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(237,66,69,0.2);backdrop-filter:blur(20px);border:1px solid rgba(237,66,69,0.2);border-radius:10px;padding:12px 24px;font-size:0.85rem;color:#f87171">
+      ⚠️ <%= error === 'auth_failed' ? 'فشل تسجيل الدخول — تحقق من Redirect URI في Discord Developer Portal' : error === 'no_code' ? 'لم يتم استلام رمز التوثيق — حاول مرة أخرى' : error %>
     </div>
   <% } %>
 
-  <section class="hero">
-    <div class="hero-bg">
-      <div class="hero-shape shape-1"></div>
-      <div class="hero-shape shape-2"></div>
-      <div class="hero-shape shape-3"></div>
-    </div>
-    <div class="hero-content">
-      <div class="hero-badge">
-        <i class="fas fa-bolt"></i>
-        FADIX9 SYSTEM  Bot v1.0.11
+  <section class="lp-hero">
+    <div class="lp-grid"></div>
+    <div class="lp-orb lp-orb-1"></div>
+    <div class="lp-orb lp-orb-2"></div>
+    <div class="lp-orb lp-orb-3"></div>
+    <div class="lp-hero-inner">
+      <div class="lp-badge">
+        <span class="lp-badge-dot"></span>
+        FADIX9 SYSTEM Bot v1.0.11 — البوت متصل
       </div>
-      <h1>لوحة تحكم متكاملة<br>لإدارة <span class="gradient-text">بوتك بالكامل</span></h1>
-      <p>تحكم بجميع أنظمة البوت — الإدارة، التذاكر، الصوت المؤقت، الحماية — من لوحة واحدة احترافية مع مزامنة فورية</p>
-      <div class="hero-buttons">
+      <h1>لوحة تحكم متكاملة<br>لإدارة <span>بوتك بالكامل</span></h1>
+      <p>تحكم بجميع أنظمة البوت — الإدارة، التذاكر، الصوت المؤقت، الحماية، الإشعارات — من لوحة واحدة احترافية مع مزامنة فورية</p>
+      <div class="lp-actions">
         <% if (locals.user) { %>
-          <a href="/home" class="btn-primary btn-glow">
+          <a href="/home" class="btn lp-primary">
             <i class="fas fa-th-large"></i>
             الصفحة الرئيسية
           </a>
-          <a href="/auth/logout" class="btn-secondary">
+          <a href="/auth/logout" class="btn lp-secondary">
             <i class="fas fa-sign-out-alt"></i>
             تسجيل الخروج
           </a>
         <% } else { %>
-          <a href="/auth/discord" class="btn-primary btn-glow">
+          <a href="/auth/discord" class="btn lp-primary">
             <i class="fab fa-discord"></i>
             ابدأ الآن — سجل دخولك
           </a>
-          <a href="/invite-dev" class="btn-secondary">
+          <a href="/invite-dev" class="btn lp-secondary">
             <i class="fas fa-code-branch"></i>
             الإضافة قيد التطوير
           </a>
         <% } %>
       </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span class="stat-value">6</span>
-          <span class="stat-label">أنظمة</span>
+      <div class="lp-hero-stats">
+        <div class="lp-hero-stat">
+          <span class="lp-hero-num">6</span>
+          <span class="lp-hero-label">أنظمة</span>
         </div>
-        <div class="hero-stat">
-          <span class="stat-value" id="heroCmdCount">—</span>
-          <span class="stat-label">أمر</span>
+        <div class="lp-hero-stat">
+          <span class="lp-hero-num" id="heroCmdCount">—</span>
+          <span class="lp-hero-label">أمر</span>
         </div>
-        <div class="hero-stat">
-          <span class="stat-value">100%</span>
-          <span class="stat-label">تحكم عبر الويب</span>
+        <div class="lp-hero-stat">
+          <span class="lp-hero-num">100%</span>
+          <span class="lp-hero-label">تحكم عبر الويب</span>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="features" id="features">
-    <div class="section-header">
-      <h2>كل ما تحتاجه في <span class="gradient-text">لوحة واحدة</span></h2>
-      <p>أنظمة متكاملة مع واجهة استخدام احترافية وسهلة</p>
+  <div class="lp-divider"></div>
+
+  <section class="lp-section" id="features">
+    <div class="lp-section-header">
+      <div class="lp-section-tag">
+        <i class="fas fa-cubes"></i>
+        أنظمة متكاملة
+      </div>
+      <h2>كل ما تحتاجه في <span>لوحة واحدة</span></h2>
+      <p>أنظمة متكاملة مع واجهة استخدام احترافية وسهلة — كل الأدوات التي يحتاجها مشرف السيرفر</p>
     </div>
-    <div class="features-grid">
-      <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #5865f2">
-          <i class="fas fa-shield-alt"></i>
-        </div>
+    <div class="lp-grid-3">
+      <div class="lp-card">
+        <div class="lp-card-icon" style="color:#818cf8;background:rgba(88,101,242,0.1);box-shadow:0 0 20px rgba(88,101,242,0.1)"><i class="fas fa-shield-alt"></i></div>
         <h3>الحماية</h3>
-        <p>نظام حماية متكامل ضد السبام، النيوك، الرايد، واللينكات</p>
+        <p>نظام حماية متكامل ضد السبام، النيوك، الرايد، واللينكات مع إعدادات مرنة لكل سيرفر</p>
       </div>
-      <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #57f287">
-          <i class="fas fa-ticket-alt"></i>
-        </div>
+      <div class="lp-card">
+        <div class="lp-card-icon" style="color:#57f287;background:rgba(87,242,135,0.1);box-shadow:0 0 20px rgba(87,242,135,0.1)"><i class="fas fa-ticket-alt"></i></div>
         <h3>التذاكر</h3>
-        <p>نظام تذاكر دعم فني متكامل مع تقييم وإدارة متقدمة</p>
+        <p>نظام تذاكر دعم فني متكامل مع تقييم وإدارة متقدمة وصلاحيات مخصصة للأعضاء</p>
       </div>
-      <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #fee75c">
-          <i class="fas fa-microphone"></i>
-        </div>
+      <div class="lp-card">
+        <div class="lp-card-icon" style="color:#fee75c;background:rgba(254,231,92,0.1);box-shadow:0 0 20px rgba(254,231,92,0.1)"><i class="fas fa-microphone"></i></div>
         <h3>الرومات المؤقتة</h3>
-        <p>قنوات صوتية مؤقتة بنظام Join-to-Create مع لوحة تحكم خاصة</p>
+        <p>قنوات صوتية مؤقتة بنظام Join-to-Create مع لوحة تحكم خاصة وإعدادات متقدمة</p>
       </div>
-      <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #ed4245">
-          <i class="fas fa-gavel"></i>
-        </div>
+      <div class="lp-card">
+        <div class="lp-card-icon" style="color:#f87171;background:rgba(248,113,113,0.1);box-shadow:0 0 20px rgba(248,113,113,0.1)"><i class="fas fa-gavel"></i></div>
         <h3>الإشراف</h3>
-        <p>أوامر إشراف متكاملة مع سجلات ونظام تحذيرات</p>
+        <p>أوامر إشراف متكاملة مع سجلات مفصلة ونظام تحذيرات وإدارة الأعضاء والمخالفات</p>
       </div>
-      <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #eb459e">
-          <i class="fas fa-music"></i>
-        </div>
-        <h3>الموسيقى</h3>
-        <p>مشغل موسيقى متكامل مع يوتيوب وقائمة تشغيل</p>
+      <div class="lp-card">
+        <div class="lp-card-icon" style="color:#a78bfa;background:rgba(167,139,250,0.1);box-shadow:0 0 20px rgba(167,139,250,0.1)"><i class="fas fa-bell"></i></div>
+        <h3>الإشعارات</h3>
+        <p>إشعارات يوتيوب، تويتر، كيك، وتويتش مع نظام متابعة تلقائي وإرسال فوري</p>
       </div>
-      <div class="feature-card glass">
-        <div class="feature-icon" style="--icon-color: #5865f2">
-          <i class="fas fa-chart-line"></i>
-        </div>
+      <div class="lp-card">
+        <div class="lp-card-icon" style="color:#60a5fa;background:rgba(96,165,250,0.1);box-shadow:0 0 20px rgba(96,165,250,0.1)"><i class="fas fa-chart-line"></i></div>
         <h3>الإحصائيات</h3>
-        <p>إحصائيات ورسوم بيانية لأداء السيرفر والبوت</p>
+        <p>إحصائيات ورسوم بيانية لأداء السيرفر والبوت مع تقارير دورية وتحليلات متقدمة</p>
       </div>
     </div>
   </section>
 
-  <section class="stats-section">
-    <div class="stats-container">
-      <div class="stat-item">
+  <div class="lp-divider"></div>
+
+  <section class="lp-section">
+    <div class="lp-section-header">
+      <div class="lp-section-tag">
+        <i class="fas fa-chart-simple"></i>
+        إحصائيات البوت
+      </div>
+      <h2>أرقام <span>تتحدث</span></h2>
+      <p>إحصائيات حية تعكس قوة وأداء البوت</p>
+    </div>
+    <div class="lp-stats">
+      <div class="lp-stat">
         <i class="fas fa-shield-alt"></i>
-        <span class="stat-number">—</span>
-        <span class="stat-desc">أنظمة حماية</span>
+        <span class="lp-stat-num">6</span>
+        <span class="lp-stat-desc">أنظمة حماية</span>
       </div>
-      <div class="stat-item">
+      <div class="lp-stat">
         <i class="fas fa-ticket-alt"></i>
-        <span class="stat-number">—</span>
-        <span class="stat-desc">أوامر تذاكر</span>
+        <span class="lp-stat-num">—</span>
+        <span class="lp-stat-desc">أوامر تذاكر</span>
       </div>
-      <div class="stat-item">
+      <div class="lp-stat">
         <i class="fas fa-microphone"></i>
-        <span class="stat-number">—</span>
-        <span class="stat-desc">أوامر صوتية</span>
+        <span class="lp-stat-num">—</span>
+        <span class="lp-stat-desc">أوامر صوتية</span>
       </div>
-      <div class="stat-item">
+      <div class="lp-stat">
         <i class="fas fa-terminal"></i>
-        <span class="stat-number">—</span>
-        <span class="stat-desc">إجمالي الأوامر</span>
+        <span class="lp-stat-num">—</span>
+        <span class="lp-stat-desc">إجمالي الأوامر</span>
       </div>
     </div>
   </section>
 
-  <section class="cta-section">
-    <div class="cta-content glass">
+  <div class="lp-divider"></div>
+
+  <section class="lp-section">
+    <div class="lp-cta">
       <h2>هل أنت مستعد؟</h2>
-      <p>ابدأ بإدارة سيرفرك بشكل احترافي مع FX9 Dashboard</p>
+      <p>ابدأ بإدارة سيرفرك بشكل احترافي مع FX9 Dashboard — كل ما تحتاجه في مكان واحد</p>
       <% if (locals.user) { %>
-        <a href="/home" class="btn-primary btn-glow">
+        <a href="/home" class="btn lp-primary">
           <i class="fas fa-th-large"></i>
           الصفحة الرئيسية
         </a>
       <% } else { %>
-        <a href="/auth/discord" class="btn-primary btn-glow">
+        <a href="/auth/discord" class="btn lp-primary">
           <i class="fab fa-discord"></i>
           سجل دخولك الآن
         </a>
@@ -202,9 +375,14 @@
     </div>
   </section>
 
-  <footer class="footer landing-footer">
-    <div class="footer-content">
+  <footer class="lp-footer">
+    <div class="lp-footer-inner">
       <span>© 2026 FX9 Dashboard — جميع الحقوق محفوظة</span>
+      <div class="lp-footer-links">
+        <a href="#"><i class="fab fa-discord"></i></a>
+        <a href="#"><i class="fab fa-github"></i></a>
+        <a href="#"><i class="fas fa-envelope"></i></a>
+      </div>
     </div>
   </footer>
 
@@ -282,7 +460,7 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.2; }
     }
-    body.mnt-active .landing-nav {
+    body.mnt-active .lp-nav-fixed {
       top: 52px;
     }
     body.mnt-active .mnt-banner {
@@ -301,10 +479,10 @@
     // ─── Stats (no data-target in HTML — observer in main.js won't conflict) ─
     function setStatsFallback() {
       var fb = { 'أنظمة حماية': 6, 'أوامر تذاكر': 9, 'أوامر صوتية': 15, 'إجمالي الأوامر': 55 };
-      document.querySelectorAll('.stat-number').forEach(function(el) {
-        var label = (el.closest('.stat-item')?.querySelector('.stat-desc')?.textContent || '').trim();
+      document.querySelectorAll('.lp-stat-num').forEach(function(el) {
+        var label = (el.closest('.lp-stat')?.querySelector('.lp-stat-desc')?.textContent || '').trim();
         for (var key in fb) {
-          if (label.includes(key)) { el.dataset.target = fb[key]; el.textContent = '0'; if (typeof animateCount === 'function') animateCount(el); break; }
+          if (label.includes(key)) { el.textContent = fb[key]; break; }
         }
       });
       var heroEl = document.getElementById('heroCmdCount');
@@ -312,16 +490,14 @@
     }
 
     function setStatsFromApi(map, totalStats) {
-      document.querySelectorAll('.stat-number').forEach(function(el) {
-        var label = (el.closest('.stat-item')?.querySelector('.stat-desc')?.textContent || '').trim();
+      document.querySelectorAll('.lp-stat-num').forEach(function(el) {
+        var label = (el.closest('.lp-stat')?.querySelector('.lp-stat-desc')?.textContent || '').trim();
         var val = 0;
         if (label.includes('أوامر تذاكر'))        val = map['ticket'] || 0;
         else if (label.includes('أوامر صوتية'))    val = map['voice'] || 0;
         else if (label.includes('إجمالي الأوامر')) val = totalStats;
         else if (label.includes('أنظمة حماية'))    val = 6;
-        el.dataset.target = val;
-        el.textContent = '0';
-        if (typeof animateCount === 'function') animateCount(el);
+        el.textContent = val;
       });
       var heroEl = document.getElementById('heroCmdCount');
       if (heroEl) heroEl.textContent = totalStats || 0;
