@@ -2,161 +2,152 @@
 <% currentPage = 'home' %>
 <%
   const guilds = user?.guilds || [];
+  const tips = ['جرب تخصيص الرومات الصوتية من الإعدادات', 'نظام الحماية يمنع هجمات السبام تلقائياً', 'التذاكر تساعدك في تنظيم طلبات الدعم', 'تابع قنوات يوتيوب وتويتر من الإشعارات'];
+  const rnd = Math.floor(Math.random() * tips.length);
 %>
-<div class="h2-wrap">
-  <div class="h2-banner">
-    <div class="h2-bg">
-      <div class="h2-glow h2-g1"></div>
-      <div class="h2-glow h2-g2"></div>
-    </div>
-    <div class="h2-b-inner">
-      <div class="h2-b-right">
-        <div class="h2-avatar">
-          <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="">
-          <span class="h2-dot"></span>
-        </div>
-        <div>
-          <div class="h2-badge"><i class="fas fa-bolt"></i> FX9 Bot v5.0</div>
-          <h1 class="h2-name"><%= user.globalName || user.username %></h1>
-          <p class="h2-bio">لوحة تحكم متكاملة — كل الأنظمة بين يديك</p>
-        </div>
+<div class="dash">
+  <div class="dash-head">
+    <h1>أهلاً بعودتك</h1>
+    <p>آخر دخول: <span id="lastSeen">اليوم</span> &middot; <span id="dashTime"></span></p>
+  </div>
+
+  <div class="dash-row">
+    <div class="dash-box dash-box-accent" style="--ac:#6366f1">
+      <i class="fas fa-server"></i>
+      <div>
+        <span class="dash-box-n"><%= managedGuilds.length %></span>
+        <span class="dash-box-l">سيرفر تديره</span>
       </div>
-      <div class="h2-b-left">
-        <div class="h2-stat">
-          <span class="h2-num"><%= managedGuilds.length %></span>
-          <span class="h2-lbl">سيرفراتك</span>
-        </div>
-        <div class="h2-stat">
-          <span class="h2-num"><%= guilds.length %></span>
-          <span class="h2-lbl">الإجمالي</span>
-        </div>
-        <div class="h2-stat">
-          <span class="h2-num" id="h2Cmd">—</span>
-          <span class="h2-lbl">أمر</span>
-        </div>
+    </div>
+    <div class="dash-box dash-box-accent" style="--ac:#34d399">
+      <i class="fas fa-layer-group"></i>
+      <div>
+        <span class="dash-box-n"><%= guilds.length %></span>
+        <span class="dash-box-l">إجمالي سيرفراتك</span>
+      </div>
+    </div>
+    <div class="dash-box dash-box-accent" style="--ac:#fbbf24">
+      <i class="fas fa-terminal"></i>
+      <div>
+        <span class="dash-box-n" id="dashCmd">—</span>
+        <span class="dash-box-l">أمر منفذ</span>
+      </div>
+    </div>
+    <div class="dash-box dash-box-accent" style="--ac:#a78bfa">
+      <i class="fas fa-user-check"></i>
+      <div>
+        <span class="dash-box-n"><%= user.dashboardRole || 'member' %></span>
+        <span class="dash-box-l">صلاحياتك</span>
       </div>
     </div>
   </div>
 
-  <div class="h2-lab"><i class="fas fa-cubes"></i> أنظمة البوت</div>
-  <div class="h2-sys">
-    <% if (roleLevel >= 3) { %>
-    <a href="/dashboard" class="h2-s">
-      <span class="h2-sbg" style="background:linear-gradient(135deg,rgba(99,102,241,0.06),rgba(99,102,241,0.01))"></span>
-      <span class="h2-si" style="color:#6366f1;background:rgba(99,102,241,0.08)"><i class="fas fa-th-large"></i></span>
-      <span class="h2-st"><i>لوحة التحكم</i><small>نظرة عامة</small></span>
-      <span class="h2-sa"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% } %>
-    <a href="/guilds" class="h2-s">
-      <span class="h2-sbg" style="background:linear-gradient(135deg,rgba(52,211,153,0.06),rgba(52,211,153,0.01))"></span>
-      <span class="h2-si" style="color:#34d399;background:rgba(52,211,153,0.08)"><i class="fas fa-server"></i></span>
-      <span class="h2-st"><i>السيرفرات</i><small>تصفح وإدارة</small></span>
-      <span class="h2-sa"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <a href="/guilds" class="h2-s">
-      <span class="h2-sbg" style="background:linear-gradient(135deg,rgba(251,191,36,0.06),rgba(251,191,36,0.01))"></span>
-      <span class="h2-si" style="color:#fbbf24;background:rgba(251,191,36,0.08)"><i class="fas fa-ticket-alt"></i></span>
-      <span class="h2-st"><i>التذاكر</i><small>دعم فني</small></span>
-      <span class="h2-sa"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% if (roleLevel >= 2) { %>
-    <a href="/docs#protection" class="h2-s">
-      <span class="h2-sbg" style="background:linear-gradient(135deg,rgba(248,113,113,0.06),rgba(248,113,113,0.01))"></span>
-      <span class="h2-si" style="color:#f87171;background:rgba(248,113,113,0.08)"><i class="fas fa-shield-alt"></i></span>
-      <span class="h2-st"><i>الحماية</i><small>أمان وحظر</small></span>
-      <span class="h2-sa"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% } %>
-    <% if (roleLevel >= 1) { %>
-    <a href="/docs#voice" class="h2-s">
-      <span class="h2-sbg" style="background:linear-gradient(135deg,rgba(167,139,250,0.06),rgba(167,139,250,0.01))"></span>
-      <span class="h2-si" style="color:#a78bfa;background:rgba(167,139,250,0.08)"><i class="fas fa-microphone"></i></span>
-      <span class="h2-st"><i>الغرف الصوتية</i><small>رومات مؤقتة</small></span>
-      <span class="h2-sa"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% } %>
-    <% if (roleLevel >= 2) { %>
-    <a href="/docs#commands" class="h2-s">
-      <span class="h2-sbg" style="background:linear-gradient(135deg,rgba(96,165,250,0.06),rgba(96,165,250,0.01))"></span>
-      <span class="h2-si" style="color:#60a5fa;background:rgba(96,165,250,0.08)"><i class="fas fa-terminal"></i></span>
-      <span class="h2-st"><i>الأوامر</i><small>صلاحيات</small></span>
-      <span class="h2-sa"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% } %>
+  <div class="dash-sect">
+    <div class="dash-shead">
+      <i class="fas fa-th-large"></i>
+      <span>لوحة التحكم</span>
+    </div>
+    <div class="dash-grid">
+      <% if (roleLevel >= 3) { %>
+      <a href="/dashboard" class="dash-card" style="--dc:#6366f1">
+        <span class="dash-cir" style="background:rgba(99,102,241,0.1);color:#6366f1"><i class="fas fa-th-large"></i></span>
+        <span class="dash-cn">لوحة التحكم</span>
+        <span class="dash-cd">إحصائيات ونظرة عامة</span>
+      </a>
+      <% } %>
+      <a href="/guilds" class="dash-card" style="--dc:#34d399">
+        <span class="dash-cir" style="background:rgba(52,211,153,0.1);color:#34d399"><i class="fas fa-server"></i></span>
+        <span class="dash-cn">السيرفرات</span>
+        <span class="dash-cd">إدارة السيرفرات</span>
+      </a>
+      <a href="/guilds" class="dash-card" style="--dc:#fbbf24">
+        <span class="dash-cir" style="background:rgba(251,191,36,0.1);color:#fbbf24"><i class="fas fa-ticket-alt"></i></span>
+        <span class="dash-cn">التذاكر</span>
+        <span class="dash-cd">دعم وتذاكر</span>
+      </a>
+      <% if (roleLevel >= 2) { %>
+      <a href="/docs#protection" class="dash-card" style="--dc:#f87171">
+        <span class="dash-cir" style="background:rgba(248,113,113,0.1);color:#f87171"><i class="fas fa-shield-alt"></i></span>
+        <span class="dash-cn">الحماية</span>
+        <span class="dash-cd">أمان السيرفر</span>
+      </a>
+      <% } %>
+      <% if (roleLevel >= 1) { %>
+      <a href="/docs#voice" class="dash-card" style="--dc:#a78bfa">
+        <span class="dash-cir" style="background:rgba(167,139,250,0.1);color:#a78bfa"><i class="fas fa-microphone"></i></span>
+        <span class="dash-cn">الغرف الصوتية</span>
+        <span class="dash-cd">رومات مؤقتة</span>
+      </a>
+      <% } %>
+      <% if (roleLevel >= 2) { %>
+      <a href="/docs#commands" class="dash-card" style="--dc:#60a5fa">
+        <span class="dash-cir" style="background:rgba(96,165,250,0.1);color:#60a5fa"><i class="fas fa-terminal"></i></span>
+        <span class="dash-cn">الأوامر</span>
+        <span class="dash-cd">صلاحيات وتحكم</span>
+      </a>
+      <% } %>
+    </div>
   </div>
 
-  <div class="h2-lab"><i class="fas fa-link"></i> روابط سريعة</div>
-  <div class="h2-links">
-    <a href="/status" class="h2-lnk">
-      <i class="fas fa-heartbeat" style="color:#6366f1"></i>
-      <span>حالة البوت</span>
-    </a>
-    <% if (roleLevel >= 4) { %>
-    <a href="/dev" class="h2-lnk">
-      <i class="fas fa-code" style="color:#a78bfa"></i>
-      <span>المطور</span>
-    </a>
-    <% } %>
-    <a href="/docs" class="h2-lnk">
-      <i class="fas fa-book" style="color:#34d399"></i>
-      <span>التوثيق</span>
-    </a>
-    <button onclick="toggleTheme()" class="h2-lnk" style="cursor:pointer;border:none;font-family:var(--font)">
-      <i class="fas fa-palette" style="color:#fbbf24"></i>
-      <span>السمة</span>
-    </button>
+  <div class="dash-sect">
+    <div class="dash-shead">
+      <i class="fas fa-bolt"></i>
+      <span>وصول سريع</span>
+    </div>
+    <div class="dash-tools">
+      <a href="/status" class="dash-t"><i class="fas fa-heartbeat" style="color:#6366f1"></i> حالة البوت</a>
+      <% if (roleLevel >= 4) { %>
+      <a href="/dev" class="dash-t"><i class="fas fa-code" style="color:#a78bfa"></i> المطور</a>
+      <% } %>
+      <a href="/docs" class="dash-t"><i class="fas fa-book" style="color:#34d399"></i> التوثيق</a>
+      <button onclick="toggleTheme()" class="dash-t" style="cursor:pointer;border:none;font-family:var(--font)"><i class="fas fa-palette" style="color:#fbbf24"></i> السمة</button>
+    </div>
+  </div>
+
+  <div class="dash-tip">
+    <i class="fas fa-lightbulb" style="color:#fbbf24"></i>
+    <span><%= tips[rnd] %></span>
   </div>
 </div>
 
 <style>
-.h2-wrap{max-width:1000px;margin:0 auto}
+.dash{max-width:1000px;margin:0 auto}
+.dash-head{margin-bottom:22px}
+.dash-head h1{font-size:1.35rem;font-weight:800;margin:0;color:rgba(255,255,255,0.85)}
+.dash-head p{font-size:0.72rem;color:rgba(255,255,255,0.2);margin:2px 0 0}
 
-.h2-banner{position:relative;overflow:hidden;border-radius:14px;margin-bottom:26px;background:linear-gradient(135deg,#0c0c1a,#0a0a18);border:1px solid rgba(255,255,255,0.04)}
-.h2-bg{position:absolute;inset:0}
-.h2-glow{position:absolute;border-radius:50%;filter:blur(100px)}
-.h2-g1{width:350px;height:350px;background:#6366f1;top:-100px;left:-80px;opacity:0.06}
-.h2-g2{width:250px;height:250px;background:#8b5cf6;bottom:-80px;right:-60px;opacity:0.04}
-.h2-b-inner{position:relative;z-index:1;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.h2-b-right{display:flex;align-items:center;gap:16px}
-.h2-avatar{position:relative;flex-shrink:0}
-.h2-avatar img{width:52px;height:52px;border-radius:50%;border:2px solid rgba(99,102,241,0.2);box-shadow:0 0 24px rgba(99,102,241,0.1)}
-.h2-dot{position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#57f287;border:2px solid #0c0c1a}
-.h2-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:20px;background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.07);font-size:0.65rem;font-weight:600;color:#818cf8;margin-bottom:2px}
-.h2-name{font-size:1.2rem;font-weight:800;margin:0;color:rgba(255,255,255,0.9)}
-.h2-bio{font-size:0.75rem;color:rgba(255,255,255,0.28);margin:0}
-.h2-b-left{display:flex;gap:20px}
-.h2-stat{text-align:center}
-.h2-num{display:block;font-size:1.2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.h2-lbl{font-size:0.65rem;color:rgba(255,255,255,0.22)}
+.dash-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+@media(max-width:800px){.dash-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:450px){.dash-row{grid-template-columns:1fr}}
+.dash-box{position:relative;display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);overflow:hidden}
+.dash-box::before{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:var(--ac,#6366f1);border-radius:0 3px 3px 0;opacity:0.5}
+.dash-box i{font-size:1.3rem;color:var(--ac,#6366f1);flex-shrink:0}
+.dash-box-n{display:block;font-size:1.1rem;font-weight:800;color:rgba(255,255,255,0.85);line-height:1.2}
+.dash-box-l{font-size:0.65rem;color:rgba(255,255,255,0.22)}
 
-.h2-lab{display:flex;align-items:center;gap:7px;font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.3);margin-bottom:12px;padding-right:2px}
+.dash-sect{margin-bottom:22px}
+.dash-shead{display:flex;align-items:center;gap:7px;font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.3);margin-bottom:12px}
 
-.h2-sys{display:flex;flex-direction:column;gap:6px;margin-bottom:26px}
-.h2-s{position:relative;display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);transition:all 0.25s;overflow:hidden}
-.h2-sbg{position:absolute;inset:0;opacity:0;transition:opacity 0.25s}
-.h2-s:hover{transform:translateX(-4px);border-color:rgba(255,255,255,0.06)}
-.h2-s:hover .h2-sbg{opacity:1}
-.h2-si{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;position:relative;z-index:1}
-.h2-st{flex:1;position:relative;z-index:1}
-.h2-st i{font-size:0.85rem;font-weight:700;font-style:normal;color:rgba(255,255,255,0.85)}
-.h2-st small{display:block;font-size:0.68rem;color:rgba(255,255,255,0.25);margin-top:1px}
-.h2-sa{color:rgba(255,255,255,0.12);font-size:0.7rem;position:relative;z-index:1;transition:all 0.25s}
-.h2-s:hover .h2-sa{color:rgba(255,255,255,0.4);transform:translateX(-3px)}
+.dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:800px){.dash-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:450px){.dash-grid{grid-template-columns:1fr}}
+.dash-card{position:relative;padding:16px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);text-align:center;transition:all 0.25s}
+.dash-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.06)}
+.dash-cir{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;margin:0 auto 6px;transition:all 0.25s}
+.dash-card:hover .dash-cir{box-shadow:0 0 16px color-mix(in srgb,var(--dc,#6366f1)12%,transparent)}
+.dash-cn{display:block;font-size:0.85rem;font-weight:700;margin-bottom:1px}
+.dash-cd{display:block;font-size:0.65rem;color:rgba(255,255,255,0.22)}
 
-.h2-links{display:flex;gap:8px;flex-wrap:wrap}
-.h2-lnk{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);transition:all 0.25s;font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.5)}
-.h2-lnk:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.06);color:white}
+.dash-tools{display:flex;gap:6px;flex-wrap:wrap}
+.dash-t{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:#0c0c1a;border:1px solid rgba(255,255,255,0.04);transition:all 0.25s;font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.5)}
+.dash-t:hover{border-color:rgba(255,255,255,0.06);color:white}
+
+.dash-tip{display:flex;align-items:center;gap:8px;margin-top:18px;padding:10px 16px;border-radius:8px;background:rgba(251,191,36,0.04);border:1px solid rgba(251,191,36,0.06);font-size:0.75rem;color:rgba(255,255,255,0.35)}
 
 @media(max-width:720px){
-  .h2-b-inner{flex-direction:column;align-items:flex-start;padding:20px}
-  .h2-b-left{gap:16px}
-  .h2-name{font-size:1rem}
-  .h2-links{flex-direction:column}
-  .h2-lnk{justify-content:center}
+  .dash-head h1{font-size:1.15rem}
 }
 </style>
-
 <script>
-fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('h2Cmd');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('h2Cmd');if(e)e.textContent='55'});
+(function(){var d=new Date();var h=d.getHours().toString().padStart(2,'0'),m=d.getMinutes().toString().padStart(2,'0');var e=document.getElementById('dashTime');if(e)e.textContent=h+':'+m;fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var c=document.getElementById('dashCmd');if(c)c.textContent=s.total||'—'}).catch(function(){var c=document.getElementById('dashCmd');if(c)c.textContent='55'})})();
 </script>
