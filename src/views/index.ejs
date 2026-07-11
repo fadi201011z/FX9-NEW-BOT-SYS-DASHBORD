@@ -368,20 +368,20 @@ a { text-decoration:none; color:inherit; }
   <div class="f-band">
     <div class="f-band-inner">
       <div class="f-band-item">
-        <span class="f-band-num">6</span>
-        <span class="f-band-lbl">أنظمة أمان</span>
+        <span class="f-band-num" id="bandGuilds"><%= (locals.stats && stats.bot && stats.bot.guilds) ? stats.bot.guilds : '—' %></span>
+        <span class="f-band-lbl">سيرفر</span>
       </div>
       <div class="f-band-item">
-        <span class="f-band-num" id="heroCmdCount">—</span>
+        <span class="f-band-num" id="heroCmdCount"><%= (locals.stats && stats.cmd) ? (stats.cmd.total || '—') : '—' %></span>
         <span class="f-band-lbl">أمر منفذ</span>
       </div>
       <div class="f-band-item">
-        <span class="f-band-num">100%</span>
-        <span class="f-band-lbl">وقت تشغيل</span>
+        <span class="f-band-num" id="bandMembers"><%= (locals.stats && stats.bot && stats.bot.members) ? Number(stats.bot.members).toLocaleString() : '—' %></span>
+        <span class="f-band-lbl">عضو</span>
       </div>
       <div class="f-band-item">
-        <span class="f-band-num">24/7</span>
-        <span class="f-band-lbl">دعم فني</span>
+        <span class="f-band-num" id="bandPing"><%= (locals.stats && stats.bot && stats.bot.ping) ? (stats.bot.ping + 'ms') : '—' %></span>
+        <span class="f-band-lbl">بنج</span>
       </div>
     </div>
   </div>
@@ -486,15 +486,15 @@ a { text-decoration:none; color:inherit; }
           <span class="f-slbl">أنظمة أمان</span>
         </div>
         <div class="f-sitem">
-          <span class="f-sval" id="statTickets">—</span>
+          <span class="f-sval" id="statTickets"><%= (locals.stats && stats.cmd && stats.cmd.perCategory && stats.cmd.perCategory.ticket) ? stats.cmd.perCategory.ticket : '—' %></span>
           <span class="f-slbl">تذاكر</span>
         </div>
         <div class="f-sitem">
-          <span class="f-sval" id="statVoice">—</span>
+          <span class="f-sval" id="statVoice"><%= (locals.stats && stats.cmd && stats.cmd.perCategory && stats.cmd.perCategory.voice) ? stats.cmd.perCategory.voice : '—' %></span>
           <span class="f-slbl">أوامر صوتية</span>
         </div>
         <div class="f-sitem">
-          <span class="f-sval" id="statTotal">—</span>
+          <span class="f-sval" id="statTotal"><%= (locals.stats && stats.cmd) ? (stats.cmd.total || '—') : '—' %></span>
           <span class="f-slbl">إجمالي الأوامر</span>
         </div>
       </div>
@@ -568,7 +568,7 @@ a { text-decoration:none; color:inherit; }
         var lb=(el.closest('.lp-stat')?.querySelector('.lp-stat-desc')?.textContent||'').trim();
         for(var k in fb){if(lb.includes(k)){var v=fb[k];el.textContent=v;var id='';if(lb.includes('أوامر تذاكر'))id='statTickets';else if(lb.includes('أوامر صوتية'))id='statVoice';else if(lb.includes('إجمالي الأوامر'))id='statTotal';var pg=document.getElementById(id);if(pg)pg.textContent=v;break}}
       });
-      var h=document.getElementById('heroCmdCount');if(h)h.textContent='55';
+      ['heroCmdCount','bandGuilds','bandMembers','bandPing'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent='—'});
     }
     function sfa(map,ttl){
       document.querySelectorAll('.lp-stat-num').forEach(function(el){
@@ -578,7 +578,14 @@ a { text-decoration:none; color:inherit; }
       });
       var h=document.getElementById('heroCmdCount');if(h)h.textContent=ttl||0;
     }
+    function updateBandStats(botData){
+      if(!botData)return;
+      var g=document.getElementById('bandGuilds');if(g&&botData.guilds)g.textContent=botData.guilds;
+      var m=document.getElementById('bandMembers');if(m&&botData.members)m.textContent=Number(botData.members).toLocaleString();
+      var p=document.getElementById('bandPing');if(p&&botData.ping)p.textContent=botData.ping+'ms';
+    }
     fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){sfa(s.perCategory||{},s.total||0)}).catch(sfb);
+    fetch('/api/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(d){updateBandStats(d)}).catch(function(){});
     var mc=document.createElement('div');mc.id='mntBanner';document.body.prepend(mc);
     var md=null,ms=null,me=null,mr=null,mb=false;
     function fmt(t){if(t<=0)return'0ث';var h=Math.floor(t/3600000),m=Math.floor((t%3600000)/60000),s=Math.floor((t%60000)/1000);return(h?h+'س ':'')+(m?m+'د ':'')+s+'ث'}

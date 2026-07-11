@@ -220,7 +220,7 @@ app.get('/invite-dev', (req, res) => {
 });
 
 // ─── Landing Page ────────────────────────────────────────────────────────
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   if (req.session?.user) {
     const role = req.session.user.dashboardRole || 'member';
     const level = ROLE_HIERARCHY[role] ?? -1;
@@ -231,12 +231,25 @@ app.get('/', (req, res) => {
     no_code: 'no_code',
     access_denied: 'تم رفض الطلب — تأكد من الموافقة على جميع الصلاحيات',
   };
+
+  let cmdStats = { total: 0, perCategory: {} };
+  let botStats = { members: 0, ping: 0, guilds: 0 };
+  try {
+    const [cmdRes, botRes] = await Promise.all([
+      fetch(`${config.botApiUrl}/api/commands/stats`).catch(() => null),
+      fetch(`${config.botApiUrl}/api/stats`).catch(() => null),
+    ]);
+    if (cmdRes && cmdRes.ok) cmdStats = await cmdRes.json();
+    if (botRes && botRes.ok) botStats = await botRes.json();
+  } catch {}
+
   res.render('index', {
     layout: false,
     user: req.session?.user || null,
     title: 'FX9 Dashboard — لوحة تحكم البوت',
     supportUrl: '#',
     error: errorMap[req.query.error] || null,
+    stats: { cmd: cmdStats, bot: botStats },
   });
 });
 
