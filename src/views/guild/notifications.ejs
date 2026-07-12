@@ -155,9 +155,7 @@ const platformLogos = {
           <% if (sub.customMessage) { %>
             <span style="font-size:.78rem;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"<%= sub.customMessage %>"</span>
           <% } %>
-          <% if (sub.platform === 'youtube') { %>
-            <button class="checknow-btn" data-id="<%= sub._id %>" style="background:var(--primary);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">🔍 فحص الآن</button>
-          <% } %>
+          <button class="checknow-btn" data-id="<%= sub._id %>" data-platform="<%= sub.platform %>" style="background:var(--primary);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">🔍 فحص الآن</button>
           <button class="delete-btn" data-id="<%= sub._id %>" style="background:var(--danger);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">✕ حذف</button>
         </div>
       <% }) %>
@@ -264,8 +262,13 @@ document.querySelectorAll('.checknow-btn').forEach(btn => {
     try {
       const res = await fetch('/notifications/<%= guild.id %>/checknow/' + id, { method: 'POST' });
       const data = await res.json();
-      if (data.success) alert('✅ تم إرسال الإشعار: ' + (data.title || data.videoId));
-      else alert('❌ ' + (data.error || 'فشل'));
+      if (data.found) {
+        alert('✅ تم إرسال الإشعار: ' + (data.title || data.text || data.videoId));
+      } else if (data.message) {
+        alert('ℹ️ ' + data.message);
+      } else {
+        alert('❌ ' + (data.error || 'فشل'));
+      }
     } catch { alert('❌ البوت غير متصل'); }
     btn.disabled = false; btn.textContent = orig;
   });
