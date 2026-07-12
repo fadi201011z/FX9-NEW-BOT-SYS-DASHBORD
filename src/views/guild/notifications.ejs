@@ -155,7 +155,8 @@ const platformLogos = {
           <% if (sub.customMessage) { %>
             <span style="font-size:.78rem;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"<%= sub.customMessage %>"</span>
           <% } %>
-          <button class="checknow-btn" data-id="<%= sub._id %>" data-platform="<%= sub.platform %>" style="background:var(--primary);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">🔍 فحص الآن</button>
+          <button class="checknow-btn" data-id="<%= sub._id %>" style="background:var(--primary);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">🔍 فحص الآن</button>
+          <button class="resend-btn" data-id="<%= sub._id %>" style="background:#fbbf24;color:#000;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">🔄 إعادة إرسال</button>
           <button class="delete-btn" data-id="<%= sub._id %>" style="background:var(--danger);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">✕ حذف</button>
         </div>
       <% }) %>
@@ -268,6 +269,24 @@ document.querySelectorAll('.checknow-btn').forEach(btn => {
         alert('ℹ️ ' + data.message);
       } else {
         alert('❌ ' + (data.error || 'فشل'));
+      }
+    } catch { alert('❌ البوت غير متصل'); }
+    btn.disabled = false; btn.textContent = orig;
+  });
+});
+
+document.querySelectorAll('.resend-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const id = btn.dataset.id;
+    const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = '⏳';
+    try {
+      const res = await fetch('/notifications/<%= guild.id %>/resend/' + id, { method: 'POST' });
+      const data = await res.json();
+      if (data.sent) {
+        alert('✅ تمت إعادة الإرسال: ' + (data.title || data.text || ''));
+      } else {
+        alert('❌ ' + (data.error || 'فشل الإرسال'));
       }
     } catch { alert('❌ البوت غير متصل'); }
     btn.disabled = false; btn.textContent = orig;

@@ -130,13 +130,24 @@ router.post('/:guildId/announce', isAuthenticated, hasGuildAccess, canModify, as
   }
 });
 
-// API: force check now (YouTube only)
+// API: force check now
 router.post('/:guildId/checknow/:id', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
   try {
     const { data } = await axios.post(`${config.botApiUrl}/api/notifications/checknow/${req.params.id}`, {}, { timeout: 10000 });
     res.json(data);
   } catch (err) {
     console.error('[Notif] CheckNow error:', err.code || err.message);
+    res.status(500).json({ error: 'البوت غير متصل' });
+  }
+});
+
+// API: resend latest
+router.post('/:guildId/resend/:id', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+  try {
+    const { data } = await axios.post(`${config.botApiUrl}/api/notifications/resend/${req.params.id}`, {}, { timeout: 10000 });
+    res.json(data);
+  } catch (err) {
+    console.error('[Notif] Resend error:', err.code || err.message);
     res.status(500).json({ error: 'البوت غير متصل' });
   }
 });
