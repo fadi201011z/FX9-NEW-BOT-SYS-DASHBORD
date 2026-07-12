@@ -155,6 +155,9 @@ const platformLogos = {
           <% if (sub.customMessage) { %>
             <span style="font-size:.78rem;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"<%= sub.customMessage %>"</span>
           <% } %>
+          <% if (sub.platform === 'youtube') { %>
+            <button class="checknow-btn" data-id="<%= sub._id %>" style="background:var(--primary);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">🔍 فحص الآن</button>
+          <% } %>
           <button class="delete-btn" data-id="<%= sub._id %>" style="background:var(--danger);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">✕ حذف</button>
         </div>
       <% }) %>
@@ -250,6 +253,21 @@ document.querySelectorAll('.delete-btn').forEach(btn => {
       if (res.ok) location.reload();
       else alert('❌ فشل الحذف');
     } catch { alert('❌ خطأ في الإتصال'); }
+  });
+});
+
+document.querySelectorAll('.checknow-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const id = btn.dataset.id;
+    const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = '⏳';
+    try {
+      const res = await fetch('/notifications/<%= guild.id %>/checknow/' + id, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) alert('✅ تم إرسال الإشعار: ' + (data.title || data.videoId));
+      else alert('❌ ' + (data.error || 'فشل'));
+    } catch { alert('❌ البوت غير متصل'); }
+    btn.disabled = false; btn.textContent = orig;
   });
 });
 
