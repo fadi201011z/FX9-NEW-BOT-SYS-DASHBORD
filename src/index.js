@@ -232,8 +232,8 @@ app.get('/', async (req, res) => {
     access_denied: 'تم رفض الطلب — تأكد من الموافقة على جميع الصلاحيات',
   };
 
-  let cmdStats = { total: 0, perCategory: {} };
-  let botStats = { members: 0, ping: 0, guilds: 0 };
+  let cmdStats = null;
+  let botStats = null;
   try {
     const [cmdRes, botRes] = await Promise.all([
       fetch(`${config.botApiUrl}/api/commands/stats`).catch(() => null),

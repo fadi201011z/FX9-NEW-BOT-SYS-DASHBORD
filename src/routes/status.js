@@ -30,7 +30,7 @@ router.get('/tickets/stats', async (req, res) => {
 
 router.get('/status', async (req, res) => {
   const start = Date.now();
-  let guildCount = 0, members = 0, ping = 0;
+  let guildCount = 0, members = null, ping = null;
   try {
     const botGuilds = await getBotGuilds(config.discord.botToken);
     guildCount = (botGuilds || []).length;
@@ -40,8 +40,8 @@ router.get('/status', async (req, res) => {
     if (botRes && botRes.ok) {
       const botData = await botRes.json();
       guildCount = botData.guilds ?? guildCount;
-      members = botData.members ?? 0;
-      ping = botData.ping ?? 0;
+      members = botData.members ?? null;
+      ping = botData.ping ?? null;
     }
   } catch {}
   res.json({

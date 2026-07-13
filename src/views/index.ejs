@@ -621,9 +621,18 @@ a { text-decoration:none; color:inherit; }
     function updateFrameStats(d){
       if(!d)return;
       var sd=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v};
-      if(d.guildCount){sd('bandGuilds',d.guildCount);sd('frameGuilds',d.guildCount);if(d.guildCount>0)sd('frameGuildsVal','متصل')}
-      if(d.members){var fm=Number(d.members).toLocaleString();sd('frameMembers',fm);sd('bandMembers',fm);sd('frameMembersVal','مُسجَّل')}
-      if(d.ping){sd('framePing',d.ping+'ms');sd('bandPing',d.ping+'ms');sd('framePingVal',d.ping<200?'ممتاز':'جيد')}
+      if(d.guildCount!==undefined&&d.guildCount!==null){
+        sd('bandGuilds',d.guildCount);sd('frameGuilds',d.guildCount);
+        sd('frameGuildsVal',d.guildCount>0?'متصل':'—');
+      }
+      if(d.members!==undefined&&d.members!==null){
+        var fm=Number(d.members).toLocaleString();sd('frameMembers',fm);
+        sd('bandMembers',fm);sd('frameMembersVal',d.members>0?'مُسجَّل':'—');
+      }
+      if(d.ping!==undefined&&d.ping!==null){
+        sd('framePing',d.ping+'ms');sd('bandPing',d.ping+'ms');
+        sd('framePingVal',d.ping>0?(d.ping<200?'ممتاز':'جيد'):'—');
+      }
     }
     fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){sfa(s.perCategory||{},s.total||0)}).catch(function(){sfb();sfb2()});
     fetch('/api/status').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(d){updateFrameStats(d)}).catch(function(){});
