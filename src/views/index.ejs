@@ -364,6 +364,12 @@ a { text-decoration:none; color:inherit; }
               <span class="f-row-val"><%= (locals.stats && stats.bot && stats.bot.ping && stats.bot.ping < 200) ? 'ممتاز' : (stats.bot && stats.bot.ping ? 'جيد' : '—') %></span>
             </div>
           </div>
+          <div class="f-frame-glass" id="frameGlass">
+            <div class="f-glass-icon"><i class="fas fa-wrench"></i></div>
+            <div class="f-glass-title">وضع الصيانة مفعل</div>
+            <div class="f-glass-msg" id="glassMsg">...</div>
+            <div class="f-glass-time" id="glassTime"><i class="fas fa-hourglass-half"></i> <span id="glassTimer">...</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -530,6 +536,31 @@ a { text-decoration:none; color:inherit; }
   </footer>
 
   <style>
+    .f-frame { position:relative; }
+    .f-frame-glass {
+      position:absolute; inset:0; z-index:10; display:none;
+      flex-direction:column; align-items:center; justify-content:center; gap:6px;
+      background:rgba(12,12,26,0.55); backdrop-filter:blur(24px) saturate(1.6);
+      -webkit-backdrop-filter:blur(24px) saturate(1.6);
+      border-radius:14px; transition:opacity 0.5s ease;
+    }
+    .f-frame-glass.show { display:flex; }
+    .f-glass-icon {
+      width:40px; height:40px; border-radius:50%;
+      background:rgba(237,66,69,0.15); border:1px solid rgba(237,66,69,0.2);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1rem; color:#ed4245; animation:mntBl 1.2s ease-in-out infinite;
+    }
+    .f-glass-title { font-size:0.85rem; font-weight:700; color:rgba(255,255,255,0.85); }
+    .f-glass-msg { font-size:0.72rem; color:rgba(255,255,255,0.5); text-align:center; padding:0 12px; }
+    .f-glass-time {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:3px 12px; border-radius:20px;
+      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06);
+      font-family:'Cairo',monospace; font-size:0.7rem; color:rgba(255,255,255,0.6); direction:ltr;
+      margin-top:2px;
+    }
+    .f-glass-time i { font-size:0.5rem; color:#ed4245; animation:mntBl 1.2s ease-in-out infinite; }
     .mnt-banner {
       position: sticky; top:0; z-index:10000;
       background:rgba(237,66,69,0.18); backdrop-filter:blur(24px) saturate(1.8);
@@ -595,8 +626,20 @@ a { text-decoration:none; color:inherit; }
     function fmt(t){if(t<=0)return'0ث';var h=Math.floor(t/3600000),m=Math.floor((t%3600000)/60000),s=Math.floor((t%60000)/1000);return(h?h+'س ':'')+(m?m+'د ':'')+s+'ث'}
     function bld(){mc.innerHTML='<div class="mnt-banner"><div class="mnt-banner-inner"><div class="mnt-banner-icon"><i class="fas fa-shield-halved"></i></div><div class="mnt-banner-text"><div class="mnt-banner-title">FADIX9 SYSTEM Bot v1.0.11 — وضع الصيانة مفعل</div><div class="mnt-banner-desc"><span class="mnt-banner-time"><i class="fas fa-circle"></i> <span id="mntTimer">...</span></span><span id="mntMessage"></span></div></div></div></div>';document.body.classList.add('mnt-active');mb=true;tick()}
     function rem(){mc.innerHTML='';document.body.classList.remove('mnt-active');mb=false}
-    function upd(){if(!md||!md.enabled){rem();return}if(!mb)bld();var e=document.getElementById('mntMessage');if(e)e.textContent=md.message||'الموقع تحت الصيانة حالياً'}
-    function tick(){var e=document.getElementById('mntTimer'),w=e&&e.parentElement;if(!e||!w||!md||!md.enabled)return;if(me&&mr!==null){w.style.display='';e.textContent='متبقي '+fmt(mr);if(mr>0)mr=Math.max(0,mr-1000)}else{w.style.display='none'}}
+    function gs(s){var e=document.getElementById('frameGlass');if(e){if(s)e.classList.add('show');else e.classList.remove('show')}}
+    function upd(){
+      var fg=document.getElementById('frameGlass');
+      if(!md||!md.enabled){rem();gs(false);return}
+      if(!mb)bld();
+      var e=document.getElementById('mntMessage');if(e)e.textContent=md.message||'الموقع تحت الصيانة حالياً';
+      gs(true);
+      var gm=document.getElementById('glassMsg');if(gm)gm.textContent=md.message||'الموقع تحت الصيانة حالياً';
+    }
+    function tick(){
+      var e=document.getElementById('mntTimer'),w=e&&e.parentElement;
+      if(!e||!w||!md||!md.enabled)return;
+      var gt=document.getElementById('glassTimer');
+      if(me&&mr!==null){w.style.display='';var t='متبقي '+fmt(mr);e.textContent=t;if(gt)gt.textContent=t;if(mr>0)mr=Math.max(0,mr-1000)}else{w.style.display='none';if(gt)gt.textContent='—'}}
     async function chk(){try{var r=await fetch('/dev/maintenance/status'),d=await r.json();if(d.enabled){ms=Number(d.startedAt)||Date.now();me=d.endTime?Number(d.endTime):null;mr=typeof d.remainMs==='number'?d.remainMs:null;md=d}else{md=null;ms=null;me=null;mr=null}upd()}catch{}}
     chk();setInterval(chk,30000);setInterval(tick,1000);
   });
