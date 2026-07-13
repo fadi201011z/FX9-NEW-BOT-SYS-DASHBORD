@@ -351,7 +351,7 @@ a { text-decoration:none; color:inherit; }
               <div class="f-row-icon" style="background:rgba(52,211,153,0.08);color:#34d399"><i class="fas fa-terminal"></i></div>
               <div class="f-row-info">
                 <div class="f-row-title">إجمالي الأوامر</div>
-                <div class="f-row-sub"><%= (locals.stats && stats.cmd) ? (stats.cmd.total || 0) + ' أمر' : '— أمر' %></div>
+                <div class="f-row-sub"><span id="frameCmdCount"><%= (locals.stats && stats.cmd) ? (stats.cmd.total || 0) : '—' %></span> أمر</div>
               </div>
               <span class="f-row-val"><%= (locals.stats && stats.cmd && stats.cmd.total) ? 'منفَّذ' : '—' %></span>
             </div>
@@ -612,6 +612,10 @@ a { text-decoration:none; color:inherit; }
         el.textContent=v;var id='';if(lb.includes('أوامر تذاكر'))id='statTickets';else if(lb.includes('أوامر صوتية'))id='statVoice';else if(lb.includes('إجمالي الأوامر'))id='statTotal';var pg=document.getElementById(id);if(pg)pg.textContent=v;
       });
       var h=document.getElementById('heroCmdCount');if(h)h.textContent=ttl||0;
+      var fc=document.getElementById('frameCmdCount');if(fc)fc.textContent=ttl||0;
+    }
+    function sfb2(){
+      var fc=document.getElementById('frameCmdCount');if(fc)fc.textContent='—';
     }
     function updateFrameStats(botData){
       if(!botData||!botData.guildCount)return;
@@ -619,7 +623,7 @@ a { text-decoration:none; color:inherit; }
       sd('bandGuilds',botData.guildCount);
       ['heroCmdCount','bandGuilds','bandMembers','bandPing'].forEach(function(id){var e=document.getElementById(id);if(e&&e.textContent==='—')e.textContent='0'});
     }
-    fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){sfa(s.perCategory||{},s.total||0)}).catch(sfb);
+    fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){sfa(s.perCategory||{},s.total||0)}).catch(function(){sfb();sfb2()});
     fetch('/api/status').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(d){updateFrameStats(d)}).catch(function(){});
     var mc=document.createElement('div');mc.id='mntBanner';document.body.prepend(mc);
     var md=null,ms=null,me=null,mr=null,mb=false;
