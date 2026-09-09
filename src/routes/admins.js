@@ -119,10 +119,27 @@ async function autoSyncAdmins(guildId, callerUserId) {
 }
 
 // Fetch user info (username, avatar) from bot API and store in User collection
-async function enrichAdminUsers(admins) {
+async function enrichAdminUsers(admins, fallbackMembers = []) {
   const { default: User } = await import('../models/User.js');
+  const fallbackMap = {};
+  for (const m of fallbackMembers) {
+    if (m.id) fallbackMap[m.id] = m;
+  }
   const enriched = [];
   for (const a of admins) {
+    const fb = fallbackMap[a.userId];
+    if (fb && !a.username) {
+      a.username = fb.username;
+      a.globalName = fb.globalName;
+      a.avatar = fb.avatar;
+      await User.findOneAndUpdate(
+        { userId: a.userId },
+        { username: a.username, avatar: a.avatar },
+        { upsert: true }
+      ).catch(() => {});
+      enriched.push(a);
+      continue;
+    }
     if (a.username && a.avatar) {
       enriched.push(a);
     } else {
@@ -134,7 +151,7 @@ async function enrichAdminUsers(admins) {
             { username: userData.username, avatar: userData.avatar },
             { upsert: true }
           );
-          enriched.push({ ...a, username: userData.username, avatar: userData.avatar });
+          enriched.push({ ...a, username: userData.username, globalName: userData.globalName, avatar: userData.avatar });
         } else {
           enriched.push(a);
         }
@@ -172,9 +189,8 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'),
 
   // Auto-sync in background (non-blocking)
   autoSyncAdmins(guildId, req.session.user.id).catch(() => {});
-  const admins = await enrichAdminUsers(await getGuildAdmins(guildId));
 
-  // Fetch admin role member info for the linked members card
+  // Fetch admin role member info for the linked members card (also used as name fallback)
   let adminRoleMembers = [];
   if (adminRoles.length > 0) {
     const roleIds = adminRoles.map(ar => ar.role_id);
@@ -203,6 +219,8 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'),
     }
     adminRoleMembers = (rawMembers || []).map(m => ({ ...m, highestLevel: computeLevel(m.roles || []) }));
   }
+
+  const admins = await enrichAdminUsers(await getGuildAdmins(guildId), adminRoleMembers);
 
   res.render('guild/admins', {
     user: req.session.user,

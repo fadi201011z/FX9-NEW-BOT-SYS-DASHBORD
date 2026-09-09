@@ -232,7 +232,11 @@ export async function removeAdminByUserGuildAddedBy(userId, guildId, addedBy) {
 }
 
 export async function addAdminRaw(userId, guildId, role, addedBy) {
-  await Admin.create({ userId, guildId, role, addedBy, addedAt: Date.now() });
+  await Admin.findOneAndUpdate(
+    { userId, guildId },
+    { role, addedBy, addedAt: Date.now() },
+    { upsert: true, setDefaultsOnInsert: true }
+  );
 }
 
 export async function getAllGuildIdsWithAdminRoles() {
