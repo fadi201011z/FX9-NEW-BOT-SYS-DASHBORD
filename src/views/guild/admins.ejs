@@ -1,7 +1,8 @@
 <% currentPage = 'admins' %>
+<% const LV = { manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم' }; %>
 <div class="page-header">
   <h1><i class="fas fa-users-cog"></i> إدارة المدراء — <%= guild.name %></h1>
-  <p>عدد المدراء: <%= admins.length %> • الرتب الإدارية: <%= adminRoles.length %></p>
+  <p>المدراء: <%= admins.length %> • الرتب الإدارية: <%= adminRoles.length %> • الأعضاء المرتبطون: <%= adminRoleMembers.length %></p>
   <div class="header-actions" style="margin-top:8px">
     <button class="btn-sm btn-primary" onclick="syncAdmins(event)">
       <i class="fas fa-sync-alt"></i> مزامنة المدراء
@@ -9,13 +10,49 @@
   </div>
 </div>
 
+<!-- ═══ Admin Roles Management ═══ -->
 <div class="card glass">
   <div class="card-header">
     <h3><i class="fas fa-user-tag"></i> الرتب الإدارية في السيرفر</h3>
+    <div class="role-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="roleSearch" placeholder="بحث عن رتبة..." oninput="filterRoles()">
+    </div>
   </div>
-  <div style="padding:24px 18px;text-align:center;font-size:1.15rem;font-weight:700;color:#f0b400;display:flex;flex-direction:column;align-items:center;gap:10px">
-    <i class="fas fa-tools" style="font-size:1.6rem"></i>
-    <span>الخاصية تحت الصيانة — الرتب الحالية مستمرة في التحديث تلقائياً</span>
+  <div style="padding:0 18px;font-size:0.85rem;color:var(--text-muted);line-height:1.8">
+    <i class="fas fa-info-circle" style="color:var(--primary)"></i>
+    تفعيل أي رتبة يجعل كل أعضائها مدراء داخل لوحة التحكم بصلاحيات الرتبة المختارة.
+    القائمة تتحدث تلقائياً عند منح/سحب الرتبة لأي عضو — اضغط على الرتبة لتحديد صلاحياتها داخل الموقع.
+  </div>
+  <div class="roles-grid">
+    <% (guildRoles || []).forEach(r => {
+      const ar = (adminRoles || []).find(a => a.role_id === r.id);
+      const col = r.color ? '#' + Number(r.color).toString(16).padStart(6, '0') : 'var(--border)';
+    %>
+    <div class="admin-role-card <%= ar ? 'active' : '' %>" data-role-id="<%= r.id %>" data-role-name="<%= r.name %>" data-level="<%= ar ? ar.level : '' %>" onclick="selectRole(this, event)">
+      <span class="role-color-dot" style="background:<%= col %>"></span>
+      <div class="role-info">
+        <div class="role-name" title="<%= r.name %>"><%= r.name %></div>
+        <div class="role-meta">
+          <% if (ar) { %>
+            <span class="role-badge role-<%= ar.level %> role-level-badge"><%= LV[ar.level] || ar.level %></span>
+          <% } else { %>
+            <span style="color:var(--text-muted)">غير مفعّلة</span>
+          <% } %>
+        </div>
+      </div>
+      <div class="role-right">
+        <span class="role-count" title="عدد أعضاء الرتبة"><i class="fas fa-users"></i> <%= typeof r.members_count === 'number' ? r.members_count : '—' %></span>
+        <label class="toggle role-toggle" onclick="event.stopPropagation()">
+          <input type="checkbox" <%= ar ? 'checked' : '' %> onchange="toggleRole(this)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <% }) %>
+    <% if (!guildRoles || guildRoles.length === 0) { %>
+      <div class="roles-empty"><i class="fas fa-users-slash"></i><p>لا توجد رتب معروضة</p></div>
+    <% } %>
   </div>
 </div>
 
@@ -44,7 +81,7 @@
               <img src="https://cdn.discordapp.com/avatars/<%= m.id %>/<%= m.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
               <span><%= m.globalName || m.username || m.id %></span>
             </td>
-            <td><span class="role-badge role-<%= m.highestLevel %>"><%= ({ manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم' })[m.highestLevel] || m.highestLevel %></span></td>
+            <td><span class="role-badge role-<%= m.highestLevel %>"><%= LV[m.highestLevel] || m.highestLevel %></span></td>
             <td><span class="badge badge-<%= dbAdmin ? 'success' : 'warning' %>"><%= dbAdmin ? 'مضاف' : 'غير مضاف' %></span></td>
           </tr>
         <% }) %>
@@ -107,7 +144,7 @@
                 <img src="https://cdn.discordapp.com/avatars/<%= a.userId %>/<%= a.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                 <span><%= a.username || a.userId %></span>
               </td>
-              <td><span class="role-badge role-<%= a.role %>"><%= ({ manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم' })[a.role] || a.role %></span></td>
+              <td><span class="role-badge role-<%= a.role %>"><%= LV[a.role] || a.role %></span></td>
               <td><span class="badge badge-<%= a.addedBy === 'role_sync' ? 'info' : 'default' %>"><%= a.addedBy === 'role_sync' ? 'تلقائي' : 'يدوي' %></span></td>
               <td><%= new Date(a.addedAt).toLocaleString('ar-SA') %></td>
               <td class="actions">
@@ -139,7 +176,7 @@
       <button class="modal-close" onclick="closeRoleModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <p id="roleModalDesc">اختر مستوى الصلاحية للرتبة</p>
+      <p id="roleModalDesc">اختر مستوى الصلاحية للرتبة داخل لوحة التحكم</p>
       <div class="role-levels">
         <% ['manager', 'admin', 'moderator', 'support'].forEach(level => { %>
           <label class="role-level-option">
@@ -148,8 +185,19 @@
               <span class="role-level-icon">
                 <i class="fas fa-<%= level === 'manager' ? 'crown' : level === 'admin' ? 'shield-alt' : level === 'moderator' ? 'gavel' : 'headset' %>"></i>
               </span>
-              <span class="role-level-name"><%= { manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم فني' }[level] %></span>
-              <span class="role-level-desc"><%= { manager: 'صلاحية كاملة على اللوحة', admin: 'تحكم في الإعدادات والأوامر والحماية', moderator: 'إدارة الأعضاء والتذاكر', support: 'دعم فني فقط' }[level] %></span>
+              <span class="role-level-name"><%= LV[level] %></span>
+              <span class="role-level-desc"><%= { manager: 'صلاحية كاملة على جميع صفحات اللوحة', admin: 'تحكم في إعدادات البوت والحماية والأوامر', moderator: 'إدارة أعضاء السيرفر والتذاكر', support: 'دعم فني داخل التذاكر فقط' }[level] %></span>
+              <ul class="role-perms">
+                <% const PERMS = {
+                  manager: ['إدارة المدراء والرتب الإدارية', 'جميع الإعدادات والحماية', 'السجلات والنسخ الاحتياطي', 'عرض واسترجاع المحذوفات'],
+                  admin: ['صفحات الإعدادات والرموز', 'الحماية والتصفية', 'الأوامر والنسخ الاحتياطي', 'القنوات والحالة والسجلات'],
+                  moderator: ['إدارة الأعضاء', 'لوحة التذاكر', 'القنوات الصوتية', 'عرض حالة السيرفر'],
+                  support: ['فتح وإدارة التذاكر', 'دعم الأعضاء داخل اللوحة']
+                }; %>
+                <% PERMS[level].forEach(p => { %>
+                  <li><i class="fas fa-check"></i> <%= p %></li>
+                <% }) %>
+              </ul>
             </div>
           </label>
         <% }) %>
@@ -164,12 +212,13 @@
 
 <script>
 const GUILD_ID = '<%= guild.id %>';
+const LEVEL_NAMES = { manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم' };
 let pendingRoleData = null;
 
 function openRoleModal(guildId, roleId, roleName, currentLevel, el) {
   pendingRoleData = { guildId, roleId, roleName, currentLevel, el, wasActive: el.classList.contains('active') };
   document.getElementById('roleModalTitle').textContent = 'صلاحية الرتبة: ' + roleName;
-  document.getElementById('roleModalDesc').textContent = 'اختر مستوى الصلاحية للرتبة "' + roleName + '"';
+  document.getElementById('roleModalDesc').textContent = 'اختر مستوى الصلاحية للرتبة "' + roleName + '" داخل لوحة التحكم';
   document.querySelectorAll('input[name="roleLevel"]').forEach(r => {
     r.checked = r.value === currentLevel;
   });
@@ -178,7 +227,53 @@ function openRoleModal(guildId, roleId, roleName, currentLevel, el) {
 
 function closeRoleModal() {
   document.getElementById('roleModal').style.display = 'none';
+  if (pendingRoleData && !pendingRoleData.wasActive) {
+    pendingRoleData.el.classList.remove('active');
+    const cb = pendingRoleData.el.querySelector('.role-toggle input');
+    if (cb) cb.checked = false;
+  }
   pendingRoleData = null;
+}
+
+function selectRole(card, event) {
+  if (event.target.closest('.role-toggle')) return;
+  const roleId = card.dataset.roleId;
+  const name = card.dataset.roleName;
+  const currentLevel = card.dataset.level || 'moderator';
+  openRoleModal(GUILD_ID, roleId, name, currentLevel, card);
+}
+
+async function toggleRole(input) {
+  const card = input.closest('.admin-role-card');
+  const roleId = card.dataset.roleId;
+  const name = card.dataset.roleName;
+
+  if (input.checked) {
+    openRoleModal(GUILD_ID, roleId, name, card.dataset.level || 'moderator', card);
+    return;
+  }
+
+  if (!confirm('إلغاء ربط الدور «' + name + '»؟ سيتم إزالة أعضائه من قائمة المدراء تلقائياً.')) {
+    input.checked = true;
+    return;
+  }
+  try {
+    const res = await fetch(`/admins/${GUILD_ID}/unlink`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roleId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✅ تم إلغاء الربط والمزامنة');
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showToast('❌ ' + (data.error || data.message));
+      input.checked = true;
+    }
+  } catch {
+    showToast('❌ فشل الاتصال');
+    input.checked = true;
+  }
 }
 
 async function confirmRole() {
@@ -192,32 +287,20 @@ async function confirmRole() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
   try {
-    if (!wasActive) {
-      el.classList.add('active');
-      const res = await fetch(`/admins/${guildId}/set-role`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roleId, level }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast(`✅ ${data.memberCount || data.added || 0} عضو من ${roleName} أصبحوا مدراء`);
-      } else {
-        showToast('❌ ' + (data.error || data.message));
-      }
-      if (data.success) setTimeout(() => location.reload(), 1000);
+    el.classList.add('active');
+    const res = await fetch(`/admins/${guildId}/set-role`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roleId, level }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      const n = data.memberCount != null ? data.memberCount : (data.added || 0);
+      showToast(`✅ ${n} عضو من ${roleName} أصبحوا مدراء بصلاحيات "${LEVEL_NAMES[level] || level}"`);
     } else {
-      const res = await fetch(`/admins/${guildId}/set-role`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roleId, level }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast(`✅ تم تحديث صلاحية ${roleName} — ${data.memberCount || data.added || 0} عضو`);
-      } else {
-        showToast('❌ ' + (data.error || data.message));
-      }
-      setTimeout(() => location.reload(), 1000);
+      showToast('❌ ' + (data.error || data.message));
+      if (!wasActive) el.classList.remove('active');
     }
+    if (data.success) setTimeout(() => location.reload(), 1000);
   } catch (err) {
     showToast('❌ فشلت العملية');
     if (!wasActive) el.classList.remove('active');
@@ -225,6 +308,14 @@ async function confirmRole() {
   btn.disabled = false;
   btn.innerHTML = 'تأكيد';
   closeRoleModal();
+}
+
+function filterRoles() {
+  const q = document.getElementById('roleSearch').value.toLowerCase();
+  document.querySelectorAll('.roles-grid .admin-role-card').forEach(card => {
+    const match = card.dataset.roleName.toLowerCase().includes(q);
+    card.style.display = match ? '' : 'none';
+  });
 }
 
 function filterAdmins() {

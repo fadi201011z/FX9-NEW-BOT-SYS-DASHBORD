@@ -165,6 +165,11 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'),
     } catch {}
   }
 
+  // Normalize: exclude @everyone + managed integration roles, sort highest position first
+  guildRoles = (Array.isArray(guildRoles) ? guildRoles : [])
+    .filter(r => r.id && r.name && r.name !== '@everyone' && !r.managed)
+    .sort((a, b) => (b.position ?? 0) - (a.position ?? 0));
+
   // Auto-sync in background (non-blocking)
   autoSyncAdmins(guildId, req.session.user.id).catch(() => {});
   const admins = await enrichAdminUsers(await getGuildAdmins(guildId));
