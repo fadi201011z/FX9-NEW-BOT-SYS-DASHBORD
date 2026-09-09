@@ -87,7 +87,7 @@ router.get('/bot/info', async (req, res) => {
   res.json({
     name: 'FX9 Merged Bot',
     version: '5.0.0',
-    description: 'FX9 Merged Bot — System + Tickets + Voice/Music',
+    description: 'FX9 Merged Bot — System + Tickets',
     dashboard: 'FX9 Dashboard v1.0.0',
     owner: config.discord.ownerId,
     uptime: process.uptime(),
