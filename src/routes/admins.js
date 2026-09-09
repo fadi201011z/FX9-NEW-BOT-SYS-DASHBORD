@@ -115,7 +115,11 @@ async function autoSyncAdmins(guildId, callerUserId) {
       `مزامنة تلقائية: +${added} / -${removed}`, 'auto', 'auto');
   }
 
-  return { added, removed, memberCount: members.length };
+  const warning = members.length === 0
+    ? 'لم يُعثر على أعضاء يحملون الرتبة (0 عضو). إذا كان للرتبة أعضاء فعلاً، فتأكد من وصول الداشبورد إلى API البوت وأن رتبة الاختبار غير فارغة.'
+    : undefined;
+
+  return { added, removed, memberCount: members.length, warning };
 }
 
 // Fetch user info (username, avatar) from bot API and store in User collection
@@ -249,7 +253,7 @@ router.post('/:guildId/set-role', isAuthenticated, hasGuildAccess, mgrOnly, sani
 
     const result = await autoSyncAdmins(guildId, req.session.user.id);
 
-    res.json({ success: true, memberCount: result.memberCount, added: result.added, message: `تم تعيين الدور. تمت مزامنة ${result.added} أعضاء.` });
+    res.json({ success: true, memberCount: result.memberCount, added: result.added, warning: result.warning, message: `تم تعيين الدور. تمت مزامنة ${result.added} أعضاء.` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -267,7 +271,7 @@ router.post('/:guildId/remove-role', isAuthenticated, hasGuildAccess, mgrOnly, s
 
     const result = await autoSyncAdmins(guildId, req.session.user.id);
 
-    res.json({ success: true, memberCount: result.memberCount, removed: result.removed, message: `تم إزالة الدور. تمت مزامنة إزالة ${result.removed} أعضاء.` });
+    res.json({ success: true, memberCount: result.memberCount, removed: result.removed, warning: result.warning, message: `تم إزالة الدور. تمت مزامنة إزالة ${result.removed} أعضاء.` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

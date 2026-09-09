@@ -295,7 +295,9 @@ async function confirmRole() {
     const data = await res.json();
     if (data.success) {
       const n = data.memberCount != null ? data.memberCount : (data.added || 0);
-      showToast(`✅ ${n} عضو من ${roleName} أصبحوا مدراء بصلاحيات "${LEVEL_NAMES[level] || level}"`);
+      showToast(data.warning
+        ? `✅ تم ربط الرتبة — ⚠️ ${data.warning}`
+        : `✅ ${n} عضو من ${roleName} أصبحوا مدراء بصلاحيات "${LEVEL_NAMES[level] || level}"`);
     } else {
       showToast('❌ ' + (data.error || data.message));
       if (!wasActive) el.classList.remove('active');
