@@ -26,7 +26,7 @@
   </div>
   <div class="roles-grid">
     <% (guildRoles || []).forEach(r => {
-      const ar = (adminRoles || []).find(a => a.role_id === r.id);
+      const ar = (adminRoles || []).find(a => a.roleId === r.id);
       const col = r.color ? '#' + Number(r.color).toString(16).padStart(6, '0') : 'var(--border)';
     %>
     <div class="admin-role-card <%= ar ? 'active' : '' %>" data-role-id="<%= r.id %>" data-role-name="<%= r.name %>" data-level="<%= ar ? ar.level : '' %>" onclick="selectRole(this, event)">
@@ -283,6 +283,7 @@ async function confirmRole() {
   if (!selected) { showToast('❌ اختر مستوى صلاحية'); return; }
   const level = selected.value;
   const btn = document.getElementById('roleModalConfirm');
+  let succeeded = false;
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
@@ -294,21 +295,23 @@ async function confirmRole() {
     });
     const data = await res.json();
     if (data.success) {
+      succeeded = true;
       const n = data.memberCount != null ? data.memberCount : (data.added || 0);
       showToast(data.warning
         ? `✅ تم ربط الرتبة — ⚠️ ${data.warning}`
         : `✅ ${n} عضو من ${roleName} أصبحوا مدراء بصلاحيات "${LEVEL_NAMES[level] || level}"`);
     } else {
       showToast('❌ ' + (data.error || data.message));
-      if (!wasActive) el.classList.remove('active');
     }
     if (data.success) setTimeout(() => location.reload(), 1000);
   } catch (err) {
     showToast('❌ فشلت العملية');
     if (!wasActive) el.classList.remove('active');
   }
+  if (!succeeded && !wasActive) el.classList.remove('active');
   btn.disabled = false;
   btn.innerHTML = 'تأكيد';
+  if (succeeded) pendingRoleData.wasActive = true;
   closeRoleModal();
 }
 

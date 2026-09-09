@@ -15,12 +15,12 @@ async function autoSyncAdmins(guildId, callerUserId) {
   const adminRoles = await getGuildAdminRoleIds(guildId);
   if (adminRoles.length === 0) return { added: 0, removed: 0 };
 
-  const roleIds = adminRoles.map(ar => ar.role_id);
+  const roleIds = adminRoles.map(ar => ar.roleId);
   const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
 
   // Fetch members — Multi-level with empty-check fallthrough
   const roleLevelMap = {};
-  for (const ar of adminRoles) roleLevelMap[ar.role_id] = ar.level;
+  for (const ar of adminRoles) roleLevelMap[ar.roleId] = ar.level;
 
   const computeLevel = (memberRoles) => {
     let highestLevel = 'moderator';
@@ -197,9 +197,9 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'),
   // Fetch admin role member info for the linked members card (also used as name fallback)
   let adminRoleMembers = [];
   if (adminRoles.length > 0) {
-    const roleIds = adminRoles.map(ar => ar.role_id);
+    const roleIds = adminRoles.map(ar => ar.roleId);
     const roleLevelMap = {};
-    for (const ar of adminRoles) roleLevelMap[ar.role_id] = ar.level;
+    for (const ar of adminRoles) roleLevelMap[ar.roleId] = ar.level;
     const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
     const computeLevel = (memberRoles) => {
       let highestLevel = 'moderator', maxP = 0;
@@ -361,7 +361,7 @@ router.post('/webhook/sync-member', async (req, res) => {
     const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
 
     for (const ar of adminRoles) {
-      if (memberRoleIds.includes(ar.role_id)) {
+      if (memberRoleIds.includes(ar.roleId)) {
         hasAdminRole = true;
         if (hierarchy[ar.level] > hierarchy[matchedLevel]) matchedLevel = ar.level;
       }
