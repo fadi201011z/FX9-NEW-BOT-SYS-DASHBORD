@@ -3,6 +3,8 @@ import { isAuthenticated, hasGuildAccess, canModify, requireRole } from '../midd
 import { getGuildConfig, setGuildConfig, getAllGuildConfig, deleteGuildConfig, logAudit, logActivity } from '../database.js';
 import { getTicketGuildConfig, saveTicketGuildConfig } from '../services/dataReader.js';
 import { sanitizeInput } from '../middleware/security.js';
+import { getGuildChannels, getGuildRoles } from '../auth/discord.js';
+import config from '../config.js';
 
 const TICKET_KEY_MAP = {
   ticket_category: 'ticketCategoryId',
@@ -13,20 +15,120 @@ const TICKET_KEY_MAP = {
 
 const router = Router();
 
+async function buildViewData(guildId) {
+  const cfg = await getAllGuildConfig(guildId);
+  const ticketJson = await getTicketGuildConfig(guildId);
+  if (ticketJson) {
+    cfg.ticket_category = ticketJson.ticketCategoryId || (cfg.ticket_category || '');
+    cfg.admin_category = ticketJson.adminCategoryId || (cfg.admin_category || '');
+    cfg.panel_channel = ticketJson.panelChannelId || (cfg.panel_channel || '');
+    cfg.log_channel_id = ticketJson.logChannelId || (cfg.log_channel_id || '');
+    cfg.support_role = ticketJson.supportRoleIds.length ? ticketJson.supportRoleIds.join(', ') : (cfg.support_role || '');
+    cfg.ticket_counter = ticketJson.ticketCounter || cfg.ticket_counter || 0;
+  }
+
+  let supportRoleArray = [];
+  if (cfg.support_role) {
+    supportRoleArray = String(cfg.support_role).split(',').map(s => s.trim()).filter(Boolean);
+  }
+
+  const channels = { text: [], voice: [], category: [] };
+  try {
+    const all = await getGuildChannels(guildId, config.discord.botToken);
+    for (const c of all) {
+      if (c.type === 0 || c.type === 5) channels.text.push({ id: c.id, name: c.name });
+      else if (c.type === 2) channels.voice.push({ id: c.id, name: c.name });
+      else if (c.type === 4) channels.category.push({ id: c.id, name: c.name });
+    }
+  } catch {}
+
+  let roles = [];
+  try {
+    roles = await getGuildRoles(guildId, config.discord.botToken);
+    roles.sort((a, b) => (b.position || 0) - (a.position || 0));
+  } catch {}
+
+  return { config: cfg, supportRoleArray, channels, roles };
+}
+
+async function syncConfigToBot() {
+  try {
+    const res = await fetch(`${config.botApiUrl}/api/sync-config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      signal: AbortSignal.timeout(4000),
+    });
+    if (res.ok) return true;
+  } catch {}
+  return false;
+}
+
 router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
-  const config = await getAllGuildConfig(guildId);
-  const ticketJson = await getTicketGuildConfig(guildId);
-  if (ticketJson) {
-    config.ticket_category = ticketJson.ticketCategoryId || (config.ticket_category || '');
-    config.admin_category = ticketJson.adminCategoryId || (config.admin_category || '');
-    config.panel_channel = ticketJson.panelChannelId || (config.panel_channel || '');
-    config.log_channel_id = ticketJson.logChannelId || (config.log_channel_id || '');
-    config.support_role = ticketJson.supportRoleIds.length ? ticketJson.supportRoleIds.join(', ') : (config.support_role || '');
-    config.ticket_counter = ticketJson.ticketCounter || 0;
+  const data = await buildViewData(guildId);
+
+  res.render('guild/settings', {
+    user: req.session.user,
+    guild,
+    config: data.config,
+    supportRoleArray: data.supportRoleArray,
+    channels: data.channels,
+    roles: data.roles,
+    title: 'الإعدادات',
+  });
+});
+
+router.post('/:guildId/save', isAuthenticated, hasGuildAccess, canModify, sanitizeInput, async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const settings = req.body.settings || req.body;
+    let changed = 0;
+
+    for (const [key, rawValue] of Object.entries(settings)) {
+      if (key === 'ticket_counter' && (rawValue === '' || rawValue == null)) continue;
+      const value = rawValue == null ? '' : String(rawValue).trim();
+      const oldValue = (await getGuildConfig(guildId, key))?.value ?? null;
+
+      if (key === 'support_role') {
+        const ids = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
+        saveTicketGuildConfig(guildId, { supportRoleIds: ids });
+      } else if (TICKET_KEY_MAP[key]) {
+        saveTicketGuildConfig(guildId, { [TICKET_KEY_MAP[key]]: value });
+      } else if (key === 'ticket_counter') {
+        saveTicketGuildConfig(guildId, { ticketCounter: Number(value) || 0 });
+      }
+
+      if (!value) {
+        await deleteGuildConfig(guildId, key);
+      } else {
+        await setGuildConfig(guildId, key, value);
+      }
+
+      logAudit(req.session.user.id, guildId, 'update_setting', key, oldValue, value, req.ip, req.sessionID);
+      logActivity(req.session.user.id, guildId, 'update_setting', key, `تعديل ${key}`, req.ip, req.sessionID);
+      changed++;
+    }
+
+    const synced = await syncConfigToBot();
+
+    res.json({ success: true, changed, synced });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  res.render('guild/settings', { user: req.session.user, guild, config, title: 'الإعدادات' });
+});
+
+router.post('/:guildId/sync', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+  try {
+    const synced = await syncConfigToBot();
+    res.json({
+      success: synced,
+      message: synced ? 'تمت المزامنة الفورية مع البوت.' : 'البوت غير متصل — ستُطبق الإعدادات تلقائياً خلال ثوانٍ.',
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sanitizeInput, async (req, res) => {

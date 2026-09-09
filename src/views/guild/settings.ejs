@@ -1,47 +1,293 @@
 <% currentPage = 'settings' %>
 <div class="page-header">
   <h1><i class="fas fa-sliders-h"></i> إعدادات <%= guild.name %></h1>
-  <p>إدارة جميع إعدادات البوت في السيرفر</p>
+  <p>ضبط جميع إعدادات البوت في السيرفر بمزامنة فورية مع البوت</p>
 </div>
 
-<div class="maintenance-box glass fade-in-up">
-  <div class="maintenance-icon">
-    <i class="fas fa-tools"></i>
+<div class="card glass sync-bar">
+  <div class="sync-bar-info">
+    <i class="fas fa-bolt"></i>
+    <div>
+      <strong>المزامنة الفورية</strong>
+      <p>كل تعديل يُحفظ في قاعدة البيانات ويُطبَّق على البوت خلال ثوانٍ — أو فورياً عبر زر المزامنة.</p>
+    </div>
   </div>
-  <h2>قيد الصيانة</h2>
-  <p>نعمل على تحسين هذه الصفحة لتكون متزامنة بشكل كامل مع إعدادات البوت.</p>
-  <p class="text-muted">سيتم إعادة تفعيلها قريباً.</p>
+  <div class="sync-bar-actions">
+    <span id="syncStatus" class="sync-idle"><i class="fas fa-circle"></i> مزامنة تلقائية عند كل حفظ</span>
+    <button type="button" class="btn-primary" onclick="syncNow()">
+      <i class="fas fa-sync-alt"></i> مزامنة الآن
+    </button>
+  </div>
 </div>
+
+<form id="settingsForm" onsubmit="saveSettings(event)">
+  <%
+    const sections = [
+      {
+        title: 'الترحيب بالسيرفر',
+        icon: 'fa-door-open',
+        desc: 'بطاقة ترحيب تُرسل تلقائياً عند انضمام كل عضو جديد',
+        fields: [
+          { key: 'welcome_channel', label: 'قناة الترحيب', type: 'text' },
+        ],
+      },
+      {
+        title: 'قنوات السجلات',
+        icon: 'fa-clipboard-list',
+        desc: 'سجلات النشاط العام والإشراف وحالة البوت',
+        fields: [
+          { key: 'log_channel', label: 'السجلات العامة', type: 'text', hint: 'انضمام / مغادرة / رسائل / صوت' },
+          { key: 'modlog_channel', label: 'سجلات الإشراف', type: 'text', hint: 'ban / kick / timeout / warn والأدوار' },
+          { key: 'botlog_channel', label: 'سجل البوت', type: 'text', hint: 'تشغيل / إيقاف / أخطاء / نبض البوت' },
+        ],
+      },
+      {
+        title: 'الإحصائيات الصوتية',
+        icon: 'fa-chart-line',
+        desc: 'رومات صوتية تتحدث تلقائياً كل دقيقة',
+        fields: [
+          { key: 'stats_total', label: 'روم العدد الكلي', type: 'voice' },
+          { key: 'stats_online', label: 'روم المتواجدون', type: 'voice' },
+          { key: 'stats_bots', label: 'روم البوتات', type: 'voice' },
+        ],
+      },
+      {
+        title: 'نظام التذاكر',
+        icon: 'fa-ticket-alt',
+        desc: 'بنل التذاكر، تصنيفاتها، وسجلاتها',
+        fields: [
+          { key: 'panel_channel', label: 'قناة بنل التذاكر', type: 'text' },
+          { key: 'log_channel_id', label: 'قناة سجل التذاكر', type: 'text' },
+          { key: 'ticket_category', label: 'تصنيف التذاكر', type: 'category' },
+          { key: 'admin_category', label: 'تصنيف التذاكر الداخلية', type: 'category' },
+        ],
+      },
+    ];
+  %>
+
+  <% sections.forEach(s => { %>
+    <div class="card glass">
+      <div class="card-header">
+        <h3><i class="fas <%= s.icon %>"></i> <%= s.title %></h3>
+      </div>
+      <% if (s.desc) { %>
+        <p class="card-desc"><%= s.desc %></p>
+      <% } %>
+      <div class="form-grid">
+        <% s.fields.forEach(f => { %>
+          <div class="form-group">
+            <label><%= f.label %></label>
+            <div class="field-row">
+              <select data-key="<%= f.key %>">
+                <option value="">— بدون (معطّل) —</option>
+                <% (channels[f.type] || []).forEach(ch => { %>
+                  <option value="<%= ch.id %>" <%= String(config[f.key] || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+                <% }) %>
+              </select>
+              <button type="button" class="btn-delete-sm" onclick="deleteSetting('<%= f.key %>')" title="إلغاء هذا الإعداد">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+            <% if (f.hint) { %>
+              <small class="field-hint"><%= f.hint %></small>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  <% }) %>
+
+  <div class="card glass">
+    <div class="card-header">
+      <h3><i class="fas fa-users-cog"></i> فريق الدعم والعدادات</h3>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>رتب فريق الدعم — اضغط Ctrl لاختيار أكثر من رتبة</label>
+        <div class="field-row">
+          <select data-key="support_role" multiple size="7">
+            <% if (roles && roles.length > 0) { %>
+              <% roles.forEach(r => { %>
+                <option value="<%= r.id %>" <%= supportRoleArray.includes(String(r.id)) ? 'selected' : '' %>><%= r.name %></option>
+              <% }) %>
+            <% } else { %>
+              <option value="">لا توجد رتب — تأكد من توكن البوت</option>
+            <% } %>
+          </select>
+        </div>
+        <small class="field-hint">هذه الرتب يمكنها الرد على التذاكر (الدعم الفني)</small>
+      </div>
+      <div class="form-group">
+        <label>عداد التذاكر الحالي</label>
+        <div class="field-row">
+          <input type="number" data-key="ticket_counter" min="0" value="<%= config.ticket_counter || 0 %>">
+        </div>
+        <small class="field-hint">يُستخدم في ترقيم التذاكر الجديدة</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions-bar">
+    <button type="submit" class="btn-primary" id="saveBtn">
+      <i class="fas fa-save"></i> حفظ جميع الإعدادات
+    </button>
+    <button type="button" class="btn-secondary" onclick="syncNow()">
+      <i class="fas fa-sync-alt"></i> مزامنة البوت الآن
+    </button>
+  </div>
+</form>
 
 <style>
-.maintenance-box {
-  max-width: 480px;
-  margin: 60px auto;
-  padding: 48px 32px;
-  text-align: center;
-  border-radius: 16px;
-}
-.maintenance-icon {
-  font-size: 3rem;
-  color: var(--warning, #fee75c);
-  margin-bottom: 16px;
-  animation: spin 4s linear infinite;
-}
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.maintenance-box h2 {
-  margin: 0 0 12px;
-  font-size: 1.5rem;
-}
-.maintenance-box p {
-  margin: 0 0 8px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-.text-muted {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
+  .sync-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(88, 101, 242, .3);
+  }
+  .sync-bar-info { display: flex; align-items: center; gap: 12px; }
+  .sync-bar-info i { font-size: 1.8rem; color: #5865f2; }
+  .sync-bar-info strong { display: block; margin-bottom: 2px; }
+  .sync-bar-info p { margin: 0; color: var(--text-muted); font-size: .83rem; line-height: 1.5; }
+  .sync-bar-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .sync-idle { font-size: .82rem; color: var(--text-muted); }
+  .sync-idle i { color: #57f287; }
+  #syncStatus.sync-ok { color: #57f287; }
+  #syncStatus.sync-ok i { color: #57f287; }
+  #syncStatus.sync-warn { color: #fee75c; }
+  #syncStatus.sync-warn i { color: #fee75c; }
+  .field-row { display: flex; gap: 8px; align-items: stretch; }
+  .field-row select, .field-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-family: inherit;
+  }
+  .field-row input[type="number"] { width: 120px; flex: 0 0 120px; }
+  .btn-delete-sm {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(237, 66, 69, .3);
+    background: rgba(237, 66, 69, .12);
+    color: #ed4245;
+    cursor: pointer;
+    font-size: .9rem;
+  }
+  .btn-delete-sm:hover { background: rgba(237, 66, 69, .25); }
+  .field-hint { display: block; margin-top: 6px; color: var(--text-muted); font-size: .78rem; }
+  .card-desc { margin: 0 20px 16px; color: var(--text-muted); font-size: .85rem; }
+  .actions-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 22px 2px 10px;
+  }
+  .btn-secondary {
+    padding: 12px 22px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: .95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-secondary:hover { background: rgba(255, 255, 255, .06); }
 </style>
+
+<script>
+const FIELDS = [
+  'welcome_channel', 'log_channel', 'modlog_channel', 'botlog_channel',
+  'stats_total', 'stats_online', 'stats_bots',
+  'panel_channel', 'log_channel_id', 'ticket_category', 'admin_category',
+];
+
+function collectSettings() {
+  const data = {};
+  for (const key of FIELDS) {
+    const el = document.querySelector('[data-key="' + key + '"]');
+    data[key] = el ? el.value : '';
+  }
+  const sr = Array.from(document.querySelectorAll('[data-key="support_role"] option:checked')).map(o => o.value);
+  data.support_role = sr.join(',');
+  const tc = document.querySelector('[data-key="ticket_counter"]');
+  data.ticket_counter = tc ? tc.value : '';
+  return data;
+}
+
+function updateSyncUi(ok, msg) {
+  const el = document.getElementById('syncStatus');
+  if (ok === true) { el.className = 'sync-ok'; el.innerHTML = '<i class="fas fa-check-circle"></i> متزامن مع البوت الآن'; }
+  else if (ok === false) { el.className = 'sync-warn'; el.innerHTML = '<i class="fas fa-circle"></i> البوت غير متصل — ستُطبق الإعدادات تلقائياً خلال ثوانٍ'; }
+  else if (msg) { el.innerHTML = '<i class="fas fa-circle"></i> ' + msg; el.className = 'sync-idle'; }
+}
+
+async function saveSettings(e) {
+  e.preventDefault();
+  const btn = document.getElementById('saveBtn');
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ...';
+  try {
+    const res = await fetch('/settings/<%= guild.id %>/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ settings: collectSettings() }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('✅ تم حفظ الإعدادات' + (data.synced ? ' — مزامنة فورية مع البوت' : ' — ستُطبَّق تلقائياً خلال ثوانٍ'), 'success');
+      updateSyncUi(data.synced);
+    } else {
+      showToast('❌ ' + (data.error || 'فشل الحفظ'), 'error');
+    }
+  } catch (err) {
+    showToast('❌ حدث خطأ في الاتصال', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+}
+
+async function syncNow() {
+  const el = document.getElementById('syncStatus');
+  el.className = 'sync-idle';
+  el.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> جارٍ المزامنة...';
+  try {
+    const res = await fetch('/settings/<%= guild.id %>/sync', { method: 'POST' });
+    const data = await res.json();
+    updateSyncUi(data.success);
+    showToast(data.message, data.success ? 'success' : 'warning');
+  } catch {
+    updateSyncUi(false);
+    showToast('لا يمكن الوصول للبوت — مزامنة تلقائية خلال ثوانٍ', 'warning');
+  }
+}
+
+async function deleteSetting(key) {
+  if (!confirm('هل تريد إلغاء هذا الإعداد؟')) return;
+  const res = await fetch('/settings/<%= guild.id %>/delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key }),
+  });
+  if (res.ok) {
+    showToast('✅ تم إلغاء الإعداد');
+    setTimeout(() => location.reload(), 900);
+  } else {
+    showToast('❌ فشل الحذف', 'error');
+  }
+}
+</script>

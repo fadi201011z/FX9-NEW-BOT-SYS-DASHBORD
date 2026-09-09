@@ -29,10 +29,25 @@ export function securityMiddleware(app) {
 export function sanitizeInput(req, res, next) {
   if (req.body) {
     for (const key of Object.keys(req.body)) {
-      if (typeof req.body[key] === 'string') {
-        req.body[key] = req.body[key].replace(/[<>]/g, '').trim();
-      }
+      req.body[key] = cleanValue(req.body[key]);
     }
   }
   next();
+}
+
+function cleanValue(value) {
+  if (typeof value === 'string') {
+    return value.replace(/[<>]/g, '').trim();
+  }
+  if (Array.isArray(value)) {
+    return value.map(cleanValue);
+  }
+  if (value && typeof value === 'object') {
+    const cleaned = {};
+    for (const k of Object.keys(value)) {
+      cleaned[k] = cleanValue(value[k]);
+    }
+    return cleaned;
+  }
+  return value;
 }
