@@ -41,16 +41,6 @@
           { key: 'botlog_channel', label: 'سجل البوت', type: 'text', hint: 'تشغيل / إيقاف / أخطاء / نبض البوت' },
         ],
       },
-      {
-        title: 'الإحصائيات الصوتية',
-        icon: 'fa-chart-line',
-        desc: 'رومات صوتية تتحدث تلقائياً كل دقيقة',
-        fields: [
-          { key: 'stats_total', label: 'روم العدد الكلي', type: 'voice' },
-          { key: 'stats_online', label: 'روم المتواجدون', type: 'voice' },
-          { key: 'stats_bots', label: 'روم البوتات', type: 'voice' },
-        ],
-      },
     ];
   %>
 
@@ -85,6 +75,81 @@
       </div>
     </div>
   <% }) %>
+
+  <div class="card glass stats-card">
+    <div class="card-header">
+      <h3><i class="fas fa-chart-line"></i> الإحصائيات الصوتية</h3>
+      <span class="ticket-status" id="statsStatusBadge"><span class="ticket-status-dot"></span><span id="statsStatusText">—</span></span>
+    </div>
+    <p class="card-desc">رومات صوتية تعرض الأعداد مباشرة في اسم الروم وتتحدث تلقائياً كل دقيقة</p>
+
+    <div class="stats-voice-grid">
+      <div class="stat-voice-item" data-for="stats_total">
+        <div class="stat-voice-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-voice-info">
+          <strong>روم العدد الكلي</strong>
+          <small>يعرض إجمالي عدد أعضاء السيرفر</small>
+        </div>
+        <div class="stat-voice-control">
+          <select data-key="stats_total" class="ticket-select">
+            <option value="">— بدون (معطّل) —</option>
+            <% (channels.voice || []).forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= String(config.stats_total || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="stat-voice-tools">
+            <span class="ticket-field-state" data-state-of="stats_total"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('stats_total')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-voice-item" data-for="stats_online">
+        <div class="stat-voice-icon"><i class="fas fa-user-check"></i></div>
+        <div class="stat-voice-info">
+          <strong>روم المتواجدون</strong>
+          <small>يعرض عدد الأعضاء المتصلين حالياً</small>
+        </div>
+        <div class="stat-voice-control">
+          <select data-key="stats_online" class="ticket-select">
+            <option value="">— بدون (معطّل) —</option>
+            <% (channels.voice || []).forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= String(config.stats_online || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="stat-voice-tools">
+            <span class="ticket-field-state" data-state-of="stats_online"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('stats_online')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-voice-item" data-for="stats_bots">
+        <div class="stat-voice-icon"><i class="fas fa-robot"></i></div>
+        <div class="stat-voice-info">
+          <strong>روم البوتات</strong>
+          <small>يعرض عدد البوتات في السيرفر</small>
+        </div>
+        <div class="stat-voice-control">
+          <select data-key="stats_bots" class="ticket-select">
+            <option value="">— بدون (معطّل) —</option>
+            <% (channels.voice || []).forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= String(config.stats_bots || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="stat-voice-tools">
+            <span class="ticket-field-state" data-state-of="stats_bots"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('stats_bots')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <small class="field-hint role-picker-hint">
+      <i class="fas fa-sync-alt"></i>
+      تُحدَّث الأعداد تلقائياً كل دقيقة ويعيد البوت تسمية الروم — يمكنك استخدام روم واحد لأكثر من إحصائية أو رومات منفصلة
+    </small>
+  </div>
 
   <div class="card glass ticket-card">
     <div class="card-header">
@@ -436,6 +501,32 @@
   .ticket-select { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); font-family: inherit; font-size: .85rem; cursor: pointer; }
   .ticket-select:focus { outline: none; border-color: var(--primary); }
 
+  .stats-card { overflow: hidden; }
+  .stats-voice-grid { padding: 0 20px; display: grid; gap: 12px; }
+  .stat-voice-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .stat-voice-item:focus-within { border-color: rgba(88, 101, 242, .5); }
+  .stat-voice-item.done { border-color: rgba(87, 242, 135, .35); background: rgba(87, 242, 135, .05); }
+  .stat-voice-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(88, 101, 242, .12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; transition: all .2s ease; }
+  .stat-voice-item.done .stat-voice-icon { background: rgba(87, 242, 135, .15); color: #57f287; }
+  .stat-voice-info { flex: 1; min-width: 0; }
+  .stat-voice-info strong { display: block; font-size: .88rem; }
+  .stat-voice-info small { color: var(--text-muted); font-size: .74rem; display: block; }
+  .stat-voice-control { min-width: 0; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 8px; }
+  .stat-voice-tools { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+  @media (max-width: 760px) {
+    .stat-voice-item { flex-wrap: wrap; }
+    .stat-voice-control { max-width: none; }
+  }
+
   @media (max-width: 640px) { .role-grid { grid-template-columns: 1fr; } .ticket-counter { justify-content: center; } }
 </style>
 
@@ -576,6 +667,41 @@ function updateTicketStatus() {
 
 document.querySelectorAll('.ticket-select').forEach(el => el.addEventListener('change', updateTicketStatus));
 updateTicketStatus();
+
+// ─── Voice stats status ─────────────────────────────────────────────────────
+
+function updateVoiceStatus() {
+  const keys = ['stats_total', 'stats_online', 'stats_bots'];
+  let done = 0;
+  keys.forEach(key => {
+    const sel = document.querySelector('[data-key="' + key + '"]');
+    const isSet = sel && sel.value;
+    const item = document.querySelector('.stat-voice-item[data-for="' + key + '"]');
+    if (item) item.classList.toggle('done', !!isSet);
+    const st = document.querySelector('.ticket-field-state[data-state-of="' + key + '"]');
+    if (st) {
+      st.classList.toggle('on', !!isSet);
+      st.querySelector('span').textContent = isSet ? 'مضبوط' : 'غير مضبوط';
+    }
+    if (isSet) done++;
+  });
+
+  const badge = document.getElementById('statsStatusBadge');
+  const text = document.getElementById('statsStatusText');
+  if (done === 3) {
+    badge.className = 'ticket-status ready';
+    text.textContent = 'مفعل بالكامل';
+  } else if (done > 0) {
+    badge.className = 'ticket-status partial';
+    text.textContent = done + ' من 3 مضبوطة';
+  } else {
+    badge.className = 'ticket-status empty';
+    text.textContent = 'غير مضبوط';
+  }
+}
+
+document.querySelectorAll('.stat-voice-item select').forEach(el => el.addEventListener('change', updateVoiceStatus));
+updateVoiceStatus();
 
 initSupport();
 
