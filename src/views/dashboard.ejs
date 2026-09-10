@@ -119,29 +119,60 @@
 
   <div class="card glass">
     <div class="card-header">
-      <h3><i class="fas fa-server"></i> السيرفرات المتصلة</h3>
+      <h3><i class="fas fa-server"></i> السيرفرات المتصلة <span class="dg-count"><%= guilds.length %></span></h3>
       <a href="/guilds" class="btn-sm">عرض الكل <i class="fas fa-arrow-left"></i></a>
     </div>
-    <div class="guild-list">
-      <% if (guilds && guilds.length > 0) { %>
-        <% guilds.slice(0, 6).forEach(g => { %>
-          <a href="/guilds/<%= g.id %>" class="guild-item <%= g.hasBot ? '' : 'guild-item-nobot' %>">
-            <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-            <div class="guild-info">
-              <strong><%= g.name %></strong>
-              <span><%= g.hasBot ? 'البوت متصل ✅' : 'البوت غير موجود ⚠️' %></span>
-            </div>
-            <i class="fas fa-chevron-left"></i>
-          </a>
-        <% }) %>
-      <% } else { %>
-        <div class="empty-state">
-          <i class="fas fa-exclamation-circle"></i>
-          <p>لا يوجد سيرفرات متاحة.</p>
-          <a href="/invite-dev" class="btn-secondary" style="margin-top:10px"><i class="fas fa-code-branch"></i> أضف البوت إلى سيرفر</a>
-        </div>
-      <% } %>
+
+    <% if (guilds && guilds.length > 0) { %>
+    <div class="dg-search">
+      <i class="fas fa-magnifying-glass"></i>
+      <input id="dgSearch" type="text" placeholder="ابحث عن سيرفر بالاسم..." oninput="dgFilter(this.value)">
+      <span class="dg-search-hint"><i class="fas fa-grip-vertical"></i></span>
     </div>
+    <div class="dg-grid" id="dgGrid">
+      <% [...guilds].sort((a, b) => a.name.localeCompare(b.name)).slice(0, 6).forEach(g => { %>
+        <% if (g.hasBot) { %>
+          <a href="/guilds/<%= g.id %>" class="dg-card connected" data-name="<%= g.name.toLowerCase() %>">
+        <% } else { %>
+          <div class="dg-card nolink" data-name="<%= g.name.toLowerCase() %>">
+        <% } %>
+            <div class="dg-top">
+              <div class="dg-icon">
+                <span class="dg-fallback"><%= g.name.charAt(0) %></span>
+                <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" onerror="this.style.display='none'">
+                <span class="dg-dot <%= g.hasBot ? 'on' : 'off' %>"></span>
+              </div>
+              <div class="dg-title">
+                <strong><%= g.name %></strong>
+                <span class="dg-badge <%= g.hasBot ? 'ok' : 'warn' %>">
+                  <i class="fas fa-<%= g.hasBot ? 'circle-check' : 'triangle-exclamation' %>"></i>
+                  <%= g.hasBot ? 'البوت متصل' : 'البوت غير موجود' %>
+                </span>
+              </div>
+              <% if (g.hasBot) { %><i class="fas fa-chevron-left dg-go"></i><% } %>
+            </div>
+            <div class="dg-stats">
+              <span class="dg-stat-members"><i class="fas fa-users"></i> <b><%= typeof g.members === 'number' ? g.members.toLocaleString() : '—' %></b> عضو</span>
+              <% if (g.hasBot) { %>
+                <span class="dg-stat-act"><i class="fas fa-arrow-right-to-bracket"></i> الإدارة</span>
+              <% } else { %>
+                <a href="/invite-dev" class="dg-stat-add"><i class="fas fa-plus"></i> إضافة البوت</a>
+              <% } %>
+            </div>
+        <% if (g.hasBot) { %></a><% } else { %></div><% } %>
+      <% }) %>
+    </div>
+    <div class="dg-empty" id="dgEmpty" style="display:none">
+      <i class="fas fa-magnifying-glass"></i>
+      <p>لا توجد نتائج مطابقة لبحثك</p>
+    </div>
+    <% } else { %>
+      <div class="empty-state">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>لا يوجد سيرفرات متاحة.</p>
+        <a href="/invite-dev" class="btn-secondary" style="margin-top:10px"><i class="fas fa-code-branch"></i> أضف البوت إلى سيرفر</a>
+      </div>
+    <% } %>
   </div>
 
   <div class="dash-recol">
@@ -237,6 +268,41 @@
 .dash-sys{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:.8rem;font-weight:600;transition:all .2s}
 .dash-sys:hover{transform:translateY(-1px);border-color:var(--border);background:var(--bg-glass-hover)}
 .dash-sys i{width:20px;text-align:center;font-size:1rem}
+
+/* Connected guilds */
+.dg-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 7px;margin-left:6px;border-radius:20px;font-size:.72rem;font-weight:700;background:var(--primary);color:#fff}
+.dg-search{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg-glass);margin-bottom:16px;transition:border-color .2s}
+.dg-search:focus-within{border-color:var(--primary)}
+.dg-search > i{color:var(--text-muted);font-size:.85rem}
+.dg-search input{flex:1;min-width:0;border:none;outline:none;background:transparent;color:var(--text);font-family:var(--font);font-size:.85rem}
+.dg-search-hint{color:var(--text-muted);font-size:.7rem;opacity:.45}
+.dg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.dg-card{display:block;padding:16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-glass);color:var(--text);transition:all .22s ease;text-decoration:none;animation:fadeInUp .35s ease both}
+.dg-card.connected:hover{transform:translateY(-2px);border-color:rgba(87,242,135,.4);box-shadow:0 8px 26px rgba(0,0,0,.22)}
+.dg-card.nolink{opacity:.72;cursor:default}
+.dg-top{display:flex;align-items:center;gap:12px}
+.dg-icon{position:relative;width:52px;height:52px;border-radius:14px;overflow:hidden;flex-shrink:0;background:color-mix(in srgb,var(--primary) 18%,transparent)}
+.dg-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:#fff}
+.dg-icon img{position:relative;z-index:1;width:100%;height:100%;object-fit:cover}
+.dg-icon .dg-dot{position:absolute;bottom:3px;left:3px;z-index:2;width:11px;height:11px;border-radius:50%;border:2px solid var(--bg-card);transition:all .2s}
+.dg-dot.on{background:var(--success);box-shadow:0 0 8px var(--success)}
+.dg-dot.off{background:var(--danger)}
+.dg-title{flex:1;min-width:0}
+.dg-title strong{display:block;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dg-badge{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;padding:2px 9px;border-radius:20px;margin-top:4px}
+.dg-badge.ok{color:var(--success);background:rgba(87,242,135,.13)}
+.dg-badge.warn{color:var(--warning);background:rgba(254,231,92,.13)}
+.dg-go{color:var(--text-muted);font-size:.75rem;flex-shrink:0;transition:all .2s}
+.dg-card.connected:hover .dg-go{transform:translateX(-3px);color:var(--success)}
+.dg-stats{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:.75rem}
+.dg-stat-members{color:var(--text-muted);display:inline-flex;align-items:center;gap:5px}
+.dg-stat-members b{color:var(--text)}
+.dg-stat-act{color:var(--primary);font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.dg-stat-add{color:var(--warning);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.dg-empty{display:none;flex-direction:column;align-items:center;gap:8px;padding:30px 0;color:var(--text-muted);animation:fadeIn .3s ease}
+.dg-empty i{font-size:1.6rem;opacity:.5}
+.dg-empty p{font-size:.85rem}
+@media(max-width:640px){.dg-grid{grid-template-columns:1fr}}
 
 /* Count-up */
 .dash-count{transition:transform .2s}
@@ -359,4 +425,18 @@ async function refreshDashboard(manual) {
   refreshDashboard(false);
   dashTimer = setInterval(() => refreshDashboard(false), 30000);
 })();
+
+function dgFilter(q) {
+  const grid = document.getElementById('dgGrid');
+  const empty = document.getElementById('dgEmpty');
+  if (!grid) return;
+  const value = (q || '').trim().toLowerCase();
+  let visible = 0;
+  grid.querySelectorAll('.dg-card').forEach(c => {
+    const match = !value || (c.dataset.name || '').includes(value);
+    c.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  if (empty) empty.style.display = visible ? 'none' : 'flex';
+}
 </script>

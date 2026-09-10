@@ -26,13 +26,31 @@ router.get('/', isAuthenticated, requireRole('manager'), async (req, res) => {
       adminGuildIds = new Set((adminRecords || []).map(a => a.guildId));
     }
 
+    // Enrich guilds with live member counts from bot API (single call)
+    let guildMemberCounts = new Map();
+    try {
+      const listRes = await fetch(`${config.botApiUrl}/api/guilds`, {
+        signal: AbortSignal.timeout(4000),
+      });
+      if (listRes.ok) {
+        const list = await listRes.json();
+        if (Array.isArray(list)) {
+          guildMemberCounts = new Map(list.map(g => [g.id, Number(g.memberCount) || 0]));
+        }
+      }
+    } catch {}
+
     const guildsWithBot = userGuilds
       .filter(g => {
         const perms = BigInt(g.permissions);
         const canManage = (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n;
         return canManage || adminGuildIds.has(g.id);
       })
-      .map(g => ({ ...g, hasBot: botGuildIds.has(g.id) }));
+      .map(g => ({
+        ...g,
+        hasBot: botGuildIds.has(g.id),
+        members: guildMemberCounts.has(g.id) ? guildMemberCounts.get(g.id) : null,
+      }));
 
     const totalGuilds = botGuilds.length || guildsWithBot.length;
     let totalMembers = 0;
