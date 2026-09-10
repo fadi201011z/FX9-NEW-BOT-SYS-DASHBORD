@@ -15,6 +15,34 @@ const TICKET_KEY_MAP = {
 
 const router = Router();
 
+async function fetchGuildChannels(guildId) {
+  try {
+    const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/channels`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch {}
+  try {
+    return await getGuildChannels(guildId, config.discord.botToken);
+  } catch {}
+  return [];
+}
+
+async function fetchGuildRoles(guildId) {
+  try {
+    const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/roles`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch {}
+  try {
+    return await getGuildRoles(guildId, config.discord.botToken);
+  } catch {}
+  return [];
+}
+
 async function buildViewData(guildId) {
   const cfg = await getAllGuildConfig(guildId);
   const ticketJson = await getTicketGuildConfig(guildId);
@@ -33,20 +61,15 @@ async function buildViewData(guildId) {
   }
 
   const channels = { text: [], voice: [], category: [] };
-  try {
-    const all = await getGuildChannels(guildId, config.discord.botToken);
-    for (const c of all) {
-      if (c.type === 0 || c.type === 5) channels.text.push({ id: c.id, name: c.name });
-      else if (c.type === 2) channels.voice.push({ id: c.id, name: c.name });
-      else if (c.type === 4) channels.category.push({ id: c.id, name: c.name });
-    }
-  } catch {}
+  const allChannels = await fetchGuildChannels(guildId);
+  for (const c of allChannels) {
+    if (c.type === 0 || c.type === 5) channels.text.push({ id: c.id, name: c.name });
+    else if (c.type === 2) channels.voice.push({ id: c.id, name: c.name });
+    else if (c.type === 4) channels.category.push({ id: c.id, name: c.name });
+  }
 
-  let roles = [];
-  try {
-    roles = await getGuildRoles(guildId, config.discord.botToken);
-    roles.sort((a, b) => (b.position || 0) - (a.position || 0));
-  } catch {}
+  let roles = await fetchGuildRoles(guildId);
+  roles.sort((a, b) => (b.position || 0) - (a.position || 0));
 
   return { config: cfg, supportRoleArray, channels, roles };
 }
