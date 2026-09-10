@@ -20,16 +20,15 @@
         <i class="fas fa-home"></i>
         <span>الصفحة الرئيسية</span>
       </a>
-      <% if (roleLevel >= 3) { %>
-        <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>" title="لوحة التحكم">
-          <i class="fas fa-th-large"></i>
-          <span>لوحة التحكم</span>
-        </a>
-      <% } %>
-        <a href="/guilds" class="nav-link <%= currentPage === 'guilds' ? 'active' : '' %>" title="السيرفرات">
-          <i class="fas fa-server"></i>
-          <span>السيرفرات</span>
-        </a>
+      <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %> <%= roleLevel >= 3 ? '' : 'locked' %>" data-req="3" title="لوحة التحكم">
+        <i class="fas fa-th-large"></i>
+        <span>لوحة التحكم</span>
+        <% if (roleLevel < 3) { %><i class="fas fa-lock nav-lock"></i><% } %>
+      </a>
+      <a href="/guilds" class="nav-link <%= currentPage === 'guilds' ? 'active' : '' %>" title="السيرفرات">
+        <i class="fas fa-server"></i>
+        <span>السيرفرات</span>
+      </a>
       <a href="/status" class="nav-link <%= currentPage === 'status' ? 'active' : '' %>" title="حالة البوت">
         <i class="fas fa-heartbeat"></i>
         <span>حالة البوت</span>
@@ -43,50 +42,50 @@
         <i class="fas fa-info-circle"></i>
         <span>نظرة عامة</span>
       </a>
-      <% if (roleLevel >= 2) { %>
-      <a href="/settings/<%= guild.id %>" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %>" title="الإعدادات">
+      <a href="/settings/<%= guild.id %>" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %> <%= roleLevel >= 2 ? '' : 'locked' %>" data-req="2" title="الإعدادات">
         <i class="fas fa-sliders-h"></i>
         <span>الإعدادات</span>
+        <% if (roleLevel < 2) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <a href="/commands/<%= guild.id %>" class="nav-link <%= currentPage === 'commands' ? 'active' : '' %>" title="الأوامر">
+      <a href="/commands/<%= guild.id %>" class="nav-link <%= currentPage === 'commands' ? 'active' : '' %> <%= roleLevel >= 2 ? '' : 'locked' %>" data-req="2" title="الأوامر">
         <i class="fas fa-terminal"></i>
         <span>الأوامر</span>
+        <% if (roleLevel < 2) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <% } %>
       <a href="/tickets/<%= guild.id %>" class="nav-link <%= currentPage === 'tickets' ? 'active' : '' %>" title="التذاكر">
         <i class="fas fa-ticket-alt"></i>
         <span>التذاكر</span>
       </a>
-      <% if (roleLevel >= 1) { %>
-      <a href="/voice/<%= guild.id %>" class="nav-link <%= currentPage === 'voice' ? 'active' : '' %>" title="الرومات المؤقتة">
+      <a href="/voice/<%= guild.id %>" class="nav-link <%= currentPage === 'voice' ? 'active' : '' %> <%= roleLevel >= 1 ? '' : 'locked' %>" data-req="1" title="الرومات المؤقتة">
         <i class="fas fa-microphone"></i>
         <span>الرومات المؤقتة</span>
+        <% if (roleLevel < 1) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <a href="/logs/<%= guild.id %>" class="nav-link <%= currentPage === 'logs' ? 'active' : '' %>" title="سجل النشاط">
+      <a href="/logs/<%= guild.id %>" class="nav-link <%= currentPage === 'logs' ? 'active' : '' %> <%= roleLevel >= 1 ? '' : 'locked' %>" data-req="1" title="سجل النشاط">
         <i class="fas fa-history"></i>
         <span>سجل النشاط</span>
+        <% if (roleLevel < 1) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <a href="/notifications/<%= guild.id %>" class="nav-link <%= currentPage === 'notifications' ? 'active' : '' %>" title="الإشعارات">
+      <a href="/notifications/<%= guild.id %>" class="nav-link <%= currentPage === 'notifications' ? 'active' : '' %> <%= roleLevel >= 1 ? '' : 'locked' %>" data-req="1" title="الإشعارات">
         <i class="fas fa-bell"></i>
         <span>الإشعارات</span>
+        <% if (roleLevel < 1) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <% } %>
-      <% if (roleLevel >= 2) { %>
-      <a href="/protection/<%= guild.id %>" class="nav-link <%= currentPage === 'protection' ? 'active' : '' %>" title="الحماية">
+      <a href="/protection/<%= guild.id %>" class="nav-link <%= currentPage === 'protection' ? 'active' : '' %> <%= roleLevel >= 2 ? '' : 'locked' %>" data-req="2" title="الحماية">
         <i class="fas fa-shield-alt"></i>
         <span>الحماية</span>
+        <% if (roleLevel < 2) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <% } %>
-      <% if (roleLevel >= 3) { %>
-      <a href="/admins/<%= guild.id %>" class="nav-link <%= currentPage === 'admins' ? 'active' : '' %>" title="المدراء">
+      <a href="/admins/<%= guild.id %>" class="nav-link <%= currentPage === 'admins' ? 'active' : '' %> <%= roleLevel >= 3 ? '' : 'locked' %>" data-req="3" title="المدراء">
         <i class="fas fa-users-cog"></i>
         <span>المدراء</span>
+        <% if (roleLevel < 3) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <a href="/backup/<%= guild.id %>" class="nav-link <%= currentPage === 'backup' ? 'active' : '' %>" title="النسخ الاحتياطي">
+      <a href="/backup/<%= guild.id %>" class="nav-link <%= currentPage === 'backup' ? 'active' : '' %> <%= roleLevel >= 3 ? '' : 'locked' %>" data-req="3" title="النسخ الاحتياطي">
         <i class="fas fa-database"></i>
         <span>النسخ الاحتياطي</span>
+        <% if (roleLevel < 3) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <% } %>
     </div>
     <% } %>
 
@@ -96,12 +95,11 @@
         <i class="fas fa-book"></i>
         <span>التوثيق</span>
       </a>
-      <% if (roleLevel >= 4) { %>
-      <a href="/dev" class="nav-link <%= currentPage === 'dev' ? 'active' : '' %>" title="لوحة المطور">
+      <a href="/dev" class="nav-link <%= currentPage === 'dev' ? 'active' : '' %> <%= roleLevel >= 4 ? '' : 'locked' %>" data-req="4" title="لوحة المطور">
         <i class="fas fa-code"></i>
         <span>لوحة المطور</span>
+        <% if (roleLevel < 4) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <% } %>
     </div>
   </nav>
 

@@ -381,6 +381,27 @@ a:hover { color: var(--primary-hover); }
   background: rgba(88, 101, 242, 0.1);
   border-right-color: var(--primary);
 }
+.nav-link.locked {
+  opacity: 0.45;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+.nav-link.locked:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.08);
+}
+.nav-link .nav-lock {
+  margin-right: auto;
+  font-size: 0.72rem;
+  width: auto;
+  color: #ff6b6b;
+  opacity: 0.9;
+}
+.user-menu-dropdown a.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.user-menu-dropdown a.locked:hover { color: #ff6b6b; background: rgba(255,107,107,0.08); }
 
 /* Sidebar footer */
 .sidebar-footer {

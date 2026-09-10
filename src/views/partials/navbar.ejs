@@ -51,15 +51,11 @@
             </div>
           </div>
           <div class="user-menu-body">
-            <% if (roleLevel >= 3) { %>
-            <a href="/dashboard"><i class="fas fa-th-large"></i> لوحة التحكم</a>
-            <% } %>
+            <a href="/dashboard" class="<%= roleLevel >= 3 ? '' : 'locked' %>" data-req="3"><i class="fas fa-th-large"></i> لوحة التحكم<% if (roleLevel < 3) { %> <i class="fas fa-lock nav-lock"></i><% } %></a>
             <a href="/guilds"><i class="fas fa-server"></i> السيرفرات</a>
             <a href="/status"><i class="fas fa-heartbeat"></i> حالة البوت</a>
             <a href="/docs"><i class="fas fa-book"></i> التوثيق</a>
-            <% if (roleLevel >= 4) { %>
-              <a href="/dev"><i class="fas fa-code"></i> لوحة المطور</a>
-            <% } %>
+            <a href="/dev" class="<%= roleLevel >= 4 ? '' : 'locked' %>" data-req="4"><i class="fas fa-code"></i> لوحة المطور<% if (roleLevel < 4) { %> <i class="fas fa-lock nav-lock"></i><% } %></a>
             <hr>
             <a href="/auth/logout" class="danger"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
           </div>

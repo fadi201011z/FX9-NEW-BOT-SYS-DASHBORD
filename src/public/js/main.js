@@ -443,3 +443,27 @@ function showConfetti() {
     setTimeout(() => piece.remove(), 4000);
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Locked Sections — show "no permission" instead of hiding links
+// ═══════════════════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-link.locked, .user-menu-dropdown a.locked').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showToast('⛔ ليس لديك صلاحيات لهذه المنطقة', 'warning');
+    });
+  });
+
+  document.querySelectorAll('.nav-link[data-req]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      if (link.classList.contains('locked')) {
+        e.preventDefault();
+        e.stopPropagation();
+        showToast('⛔ ليس لديك صلاحيات لهذه المنطقة', 'warning');
+      }
+    });
+  });
+});

@@ -115,9 +115,9 @@ export function requireRole(minRole) {
     }
     if (level >= (ROLE_HIERARCHY[minRole] ?? 0)) return next();
     if (req.xhr || req.path.startsWith('/api/')) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
+      return res.status(403).json({ error: 'ليس لديك صلاحيات لهذه المنطقة' });
     }
-    res.status(403).render('error', { layout: false, message: 'صلاحياتك غير كافية لهذه الصفحة.', user });
+    res.status(403).render('error', { layout: false, message: 'ليس لديك صلاحيات لهذه المنطقة', user });
   };
 }
 
