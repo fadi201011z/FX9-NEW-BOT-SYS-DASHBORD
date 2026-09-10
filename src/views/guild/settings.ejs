@@ -31,16 +31,6 @@
           { key: 'welcome_channel', label: 'قناة الترحيب', type: 'text' },
         ],
       },
-      {
-        title: 'قنوات السجلات',
-        icon: 'fa-clipboard-list',
-        desc: 'سجلات النشاط العام والإشراف وحالة البوت',
-        fields: [
-          { key: 'log_channel', label: 'السجلات العامة', type: 'text', hint: 'انضمام / مغادرة / رسائل / صوت' },
-          { key: 'modlog_channel', label: 'سجلات الإشراف', type: 'text', hint: 'ban / kick / timeout / warn والأدوار' },
-          { key: 'botlog_channel', label: 'سجل البوت', type: 'text', hint: 'تشغيل / إيقاف / أخطاء / نبض البوت' },
-        ],
-      },
     ];
   %>
 
@@ -76,6 +66,81 @@
     </div>
   <% }) %>
 
+  <div class="card glass log-card">
+    <div class="card-header">
+      <h3><i class="fas fa-clipboard-list"></i> قنوات السجلات</h3>
+      <span class="ticket-status" id="logStatusBadge"><span class="ticket-status-dot"></span><span id="logStatusText">—</span></span>
+    </div>
+    <p class="card-desc">سجلات النشاط العام والإشراف وحالة البوت — كل نوع سجل وجهته إلى قناة مخصصة</p>
+
+    <div class="stats-voice-grid log-grid">
+      <div class="stat-voice-item item-lg-general" data-for="log_channel">
+        <div class="stat-voice-icon"><i class="fas fa-list"></i></div>
+        <div class="stat-voice-info">
+          <strong>السجلات العامة</strong>
+          <small>انضمام / مغادرة / رسائل / صوت</small>
+        </div>
+        <div class="stat-voice-control">
+          <select data-key="log_channel" class="ticket-select">
+            <option value="">— بدون (معطّل) —</option>
+            <% (channels.text || []).forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= String(config.log_channel || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="stat-voice-tools">
+            <span class="ticket-field-state" data-state-of="log_channel"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('log_channel')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-voice-item item-lg-mod" data-for="modlog_channel">
+        <div class="stat-voice-icon"><i class="fas fa-gavel"></i></div>
+        <div class="stat-voice-info">
+          <strong>سجلات الإشراف</strong>
+          <small>ban / kick / timeout / warn وتغيير الأدوار</small>
+        </div>
+        <div class="stat-voice-control">
+          <select data-key="modlog_channel" class="ticket-select">
+            <option value="">— بدون (معطّل) —</option>
+            <% (channels.text || []).forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= String(config.modlog_channel || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="stat-voice-tools">
+            <span class="ticket-field-state" data-state-of="modlog_channel"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('modlog_channel')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-voice-item item-lg-bot" data-for="botlog_channel">
+        <div class="stat-voice-icon"><i class="fas fa-heartbeat"></i></div>
+        <div class="stat-voice-info">
+          <strong>سجل البوت</strong>
+          <small>تشغيل / إيقاف / أخطاء / نبض البوت</small>
+        </div>
+        <div class="stat-voice-control">
+          <select data-key="botlog_channel" class="ticket-select">
+            <option value="">— بدون (معطّل) —</option>
+            <% (channels.text || []).forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= String(config.botlog_channel || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="stat-voice-tools">
+            <span class="ticket-field-state" data-state-of="botlog_channel"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('botlog_channel')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <small class="field-hint role-picker-hint">
+      <i class="fas fa-info-circle"></i>
+      يمكنك إرسال جميع السجلات إلى قناة واحدة باستخدام نفس القناة في الأنواع الثلاثة
+    </small>
+  </div>
+
   <div class="card glass stats-card">
     <div class="card-header">
       <h3><i class="fas fa-chart-line"></i> الإحصائيات الصوتية</h3>
@@ -83,7 +148,7 @@
     </div>
     <p class="card-desc">رومات صوتية تعرض الأعداد مباشرة في اسم الروم وتتحدث تلقائياً كل دقيقة</p>
 
-    <div class="stats-voice-grid">
+    <div class="stats-voice-grid voice-grid">
       <div class="stat-voice-item" data-for="stats_total">
         <div class="stat-voice-icon"><i class="fas fa-users"></i></div>
         <div class="stat-voice-info">
@@ -517,6 +582,10 @@
   .stat-voice-item.done { border-color: rgba(87, 242, 135, .35); background: rgba(87, 242, 135, .05); }
   .stat-voice-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(88, 101, 242, .12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; transition: all .2s ease; }
   .stat-voice-item.done .stat-voice-icon { background: rgba(87, 242, 135, .15); color: #57f287; }
+  .log-grid .stat-voice-icon { background: rgba(88, 101, 242, .12); color: var(--primary); }
+  .log-grid .item-lg-mod .stat-voice-icon { background: rgba(237, 66, 69, .12); color: #ed4245; }
+  .log-grid .item-lg-bot .stat-voice-icon { background: rgba(87, 242, 135, .12); color: #57f287; }
+  .log-grid .stat-voice-item.done .stat-voice-icon { background: rgba(87, 242, 135, .15); color: #57f287; }
   .stat-voice-info { flex: 1; min-width: 0; }
   .stat-voice-info strong { display: block; font-size: .88rem; }
   .stat-voice-info small { color: var(--text-muted); font-size: .74rem; display: block; }
@@ -676,7 +745,7 @@ function updateVoiceStatus() {
   keys.forEach(key => {
     const sel = document.querySelector('[data-key="' + key + '"]');
     const isSet = sel && sel.value;
-    const item = document.querySelector('.stat-voice-item[data-for="' + key + '"]');
+    const item = document.querySelector('.voice-grid [data-for="' + key + '"]');
     if (item) item.classList.toggle('done', !!isSet);
     const st = document.querySelector('.ticket-field-state[data-state-of="' + key + '"]');
     if (st) {
@@ -700,8 +769,43 @@ function updateVoiceStatus() {
   }
 }
 
-document.querySelectorAll('.stat-voice-item select').forEach(el => el.addEventListener('change', updateVoiceStatus));
+document.querySelectorAll('.voice-grid select').forEach(el => el.addEventListener('change', updateVoiceStatus));
 updateVoiceStatus();
+
+// ─── Log channels status ────────────────────────────────────────────────────
+
+function updateLogStatus() {
+  const keys = ['log_channel', 'modlog_channel', 'botlog_channel'];
+  let done = 0;
+  keys.forEach(key => {
+    const sel = document.querySelector('[data-key="' + key + '"]');
+    const isSet = sel && sel.value;
+    const item = document.querySelector('.log-grid [data-for="' + key + '"]');
+    if (item) item.classList.toggle('done', !!isSet);
+    const st = document.querySelector('.ticket-field-state[data-state-of="' + key + '"]');
+    if (st) {
+      st.classList.toggle('on', !!isSet);
+      st.querySelector('span').textContent = isSet ? 'مضبوط' : 'غير مضبوط';
+    }
+    if (isSet) done++;
+  });
+
+  const badge = document.getElementById('logStatusBadge');
+  const text = document.getElementById('logStatusText');
+  if (done === 3) {
+    badge.className = 'ticket-status ready';
+    text.textContent = 'مفعل بالكامل';
+  } else if (done > 0) {
+    badge.className = 'ticket-status partial';
+    text.textContent = done + ' من 3 مضبوطة';
+  } else {
+    badge.className = 'ticket-status empty';
+    text.textContent = 'غير مضبوط';
+  }
+}
+
+document.querySelectorAll('.log-grid select').forEach(el => el.addEventListener('change', updateLogStatus));
+updateLogStatus();
 
 initSupport();
 
