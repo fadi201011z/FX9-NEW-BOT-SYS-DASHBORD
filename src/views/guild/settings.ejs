@@ -51,17 +51,6 @@
           { key: 'stats_bots', label: 'روم البوتات', type: 'voice' },
         ],
       },
-      {
-        title: 'نظام التذاكر',
-        icon: 'fa-ticket-alt',
-        desc: 'بنل التذاكر، تصنيفاتها، وسجلاتها',
-        fields: [
-          { key: 'panel_channel', label: 'قناة بنل التذاكر', type: 'text' },
-          { key: 'log_channel_id', label: 'قناة سجل التذاكر', type: 'text' },
-          { key: 'ticket_category', label: 'تصنيف التذاكر', type: 'category' },
-          { key: 'admin_category', label: 'تصنيف التذاكر الداخلية', type: 'category' },
-        ],
-      },
     ];
   %>
 
@@ -96,6 +85,134 @@
       </div>
     </div>
   <% }) %>
+
+  <div class="card glass ticket-card">
+    <div class="card-header">
+      <h3><i class="fas fa-ticket-alt"></i> نظام التذاكر</h3>
+      <span class="ticket-status" id="ticketStatusBadge"><span class="ticket-status-dot"></span><span id="ticketStatusText">—</span></span>
+    </div>
+
+    <div class="ticket-progress">
+      <div class="ticket-progress-item" data-for="panel_channel">
+        <span class="step-ic"><i class="fas fa-clipboard-list"></i></span>
+        <span class="step-name">بنل التذاكر</span>
+        <span class="step-check"><i class="fas fa-check"></i></span>
+      </div>
+      <span class="progress-line"></span>
+      <div class="ticket-progress-item" data-for="ticket_category">
+        <span class="step-ic"><i class="fas fa-folder-open"></i></span>
+        <span class="step-name">التصنيف</span>
+        <span class="step-check"><i class="fas fa-check"></i></span>
+      </div>
+      <span class="progress-line"></span>
+      <div class="ticket-progress-item" data-for="admin_category">
+        <span class="step-ic"><i class="fas fa-folder-tree"></i></span>
+        <span class="step-name">التصنيف الداخلي</span>
+        <span class="step-check"><i class="fas fa-check"></i></span>
+      </div>
+      <span class="progress-line"></span>
+      <div class="ticket-progress-item" data-for="log_channel_id">
+        <span class="step-ic"><i class="fas fa-scroll"></i></span>
+        <span class="step-name">سجل التذاكر</span>
+        <span class="step-check"><i class="fas fa-check"></i></span>
+      </div>
+    </div>
+
+    <div class="ticket-fields">
+      <div class="ticket-field">
+        <div class="ticket-field-head">
+          <div class="ticket-field-title">
+            <i class="fas fa-clipboard-list"></i>
+            <div>
+              <strong>بنل التذاكر</strong>
+              <small>القناة التي يُعرض فيها بنل إنشاء التذاكر</small>
+            </div>
+          </div>
+          <div class="ticket-field-tools">
+            <span class="ticket-field-state" data-state-of="panel_channel"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('panel_channel')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <select data-key="panel_channel" class="ticket-select">
+          <option value="">— بدون (معطّل) —</option>
+          <% (channels.text || []).forEach(ch => { %>
+            <option value="<%= ch.id %>" <%= String(config.panel_channel || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="ticket-field">
+        <div class="ticket-field-head">
+          <div class="ticket-field-title">
+            <i class="fas fa-scroll"></i>
+            <div>
+              <strong>سجل التذاكر</strong>
+              <small>قناة تُسجل فيها أحداث التذاكر (فتح/إغلاق/سحب...) </small>
+            </div>
+          </div>
+          <div class="ticket-field-tools">
+            <span class="ticket-field-state" data-state-of="log_channel_id"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('log_channel_id')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <select data-key="log_channel_id" class="ticket-select">
+          <option value="">— بدون (معطّل) —</option>
+          <% (channels.text || []).forEach(ch => { %>
+            <option value="<%= ch.id %>" <%= String(config.log_channel_id || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="ticket-field">
+        <div class="ticket-field-head">
+          <div class="ticket-field-title">
+            <i class="fas fa-folder-open"></i>
+            <div>
+              <strong>تصنيف التذاكر</strong>
+              <small>التصنيف الذي تُنشأ فيه تذاكر الأعضاء</small>
+            </div>
+          </div>
+          <div class="ticket-field-tools">
+            <span class="ticket-field-state" data-state-of="ticket_category"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('ticket_category')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <select data-key="ticket_category" class="ticket-select">
+          <option value="">— بدون (معطّل) —</option>
+          <% (channels.category || []).forEach(ch => { %>
+            <option value="<%= ch.id %>" <%= String(config.ticket_category || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="ticket-field">
+        <div class="ticket-field-head">
+          <div class="ticket-field-title">
+            <i class="fas fa-folder-tree"></i>
+            <div>
+              <strong>التصنيف الداخلي</strong>
+              <small>تصنيف خاص بالتذاكر الداخلية (المشرفون)</small>
+            </div>
+          </div>
+          <div class="ticket-field-tools">
+            <span class="ticket-field-state" data-state-of="admin_category"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('admin_category')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <select data-key="admin_category" class="ticket-select">
+          <option value="">— بدون (معطّل) —</option>
+          <% (channels.category || []).forEach(ch => { %>
+            <option value="<%= ch.id %>" <%= String(config.admin_category || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <small class="field-hint role-picker-hint">
+      <i class="fas fa-info-circle"></i>
+      الجاهزية الكاملة للبوت تتطلب: <b>تصنيف التذاكر</b> + <b>رتبة دعم واحدة على الأقل</b> (من قسم فريق الدعم بالأسفل)
+    </small>
+  </div>
 
   <div class="card glass support-card">
     <div class="card-header">
@@ -284,6 +401,41 @@
   .stepper-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); cursor: pointer; transition: all .18s ease; }
   .stepper-btn:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
   .stepper-btn.minus:hover { background: #ed4245; border-color: #ed4245; }
+
+  .ticket-card { overflow: hidden; }
+  .ticket-status { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 5px 14px; font-size: .78rem; font-weight: 600; margin-left: 20px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-muted); }
+  .ticket-status .ticket-status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .ticket-status.ready { background: rgba(87, 242, 135, .12); color: #57f287; border-color: rgba(87, 242, 135, .4); }
+  .ticket-status.partial { background: rgba(254, 231, 92, .1); color: #fee75c; border-color: rgba(254, 231, 92, .35); }
+  .ticket-status.empty { background: rgba(237, 66, 69, .1); color: #ed4245; border-color: rgba(237, 66, 69, .35); }
+
+  .ticket-progress { display: flex; align-items: flex-start; gap: 0; padding: 6px 20px 24px; }
+  .ticket-progress-item { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 88px; position: relative; }
+  .step-ic { width: 42px; height: 42px; border-radius: 12px; background: var(--bg-secondary); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--text-muted); transition: all .2s ease; }
+  .step-name { font-size: .7rem; color: var(--text-muted); white-space: nowrap; }
+  .step-check { position: absolute; top: -6px; left: -6px; width: 18px; height: 18px; border-radius: 50%; background: #2b2b31; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: .55rem; color: transparent; transition: all .2s ease; }
+  .ticket-progress-item.done .step-ic { background: rgba(87, 242, 135, .1); border-color: rgba(87, 242, 135, .4); color: #57f287; box-shadow: 0 0 12px rgba(87, 242, 135, .15); }
+  .ticket-progress-item.done .step-name { color: #57f287; font-weight: 600; }
+  .ticket-progress-item.done .step-check { background: #57f287; border-color: #57f287; color: #0b0b0f; }
+  .progress-line { flex: 1; height: 2px; background: var(--border); margin: 20px 8px 0; border-radius: 2px; }
+  @media (max-width: 640px) {
+    .ticket-progress { flex-wrap: wrap; justify-content: center; }
+    .progress-line { flex: 0 0 14px; }
+  }
+  .ticket-fields { padding: 0 20px; display: grid; gap: 14px; }
+  .ticket-field { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; transition: border-color .2s ease; }
+  .ticket-field:focus-within { border-color: rgba(88, 101, 242, .5); }
+  .ticket-field-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .ticket-field-title { display: flex; align-items: center; gap: 12px; }
+  .ticket-field-title > i { font-size: 1rem; color: var(--primary); width: 34px; height: 34px; border-radius: 10px; background: rgba(88, 101, 242, .12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ticket-field-title strong { display: block; font-size: .88rem; }
+  .ticket-field-title small { color: var(--text-muted); font-size: .74rem; display: block; }
+  .ticket-field-tools { display: flex; align-items: center; gap: 8px; }
+  .ticket-field-state { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--text-muted); background: var(--bg-secondary); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); transition: all .2s ease; }
+  .ticket-field-state.on { color: #57f287; border-color: rgba(87, 242, 135, .4); background: rgba(87, 242, 135, .08); }
+  .ticket-select { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); font-family: inherit; font-size: .85rem; cursor: pointer; }
+  .ticket-select:focus { outline: none; border-color: var(--primary); }
+
   @media (max-width: 640px) { .role-grid { grid-template-columns: 1fr; } .ticket-counter { justify-content: center; } }
 </style>
 
@@ -389,6 +541,41 @@ function stepCounter(d) {
   const el = document.getElementById('ticketCounterInput');
   el.value = Math.max(0, (parseInt(el.value, 10) || 0) + d);
 }
+
+// ─── Ticket system status ───────────────────────────────────────────────────
+
+function updateTicketStatus() {
+  const checks = ['panel_channel', 'log_channel_id', 'ticket_category', 'admin_category'];
+  let done = 0;
+  checks.forEach(key => {
+    const sel = document.querySelector('[data-key="' + key + '"]');
+    const isSet = sel && sel.value;
+    const step = document.querySelector('.ticket-progress-item[data-for="' + key + '"]');
+    if (step) step.classList.toggle('done', !!isSet);
+    const state = document.querySelector('.ticket-field-state[data-state-of="' + key + '"]');
+    if (state) {
+      state.classList.toggle('on', !!isSet);
+      state.querySelector('span').textContent = isSet ? 'مضبوط' : 'غير مضبوط';
+    }
+    if (isSet) done++;
+  });
+
+  const badge = document.getElementById('ticketStatusBadge');
+  const text = document.getElementById('ticketStatusText');
+  if (done === 4) {
+    badge.className = 'ticket-status ready';
+    text.textContent = 'جاهز بالكامل';
+  } else if (done > 0) {
+    badge.className = 'ticket-status partial';
+    text.textContent = done + ' من 4 مضبوطة';
+  } else {
+    badge.className = 'ticket-status empty';
+    text.textContent = 'غير مضبوط';
+  }
+}
+
+document.querySelectorAll('.ticket-select').forEach(el => el.addEventListener('change', updateTicketStatus));
+updateTicketStatus();
 
 initSupport();
 
