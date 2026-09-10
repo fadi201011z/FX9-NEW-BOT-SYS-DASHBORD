@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, canModify, requireRole } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
 import { getAllCommandConfigs, setCommandConfig, logActivity } from '../database.js';
 import { sanitizeInput } from '../middleware/security.js';
 import { getBotGuilds, getGuildRoles } from '../auth/discord.js';
@@ -103,7 +103,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
   });
 });
 
-router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sanitizeInput, async (req, res) => {
+router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('admin'), sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { command, enabled } = req.body;
@@ -138,7 +138,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
   }
 });
 
-router.patch('/:guildId/update-description', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+router.patch('/:guildId/update-description', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
   try {
     const { guildId } = req.params;
     const { command, description } = req.body;
@@ -185,7 +185,7 @@ router.get('/:guildId/roles', isAuthenticated, hasGuildAccess, async (req, res) 
   }
 });
 
-router.post('/:guildId/permissions', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+router.post('/:guildId/permissions', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
   try {
     const { guildId } = req.params;
     const { command, allowedRoles, blockedRoles } = req.body;

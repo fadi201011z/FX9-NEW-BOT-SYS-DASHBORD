@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, canModify, requireRole } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
 import { getGuildConfig, setGuildConfig, getAllGuildConfig, deleteGuildConfig, logAudit, logActivity } from '../database.js';
 import { getTicketGuildConfig, saveTicketGuildConfig } from '../services/dataReader.js';
 import { sanitizeInput } from '../middleware/security.js';
@@ -80,7 +80,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
   });
 });
 
-router.post('/:guildId/save', isAuthenticated, hasGuildAccess, canModify, sanitizeInput, async (req, res) => {
+router.post('/:guildId/save', isAuthenticated, hasGuildAccess, requireRole('admin'), sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const settings = req.body.settings || req.body;
@@ -119,7 +119,7 @@ router.post('/:guildId/save', isAuthenticated, hasGuildAccess, canModify, saniti
   }
 });
 
-router.post('/:guildId/sync', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+router.post('/:guildId/sync', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
   try {
     const synced = await syncConfigToBot();
     res.json({
@@ -131,7 +131,7 @@ router.post('/:guildId/sync', isAuthenticated, hasGuildAccess, canModify, async 
   }
 });
 
-router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sanitizeInput, async (req, res) => {
+router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('admin'), sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { key, value } = req.body;
@@ -157,7 +157,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, canModify, sani
   }
 });
 
-router.post('/:guildId/delete', isAuthenticated, hasGuildAccess, canModify, sanitizeInput, async (req, res) => {
+router.post('/:guildId/delete', isAuthenticated, hasGuildAccess, requireRole('admin'), sanitizeInput, async (req, res) => {
   try {
     const { guildId } = req.params;
     const { key } = req.body;

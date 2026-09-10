@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, canModify } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
 import { getGuildChannels } from '../auth/discord.js';
 import Notification from '../models/Notification.js';
 import config from '../config.js';
@@ -32,7 +32,7 @@ async function resolveYouTubeChannelId(url) {
   return null;
 }
 
-router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
+router.get('/:guildId', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
   if (!guild) return res.redirect('/guilds');
@@ -56,8 +56,10 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
   });
 });
 
+const modOnly = requireRole('moderator');
+
 // API: add subscription (local DB + bot sync)
-router.post('/:guildId/add', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+router.post('/:guildId/add', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   const { guildId } = req.params;
   const { platform, url, discordChannelId, customMessage } = req.body;
 
@@ -111,7 +113,7 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, canModify, async (
 });
 
 // API: send announcement via bot
-router.post('/:guildId/announce', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+router.post('/:guildId/announce', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   const { guildId } = req.params;
   const { channelId, title, message, mention, color, image, thumbnail, footer, type, timestamp } = req.body;
 
@@ -131,7 +133,7 @@ router.post('/:guildId/announce', isAuthenticated, hasGuildAccess, canModify, as
 });
 
 // API: force check now
-router.post('/:guildId/checknow/:id', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+router.post('/:guildId/checknow/:id', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   try {
     const { data } = await axios.post(`${config.botApiUrl}/api/notifications/checknow/${req.params.id}`, {}, { timeout: 10000 });
     res.json(data);
@@ -142,7 +144,7 @@ router.post('/:guildId/checknow/:id', isAuthenticated, hasGuildAccess, canModify
 });
 
 // API: resend latest
-router.post('/:guildId/resend/:id', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+router.post('/:guildId/resend/:id', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   try {
     const { data } = await axios.post(`${config.botApiUrl}/api/notifications/resend/${req.params.id}`, {}, { timeout: 10000 });
     res.json(data);
@@ -153,7 +155,7 @@ router.post('/:guildId/resend/:id', isAuthenticated, hasGuildAccess, canModify, 
 });
 
 // API: remove subscription
-router.delete('/:guildId/:id', isAuthenticated, hasGuildAccess, canModify, async (req, res) => {
+router.delete('/:guildId/:id', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   const { id } = req.params;
 
   try {

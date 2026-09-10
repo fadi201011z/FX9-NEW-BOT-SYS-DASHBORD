@@ -71,14 +71,53 @@ export function isAuthenticated(req, res, next) {
 
 export const ROLE_HIERARCHY = { owner: 4, developer: 4, manager: 3, admin: 2, moderator: 1, support: 0, member: -1 };
 
+export const ROLE_LABELS = { manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم', member: 'عضو' };
+
+// Effective permission level WITHIN a specific guild only (per-guild, not global).
+// A support member in guild X no longer inherits a manager role from guild Y.
+export async function getGuildLevel(user, guildId) {
+  if (!user) return -1;
+  if (user.id === config.discord.ownerId) return 4;
+  let best = -1;
+  try {
+    const a = await Admin.findOne({ userId: user.id, guildId }).collation({ locale: 'en', strength: 2 }).lean();
+    if (a) best = Math.max(best, ROLE_HIERARCHY[a.role] ?? -1);
+  } catch {}
+  const g = (user.guilds || []).find(x => x.id === guildId);
+  const perms = g && g.permissions;
+  if (perms) {
+    try {
+      const p = BigInt(perms);
+      if ((p & 0x8n) === 0x8n || (p & 0x20n) === 0x20n) best = Math.max(best, 3);
+    } catch {}
+  }
+  return best;
+}
+
+export function roleTokenFromLevel(level) {
+  if (level >= 4) return 'owner';
+  if (level >= 3) return 'manager';
+  if (level >= 2) return 'admin';
+  if (level >= 1) return 'moderator';
+  if (level >= 0) return 'support';
+  return 'member';
+}
+
 export function requireRole(minRole) {
-  return (req, res, next) => {
-    const role = req.session.user?.dashboardRole || 'member';
-    if ((ROLE_HIERARCHY[role] ?? -1) >= (ROLE_HIERARCHY[minRole] ?? 0)) return next();
+  return async (req, res, next) => {
+    const user = req.session.user;
+    let level;
+    if (req.params.guildId) {
+      level = await getGuildLevel(user, req.params.guildId);
+    } else {
+      const role = user?.dashboardRole || 'member';
+      level = ROLE_HIERARCHY[role] ?? -1;
+    }
+    if (level >= (ROLE_HIERARCHY[minRole] ?? 0)) return next();
     if (req.xhr || req.path.startsWith('/api/')) {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
-    res.status(403).render('error', { layout: false, message: 'صلاحياتك غير كافية لهذه الصفحة.', user: req.session.user });
+    res.status(403).render('error', { layout: false, message: 'صلاحياتك غير كافية لهذه الصفحة.', user });
   };
 }
 

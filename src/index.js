@@ -72,13 +72,25 @@ app.set('layout', 'layouts/main');
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Auto-refresh dashboard role from DB ────────────────────────────────
-import { refreshDashboardRole } from './middleware/auth.js';
+import { refreshDashboardRole, getGuildLevel, roleTokenFromLevel } from './middleware/auth.js';
 app.use(refreshDashboardRole);
 
-// ─── Inject role level into all views ──────────────────────────────────
-app.use((req, res, next) => {
-  const role = req.session?.user?.dashboardRole || 'member';
-  res.locals.roleLevel = ROLE_HIERARCHY[role] ?? -1;
+// ─── Inject role level into all views (per-guild inside guild pages) ────
+const GUILD_PATH_RE = /^\/(?:guilds|settings|commands|protection|tickets|voice|logs|notifications|admins|backup)\/([^/]+)/;
+app.use(async (req, res, next) => {
+  const user = req.session?.user;
+  let level = user ? (ROLE_HIERARCHY[user.dashboardRole] ?? -1) : -1;
+  if (user?.isOwner) {
+    level = 4;
+  } else {
+    const m = req.path.match(GUILD_PATH_RE);
+    if (m && m[1] && user) {
+      const guildLevel = await getGuildLevel(user, m[1]);
+      if (guildLevel >= 0) level = guildLevel;
+    }
+  }
+  res.locals.roleLevel = level;
+  res.locals.guildRole = roleTokenFromLevel(level);
   next();
 });
 
