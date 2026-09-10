@@ -97,34 +97,73 @@
     </div>
   <% }) %>
 
-  <div class="card glass">
+  <div class="card glass support-card">
     <div class="card-header">
-      <h3><i class="fas fa-users-cog"></i> فريق الدعم والعدادات</h3>
+      <h3><i class="fas fa-headset"></i> فريق الدعم والعدادات</h3>
+      <span class="card-badge" id="supportCountBadge">0 رتب</span>
     </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>رتب فريق الدعم — اضغط Ctrl لاختيار أكثر من رتبة</label>
-        <div class="field-row">
-          <select data-key="support_role" multiple size="7">
-            <% if (roles && roles.length > 0) { %>
-              <% roles.forEach(r => { %>
-                <option value="<%= r.id %>" <%= supportRoleArray.includes(String(r.id)) ? 'selected' : '' %>><%= r.name %></option>
-              <% }) %>
-            <% } else { %>
-              <option value="">لا توجد رتب — تأكد من توكن البوت</option>
-            <% } %>
-          </select>
+
+    <div class="support-summary">
+      <div class="summary-item">
+        <i class="fas fa-users"></i>
+        <div>
+          <strong id="supportMembersStat">0</strong>
+          <span>عضو يرتبط برتب الدعم</span>
         </div>
-        <small class="field-hint">هذه الرتب يمكنها الرد على التذاكر (الدعم الفني)</small>
       </div>
-      <div class="form-group">
-        <label>عداد التذاكر الحالي</label>
-        <div class="field-row">
-          <input type="number" data-key="ticket_counter" min="0" value="<%= config.ticket_counter || 0 %>">
+      <div class="summary-item">
+        <i class="fas fa-tags"></i>
+        <div>
+          <strong id="supportRolesStat">0</strong>
+          <span>رتبة دعم محددة</span>
         </div>
-        <small class="field-hint">يُستخدم في ترقيم التذاكر الجديدة</small>
       </div>
     </div>
+
+    <div class="chips-wrap" id="selectedSupportChips"></div>
+
+    <div class="role-picker">
+      <div class="picker-toolbar">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="supportRoleSearch" placeholder="ابحث عن رتبة..." oninput="filterSupportRoles(this.value)">
+        </div>
+        <span class="picker-count"><b id="visibleRoleCount">0</b> رتبة</span>
+      </div>
+      <div class="role-grid" id="supportRoleGrid">
+        <% roles.filter(r => r.name !== '@everyone' && !r.managed).forEach(r => { %>
+        <button type="button" class="role-item<%= supportRoleArray.includes(String(r.id)) ? ' selected' : '' %>"
+          data-role-id="<%= r.id %>" data-role-name="<%= r.name %>" data-role-count="<%= r.members_count ?? 0 %>"
+          title="اضغط للتبديل" onclick="toggleSupportRole(this)">
+          <span class="role-dot" style="background-color:#<%= (r.color || 0).toString(16).padStart(6, '0') %>"></span>
+          <span class="role-name"><%= r.name %></span>
+          <span class="role-members"><%= r.members_count ?? 0 %> <i class="fas fa-user"></i></span>
+          <span class="role-check"><i class="fas fa-check"></i></span>
+        </button>
+        <% }) %>
+      </div>
+      <% if (!roles || roles.filter(r => r.name !== '@everyone' && !r.managed).length === 0) { %>
+        <div class="empty-state" style="padding: 28px 10px;">
+          <i class="fas fa-user-tag"></i>
+          <p>لا توجد رتب متاحة — تأكد من اتصال البوت وتوكنه الصحيح</p>
+        </div>
+      <% } %>
+      <small class="field-hint role-picker-hint"><i class="fas fa-info-circle"></i> الرتب المحددة يمكنها الرد على التذاكر (الدعم الفني) وتستلم التذاكر الجديدة تلقائياً</small>
+    </div>
+
+    <div class="ticket-counter">
+      <div>
+        <label for="ticketCounterInput"><i class="fas fa-hashtag"></i> عداد التذاكر</label>
+        <small class="field-hint">يُستخدم في ترقيم التذاكر الجديدة — كل تذكرة برقم جديد +1</small>
+      </div>
+      <div class="stepper">
+        <button type="button" class="stepper-btn minus" onclick="stepCounter(-1)" title="إنقاص"><i class="fas fa-minus"></i></button>
+        <input type="number" id="ticketCounterInput" data-key="ticket_counter" min="0" value="<%= config.ticket_counter || 0 %>">
+        <button type="button" class="stepper-btn plus" onclick="stepCounter(1)" title="زيادة"><i class="fas fa-plus"></i></button>
+      </div>
+    </div>
+
+    <input type="hidden" id="supportRoleState">
   </div>
 
   <div class="actions-bar">
@@ -205,6 +244,47 @@
     gap: 8px;
   }
   .btn-secondary:hover { background: rgba(255, 255, 255, .06); }
+  .support-card { overflow: hidden; }
+  .card-badge { background: #5865f2; color: #fff; border-radius: 999px; padding: 4px 12px; font-size: .78rem; font-weight: 600; margin-left: 20px; }
+  .support-summary { display: flex; gap: 12px; margin: 0 20px 18px; flex-wrap: wrap; }
+  .summary-item { display: flex; align-items: center; gap: 12px; background: #0b0b0f; border: 1px solid var(--border); border-radius: 14px; padding: 12px 18px; min-width: 170px; }
+  .summary-item i { font-size: 1.4rem; color: var(--primary); }
+  .summary-item strong { font-size: 1.25rem; display: block; line-height: 1.1; }
+  .summary-item span { font-size: .75rem; color: var(--text-muted); }
+  .chips-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px 14px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; background: rgba(88, 101, 242, .15); border: 1px solid rgba(88, 101, 242, .35); color: var(--text); border-radius: 999px; padding: 6px 10px; font-size: .8rem; }
+  .chip-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .chip-name { white-space: nowrap; }
+  .chip-x { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0; font-size: .75rem; display: flex; }
+  .chip-x:hover { color: #ed4245; }
+  .role-picker { padding: 0 20px 20px; }
+  .picker-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .search-box { display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; flex: 1; min-width: 200px; }
+  .search-box i { color: var(--text-muted); font-size: .85rem; }
+  .search-box input { background: none; border: none; outline: none; color: var(--text); font-family: inherit; width: 100%; }
+  .picker-count { font-size: .78rem; color: var(--text-muted); white-space: nowrap; }
+  .picker-count b { color: var(--primary); }
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+  .role-item { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; cursor: pointer; font-family: inherit; color: var(--text); transition: all .18s ease; text-align: right; }
+  .role-item:hover { border-color: var(--primary); background: var(--bg-glass-hover); transform: translateY(-1px); }
+  .role-item.selected { border-color: var(--primary); background: rgba(88, 101, 242, .14); }
+  .role-item.hidden { display: none; }
+  .role-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(255, 255, 255, .08); }
+  .role-name { flex: 1; font-size: .83rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .role-members { font-size: .72rem; color: var(--text-muted); white-space: nowrap; }
+  .role-members i { margin-left: 3px; }
+  .role-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: .6rem; color: transparent; flex-shrink: 0; transition: all .18s ease; }
+  .role-item.selected .role-check { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 0 10px var(--primary-glow); }
+  .role-picker-hint { padding: 0 20px; margin-top: 10px; display: block; }
+  .ticket-counter { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-radius: 14px; border: 1px solid rgba(88, 101, 242, .3); margin: 0 20px 8px; padding: 14px 18px; flex-wrap: wrap; }
+  .ticket-counter label { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .ticket-counter label i { color: var(--primary); }
+  .stepper { display: inline-flex; align-items: center; gap: 6px; }
+  .stepper input { width: 96px; text-align: center; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); font-family: inherit; font-size: 1rem; font-weight: 700; }
+  .stepper-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); cursor: pointer; transition: all .18s ease; }
+  .stepper-btn:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .stepper-btn.minus:hover { background: #ed4245; border-color: #ed4245; }
+  @media (max-width: 640px) { .role-grid { grid-template-columns: 1fr; } .ticket-counter { justify-content: center; } }
 </style>
 
 <script>
@@ -220,12 +300,97 @@ function collectSettings() {
     const el = document.querySelector('[data-key="' + key + '"]');
     data[key] = el ? el.value : '';
   }
-  const sr = Array.from(document.querySelectorAll('[data-key="support_role"] option:checked')).map(o => o.value);
-  data.support_role = sr.join(',');
+  const sr = document.getElementById('supportRoleState');
+  data.support_role = sr ? sr.value : '';
   const tc = document.querySelector('[data-key="ticket_counter"]');
   data.ticket_counter = tc ? tc.value : '';
   return data;
 }
+
+// ─── Professional support-role picker ──────────────────────────────────────
+
+const SUPPORT_ROLES = <%- JSON.stringify((roles || []).filter(r => r.name !== '@everyone' && !r.managed)).replace(/</g, '\\u003c') %>;
+const selectedSupport = new Set();
+
+function initSupport() {
+  document.querySelectorAll('.role-item.selected').forEach(b => selectedSupport.add(b.dataset.roleId));
+  syncSupportState();
+}
+
+function toggleSupportRole(btn) {
+  const id = btn.dataset.roleId;
+  if (selectedSupport.has(id)) {
+    selectedSupport.delete(id);
+    btn.classList.remove('selected');
+  } else {
+    selectedSupport.add(id);
+    btn.classList.add('selected');
+  }
+  syncSupportState();
+  const r = SUPPORT_ROLES.find(x => x.id === id);
+  showToast((r ? r.name : 'الرتبة') + (selectedSupport.has(id) ? ' أُضيفت لفريق الدعم ✅' : ' أُزيلت من فريق الدعم'), 'success');
+}
+
+function syncSupportState() {
+  document.getElementById('supportRoleState').value = [...selectedSupport].join(',');
+
+  document.getElementById('supportRolesStat').textContent = selectedSupport.size;
+  document.getElementById('supportCountBadge').textContent = selectedSupport.size + ' رتب';
+
+  let members = 0;
+  selectedSupport.forEach(id => {
+    const r = SUPPORT_ROLES.find(x => x.id === id);
+    if (r && r.members_count) members += r.members_count;
+  });
+  document.getElementById('supportMembersStat').textContent = members;
+
+  const wrap = document.getElementById('selectedSupportChips');
+  wrap.innerHTML = '';
+  selectedSupport.forEach(id => {
+    const r = SUPPORT_ROLES.find(x => x.id === id);
+    const name = r ? r.name : id;
+    const color = r ? (r.color || 0) : 0;
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.innerHTML =
+      '<span class="chip-dot" style="background-color:#' + color.toString(16).padStart(6, '0') + '"></span>' +
+      '<span class="chip-name"></span>' +
+      '<button type="button" class="chip-x" title="إزالة"><i class="fas fa-times"></i></button>';
+    chip.querySelector('.chip-name').textContent = name;
+    chip.querySelector('.chip-x').onclick = (ev) => {
+      ev.stopPropagation();
+      removeSupportRole(id);
+    };
+    wrap.appendChild(chip);
+  });
+
+  document.getElementById('visibleRoleCount').textContent = document.querySelectorAll('.role-item:not(.hidden)').length;
+}
+
+function removeSupportRole(id) {
+  selectedSupport.delete(id);
+  const btn = document.querySelector('.role-item[data-role-id="' + id + '"]');
+  if (btn) btn.classList.remove('selected');
+  syncSupportState();
+}
+
+function filterSupportRoles(q) {
+  const query = q.toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('.role-item').forEach(b => {
+    const show = !query || b.dataset.roleName.toLowerCase().includes(query);
+    b.classList.toggle('hidden', !show);
+    if (show) visible++;
+  });
+  document.getElementById('visibleRoleCount').textContent = visible;
+}
+
+function stepCounter(d) {
+  const el = document.getElementById('ticketCounterInput');
+  el.value = Math.max(0, (parseInt(el.value, 10) || 0) + d);
+}
+
+initSupport();
 
 function updateSyncUi(ok, msg) {
   const el = document.getElementById('syncStatus');
