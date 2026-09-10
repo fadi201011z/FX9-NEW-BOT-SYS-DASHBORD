@@ -1,5 +1,5 @@
 import config from '../config.js';
-import { getGuild } from '../auth/discord.js';
+import { getGuild } from './discordApi.js';
 
 export async function resolveGuild(userGuilds, guildId) {
   const fromSession = (userGuilds || []).find(g => g.id === guildId);
