@@ -7,6 +7,8 @@ import axios from 'axios';
 
 const router = Router();
 
+const modOnly = requireRole('moderator');
+
 async function resolveYouTubeChannelId(url) {
   const clean = url.trim().replace(/\/[?#].*$/, '').replace(/\/$/, '');
   const chMatch = clean.match(/youtube\.com\/channel\/(UC[\w-]+)/i);
@@ -55,8 +57,6 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, modOnly, async (req, re
     currentPage: 'notifications',
   });
 });
-
-const modOnly = requireRole('moderator');
 
 // API: add subscription (local DB + bot sync)
 router.post('/:guildId/add', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
