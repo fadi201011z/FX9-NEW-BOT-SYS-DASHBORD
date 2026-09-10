@@ -21,50 +21,62 @@
 </div>
 
 <form id="settingsForm" onsubmit="saveSettings(event)">
-  <%
-    const sections = [
-      {
-        title: 'الترحيب بالسيرفر',
-        icon: 'fa-door-open',
-        desc: 'بطاقة ترحيب تُرسل تلقائياً عند انضمام كل عضو جديد',
-        fields: [
-          { key: 'welcome_channel', label: 'قناة الترحيب', type: 'text' },
-        ],
-      },
-    ];
-  %>
+  <div class="card glass welcome-card">
+    <div class="card-header">
+      <h3><i class="fas fa-door-open"></i> الترحيب بالسيرفر</h3>
+      <span class="ticket-status" id="welcomeStatusBadge"><span class="ticket-status-dot"></span><span id="welcomeStatusText">—</span></span>
+    </div>
+    <p class="card-desc">بطاقة ترحيب مخصصة (صورة) تُرسل تلقائياً عند انضمام كل عضو جديد</p>
 
-  <% sections.forEach(s => { %>
-    <div class="card glass">
-      <div class="card-header">
-        <h3><i class="fas <%= s.icon %>"></i> <%= s.title %></h3>
-      </div>
-      <% if (s.desc) { %>
-        <p class="card-desc"><%= s.desc %></p>
-      <% } %>
-      <div class="form-grid">
-        <% s.fields.forEach(f => { %>
-          <div class="form-group">
-            <label><%= f.label %></label>
-            <div class="field-row">
-              <select data-key="<%= f.key %>">
-                <option value="">— بدون (معطّل) —</option>
-                <% (channels[f.type] || []).forEach(ch => { %>
-                  <option value="<%= ch.id %>" <%= String(config[f.key] || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
-                <% }) %>
-              </select>
-              <button type="button" class="btn-delete-sm" onclick="deleteSetting('<%= f.key %>')" title="إلغاء هذا الإعداد">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-            <% if (f.hint) { %>
-              <small class="field-hint"><%= f.hint %></small>
-            <% } %>
+    <div class="welcome-main">
+      <div class="welcome-preview">
+        <div class="preview-card">
+          <div class="preview-banner">
+            <span class="preview-badge">FAdiX9</span>
+            <i class="fas fa-camera preview-cam"></i>
           </div>
-        <% }) %>
+          <div class="preview-body">
+            <span class="preview-avatar"><i class="fas fa-user"></i></span>
+            <div class="preview-text">
+              <strong>أهلاً بك في سيرفرنا!</strong>
+              <span>أنت العضو رقم <b>#1,024</b></span>
+            </div>
+          </div>
+          <div class="preview-footer">✦ Welcome <b>Nyaorox</b> To FAdiX9 Server ✨</div>
+        </div>
+      </div>
+
+      <div class="welcome-config">
+        <div class="stat-voice-item item-lg-general" data-for="welcome_channel">
+          <div class="stat-voice-icon"><i class="fas fa-paper-plane"></i></div>
+          <div class="stat-voice-info">
+            <strong>قناة الترحيب</strong>
+            <small>القناة التي تُرسل إليها بطاقة الترحيب</small>
+          </div>
+          <div class="stat-voice-control">
+            <select data-key="welcome_channel" class="ticket-select">
+              <option value="">— بدون (معطّل) —</option>
+              <% (channels.text || []).forEach(ch => { %>
+                <option value="<%= ch.id %>" <%= String(config.welcome_channel || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+              <% }) %>
+            </select>
+            <div class="stat-voice-tools">
+              <span class="ticket-field-state" data-state-of="welcome_channel"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+              <button type="button" class="btn-delete-sm" onclick="deleteSetting('welcome_channel')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-notice">
+          <i class="fas fa-magic"></i>
+          <div>
+            <strong>تُنشأ البطاقة تلقائياً</strong>
+            <span>باسم العضو وصورته ورقمه التسلسلي — مع كشف موجات الانضمام (Raid) وحسابات جديدة</span>
+          </div>
+        </div>
       </div>
     </div>
-  <% }) %>
+  </div>
 
   <div class="card glass log-card">
     <div class="card-header">
@@ -586,6 +598,27 @@
   .log-grid .item-lg-mod .stat-voice-icon { background: rgba(237, 66, 69, .12); color: #ed4245; }
   .log-grid .item-lg-bot .stat-voice-icon { background: rgba(87, 242, 135, .12); color: #57f287; }
   .log-grid .stat-voice-item.done .stat-voice-icon { background: rgba(87, 242, 135, .15); color: #57f287; }
+  .welcome-card { overflow: hidden; }
+  .welcome-main { display: grid; grid-template-columns: 1fr 1.2fr; gap: 22px; padding: 0 20px 20px; align-items: center; }
+  .welcome-preview { display: flex; align-items: center; justify-content: center; }
+  .preview-card { width: 100%; max-width: 340px; border-radius: 16px; overflow: hidden; background: #0e0e13; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+  .preview-banner { height: 84px; display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 16px; background: linear-gradient(135deg, #5865f2, #eb459e); }
+  .preview-badge { background: rgba(0, 0, 0, .25); padding: 5px 12px; border-radius: 999px; font-size: .72rem; font-weight: 700; color: #fff; }
+  .preview-cam { color: rgba(255, 255, 255, .85); }
+  .preview-body { display: flex; align-items: flex-end; gap: 14px; padding: 0 18px 14px; position: relative; }
+  .preview-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #5865f2, #eb459e); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.7rem; border: 3px solid #0e0e13; margin-top: -30px; box-shadow: 0 4px 14px rgba(88, 101, 242, .4); flex-shrink: 0; }
+  .preview-text { padding-bottom: 6px; }
+  .preview-text strong { font-size: .95rem; display: block; }
+  .preview-text span { color: var(--text-muted); font-size: .8rem; }
+  .preview-text b { color: #fff; }
+  .preview-footer { padding: 12px 18px 16px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: .75rem; text-align: center; }
+  .preview-footer b { color: var(--primary); }
+  .welcome-config { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+  .welcome-notice { display: flex; align-items: flex-start; gap: 12px; background: rgba(88, 101, 242, .08); border: 1px dashed rgba(88, 101, 242, .4); border-radius: 12px; padding: 12px 14px; }
+  .welcome-notice i { color: var(--primary); font-size: 1.1rem; margin-top: 2px; }
+  .welcome-notice strong { display: block; font-size: .85rem; }
+  .welcome-notice span { color: var(--text-muted); font-size: .75rem; line-height: 1.6; display: block; }
+  @media (max-width: 760px) { .welcome-main { grid-template-columns: 1fr; } }
   .stat-voice-info { flex: 1; min-width: 0; }
   .stat-voice-info strong { display: block; font-size: .88rem; }
   .stat-voice-info small { color: var(--text-muted); font-size: .74rem; display: block; }
@@ -806,6 +839,33 @@ function updateLogStatus() {
 
 document.querySelectorAll('.log-grid select').forEach(el => el.addEventListener('change', updateLogStatus));
 updateLogStatus();
+
+// ─── Welcome status ─────────────────────────────────────────────────────────
+
+function updateWelcomeStatus() {
+  const sel = document.querySelector('[data-key="welcome_channel"]');
+  const isSet = sel && sel.value;
+  const item = document.querySelector('.welcome-card [data-for="welcome_channel"]');
+  if (item) item.classList.toggle('done', !!isSet);
+  const st = document.querySelector('.ticket-field-state[data-state-of="welcome_channel"]');
+  if (st) {
+    st.classList.toggle('on', !!isSet);
+    st.querySelector('span').textContent = isSet ? 'مضبوط' : 'غير مضبوط';
+  }
+
+  const badge = document.getElementById('welcomeStatusBadge');
+  const text = document.getElementById('welcomeStatusText');
+  if (isSet) {
+    badge.className = 'ticket-status ready';
+    text.textContent = 'مفعل';
+  } else {
+    badge.className = 'ticket-status empty';
+    text.textContent = 'غير مضبوط';
+  }
+}
+
+document.querySelectorAll('.welcome-card select').forEach(el => el.addEventListener('change', updateWelcomeStatus));
+updateWelcomeStatus();
 
 initSupport();
 
