@@ -18,6 +18,16 @@ import Backup from '../models/Backup.js';
 const router = Router();
 
 router.get('/commands/stats', async (req, res) => {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    const botRes = await fetch(`${config.botApiUrl}/api/commands/stats`, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (botRes.ok) {
+      const data = await botRes.json();
+      if (data && typeof data.total === 'number') return res.json(data);
+    }
+  } catch {}
   res.json(getCommandStats());
 });
 
@@ -30,22 +40,28 @@ router.get('/tickets/stats', async (req, res) => {
 
 router.get('/status', async (req, res) => {
   const start = Date.now();
-  let guildCount = 0, members = null, ping = null;
+  let guildCount = 0, members = null, ping = null, botOnline = false;
   try {
-    const botGuilds = await getBotGuilds(config.discord.botToken);
-    guildCount = (botGuilds || []).length;
-  } catch {}
-  try {
-    const botRes = await fetch(`${config.botApiUrl}/api/stats`).catch(() => null);
+    const botRes = await fetch(`${config.botApiUrl}/api/stats`, {
+      signal: AbortSignal.timeout(4000),
+    }).catch(() => null);
     if (botRes && botRes.ok) {
       const botData = await botRes.json();
       guildCount = botData.guilds ?? guildCount;
       members = botData.members ?? null;
       ping = botData.ping ?? null;
+      botOnline = true;
     }
   } catch {}
+  if (!botOnline) {
+    try {
+      const botGuilds = await getBotGuilds(config.discord.botToken);
+      guildCount = (botGuilds || []).length;
+    } catch {}
+  }
   res.json({
-    status: 'online',
+    status: botOnline ? 'online' : 'offline',
+    botOnline,
     timestamp: Date.now(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),

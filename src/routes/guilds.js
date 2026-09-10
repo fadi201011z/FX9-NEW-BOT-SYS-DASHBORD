@@ -14,6 +14,18 @@ async function getBotGuildIds() {
     if (botGuildCache.rateLimited && Date.now() - botGuildCache.lastFetch < 60000) return botGuildCache.ids;
   }
   try {
+    const botRes = await fetch(`${config.botApiUrl}/api/guilds`, {
+      signal: AbortSignal.timeout(4000),
+    }).catch(() => null);
+    if (botRes && botRes.ok) {
+      const guilds = await botRes.json();
+      if (Array.isArray(guilds)) {
+        botGuildCache = { ids: new Set(guilds.map(g => g.id)), lastFetch: Date.now() };
+        return botGuildCache.ids;
+      }
+    }
+  } catch {}
+  try {
     const guilds = await getBotGuilds(config.discord.botToken);
     botGuildCache = { ids: new Set((guilds || []).map(g => g.id)), lastFetch: Date.now() };
   } catch (e) {
@@ -78,13 +90,28 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
 
     if (botInGuild) {
       try {
-        const guildInfo = await getGuildInfo(guildId, config.discord.botToken);
-        if (guildInfo) {
-          memberCount = guildInfo.approximate_member_count || guildInfo.approximate_presence_count || guildInfo.member_count || 'N/A';
-          guild.name = guildInfo.name;
-          guild.icon = guildInfo.icon;
+        const botRes = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/info`, {
+          signal: AbortSignal.timeout(4000),
+        }).catch(() => null);
+        if (botRes && botRes.ok) {
+          const info = await botRes.json();
+          if (info && Number.isFinite(Number(info.memberCount))) {
+            memberCount = Number(info.memberCount);
+            guild.name = info.name || guild.name;
+            guild.icon = info.icon || guild.icon;
+          }
         }
       } catch {}
+      if (memberCount === 'N/A') {
+        try {
+          const guildInfo = await getGuildInfo(guildId, config.discord.botToken);
+          if (guildInfo) {
+            memberCount = guildInfo.approximate_member_count || guildInfo.approximate_presence_count || guildInfo.member_count || 'N/A';
+            guild.name = guildInfo.name;
+            guild.icon = guildInfo.icon;
+          }
+        } catch {}
+      }
     }
 
     const tickets = await getGuildTickets(guildId);

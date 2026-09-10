@@ -216,14 +216,14 @@ async function loadStatus() {
     const ticketStats = await ticketStatsRes.json();
 
     // Hero
-    document.getElementById('heroStatusText').textContent = 'متصل';
-    document.getElementById('heroDot').className = 'status-dot online';
+    document.getElementById('heroStatusText').textContent = status.botOnline ? 'متصل' : 'غير متصل';
+    document.getElementById('heroDot').className = status.botOnline ? 'status-dot online' : 'status-dot offline';
     document.getElementById('heroVersion').textContent = botInfo.version || '---';
     document.getElementById('heroUptime').textContent = formatUptime(status.uptime);
 
     // Stat cards
     document.getElementById('sResponseTime').textContent = status.responseTime + 'ms';
-    document.getElementById('sGuilds').textContent = status.guildCount || (cmdStats.guildCount) || '?';
+    document.getElementById('sGuilds').textContent = (status.guildCount ?? '?');
     document.getElementById('sCommands').textContent = (cmdStats.total || '?');
     document.getElementById('sTickets').textContent = ticketStats.open || '0';
     document.getElementById('sMemory').textContent = (status.memory.heapUsed / 1024 / 1024).toFixed(1) + ' MB';

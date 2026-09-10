@@ -18,7 +18,7 @@
       <i class="fas fa-server"></i>
     </div>
     <div class="stat-info">
-      <span class="stat-value"><%= totalGuilds %></span>
+      <span class="stat-value" id="totalGuilds"><%= totalGuilds %></span>
       <span class="stat-label">السيرفرات</span>
     </div>
     <div class="stat-trend up">
@@ -32,7 +32,7 @@
       <i class="fas fa-users"></i>
     </div>
     <div class="stat-info">
-      <span class="stat-value"><%= totalMembers.toLocaleString() %></span>
+      <span class="stat-value" id="totalMembers"><%= Number(totalMembers) || 0 %>+</span>
       <span class="stat-label">إجمالي الأعضاء</span>
     </div>
     <div class="stat-trend up">
@@ -158,7 +158,16 @@ async function refreshDashboard() {
       fetch('/api/tickets/stats'),
     ]);
     const status = await statsRes.json();
-    document.getElementById('botStatusText').textContent = 'متصل';
+    const statusEl = document.getElementById('botStatusText');
+    if (statusEl) statusEl.textContent = status.botOnline ? 'متصل' : 'غير متصل';
+    if (status.botOnline) {
+      const g = document.getElementById('totalGuilds');
+      const m = document.getElementById('totalMembers');
+      const p = document.getElementById('botPing');
+      if (g) g.textContent = Number(status.guildCount) || 0;
+      if (m) m.textContent = (Number(status.members) || 0) + '+';
+      if (p) p.textContent = typeof status.ping === 'number' ? status.ping + 'ms' : '---';
+    }
     if (ticketRes.ok) {
       const tickets = await ticketRes.json();
       document.getElementById('totalTickets').textContent = tickets.total;

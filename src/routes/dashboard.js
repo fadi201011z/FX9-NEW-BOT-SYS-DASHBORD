@@ -38,11 +38,13 @@ router.get('/', isAuthenticated, requireRole('manager'), async (req, res) => {
     let totalMembers = 0;
     let botPing = null;
     try {
-      const statsRes = await fetch(`${config.botApiUrl}/api/stats`);
+      const statsRes = await fetch(`${config.botApiUrl}/api/stats`, {
+        signal: AbortSignal.timeout(4000),
+      });
       if (statsRes.ok) {
         const stats = await statsRes.json();
-        totalMembers = stats.members;
-        botPing = stats.ping;
+        totalMembers = Number.isFinite(Number(stats.members)) ? Number(stats.members) : 0;
+        botPing = Number.isFinite(Number(stats.ping)) ? Number(stats.ping) : null;
       }
     } catch {}
     const alerts = await getUnreadAlerts(null);

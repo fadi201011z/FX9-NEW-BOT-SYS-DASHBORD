@@ -118,9 +118,9 @@
       <% if (activity && activity.length > 0) { %>
         <% activity.slice(0, 5).forEach(a => { %>
           <div class="activity-item">
-            <img src="https://cdn.discordapp.com/avatars/<%= a.user_id %>/<%= a.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <img src="https://cdn.discordapp.com/avatars/<%= a.userId %>/<%= a.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
             <div class="activity-info">
-              <strong><%= a.username || a.user_id %></strong>
+              <strong><%= a.username || a.userId %></strong>
               <span><%= a.action %> — <%= a.details || '' %></span>
             </div>
             <span class="activity-time"><%= new Date(a.timestamp).toLocaleString('ar-SA') %></span>

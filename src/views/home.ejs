@@ -181,5 +181,5 @@
 }
 </style>
 <script>
-(function(){fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('pCmd');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('pCmd');if(e)e.textContent='55'})})();
+(function(){fetch('/api/commands/stats').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(s){var e=document.getElementById('pCmd');if(e)e.textContent=s.total||'—'}).catch(function(){var e=document.getElementById('pCmd');if(e)e.textContent='—'})})();
 </script>
