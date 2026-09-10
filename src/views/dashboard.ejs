@@ -1,29 +1,42 @@
 <% currentPage = 'dashboard' %>
 
-<div class="dashboard-header">
-  <div class="header-text">
-    <h1><i class="fas fa-th-large"></i> لوحة التحكم</h1>
-    <p>مرحباً بعودتك، <strong><%= user.globalName || user.username %></strong></p>
+<!-- ═══ Hero Header ═══ -->
+<div class="dash-hero glass">
+  <div class="dash-hero-avatar">
+    <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
   </div>
-  <div class="header-actions">
-    <button class="btn-refresh" onclick="refreshDashboard()">
-      <i class="fas fa-sync-alt"></i> تحديث
+  <div class="dash-hero-info">
+    <div class="dash-hero-greet">مرحباً بعودتك 👋</div>
+    <div class="dash-hero-name"><%= user.globalName || user.username %></div>
+    <div class="dash-hero-sub">
+      <span class="dash-pill" id="dashStatusPill">
+        <span class="dash-pill-dot" id="dashBotDot"></span>
+        <span id="botStatusText">جارِ الاتصال...</span>
+      </span>
+      <span class="dash-uptime">آخر تحديث: <span id="dashLastUpdated">الآن</span></span>
+    </div>
+  </div>
+  <div class="dash-hero-actions">
+    <button class="btn-refresh" id="dashRefreshBtn" onclick="refreshDashboard(true)">
+      <i class="fas fa-sync-alt" id="dashRefreshIcon"></i> تحديث
     </button>
   </div>
 </div>
 
+<!-- ═══ Live Stat Cards ═══ -->
 <div class="stats-grid">
+
   <div class="stat-card glass">
     <div class="stat-icon" style="--stat-color: #5865f2">
       <i class="fas fa-server"></i>
     </div>
     <div class="stat-info">
-      <span class="stat-value" id="totalGuilds"><%= totalGuilds %></span>
+      <span class="stat-value dash-count" id="totalGuilds" data-count="<%= totalGuilds %>"><%= totalGuilds %></span>
       <span class="stat-label">السيرفرات</span>
     </div>
-    <div class="stat-trend up">
-      <i class="fas fa-arrow-up"></i>
-      <span>متصل</span>
+    <div class="stat-trend" style="flex-direction:column;align-items:flex-end">
+      <span class="status-dot online"></span>
+      <span style="white-space:nowrap">متصل</span>
     </div>
   </div>
 
@@ -32,12 +45,12 @@
       <i class="fas fa-users"></i>
     </div>
     <div class="stat-info">
-      <span class="stat-value" id="totalMembers"><%= Number(totalMembers) || 0 %>+</span>
+      <span class="stat-value dash-count" id="totalMembers" data-count="<%= Number(totalMembers) || 0 %>"><%= Number(totalMembers) ? Number(totalMembers).toLocaleString() : 0 %>+</span>
       <span class="stat-label">إجمالي الأعضاء</span>
     </div>
-    <div class="stat-trend up">
+    <div class="stat-trend" style="flex-direction:column;align-items:flex-end">
       <i class="fas fa-globe"></i>
-      <span>جميع السيرفرات</span>
+      <span style="white-space:nowrap">جميع السيرفرات</span>
     </div>
   </div>
 
@@ -46,15 +59,16 @@
       <i class="fas fa-ticket-alt"></i>
     </div>
     <div class="stat-info">
-      <span class="stat-value" id="totalTickets"><%= typeof totalTickets !== 'undefined' ? totalTickets : 0 %></span>
+      <span class="stat-value dash-count" id="totalTickets" data-count="<%= typeof totalTickets !== 'undefined' ? totalTickets : 0 %>"><%= typeof totalTickets !== 'undefined' ? totalTickets : '—' %></span>
       <span class="stat-label">إجمالي التذاكر</span>
-    </div>
-    <div class="stat-trend">
-      <span class="status-dot" style="background:#43b581"></span>
-      <span id="openTicketsLabel">مفتوح: ---</span>
-      <span style="margin:0 4px">|</span>
-      <span class="status-dot" style="background:#f04747"></span>
-      <span id="closedTicketsLabel">مغلق: ---</span>
+      <div class="dash-ticket-bar" id="dashTicketBar">
+        <div class="dash-ticket-bar-open" id="dashTicketOpenFill"></div>
+        <div class="dash-ticket-bar-closed" id="dashTicketClosedFill"></div>
+      </div>
+      <div class="dash-ticket-legend">
+        <span><i class="dash-legend-dot" style="background:#43b581"></i> مفتوح: <b id="openTicketsLabel">---</b></span>
+        <span><i class="dash-legend-dot" style="background:#f04747"></i> مغلق: <b id="closedTicketsLabel">---</b></span>
+      </div>
     </div>
   </div>
 
@@ -64,17 +78,46 @@
     </div>
     <div class="stat-info">
       <span class="stat-value" id="botPing"><%= typeof botPing === 'number' ? botPing + 'ms' : '---' %></span>
-      <span class="stat-label">Ping</span>
+      <span class="stat-label">زمن استجابة البوت</span>
     </div>
-    <div class="stat-trend">
-      <span class="status-dot online"></span>
-      <span id="botStatusText">متصل</span>
+    <div class="stat-trend" style="flex-direction:column;align-items:flex-end">
+      <span class="status-dot idle" id="dashPingDot"></span>
+      <span id="dashPingState" style="white-space:nowrap">... </span>
     </div>
   </div>
+
 </div>
 
-<div class="dashboard-grid">
-  <div class="card glass guilds-card">
+<!-- ═══ Quick Actions ═══ -->
+<div class="dash-actions">
+  <a href="/guilds" class="dash-action" style="--da:#5865f2">
+    <div class="dash-action-ico"><i class="fas fa-server"></i></div>
+    <div class="dash-action-txt"><strong>السيرفرات</strong><span>إدارة كل سيرفراتك</span></div>
+    <i class="fas fa-chevron-left dash-action-go"></i>
+  </a>
+  <a href="/status" class="dash-action" style="--da:#f87171">
+    <div class="dash-action-ico"><i class="fas fa-heart-pulse"></i></div>
+    <div class="dash-action-txt"><strong>حالة البوت</strong><span>الاستجابة والذاكرة والتوكن</span></div>
+    <i class="fas fa-chevron-left dash-action-go"></i>
+  </a>
+  <a href="/docs" class="dash-action" style="--da:#34d399">
+    <div class="dash-action-ico"><i class="fas fa-book-open"></i></div>
+    <div class="dash-action-txt"><strong>التوثيق</strong><span>شرح جميع الأوامر</span></div>
+    <i class="fas fa-chevron-left dash-action-go"></i>
+  </a>
+  <% if (roleLevel >= 3) { %>
+  <a href="/dev" class="dash-action" style="--da:#fbbf24">
+    <div class="dash-action-ico"><i class="fas fa-code"></i></div>
+    <div class="dash-action-txt"><strong>لوحة المطور</strong><span>التحقق من الاتصال والبيانات</span></div>
+    <i class="fas fa-chevron-left dash-action-go"></i>
+  </a>
+  <% } %>
+</div>
+
+<!-- ═══ Main Grid ═══ -->
+<div class="dash-grid">
+
+  <div class="card glass">
     <div class="card-header">
       <h3><i class="fas fa-server"></i> السيرفرات المتصلة</h3>
       <a href="/guilds" class="btn-sm">عرض الكل <i class="fas fa-arrow-left"></i></a>
@@ -82,7 +125,7 @@
     <div class="guild-list">
       <% if (guilds && guilds.length > 0) { %>
         <% guilds.slice(0, 6).forEach(g => { %>
-          <a href="/guilds/<%= g.id %>" class="guild-item">
+          <a href="/guilds/<%= g.id %>" class="guild-item <%= g.hasBot ? '' : 'guild-item-nobot' %>">
             <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
             <div class="guild-info">
               <strong><%= g.name %></strong>
@@ -94,88 +137,226 @@
       <% } else { %>
         <div class="empty-state">
           <i class="fas fa-exclamation-circle"></i>
-          <p>لا يوجد سيرفرات متاحة. أضف البوت إلى سيرفر للبدء.</p>
+          <p>لا يوجد سيرفرات متاحة.</p>
+          <a href="/invite-dev" class="btn-secondary" style="margin-top:10px"><i class="fas fa-code-branch"></i> أضف البوت إلى سيرفر</a>
         </div>
       <% } %>
     </div>
   </div>
 
-  <div class="card glass">
-    <div class="card-header">
-      <h3><i class="fas fa-bell"></i> آخر التنبيهات</h3>
-    </div>
-    <div class="alerts-list" id="dashboardAlerts">
-      <% if (locals.alerts && alerts.length > 0) { %>
-        <% alerts.slice(0, 5).forEach(a => { %>
-          <div class="alert-item severity-<%= a.severity %>">
-            <i class="fas fa-<%= a.severity === 'critical' ? 'exclamation-circle' : a.severity === 'high' ? 'exclamation-triangle' : 'info-circle' %>"></i>
-            <div class="alert-content">
-              <strong><%= a.title %></strong>
-              <span><%= a.message %></span>
+  <div class="dash-recol">
+    <div class="card glass">
+      <div class="card-header">
+        <h3><i class="fas fa-bell"></i> آخر التنبيهات</h3>
+        <span class="badge badge-sm" id="dashAlertCount">
+          <%= locals.alerts && alerts.length ? alerts.length : 0 %>
+        </span>
+      </div>
+      <div class="alerts-list" id="dashboardAlerts">
+        <% if (locals.alerts && alerts.length > 0) { %>
+          <% alerts.slice(0, 5).forEach(a => { %>
+            <div class="alert-item severity-<%= a.severity %>">
+              <i class="fas fa-<%= a.severity === 'critical' ? 'exclamation-circle' : a.severity === 'high' ? 'exclamation-triangle' : 'info-circle' %>"></i>
+              <div class="alert-content">
+                <strong><%= a.title %></strong>
+                <span><%= a.message %></span>
+              </div>
+              <span class="alert-time"><%= new Date(a.timestamp).toLocaleTimeString('ar-SA') %></span>
             </div>
-            <span class="alert-time"><%= new Date(a.timestamp).toLocaleTimeString('ar-SA') %></span>
+          <% }) %>
+        <% } else { %>
+          <div class="empty-state">
+            <i class="fas fa-check-circle" style="color:var(--success)"></i>
+            <p>لا توجد تنبيهات — كل شيء يعمل بسلاسة</p>
           </div>
-        <% }) %>
-      <% } else { %>
-        <div class="empty-state">
-          <i class="fas fa-check-circle" style="color:var(--success)"></i>
-          <p>لا توجد تنبيهات — كل شيء يعمل بسلاسة</p>
-        </div>
-      <% } %>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card glass">
+      <div class="card-header">
+        <h3><i class="fas fa-layer-group"></i> الأنظمة المتاحة</h3>
+      </div>
+      <div class="dash-systems">
+        <div class="dash-sys"><i class="fas fa-shield-halved" style="color:#ef4444"></i><span>الحماية</span></div>
+        <div class="dash-sys"><i class="fas fa-ticket" style="color:#f59e0b"></i><span>التذاكر</span></div>
+        <div class="dash-sys"><i class="fas fa-microphone-lines" style="color:#22d3ee"></i><span>الصوتي</span></div>
+        <div class="dash-sys"><i class="fas fa-hand-sparkles" style="color:#a78bfa"></i><span>الترحيب</span></div>
+        <div class="dash-sys"><i class="fas fa-scroll" style="color:#34d399"></i><span>السجلات</span></div>
+        <div class="dash-sys"><i class="fas fa-bell" style="color:#f472b6"></i><span>الإشعارات</span></div>
+      </div>
     </div>
   </div>
+
 </div>
 
-<div class="card glass quick-actions">
-  <div class="card-header">
-    <h3><i class="fas fa-bolt"></i> إجراءات سريعة</h3>
-  </div>
-  <div class="actions-grid">
-    <a href="/guilds" class="action-item">
-      <i class="fas fa-server"></i>
-      <span>إدارة السيرفرات</span>
-    </a>
-    <a href="/docs" class="action-item">
-      <i class="fas fa-book"></i>
-      <span>التوثيق</span>
-    </a>
-    <a href="/invite-dev" class="action-item">
-      <i class="fas fa-code-branch"></i>
-      <span>الإضافة قيد التطوير</span>
-    </a>
-    <a href="/status" class="action-item">
-      <i class="fas fa-heartbeat"></i>
-      <span>حالة البوت</span>
-    </a>
-  </div>
-</div>
+<style>
+/* ═══ Dashboard Professional ═══ */
+.dash-hero{display:flex;align-items:center;gap:18px;padding:20px 24px;margin-bottom:24px;border-radius:var(--radius);position:relative;overflow:hidden}
+.dash-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(600px 140px at 10% 0%,rgba(88,101,242,.14),transparent),radial-gradient(500px 120px at 95% 10%,rgba(87,242,135,.08),transparent);pointer-events:none}
+.dash-hero-avatar{flex-shrink:0;width:62px;height:62px;border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(88,101,242,.35);border:2px solid rgba(255,255,255,.08);position:relative;z-index:1}
+.dash-hero-avatar img{width:100%;height:100%;object-fit:cover}
+.dash-hero-info{flex:1;position:relative;z-index:1;min-width:0}
+.dash-hero-greet{font-size:.78rem;color:var(--text-muted);margin-bottom:2px}
+.dash-hero-name{font-size:1.35rem;font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-hero-sub{display:flex;align-items:center;gap:14px;margin-top:6px;flex-wrap:wrap}
+.dash-pill{display:inline-flex;align-items:center;gap:7px;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:700;border:1px solid var(--border)}
+.dash-pill.online{color:var(--success);border-color:rgba(87,242,135,.35);background:rgba(87,242,135,.08)}
+.dash-pill.offline{color:var(--danger);border-color:rgba(237,66,69,.35);background:rgba(237,66,69,.08)}
+.dash-pill-dot{width:8px;height:8px;border-radius:50%;background:var(--text-muted);animation:pulse 1.4s ease-in-out infinite}
+.dash-pill.online .dash-pill-dot{background:var(--success);box-shadow:0 0 10px var(--success)}
+.dash-pill.offline .dash-pill-dot{background:var(--danger);box-shadow:0 0 10px var(--danger)}
+.dash-uptime{font-size:.75rem;color:var(--text-muted)}
+.dash-hero-actions{position:relative;z-index:1}
+#dashRefreshIcon.spinning{animation:spin .7s linear infinite}
+
+/* Ticket segmented bar */
+.dash-ticket-bar{display:flex;height:7px;border-radius:20px;overflow:hidden;background:rgba(255,255,255,.06);margin-top:8px;gap:2px}
+.dash-ticket-bar-open{background:#43b581;transition:width .6s cubic-bezier(.22,1,.36,1)}
+.dash-ticket-bar-closed{background:#f04747;transition:width .6s cubic-bezier(.22,1,.36,1)}
+.dash-ticket-legend{display:flex;gap:12px;margin-top:6px;font-size:.72rem;color:var(--text-muted)}
+.dash-legend-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:3px}
+
+/* Quick actions */
+.dash-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:20px}
+.dash-action{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius);color:var(--text);text-decoration:none;background:var(--bg-card);border:1px solid var(--border);transition:all .22s ease}
+.glass .dash-action, body .dash-action{background:color-mix(in srgb,var(--da) 7%,transparent)}
+.dash-action:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--da) 45%,transparent);box-shadow:0 6px 22px rgba(0,0,0,.18)}
+.dash-action-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;background:color-mix(in srgb,var(--da) 16%,transparent);color:var(--da);flex-shrink:0}
+.dash-action-txt{flex:1;min-width:0}
+.dash-action-txt strong{display:block;font-size:.9rem}
+.dash-action-txt span{font-size:.75rem;color:var(--text-muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-action-go{color:var(--text-muted);font-size:.8rem}
+
+/* Main grid */
+.dash-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;margin-bottom:20px}
+.dash-recol{display:flex;flex-direction:column;gap:20px}
+
+/* Systems tiles */
+.dash-systems{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.dash-sys{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:.8rem;font-weight:600;transition:all .2s}
+.dash-sys:hover{transform:translateY(-1px);border-color:var(--border);background:var(--bg-glass-hover)}
+.dash-sys i{width:20px;text-align:center;font-size:1rem}
+
+/* Count-up */
+.dash-count{transition:transform .2s}
+
+.dash-greeting-hint{color:var(--text-muted)}
+
+@media(max-width:1000px){.dash-grid{grid-template-columns:1fr}}
+@media(max-width:640px){
+  .dash-hero{flex-wrap:wrap}
+  .dash-hero-actions{width:100%}
+  .dash-hero-actions .btn-refresh{width:100%;justify-content:center}
+}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+</style>
 
 <script>
-async function refreshDashboard() {
+const botPingServer = <%= JSON.stringify(botPing) %>;
+let dashTimer = null;
+
+function dashCountUp(el) {
+  const target = parseInt(el.getAttribute('data-count'), 10);
+  if (isNaN(target)) return;
+  const raw = el.textContent;
+  const suffix = raw.endsWith('+') ? '+' : '';
+  const dur = 650;
+  const start = performance.now();
+  const step = (now) => {
+    const p = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * ease).toLocaleString() + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function dashSetCount(id, value, suffix) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const n = Number(value) || 0;
+  el.setAttribute('data-count', n);
+  el.textContent = (suffix || '') === '+' ? n.toLocaleString() + '+' : n.toLocaleString();
+  dashCountUp(el);
+}
+
+function dashSetPing(ping) {
+  const el = document.getElementById('botPing');
+  const dot = document.getElementById('dashPingDot');
+  const state = document.getElementById('dashPingState');
+  if (!el || !dot || !state) return;
+  if (typeof ping !== 'number') {
+    el.textContent = '---';
+    dot.className = 'status-dot offline';
+    state.textContent = 'غير متاح';
+    return;
+  }
+  el.textContent = ping + 'ms';
+  el.setAttribute('data-count', ping);
+  if (ping < 150) { dot.className = 'status-dot online'; state.textContent = 'ممتاز'; }
+  else if (ping < 300) { dot.className = 'status-dot idle'; state.textContent = 'جيد'; }
+  else { dot.className = 'status-dot offline'; state.textContent = 'بطيء'; }
+}
+
+function dashSetStatus(online) {
+  const pill = document.getElementById('dashStatusPill');
+  const txt = document.getElementById('botStatusText');
+  if (!pill || !txt) return;
+  pill.className = 'dash-pill ' + (online ? 'online' : 'offline');
+  txt.textContent = online ? 'متصل' : 'غير متصل';
+}
+
+function dashLog() {
+  const t = document.getElementById('dashLastUpdated');
+  if (t) t.textContent = new Date().toLocaleTimeString('ar-SA');
+}
+
+async function refreshDashboard(manual) {
+  const icon = document.getElementById('dashRefreshIcon');
+  if (icon && manual) icon.classList.add('spinning');
   try {
     const [statsRes, ticketRes] = await Promise.all([
       fetch('/api/status'),
       fetch('/api/tickets/stats'),
     ]);
     const status = await statsRes.json();
-    const statusEl = document.getElementById('botStatusText');
-    if (statusEl) statusEl.textContent = status.botOnline ? 'متصل' : 'غير متصل';
+    dashSetStatus(!!status.botOnline);
     if (status.botOnline) {
-      const g = document.getElementById('totalGuilds');
-      const m = document.getElementById('totalMembers');
-      const p = document.getElementById('botPing');
-      if (g) g.textContent = Number(status.guildCount) || 0;
-      if (m) m.textContent = (Number(status.members) || 0) + '+';
-      if (p) p.textContent = typeof status.ping === 'number' ? status.ping + 'ms' : '---';
+      dashSetCount('totalGuilds', status.guildCount || 0);
+      dashSetCount('totalMembers', status.members || 0, '+');
+      dashSetPing(typeof status.ping === 'number' ? status.ping : null);
+    } else {
+      dashSetPing(null);
     }
     if (ticketRes.ok) {
       const tickets = await ticketRes.json();
-      document.getElementById('totalTickets').textContent = tickets.total;
-      document.getElementById('openTicketsLabel').textContent = 'مفتوح: ' + tickets.open;
-      document.getElementById('closedTicketsLabel').textContent = 'مغلق: ' + tickets.closed;
+      const open = Number(tickets.open) || 0;
+      const closed = Number(tickets.closed) || 0;
+      dashSetCount('totalTickets', tickets.total || 0);
+      document.getElementById('openTicketsLabel').textContent = open;
+      document.getElementById('closedTicketsLabel').textContent = closed;
+      const openFill = document.getElementById('dashTicketOpenFill');
+      const closedFill = document.getElementById('dashTicketClosedFill');
+      const total = open + closed;
+      if (openFill && closedFill) {
+        openFill.style.width = total ? (open / total * 100).toFixed(1) + '%' : '0%';
+        closedFill.style.width = total ? (closed / total * 100).toFixed(1) + '%' : '0%';
+      }
     }
-  } catch {}
+    dashLog();
+  } catch {} finally {
+    if (icon) icon.classList.remove('spinning');
+  }
 }
-refreshDashboard();
 
+(function initDashboard() {
+  document.querySelectorAll('.dash-count').forEach(dashCountUp);
+  if (typeof botPingServer === 'number') dashSetPing(botPingServer);
+  try {
+    updateNotifPanel && fetch('/alerts').then(r => r.json()).then(d => updateNotifPanel(d)).catch(() => {});
+  } catch {}
+  refreshDashboard(false);
+  dashTimer = setInterval(() => refreshDashboard(false), 30000);
+})();
 </script>
