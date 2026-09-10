@@ -307,7 +307,7 @@ a { text-decoration:none; color:inherit; }
     <div class="f-orb f-o2"></div>
     <div class="f-hero-inner">
       <div class="f-left">
-        <div class="f-pill"><i class="fas fa-circle"></i> FADIX9 SYSTEM v1.0.11 — شغال</div>
+        <div class="f-pill" id="landPill"><i class="fas fa-circle"></i> FADIX9 SYSTEM v1.0.11 — شغال</div>
         <h1>أداة متكاملة<br>لإدارة <em>السيرفر</em></h1>
         <p>لوحة تحكم شاملة تجمع الحماية، التذاكر، الغرف الصوتية، الإشراف، والإشعارات — كلها في واجهة واحدة بمزامنة فورية</p>
         <div class="f-acts">
@@ -621,6 +621,8 @@ a { text-decoration:none; color:inherit; }
     function updateFrameStats(d){
       if(!d)return;
       var sd=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v};
+      var lp=document.getElementById('landPill');
+      if(lp)lp.innerHTML='<i class="fas fa-circle"></i> FADIX9 SYSTEM v1.0.11 — '+(d.guildCount>0?'شغال':'غير متصل');
       if(d.guildCount!==undefined&&d.guildCount!==null){
         sd('bandGuilds',d.guildCount);sd('frameGuilds',d.guildCount);
         sd('frameGuildsVal',d.guildCount>0?'متصل':'—');

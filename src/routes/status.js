@@ -1,6 +1,7 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import { isAuthenticated, hasGuildAccess, isOwner, clearBotGuildCache } from '../middleware/auth.js';
-import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig } from '../database.js';
+import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig, getGuildAdmins } from '../database.js';
 import { getCommandStats } from '../services/syncService.js';
 import { getBotGuilds } from '../auth/discord.js';
 import config from '../config.js';
@@ -14,6 +15,10 @@ import AuditLog from '../models/AuditLog.js';
 import Activity from '../models/Activity.js';
 import Alert from '../models/Alert.js';
 import Backup from '../models/Backup.js';
+import GuildConfig from '../models/GuildConfig.js';
+import Maintenance from '../models/Maintenance.js';
+import User from '../models/User.js';
+import Notification from '../models/Notification.js';
 
 const router = Router();
 
@@ -74,6 +79,47 @@ router.get('/status', async (req, res) => {
   });
 });
 
+router.get('/diagnostics', isAuthenticated, isOwner, async (req, res) => {
+  const out = {
+    generatedAt: Date.now(),
+    botApi: { baseUrl: config.botApiUrl, online: false, stats: null, error: null },
+    discord: { hasBotToken: Boolean(config.discord.botToken), ownerId: config.discord.ownerId },
+    mongo: { connected: false, dbName: null, collections: {} },
+  };
+
+  try {
+    const r = await fetch(`${config.botApiUrl}/api/stats`, { signal: AbortSignal.timeout(4000) });
+    if (r.ok) {
+      out.botApi.online = true;
+      out.botApi.stats = await r.json();
+    } else {
+      out.botApi.error = `HTTP ${r.status}`;
+    }
+  } catch (e) {
+    out.botApi.error = e.name === 'AbortError' ? 'timeout' : (e.message || 'fetch error');
+  }
+
+  try {
+    out.mongo.connected = mongoose.connection.readyState === 1;
+    if (out.mongo.connected) {
+      out.mongo.dbName = mongoose.connection.db?.databaseName || null;
+      const models = {
+        tickets: Ticket, voice_channels: VoiceChannel, admins: Admin, activities: Activity,
+        alerts: Alert, audit_logs: AuditLog, backups: Backup, users: User,
+        notifications: Notification, guild_configs: GuildConfig, ticket_configs: TicketGuildConfig,
+        command_configs: CommandConfig, admin_roles: GuildAdminRole, maintenances: Maintenance,
+      };
+      for (const [k, M] of Object.entries(models)) {
+        out.mongo.collections[k] = await M.countDocuments().catch(() => 0);
+      }
+    }
+  } catch (e) {
+    out.mongo.error = e.message;
+  }
+
+  res.json(out);
+});
+
 router.get('/guild/:guildId/stats', isAuthenticated, hasGuildAccess, async (req, res) => {
   const { guildId } = req.params;
   const config_data = await getAllGuildConfig(guildId);
@@ -85,11 +131,14 @@ router.get('/guild/:guildId/stats', isAuthenticated, hasGuildAccess, async (req,
     actionCounts[a.action] = (actionCounts[a.action] || 0) + 1;
   }
 
+  const admins = await getGuildAdmins(guildId);
+
   res.json({
     guildId,
     configKeys: Object.keys(config_data).length,
     activityCount: activity.length,
     alertCount: alerts.length,
+    adminCount: admins.length,
     actions: actionCounts,
   });
 });

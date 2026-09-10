@@ -12,16 +12,20 @@ router.get('/', isAuthenticated, async (req, res) => {
 });
 
 router.post('/read', isAuthenticated, sanitizeInput, async (req, res) => {
-  const { alertId } = req.body;
-  if (!alertId) return res.status(400).json({ error: 'Alert ID required' });
-  await markAlertRead(alertId);
-  res.json({ success: true });
+  try {
+    const { alertId } = req.body;
+    if (!alertId) return res.status(400).json({ error: 'Alert ID required' });
+    await markAlertRead(String(alertId));
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.post('/create', isAuthenticated, sanitizeInput, async (req, res) => {
   try {
     const { guildId, type, severity, title, message } = req.body;
-    createAlert(guildId || null, type || 'info', severity || 'info', title || 'تنبيه', message || '');
+    await createAlert(guildId || null, type || 'info', severity || 'info', title || 'تنبيه', message || '');
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

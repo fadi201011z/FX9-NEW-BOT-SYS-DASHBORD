@@ -226,7 +226,7 @@ async function loadStatus() {
     document.getElementById('sGuilds').textContent = (status.guildCount ?? '?');
     document.getElementById('sCommands').textContent = (cmdStats.total || '?');
     document.getElementById('sTickets').textContent = ticketStats.open || '0';
-    document.getElementById('sMemory').textContent = (status.memory.heapUsed / 1024 / 1024).toFixed(1) + ' MB';
+    document.getElementById('sMemory').textContent = (status.memory && status.memory.heapUsed ? (status.memory.heapUsed / 1024 / 1024).toFixed(1) + ' MB' : '—');
     document.getElementById('sPlatform').textContent = status.platform === 'win32' ? '🪟 Windows' : status.platform === 'linux' ? '🐧 Linux' : status.platform;
 
     // Details
@@ -234,7 +234,7 @@ async function loadStatus() {
     document.getElementById('sBotVersion').textContent = botInfo.version || '---';
     document.getElementById('sUptimeDetail').textContent = formatUptime(status.uptime);
     document.getElementById('sResponseDetail').textContent = status.responseTime + 'ms';
-    document.getElementById('sMemoryDetail').textContent = (status.memory.heapUsed / 1024 / 1024).toFixed(2) + ' / ' + (status.memory.heapTotal / 1024 / 1024).toFixed(2) + ' MB';
+    document.getElementById('sMemoryDetail').textContent = (status.memory && status.memory.heapUsed ? (status.memory.heapUsed / 1024 / 1024).toFixed(2) + ' / ' + (status.memory.heapTotal / 1024 / 1024).toFixed(2) + ' MB' : '—');
 
     // Ticket stats
     document.getElementById('tTotal').textContent = ticketStats.total || '0';

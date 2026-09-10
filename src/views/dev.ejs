@@ -37,6 +37,14 @@
 </div>
 
 <div class="card glass">
+  <div class="card-header"><h3><i class="fas fa-stethoscope"></i> تشخيص الاتصال والإحصائيات</h3></div>
+  <div id="diagRow" class="dev-diag" style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px">
+    <div style="color:var(--text-muted);font-size:.85rem"><i class="fas fa-spinner fa-spin"></i> جارِ الفحص...</div>
+  </div>
+  <div id="diagColls" style="padding:0 20px 16px;display:none;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div>
+</div>
+
+<div class="card glass">
   <div class="card-header"><h3><i class="fas fa-server"></i> جميع سيرفرات البوت</h3></div>
   <div class="dev-guilds">
     <% botGuilds.forEach(g => { %>
@@ -349,6 +357,31 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('totalDbKeys').textContent = totalKeys;
     document.getElementById('totalAdmins').textContent = totalAdmins;
   });
+
+  fetch('/api/diagnostics').then(r => r.json()).then(d => {
+    const row = document.getElementById('diagRow');
+    if (!row) return;
+    const num = v => v == null || isNaN(v) ? '—' : v;
+    const cell = (label, value, ok) =>
+      `<div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+        <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:4px">${label}</div>
+        <div style="font-weight:700;font-size:.95rem;color:${ok ? '#57f287' : '#f87171'}">${value}</div>
+      </div>`;
+    const botOk = d.botApi && d.botApi.online;
+    row.innerHTML =
+      cell('رابط API البوت', d.botApi.baseUrl, botOk) +
+      cell('حالة البوت', botOk ? ('متصل • ' + num(d.botApi.stats.guilds) + ' سيرفر • ' + num(d.botApi.stats.members) + ' عضو • ' + num(d.botApi.stats.ping) + 'ms') : ('غير متصل' + (d.botApi.error ? ' (' + d.botApi.error + ')' : '')), botOk) +
+      cell('توكن Discord', d.discord.hasBotToken ? 'متوفر ✓' : 'غير مضبوط ✗', d.discord.hasBotToken) +
+      cell('MongoDB', (d.mongo.connected ? ('متصلة • ' + (d.mongo.dbName || '?')) : 'غير متصلة ✗'), d.mongo.connected);
+    const colls = document.getElementById('diagColls');
+    if (colls && d.mongo && d.mongo.connected && d.mongo.collections) {
+      colls.style.display = 'grid';
+      colls.innerHTML = Object.entries(d.mongo.collections).map(([k, c]) =>
+        `<div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:.78rem">
+          <span style="color:var(--text-muted)">${k}:</span> <strong>${num(c)}</strong>
+        </div>`).join('');
+    }
+  }).catch(() => {});
 });
 
 async function cleanupTickets() {

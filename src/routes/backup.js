@@ -5,6 +5,7 @@ import { sanitizeInput } from '../middleware/security.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { resolveGuild } from '../services/guildResolver.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BACKUP_DIR = path.join(__dirname, '..', '..', 'data', 'backups');
@@ -14,7 +15,8 @@ const mgrOnly = requireRole('manager');
 
 router.get('/:guildId', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   const { guildId } = req.params;
-  const guild = req.session.user.guilds?.find(g => g.id === guildId);
+  const guild = await resolveGuild(req.session.user.guilds, guildId);
+  if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
   const backups = await getBackupHistory(guildId);
   res.render('guild/backup', { user: req.session.user, guild, backups, title: 'النسخ الاحتياطي' });
 });

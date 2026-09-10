@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
 import { getActivity, getAuditLogs } from '../database.js';
+import { resolveGuild } from '../services/guildResolver.js';
 
 const router = Router();
 
@@ -22,7 +23,8 @@ router.get('/:guildId/audit', isAuthenticated, hasGuildAccess, modOnly, async (r
 
 router.get('/:guildId', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   const { guildId } = req.params;
-  const guild = req.session.user.guilds?.find(g => g.id === guildId);
+  const guild = await resolveGuild(req.session.user.guilds, guildId);
+  if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
   const activity = await getActivity(guildId, 100);
   const auditLogs = await getAuditLogs(guildId, 100);
 

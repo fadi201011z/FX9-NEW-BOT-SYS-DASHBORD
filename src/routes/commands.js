@@ -8,6 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
+import { resolveGuild } from '../services/guildResolver.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BOT_COMMANDS_DIR = path.join(__dirname, '..', '..', '..', 'NEW SYS BOT', 'src', 'commands');
@@ -61,33 +62,47 @@ const router = Router();
 
 router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
   const { guildId } = req.params;
-  const guild = req.session.user.guilds?.find(g => g.id === guildId);
+  const guild = await resolveGuild(req.session.user.guilds, guildId);
+  if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
 
   let commands = [];
+
+  // Prefer the bot's live command list, fall back to local filesystem / static list
   try {
-    const dirs = fs.readdirSync(BOT_COMMANDS_DIR);
-    for (const dir of dirs) {
-      const dirPath = path.join(BOT_COMMANDS_DIR, dir);
-      if (fs.statSync(dirPath).isDirectory()) {
-        const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.js'));
-        for (const file of files) {
-          const filePath = path.join(dirPath, file);
-          const content = fs.readFileSync(filePath, 'utf-8');
-          const nameMatch = content.match(/\.setName\(['"](.+?)['"]\)/);
-          const descMatch = content.match(/\.setDescription\(['"](.+?)['"]\)/);
-          if (nameMatch) {
-            commands.push({
-              name: nameMatch[1],
-              description: descMatch ? descMatch[1] : '',
-              category: dir,
-              file: file,
-            });
+    const botRes = await fetch(`${config.botApiUrl}/api/commands`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (botRes.ok) {
+      const list = await botRes.json();
+      if (Array.isArray(list) && list.length > 0) commands = list;
+    }
+  } catch {}
+  if (commands.length === 0) {
+    try {
+      const dirs = fs.readdirSync(BOT_COMMANDS_DIR);
+      for (const dir of dirs) {
+        const dirPath = path.join(BOT_COMMANDS_DIR, dir);
+        if (fs.statSync(dirPath).isDirectory()) {
+          const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.js'));
+          for (const file of files) {
+            const filePath = path.join(dirPath, file);
+            const content = fs.readFileSync(filePath, 'utf-8');
+            const nameMatch = content.match(/\.setName\(['"](.+?)['"]\)/);
+            const descMatch = content.match(/\.setDescription\(['"](.+?)['"]\)/);
+            if (nameMatch) {
+              commands.push({
+                name: nameMatch[1],
+                description: descMatch ? descMatch[1] : '',
+                category: dir,
+                file: file,
+              });
+            }
           }
         }
       }
+    } catch {
+      commands = FALLBACK_COMMANDS;
     }
-  } catch {
-    commands = FALLBACK_COMMANDS;
   }
 
   const commandConfigs = await getAllCommandConfigs(guildId);

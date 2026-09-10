@@ -3,12 +3,14 @@ import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth
 import { logActivity, logAudit } from '../database.js';
 import { sanitizeInput } from '../middleware/security.js';
 import { getGuildTickets } from '../services/dataReader.js';
+import { resolveGuild } from '../services/guildResolver.js';
 
 const router = Router();
 
 router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('support'), async (req, res) => {
   const { guildId } = req.params;
-  const guild = req.session.user.guilds?.find(g => g.id === guildId);
+  const guild = await resolveGuild(req.session.user.guilds, guildId);
+  if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
   const tickets = await getGuildTickets(guildId);
 
   res.render('guild/tickets', {

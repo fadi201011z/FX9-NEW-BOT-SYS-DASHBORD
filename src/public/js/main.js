@@ -144,7 +144,7 @@ function updateNotifPanel(data) {
   }
 
   list.innerHTML = all.slice(0, 10).map(n => `
-    <div class="notif-item" onclick="markRead(${n.id})">
+    <div class="notif-item" onclick="markRead('${n._id || n.id}')">
       <strong>${n.title}</strong>
       <span style="font-size:0.75rem;color:var(--text-muted)">${n.message}</span>
     </div>

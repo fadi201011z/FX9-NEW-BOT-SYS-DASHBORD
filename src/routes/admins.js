@@ -8,6 +8,7 @@ import {
 import { sanitizeInput } from '../middleware/security.js';
 import { getGuildRoles, getGuildMember, getGuildMembersByRole, fetchBotMembersByRoles, fetchBotUser, fetchBotMembers, getAllGuildMembersPaginated } from '../auth/discord.js';
 import config from '../config.js';
+import { resolveGuild } from '../services/guildResolver.js';
 
 const router = Router();
 
@@ -169,7 +170,8 @@ async function enrichAdminUsers(admins, fallbackMembers = []) {
 
 router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'), async (req, res) => {
   const { guildId } = req.params;
-  const guild = req.session.user.guilds?.find(g => g.id === guildId);
+  const guild = await resolveGuild(req.session.user.guilds, guildId);
+  if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
   const adminRoles = await getGuildAdminRoles(guildId);
 
   let guildRoles = [];

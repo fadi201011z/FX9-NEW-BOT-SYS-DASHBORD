@@ -5,6 +5,7 @@ import { getTicketGuildConfig, saveTicketGuildConfig } from '../services/dataRea
 import { sanitizeInput } from '../middleware/security.js';
 import { getGuildChannels, getGuildRoles } from '../auth/discord.js';
 import config from '../config.js';
+import { resolveGuild } from '../services/guildResolver.js';
 
 const TICKET_KEY_MAP = {
   ticket_category: 'ticketCategoryId',
@@ -89,7 +90,8 @@ async function syncConfigToBot() {
 
 router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
   const { guildId } = req.params;
-  const guild = req.session.user.guilds?.find(g => g.id === guildId);
+  const guild = await resolveGuild(req.session.user.guilds, guildId);
+  if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
   const data = await buildViewData(guildId);
 
   res.render('guild/settings', {
