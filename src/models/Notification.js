@@ -9,10 +9,11 @@ const notificationSchema = new mongoose.Schema({
   discordChannelId: { type: String, required: true },
   lastVideoId:  { type: String, default: '' },
   lastStreamStatus: { type: Boolean, default: false },
+  lastStreamId: { type: String, default: '' },
   customMessage: { type: String, default: '' },
   createdAt:    { type: Number, default: Date.now },
 }, { timestamps: true });
 
 notificationSchema.index({ guildId: 1, platform: 1 });
 
-export default mongoose.model('Notifications', notificationSchema);
+export default mongoose.model('Notifications', notificationSchema, 'notifications');

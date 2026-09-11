@@ -80,6 +80,10 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, modOnly, async (re
       channelId = m ? m[1] : url.trim().replace(/^@/, '');
     }
 
+    if (!channelId || (platform === 'youtube' && /^https?:\/\//i.test(channelId))) {
+      return res.status(400).json({ error: 'تعذر التعرف على القناة من هذا الرابط — تأكد من صحة رابط يوتيوب مثل https://youtube.com/@username' });
+    }
+
     // Save to local DB (with resolved channelId)
     const doc = await Notification.create({
       guildId, platform, channelUrl: url, channelId,
