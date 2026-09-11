@@ -8,6 +8,7 @@ const notificationSchema = new mongoose.Schema({
   channelName:  { type: String, default: '' },
   discordChannelId: { type: String, required: true },
   lastVideoId:  { type: String, default: '' },
+  lastVideoAt:  { type: Number, default: 0 },
   lastStreamStatus: { type: Boolean, default: false },
   lastStreamId: { type: String, default: '' },
   customMessage: { type: String, default: '' },
