@@ -265,10 +265,12 @@ document.querySelectorAll('.checknow-btn').forEach(btn => {
       const data = await res.json();
       if (data.found) {
         alert('✅ تم إرسال الإشعار: ' + (data.title || data.text || data.videoId));
+      } else if (data.offline) {
+        alert('ℹ️ ' + (data.message || 'القناة غير متصلة حالياً — سيرسل الإشعار تلقائياً عند دخول البث'));
       } else if (data.message) {
-        alert('ℹ️ ' + data.message);
+        alert(data.message);
       } else {
-        alert('❌ ' + (data.error || 'فشل'));
+        alert('❌ ' + (data.error || 'فشل التحقق'));
       }
     } catch { alert('❌ البوت غير متصل'); }
     btn.disabled = false; btn.textContent = orig;
@@ -285,6 +287,8 @@ document.querySelectorAll('.resend-btn').forEach(btn => {
       const data = await res.json();
       if (data.sent) {
         alert('✅ تمت إعادة الإرسال: ' + (data.title || data.text || ''));
+      } else if (data.offline) {
+        alert('ℹ️ ' + (data.message || 'القناة غير متصلة حالياً'));
       } else {
         alert('❌ ' + (data.error || 'فشل الإرسال'));
       }
