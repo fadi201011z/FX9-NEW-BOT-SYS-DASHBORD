@@ -98,10 +98,21 @@
 
       <div class="form-group" style="margin-bottom:14px">
         <label>العقوبة عند المخالفة</label>
-        <select name="badWordsPunishment">
+        <select name="badWordsPunishment" id="badWordsPunishment" onchange="toggleTimeoutField()">
           <option value="delete" <%= protection.badWordsPunishment === 'delete' ? 'selected' : '' %>>حذف الرسالة فقط</option>
-          <option value="timeout" <%= protection.badWordsPunishment === 'timeout' ? 'selected' : '' %>>حذف + إيقاف مؤقت 60 ثانية</option>
+          <option value="timeout" <%= protection.badWordsPunishment === 'timeout' ? 'selected' : '' %>>حذف + إيقاف مؤقت</option>
+          <option value="warn" <%= protection.badWordsPunishment === 'warn' ? 'selected' : '' %>>حذف + تحذير رسمي (يظهر في /warn)</option>
+          <option value="kick" <%= protection.badWordsPunishment === 'kick' ? 'selected' : '' %>>حذف + طرد</option>
+          <option value="ban" <%= protection.badWordsPunishment === 'ban' ? 'selected' : '' %>>حذف + حظر</option>
         </select>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:4px">
+          التحذير الرسمي يُسجَّل ويزيد في عدّاد <code>/warn</code>. الطرد والحظر لا يطبقان على المالك، والبوت يحتاج صلاحيات كافية لتطبيقها.
+        </div>
+      </div>
+
+      <div class="form-group" id="badWordsTimeoutGroup" style="margin-bottom:14px;display:none">
+        <label>مدة الإيقاف المؤقت (بالثواني)</label>
+        <input type="number" name="badWordsTimeout" id="badWordsTimeout" value="<%= protection.badWordsTimeout || 60 %>" min="10" max="86400">
       </div>
 
       <input type="hidden" name="badWordsList" id="badWordsList" value='<%= JSON.stringify(badWords || []) %>'>
@@ -233,5 +244,11 @@ function removeBadWord(i) {
   currentBadWords.splice(i, 1);
   renderBadWords();
 }
+function toggleTimeoutField() {
+  const sel = document.getElementById('badWordsPunishment');
+  const grp = document.getElementById('badWordsTimeoutGroup');
+  if (grp) grp.style.display = (sel && sel.value === 'timeout') ? 'block' : 'none';
+}
 renderBadWords();
+toggleTimeoutField();
 </script>

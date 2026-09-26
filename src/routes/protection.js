@@ -34,6 +34,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
     raidWindow: await getCfg('raid_window', '10000'),
     badWordsEnabled: await getCfg('bad_words_enabled', 'true'),
     badWordsPunishment: await getCfg('bad_words_punishment', 'delete'),
+    badWordsTimeout: await getCfg('bad_words_timeout', '60'),
   };
 
   // قائمة الكلمات الممنوعة (مصفوفة)
@@ -73,14 +74,16 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('ad
     const badWordsPunishment = updates.badWordsPunishment || 'delete';
     let badWordsList = updates.badWordsList;
     try { JSON.parse(badWordsList || '[]'); } catch { badWordsList = '[]'; }
+    const badWordsTimeout = Math.min(Math.max(parseInt(updates.badWordsTimeout, 10) || 60, 10), 86400);
     await Promise.all([
       setGuildConfig(guildId, 'bad_words_enabled', badWordsEnabled),
       setGuildConfig(guildId, 'bad_words_punishment', badWordsPunishment),
       setGuildConfig(guildId, 'bad_words', String(badWordsList)),
+      setGuildConfig(guildId, 'bad_words_timeout', String(badWordsTimeout)),
     ]);
 
     // ── بقية الإعدادات (السلوك الحالي) ──
-    const SKIP = new Set(['badWordsEnabled', 'badWordsPunishment', 'badWordsList']);
+    const SKIP = new Set(['badWordsEnabled', 'badWordsPunishment', 'badWordsList', 'badWordsTimeout']);
     for (const [key, value] of Object.entries(updates)) {
       if (SKIP.has(key)) continue;
       setGuildConfig(guildId, key, String(value));
