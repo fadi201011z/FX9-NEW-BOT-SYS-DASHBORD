@@ -89,6 +89,32 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('ad
       setGuildConfig(guildId, key, String(value));
     }
 
+    // ── تطبيق فوري على البوت: دفع مباشر + إعادة تحميل الكاش (غير معطّل للرد) ──
+    try {
+      await fetch(`${config.botApiUrl}/api/config/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guildId,
+          configs: {
+            bad_words_enabled: badWordsEnabled,
+            bad_words_punishment: badWordsPunishment,
+            bad_words: String(badWordsList),
+            bad_words_timeout: String(badWordsTimeout),
+          },
+        }),
+        signal: AbortSignal.timeout(4000),
+      }).catch(() => {});
+    } catch {}
+    try {
+      await fetch(`${config.botApiUrl}/api/sync-config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+        signal: AbortSignal.timeout(4000),
+      }).catch(() => {});
+    } catch {}
+
     logActivity(req.session.user.id, guildId, 'update_protection', null, 'تحديث إعدادات الحماية', req.ip, req.sessionID);
     res.json({ success: true });
   } catch (err) {
