@@ -34,6 +34,9 @@
           <div class="preview-banner">
             <span class="preview-badge">FAdiX9</span>
             <i class="fas fa-camera preview-cam"></i>
+            <div class="maint-glass maint-glass--sm maint-glass--banner">
+              <i class="fas fa-wrench"></i><span>تحت الصيانة</span>
+            </div>
           </div>
           <div class="preview-body">
             <span class="preview-avatar"><i class="fas fa-user"></i></span>
@@ -692,7 +695,7 @@
   .welcome-card { overflow: hidden; }
   .welcome-main { display: grid; grid-template-columns: 1fr 1.2fr; gap: 22px; padding: 0 20px 20px; align-items: center; }
   .welcome-preview { display: flex; align-items: center; justify-content: center; }
-  .preview-card { width: 100%; max-width: 340px; border-radius: 16px; overflow: hidden; background: #0e0e13; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+  .preview-card { width: 100%; max-width: 340px; border-radius: 16px; overflow: hidden; background: #0e0e13; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); position: relative; }
   .preview-banner { height: 84px; display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 16px; background: linear-gradient(135deg, #5865f2, #eb459e); }
   .preview-badge { background: rgba(0, 0, 0, .25); padding: 5px 12px; border-radius: 999px; font-size: .72rem; font-weight: 700; color: #fff; }
   .preview-cam { color: rgba(255, 255, 255, .85); }
@@ -783,10 +786,53 @@
   }
   .img-viewer-close:hover { background: rgba(239, 68, 68, .8); }
   .img-viewer-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .img-viewer-stage { position: relative; display: inline-block; max-width: 100%; }
   .img-viewer-body img {
     max-width: 100%; max-height: 68vh; border-radius: 10px; display: block; border: 1px solid var(--border);
   }
   .img-viewer-note { color: var(--text-muted); font-size: 13px; text-align: center; margin: 0; }
+
+  /* ─── شارة زجاجية «تحت الصيانة والتعديل» فوق صورة الترحيب (الداشبورد فقط) ── */
+  .maint-glass {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .14);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, .38);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .28);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .2px;
+    z-index: 3;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    inset-inline-start: 12px;
+    top: 12px;
+    animation: maintPulse 2.6s ease-in-out infinite;
+  }
+  .maint-glass .fa-wrench {
+    color: #ffd166;
+    font-size: 14px;
+    animation: maintSpin 7s linear infinite;
+  }
+  /* وميض بسيط: نبض ناعم للشفافية مع توهج ضوئي */
+  @keyframes maintPulse {
+    0%, 100% { opacity: 1; box-shadow: 0 4px 16px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .28); }
+    50% { opacity: .72; box-shadow: 0 4px 24px rgba(255, 209, 102, .25), 0 0 14px rgba(255, 209, 102, .35); }
+  }
+  @keyframes maintSpin { to { transform: rotate(360deg); } }
+  .maint-glass--sm { padding: 4px 9px; font-size: 9.5px; gap: 4px; inset-inline-start: 6px; top: 6px; }
+  .maint-glass--sm .fa-wrench { font-size: 9px; }
+  .maint-glass--lg { padding: 10px 18px; font-size: 15px; gap: 9px; inset-inline-start: 16px; top: 16px; }
+  .maint-glass--lg .fa-wrench { font-size: 17px; }
+  .maint-glass--banner { inset-inline-start: auto; left: 50%; transform: translateX(-50%); top: 10px; }
 </style>
 
 <!-- نافذة عرض الصورة الحالية (تظهر بزر «عرض الصورة الحالية» بجانب كل صورة) -->
@@ -797,7 +843,12 @@
       <button type="button" class="img-viewer-close" id="imgViewerClose" title="إغلاق"><i class="fas fa-times"></i></button>
     </div>
     <div class="img-viewer-body">
-      <img id="imgViewerImage" alt="الصورة الحالية" />
+      <div class="img-viewer-stage">
+        <img id="imgViewerImage" alt="الصورة الحالية" />
+        <div class="maint-glass maint-glass--lg" id="imgViewerMaint" hidden>
+          <i class="fas fa-wrench"></i><span>هذه الخاصية تحت الصيانة والتعديل</span>
+        </div>
+      </div>
       <p class="img-viewer-note" id="imgViewerNote">الصورة المعروضة حالياً على البوت في هذا السيرفر</p>
     </div>
   </div>
@@ -1136,6 +1187,13 @@ function setImagePreview(key, value) {
     ph.className = 'fas fa-image preview-ph';
     prev.appendChild(ph);
   }
+  // شارة زجاجية «تحت الصيانة» على مصغّرة صورة الترحيب (الداشبورد فقط — صورة ديسكورد لا تتغير)
+  if (key === 'welcome_image') {
+    const b = document.createElement('div');
+    b.className = 'maint-glass maint-glass--sm';
+    b.innerHTML = '<i class="fas fa-wrench"></i><span>تحت الصيانة</span>';
+    prev.appendChild(b);
+  }
 }
 
 function setImageState(key, has) {
@@ -1286,6 +1344,9 @@ function openImgViewer(key) {
 
   const isCustom = !!(customImageValues[key] || '').trim();
   const src = isCustom ? customImageValues[key] : DEFAULT_IMG_ENDPOINT[key];
+  // شارة «تحت الصيانة والتعديل» تظهر فوق صورة الترحيب فقط داخل نافذة العرض
+  const maint = document.getElementById('imgViewerMaint');
+  if (maint) maint.hidden = key !== 'welcome_image';
   img.style.display = 'none';
   note.textContent = 'جارٍ تحميل الصورة...';
   img.onload = () => {
