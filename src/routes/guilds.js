@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, requireRole, ROLE_HIERARCHY } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole, refreshSessionGuilds, ROLE_HIERARCHY } from '../middleware/auth.js';
 import { getBotGuilds, getGuildInfo } from '../auth/discord.js';
 import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
@@ -8,8 +8,8 @@ import { getGuildTickets, getTicketGuildConfig } from '../services/dataReader.js
 let botGuildCache = { ids: null, lastFetch: 0 };
 const CACHE_TTL = 300000;
 
-async function getBotGuildIds() {
-  if (botGuildCache.ids) {
+async function getBotGuildIds(force) {
+  if (!force && botGuildCache.ids) {
     if (Date.now() - botGuildCache.lastFetch < CACHE_TTL) return botGuildCache.ids;
     if (botGuildCache.rateLimited && Date.now() - botGuildCache.lastFetch < 60000) return botGuildCache.ids;
   }
@@ -18,9 +18,12 @@ async function getBotGuildIds() {
       signal: AbortSignal.timeout(4000),
     }).catch(() => null);
     if (botRes && botRes.ok) {
-      const guilds = await botRes.json();
-      if (Array.isArray(guilds)) {
-        botGuildCache = { ids: new Set(guilds.map(g => g.id)), lastFetch: Date.now() };
+      const data = await botRes.json();
+      const ids = Array.isArray(data)
+        ? data.map(g => g.id)
+        : (Array.isArray(data?.guilds) ? data.guilds.map(String) : null);
+      if (ids) {
+        botGuildCache = { ids: new Set(ids), lastFetch: Date.now() };
         return botGuildCache.ids;
       }
     }
@@ -39,8 +42,11 @@ async function getBotGuildIds() {
 const router = Router();
 
 router.get('/', isAuthenticated, requireRole('support'), async (req, res) => {
+  // حدّث قائمة السيرفرات من Discord ليعكس أي سيرفر جديد أُضيف له البوت
+  await refreshSessionGuilds(req);
   const allGuilds = req.session.user.guilds || [];
-  const botGuildIds = await getBotGuildIds() || new Set();
+  // استعلام مباشر عن سيرفرات البوت (بلا كاش) ليعكس سيرفراً أُضيف للتو
+  const botGuildIds = await getBotGuildIds(true) || new Set();
   const userId = req.session.user.id;
 
   let adminGuildIds = new Set();
@@ -84,7 +90,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
     const alerts = await getAlerts(guildId, 10);
     const activity = await getActivity(guildId, 10);
 
-    const botGuildIds = await getBotGuildIds();
+    const botGuildIds = await getBotGuildIds(true);
     const botInGuild = botGuildIds ? botGuildIds.has(guildId) : false;
     let memberCount = 'N/A';
 

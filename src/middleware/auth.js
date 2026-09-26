@@ -1,5 +1,5 @@
 import config from '../config.js';
-import { getBotGuilds } from '../auth/discord.js';
+import { getBotGuilds, refreshToken, getUserGuilds } from '../auth/discord.js';
 import Admin from '../models/Admin.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
@@ -10,6 +10,7 @@ export function clearBotGuildCache() {
 const CACHE_TTL = 300000;
 
 let roleRefreshCache = {};
+let guildsRefreshCache = {};
 
 export function clearDashboardRoleCache(userId) {
   delete roleRefreshCache[userId];
@@ -57,6 +58,30 @@ async function getBotGuildIds() {
     }
   }
   return botGuildCache.ids;
+}
+
+// تحديث قائمة سيرفرات الجلسة من Discord (مقنّن كل 30 ثانية)
+// يحل مشكلة إضافة البوت لسيرفر جديد بعد تسجيل الدخول: يُحدَّث المخزون فوراً
+export async function refreshSessionGuilds(req) {
+  const user = req.session?.user;
+  if (!user?.refreshToken) return null;
+  const now = Date.now();
+  const last = guildsRefreshCache[user.id] || 0;
+  if (now - last < 30000) return user.guilds || null;
+  guildsRefreshCache[user.id] = now;
+  try {
+    const tokenData = await refreshToken(user.refreshToken);
+    const freshGuilds = await getUserGuilds(tokenData.access_token);
+    if (Array.isArray(freshGuilds) && freshGuilds.length > 0) {
+      user.guilds = freshGuilds;
+      user.accessToken = tokenData.access_token;
+      user.refreshToken = tokenData.refresh_token;
+      return freshGuilds;
+    }
+  } catch (e) {
+    console.error('[refreshSessionGuilds]', e?.response?.data?.error_description || e?.message);
+  }
+  return null;
 }
 
 export function isAuthenticated(req, res, next) {
@@ -108,6 +133,9 @@ export function requireRole(minRole) {
     const user = req.session.user;
     let level;
     if (req.params.guildId) {
+      // إن لم يكن السيرفر في قائمة الجلسة، حدّثها أولاً (قد يكون أُضيف حديثاً)
+      const hasGuild = (user?.guilds || []).some(g => g.id === req.params.guildId);
+      if (!hasGuild) await refreshSessionGuilds(req);
       level = await getGuildLevel(user, req.params.guildId);
     } else {
       const role = user?.dashboardRole || 'member';
@@ -135,8 +163,16 @@ export async function hasGuildAccess(req, res, next) {
   try {
     const guildId = req.params.guildId || req.query.guildId;
     if (!guildId) return res.status(400).json({ error: 'Guild ID required' });
-    const guilds = req.session.user?.guilds || [];
-    const perms = guilds.find(g => g.id === guildId)?.permissions;
+    let guilds = req.session.user?.guilds || [];
+    let perms = guilds.find(g => g.id === guildId)?.permissions;
+    if (perms === undefined) {
+      // السيرفر قد يكون أُضيف حديثاً بعد تسجيل الدخول — حدّث القائمة من Discord
+      const fresh = await refreshSessionGuilds(req);
+      if (fresh) {
+        guilds = fresh;
+        perms = fresh.find(g => g.id === guildId)?.permissions;
+      }
+    }
     const hasGuildPerm = perms ? ((BigInt(perms) & 0x8n) === 0x8n || (BigInt(perms) & 0x20n) === 0x20n) : false;
     const userId = req.session.user?.id;
     const isAdmin = userId ? await Admin.findOne({ userId, guildId }).collation({ locale: 'en', strength: 2 }).lean() : null;
@@ -147,6 +183,21 @@ export async function hasGuildAccess(req, res, next) {
       return res.redirect('/access-denied?reason=guild');
     }
     const botIds = await getBotGuildIds();
+    if (botIds && !botIds.has(guildId)) {
+      // قد يكون البوت أُضيف للسيرفر للتو — استعلم مباشرة من البوت (بدون كاش)
+      try {
+        const botRes = await fetch(`${config.botApiUrl}/api/guilds`, {
+          signal: AbortSignal.timeout(4000),
+        }).catch(() => null);
+        if (botRes && botRes.ok) {
+          const data = await botRes.json();
+          if (Array.isArray(data?.guilds)) {
+            botIds = new Set(data.guilds.map(String));
+            botGuildCache = { ids: botIds, lastFetch: Date.now() };
+          }
+        }
+      } catch {}
+    }
     if (botIds && !botIds.has(guildId)) {
       if (req.xhr || req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'البوت غير موجود في هذا السيرفر', detail: 'أضف البوت إلى السيرفر أولاً' });

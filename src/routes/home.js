@@ -1,10 +1,12 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../middleware/auth.js';
+import { isAuthenticated, refreshSessionGuilds } from '../middleware/auth.js';
 import config from '../config.js';
 
 const router = Router();
 
 router.get('/', isAuthenticated, async (req, res) => {
+  // حدّث قائمة السيرفرات من Discord ليعكس أي سيرفر جديد أُضيف له البوت
+  await refreshSessionGuilds(req);
   const guilds = req.session.user?.guilds || [];
   let managedGuilds = guilds.filter(g => (g.permissions & 0x8) === 0x8 || (g.permissions & 0x20) === 0x20);
 
