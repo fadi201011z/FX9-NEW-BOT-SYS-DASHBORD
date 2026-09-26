@@ -19,9 +19,15 @@
       <span class="hd-status"></span>
     </div>
     <div class="hd-hero-main">
-      <div class="hd-eyebrow"><i class="fas fa-bolt"></i> لوحة التحكم — FX9</div>
-      <h1>أهلاً بعودتك، <span class="hd-name"><%= user.globalName || user.username %></span></h1>
+      <div class="hd-eyebrow"><i class="fas fa-bolt"></i> لوحة التحكم — FX9 <span class="hd-ver">v5.0</span></div>
+      <h1><span id="hdHello">مرحباً</span>، <span class="hd-name"><%= user.globalName || user.username %></span></h1>
       <p>من هنا تدير كل شيء: أنظمة الحماية، التذاكر، الغرف الصوتية، والأوامر — كلها في مكان واحد.</p>
+      <div class="hd-pills">
+        <span><i class="fas fa-shield-halved" style="color:#f87171"></i> حماية متقدمة</span>
+        <span><i class="fas fa-ticket-alt" style="color:#fbbf24"></i> تذاكر ذكية</span>
+        <span><i class="fas fa-microphone" style="color:#a78bfa"></i> غرف صوتية</span>
+        <span><i class="fas fa-terminal" style="color:#60a5fa"></i> أوامر قوية</span>
+      </div>
       <div class="hd-cta">
         <a href="/guilds" class="hd-btn hd-btn-primary"><i class="fas fa-server"></i> إدارة السيرفرات</a>
         <a href="/status" class="hd-btn hd-btn-ghost"><i class="fas fa-heartbeat"></i> حالة البوت</a>
@@ -59,6 +65,79 @@
       <div class="hd-kpi-txt"><b id="hdPing">—</b><span>سرعة البنج</span></div>
     </div>
   </section>
+
+  <!-- ── سيرفراتك ── -->
+  <div class="hd-sec-head hd-sec-row">
+    <h2><i class="fas fa-server"></i> سيرفراتك <span class="hd-count"><%= managedGuilds.length %></span></h2>
+    <span>اختر سيرفراً لإدارته</span>
+    <% if (managedGuilds.length > 1) { %>
+    <div class="hd-search"><i class="fas fa-search"></i><input id="hdSearch" type="text" placeholder="بحث عن سيرفر..."></div>
+    <% } %>
+  </div>
+  <% if (managedGuilds.length === 0) { %>
+  <section class="hd-empty">
+    <div class="hd-empty-ic"><i class="fas fa-rocket"></i></div>
+    <h4>لا تدير أي سيرفر بعد</h4>
+    <p>أضف البوت إلى سيرفرك وابدأ بتفعيل الأنظمة خلال دقيقة واحدة.</p>
+    <a href="/invite-dev" class="hd-btn hd-btn-primary"><i class="fas fa-code-branch"></i> أضف البوت</a>
+  </section>
+  <% } else { %>
+  <section class="hd-g-wrap">
+    <div class="hd-g-scroll">
+      <% managedGuilds.forEach(g => { %>
+      <a href="/guilds/<%= g.id %>" class="hd-g-card" data-name="<%= g.name %>">
+        <div class="hd-g-ava <%= g.icon ? '' : 'noimg' %>">
+          <% if (g.icon) { %>
+          <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" onerror="this.remove();this.parentNode.classList.add('noimg')">
+          <% } %>
+          <span class="hd-g-letter"><%= g.name.charAt(0) %></span>
+        </div>
+        <div class="hd-g-info">
+          <b><%= g.name %></b>
+          <span>إدارة السيرفر <i class="fas fa-arrow-left"></i></span>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- ── تحليلات + خطوات ── -->
+  <div class="hd-row2">
+    <div class="hd-panel">
+      <div class="hd-panel-head"><i class="fas fa-chart-simple"></i> أكثر الأوامر استخداماً <span class="hd-live-tag"><i class="fas fa-circle"></i> مباشر</span></div>
+      <div id="hdCatBars" class="hd-bars">
+        <div class="hd-bars-note"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+      </div>
+    </div>
+    <div class="hd-panel">
+      <div class="hd-panel-head"><i class="fas fa-compass"></i> ابدأ في 3 خطوات</div>
+      <ol class="hd-steps">
+        <li>
+          <span class="hd-step-n">1</span>
+          <div class="hd-step-body">
+            <b>أضف البوت</b>
+            <p>دعوة البوت إلى سيرفرك بنقرة واحدة.</p>
+          </div>
+        </li>
+        <li>
+          <span class="hd-step-n">2</span>
+          <div class="hd-step-body">
+            <b>اختر سيرفرك</b>
+            <p>من قائمة «سيرفراتك» أعلاه ادخل إلى إعداداته.</p>
+          </div>
+        </li>
+        <li>
+          <span class="hd-step-n">3</span>
+          <div class="hd-step-body">
+            <b>فعّل الأنظمة</b>
+            <p>الحماية، التذاكر، الصوت — كل شيء جاهز للعمل.</p>
+          </div>
+        </li>
+      </ol>
+      <a href="/docs" class="hd-steps-cta"><i class="fas fa-book"></i> تصفح التوثيق الكامل</a>
+    </div>
+  </div>
 
   <!-- ── الأنظمة ── -->
   <div class="hd-sec-head">
@@ -141,9 +220,13 @@
 .hd-hero-main{flex:1;min-width:0}
 .hd-eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:0.68rem;font-weight:600;color:#818cf8;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.14);padding:4px 13px;border-radius:100px;margin-bottom:12px}
 .hd-eyebrow i{font-size:0.6rem}
+.hd-ver{display:inline-block;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);padding:1px 8px;border-radius:100px;font-size:0.6rem}
 .hd-hero h1{font-size:1.6rem;font-weight:800;margin:0 0 7px;line-height:1.25}
 .hd-name{background:linear-gradient(135deg,#818cf8,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hd-hero p{font-size:0.86rem;color:rgba(255,255,255,0.35);margin:0 0 20px;line-height:1.9}
+.hd-hero p{font-size:0.86rem;color:rgba(255,255,255,0.35);margin:0 0 16px;line-height:1.9}
+.hd-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.hd-pills span{display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;font-weight:600;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:4px 12px;border-radius:100px}
+.hd-pills i{font-size:0.65rem}
 .hd-cta{display:flex;gap:10px;flex-wrap:wrap}
 .hd-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:11px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;transition:all 0.25s}
 .hd-btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 6px 22px rgba(99,102,241,0.35)}
@@ -171,6 +254,7 @@
 .hd-kpi-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
 .hd-kpi-txt b{display:block;font-size:1.35rem;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums}
 .hd-kpi-txt span{font-size:0.68rem;color:rgba(255,255,255,0.3)}
+.hd-ping-good{color:#57f287}.hd-ping-mid{color:#fbbf24}.hd-ping-bad{color:#f87171}
 
 /* ── عناوين الأقسام ── */
 .hd-sec-head{position:relative;z-index:1;display:flex;align-items:center;gap:12px;margin:36px 0 16px}
@@ -178,6 +262,57 @@
 .hd-sec-head h2 i{color:#818cf8;font-size:0.95rem}
 .hd-sec-head span{font-size:0.72rem;color:rgba(255,255,255,0.25)}
 .hd-sec-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(99,102,241,0.15),transparent)}
+.hd-sec-row{flex-wrap:wrap}
+.hd-count{display:inline-flex;min-width:22px;height:22px;padding:0 8px;align-items:center;justify-content:center;border-radius:100px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);color:#818cf8;font-size:0.7rem;font-weight:700}
+.hd-search{margin-inline-start:auto;position:relative;display:flex;align-items:center}
+.hd-search i{position:absolute;right:12px;font-size:0.75rem;color:rgba(255,255,255,0.25);pointer-events:none}
+.hd-search input{width:200px;padding:9px 34px 9px 12px;border-radius:10px;background:rgba(12,12,26,0.55);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);font-family:'Cairo',sans-serif;font-size:0.78rem;outline:none;transition:all 0.25s}
+.hd-search input:focus{border-color:rgba(99,102,241,0.4);box-shadow:0 0 0 3px rgba(99,102,241,0.08)}
+
+/* ── سيرفراتك ── */
+.hd-g-wrap{position:relative;z-index:1}
+.hd-g-scroll{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
+.hd-g-scroll::-webkit-scrollbar{display:none}
+.hd-g-card{display:flex;align-items:center;gap:12px;min-width:232px;padding:13px 14px;border-radius:14px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:all 0.25s}
+.hd-g-card:hover{transform:translateY(-3px);border-color:rgba(99,102,241,0.3);background:rgba(16,16,36,0.72);box-shadow:0 14px 40px rgba(0,0,0,0.35)}
+.hd-g-ava{position:relative;width:44px;height:44px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,rgba(99,102,241,0.16),rgba(139,92,246,0.16));flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.hd-g-ava img{width:100%;height:100%;object-fit:cover}
+.hd-g-letter{display:none;font-size:1.1rem;font-weight:800;color:#c4b5fd}
+.hd-g-ava.noimg .hd-g-letter{display:block}
+.hd-g-info{min-width:0}
+.hd-g-info b{display:block;font-size:0.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.hd-g-info span{display:inline-flex;align-items:center;gap:6px;font-size:0.66rem;color:rgba(255,255,255,0.28)}
+.hd-g-info span i{font-size:0.6rem;color:#818cf8;transition:transform 0.25s}
+.hd-g-card:hover .hd-g-info span{color:#818cf8}
+.hd-g-card:hover .hd-g-info span i{transform:translateX(-3px)}
+.hd-empty{position:relative;z-index:1;text-align:center;padding:38px 20px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px dashed rgba(255,255,255,0.1)}
+.hd-empty-ic{width:56px;height:56px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;background:rgba(99,102,241,0.1);color:#818cf8}
+.hd-empty h4{font-size:0.95rem;font-weight:800;margin:0 0 6px}
+.hd-empty p{font-size:0.78rem;color:rgba(255,255,255,0.3);margin:0 0 18px}
+
+/* ── تحليلات + خطوات ── */
+.hd-row2{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.hd-panel{padding:20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06)}
+.hd-panel-head{display:flex;align-items:center;gap:9px;font-size:0.85rem;font-weight:700;margin-bottom:16px}
+.hd-panel-head i{color:#818cf8;font-size:0.9rem}
+.hd-live-tag{display:inline-flex;align-items:center;gap:5px;margin-inline-start:auto;font-size:0.62rem;font-weight:600;color:#57f287;padding:3px 10px;border-radius:100px;background:rgba(87,242,135,0.08);border:1px solid rgba(87,242,135,0.15)}
+.hd-live-tag i{font-size:0.4rem;animation:hddot 2s ease-in-out infinite}
+@keyframes hddot{0%,100%{opacity:1}50%{opacity:0.25}}
+.hd-bars{display:flex;flex-direction:column;gap:12px}
+.hd-bars-note{display:flex;align-items:center;justify-content:center;gap:8px;font-size:0.75rem;color:rgba(255,255,255,0.3);padding:22px 0}
+.hd-bar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.hd-bar-lb{display:inline-flex;align-items:center;gap:7px;font-size:0.74rem;font-weight:600;color:rgba(255,255,255,0.55)}
+.hd-bar-lb i{width:15px;text-align:center;font-size:0.7rem}
+.hd-bar-top b{font-size:0.78rem;font-weight:800;font-variant-numeric:tabular-nums}
+.hd-bar-track{height:7px;border-radius:100px;background:rgba(255,255,255,0.05);overflow:hidden}
+.hd-bar-fill{height:100%;border-radius:100px;transition:width 0.9s cubic-bezier(.16,1,.3,1)}
+.hd-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.hd-steps li{display:flex;gap:13px;align-items:flex-start}
+.hd-step-n{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;background:linear-gradient(135deg,rgba(99,102,241,0.16),rgba(139,92,246,0.16));border:1px solid rgba(99,102,241,0.25);color:#c4b5fd}
+.hd-step-body b{display:block;font-size:0.82rem;font-weight:700;margin-bottom:2px}
+.hd-step-body p{font-size:0.72rem;color:rgba(255,255,255,0.28);margin:0;line-height:1.7}
+.hd-steps-cta{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;padding:10px;border-radius:10px;font-size:0.76rem;font-weight:600;color:#818cf8;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.12);transition:all 0.25s}
+.hd-steps-cta:hover{background:rgba(99,102,241,0.12);color:#a5b4fc}
 
 /* ── بطاقات الأنظمة ── */
 .hd-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -201,12 +336,18 @@
 /* ── حركة الظهور ── */
 @keyframes hdUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .hd-hero{animation:hdUp 0.5s ease both}
-.hd-kpis{animation:hdUp 0.5s ease 0.08s both}
-.hd-sec-head{animation:hdUp 0.5s ease 0.14s both}
-.hd-grid{animation:hdUp 0.5s ease 0.2s both}
-.hd-links{animation:hdUp 0.5s ease 0.26s both}
+.hd-kpis{animation:hdUp 0.5s ease 0.06s both}
+.hd-sec-row{animation:hdUp 0.5s ease 0.1s both}
+.hd-g-wrap,.hd-empty{animation:hdUp 0.5s ease 0.14s both}
+.hd-row2{animation:hdUp 0.5s ease 0.18s both}
+.hd-sec-head:not(.hd-sec-row){animation:hdUp 0.5s ease 0.22s both}
+.hd-grid{animation:hdUp 0.5s ease 0.26s both}
+.hd-links{animation:hdUp 0.5s ease 0.3s both}
 
 /* ── التجاوب ── */
+@media(max-width:980px){
+  .hd-row2{grid-template-columns:1fr}
+}
 @media(max-width:900px){
   .hd-hero{flex-wrap:wrap;gap:22px;padding:24px}
   .hd-hero-side{min-width:100%;flex-direction:row}
@@ -217,6 +358,9 @@
   .hd-grid{grid-template-columns:repeat(2,1fr)}
   .hd-hero-side{flex-direction:column}
   .hd-hero h1{font-size:1.3rem}
+  .hd-search{margin-inline-start:0;width:100%}
+  .hd-search input{width:100%}
+  .hd-sec-row>span{display:none}
 }
 @media(max-width:520px){
   .hd-grid{grid-template-columns:1fr}
@@ -225,6 +369,14 @@
 </style>
 <script>
 (function(){
+  // ترحيب حسب الوقت
+  (function(){
+    var h = new Date().getHours();
+    var g = (h >= 5 && h < 12) ? 'صباح الخير' : (h >= 12 && h < 17) ? 'مساء الخير' : (h >= 17 && h < 24) ? 'مساء النور' : 'تصبح على خير';
+    var el = document.getElementById('hdHello');
+    if (el) el.textContent = g;
+  })();
+
   function countUp(el, target, dur){
     if(!el) return;
     target = Number(target)||0;
@@ -239,8 +391,51 @@
     }
     requestAnimationFrame(tick);
   }
+
+  // فئات الأوامر معروفة/معرّبة
+  var CATS = {
+    announcement: { label:'الإعلانات', icon:'bullhorn', color:'#f87171' },
+    info:         { label:'المعلومات', icon:'circle-info', color:'#60a5fa' },
+    members:      { label:'الأعضاء', icon:'users', color:'#34d399' },
+    moderation:   { label:'الإشراف والحماية', icon:'shield-halved', color:'#a78bfa' },
+    notifications:{ label:'الإشعارات', icon:'bell', color:'#fbbf24' },
+    setup:        { label:'الإعدادات', icon:'sliders', color:'#818cf8' },
+    ticket:       { label:'التذاكر', icon:'ticket-alt', color:'#fb923c' },
+    voice:        { label:'الصوتيات', icon:'microphone', color:'#f472b6' }
+  };
+
+  function renderCats(pc){
+    var box = document.getElementById('hdCatBars');
+    if(!box) return;
+    var entries = Object.keys(pc || {}).map(function(k){ return { k:k, v:Number(pc[k])||0 }; })
+      .filter(function(e){ return e.v > 0; })
+      .sort(function(a,b){ return b.v - a.v; })
+      .slice(0,6);
+    if(!entries.length){
+      box.innerHTML = '<div class="hd-bars-note"><i class="fas fa-inbox"></i> لا توجد بيانات حالياً</div>';
+      return;
+    }
+    var max = entries[0].v || 1;
+    box.innerHTML = '';
+    entries.forEach(function(e){
+      var meta = CATS[e.k] || { label: e.k, icon: 'terminal', color: '#818cf8' };
+      var row = document.createElement('div');
+      row.className = 'hd-bar';
+      row.innerHTML =
+        '<div class="hd-bar-top"><span class="hd-bar-lb"><i class="fas fa-' + meta.icon + '" style="color:' + meta.color + '"></i> ' + meta.label + '</span><b>' + e.v + '</b></div>' +
+        '<div class="hd-bar-track"><div class="hd-bar-fill" style="width:0;background:' + meta.color + '"></div></div>';
+      box.appendChild(row);
+      (function(fill, w){
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){ fill.style.width = w + '%'; }); });
+      })(row.querySelector('.hd-bar-fill'), Math.round(e.v / max * 100));
+    });
+  }
+
+  // إحصائيات معروفة من الخادم
   countUp(document.getElementById('hdManaged'), document.getElementById('hdManaged').dataset.t, 900);
   countUp(document.getElementById('hdTotal'), document.getElementById('hdTotal').dataset.t, 900);
+
+  // إحصائيات حية من البوت
   Promise.all([
     fetch('/api/commands/stats').then(function(r){ return r.ok ? r.json() : null }).catch(function(){ return null }),
     fetch('/api/status').then(function(r){ return r.ok ? r.json() : null }).catch(function(){ return null }),
@@ -248,12 +443,29 @@
     var s = a[0], d = a[1];
     var cmd = s && s.total ? Number(s.total) : 0;
     if (cmd) countUp(document.getElementById('hdCmd'), cmd, 1200);
+    if (s && s.perCategory) renderCats(s.perCategory);
+    else renderCats(null);
     if (d) {
       countUp(document.getElementById('hdGuilds'), Number(d.guildCount) || 0, 1200);
       countUp(document.getElementById('hdMembers'), Number(d.members) || 0, 1200);
       var pg = document.getElementById('hdPing');
-      if (pg) pg.textContent = (d.ping != null) ? Number(d.ping) + 'ms' : '—';
+      if (pg) {
+        var ping = Number(d.ping) || 0;
+        pg.textContent = ping ? ping + 'ms' : '—';
+        if (ping) pg.className = ping < 200 ? 'hd-ping-good' : (ping < 450 ? 'hd-ping-mid' : 'hd-ping-bad');
+      }
     }
   });
+
+  // البحث في سيرفراتك
+  var inp = document.getElementById('hdSearch');
+  if (inp) {
+    inp.addEventListener('input', function(){
+      var q = inp.value.trim().toLowerCase();
+      document.querySelectorAll('.hd-g-card').forEach(function(c){
+        c.style.display = (c.dataset.name || '').toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+      });
+    });
+  }
 })();
 </script>
