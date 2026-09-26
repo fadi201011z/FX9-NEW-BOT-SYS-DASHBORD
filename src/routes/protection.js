@@ -35,16 +35,24 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
     badWordsEnabled: await getCfg('bad_words_enabled', 'true'),
     badWordsPunishment: await getCfg('bad_words_punishment', 'delete'),
     badWordsTimeout: await getCfg('bad_words_timeout', '60'),
+    badWordsDeleteMessage: await getCfg('bad_words_delete_message', 'true'),
   };
 
-  // قائمة الكلمات الممنوعة — بنية {word, enabled, punishment}
+  // قائمة الكلمات الممنوعة — بنية {word, enabled, punishment, timeout, deleteMsg}
   let badWords = [];
   try {
     const raw = await getCfg('bad_words', '[]');
     const parsed = JSON.parse(raw) || [];
-    badWords = (Array.isArray(parsed) ? parsed : []).map(w =>
-      typeof w === 'string' ? { word: w, enabled: true, punishment: '' } : w
-    );
+    badWords = (Array.isArray(parsed) ? parsed : []).map(w => {
+      if (typeof w === 'string') return { word: w, enabled: true, punishment: '', timeout: '', deleteMsg: null };
+      return {
+        word: w?.word || '',
+        enabled: w?.enabled !== false,
+        punishment: w?.punishment || '',
+        timeout: w?.timeout || '',
+        deleteMsg: typeof w?.deleteMsg === 'boolean' ? w.deleteMsg : null,
+      };
+    }).filter(w => w.word);
   } catch {}
 
   // إن كانت القائمة خالية نعرض القائمة الافتراضية المدمجة في البوت (عبر API)
@@ -96,12 +104,13 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('ad
     // ── إعدادات الكلمات الممنوعة تُكتب بالمفاتيح التي يقرأها البوت مباشرة ──
     const badWordsEnabled = updates.badWordsEnabled ? 'true' : 'false';
     const badWordsPunishment = updates.badWordsPunishment || 'delete';
+    const badWordsDeleteMessage = updates.badWordsDeleteMessage ? 'true' : 'false';
     let badWordsList = [];
     try {
       const parsed = JSON.parse(updates.badWordsList || '[]');
       if (Array.isArray(parsed)) badWordsList = parsed;
     } catch { badWordsList = []; }
-    // تطبيع القائمة: {word, enabled, punishment} — قبول النصوص القديمة أيضاً وحد أقصى 100
+    // تطبيع القائمة: {word, enabled, punishment, timeout, deleteMsg} — قبول النصوص القديمة أيضاً وحد أقصى 100
     const VALID_PUNISHMENTS = ['delete', 'timeout', 'warn', 'kick', 'ban'];
     const cleanWords = [];
     const seen = new Set();
@@ -110,10 +119,17 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('ad
       const trimmed = String(word).trim();
       if (!trimmed || trimmed.length < 1 || seen.has(trimmed)) continue;
       seen.add(trimmed);
+      let timeout = '';
+      if (typeof w === 'object' && w.timeout !== undefined && w.timeout !== '' && w.timeout !== null) {
+        const t = parseInt(String(w.timeout), 10);
+        if (Number.isFinite(t) && t > 0) timeout = Math.min(Math.max(t, 10), 86400);
+      }
       cleanWords.push({
         word: trimmed,
         enabled: typeof w === 'object' ? w.enabled !== false : true,
         punishment: typeof w === 'object' && VALID_PUNISHMENTS.includes(w.punishment) ? w.punishment : '',
+        timeout,
+        deleteMsg: typeof w === 'object' && typeof w.deleteMsg === 'boolean' ? w.deleteMsg : null,
       });
       if (cleanWords.length >= 100) break;
     }
@@ -124,10 +140,11 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('ad
       setGuildConfig(guildId, 'bad_words_punishment', badWordsPunishment),
       setGuildConfig(guildId, 'bad_words', badWordsListJson),
       setGuildConfig(guildId, 'bad_words_timeout', String(badWordsTimeout)),
+      setGuildConfig(guildId, 'bad_words_delete_message', badWordsDeleteMessage),
     ]);
 
     // ── بقية الإعدادات (السلوك الحالي) ──
-    const SKIP = new Set(['badWordsEnabled', 'badWordsPunishment', 'badWordsList', 'badWordsTimeout']);
+    const SKIP = new Set(['badWordsEnabled', 'badWordsPunishment', 'badWordsList', 'badWordsTimeout', 'badWordsDeleteMessage']);
     for (const [key, value] of Object.entries(updates)) {
       if (SKIP.has(key)) continue;
       setGuildConfig(guildId, key, String(value));
@@ -145,6 +162,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('ad
             bad_words_punishment: badWordsPunishment,
             bad_words: badWordsListJson,
             bad_words_timeout: String(badWordsTimeout),
+            bad_words_delete_message: badWordsDeleteMessage,
           },
         }),
         signal: AbortSignal.timeout(4000),
