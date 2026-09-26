@@ -834,6 +834,8 @@
   .maint-glass--lg { padding: 10px 18px; font-size: 15px; gap: 9px; inset-inline-start: 16px; top: 16px; }
   .maint-glass--lg .fa-wrench { font-size: 17px; }
   .maint-glass--banner { inset-inline-start: auto; left: 50%; transform: translateX(-50%); top: 10px; }
+  /* إخفاء الشارة فعلياً عند استخدام سمة hidden (تظهر لصورة الترحيب فقط) */
+  .maint-glass[hidden] { display: none; }
 
   /* تعطيل ضوابط صورة الترحيب (الميزة تحت الصيانة) */
   .maint-notice {
