@@ -8,9 +8,24 @@ import axios from 'axios';
 
 const router = Router();
 
+// ── Rich bot guilds (bot API -> Discord API fallback) ────────────────────
+async function getRichBotGuilds() {
+  try {
+    const r = await fetch(`${config.botApiUrl}/api/guilds/full`, { signal: AbortSignal.timeout(4000) });
+    if (r.ok) {
+      const data = await r.json();
+      if (Array.isArray(data?.guilds)) return data.guilds;
+    }
+  } catch {}
+  try {
+    const guilds = await getBotGuilds(config.discord.botToken);
+    return (guilds || []).map(g => ({ id: g.id, name: g.name, icon: g.icon, memberCount: 0 }));
+  } catch {}
+  return [];
+}
+
 router.get('/', isAuthenticated, isOwner, async (req, res) => {
-  let botGuilds = [];
-  try { botGuilds = await getBotGuilds(config.discord.botToken); } catch {}
+  const botGuilds = await getRichBotGuilds();
 
   const guildsData = [];
   for (const g of botGuilds) {
@@ -20,10 +35,13 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
       id: g.id,
       name: g.name,
       icon: g.icon,
+      memberCount: g.memberCount || 0,
       configCount: Object.keys(cfg).length,
       adminCount: admins.length,
     });
   }
+  guildsData.sort((a, b) => b.memberCount - a.memberCount);
+  const totalMembers = guildsData.reduce((s, g) => s + g.memberCount, 0);
 
   let maintenanceDoc = await Maintenance.findOne();
   if (maintenanceDoc && maintenanceDoc.enabled && maintenanceDoc.endTime && Date.now() >= maintenanceDoc.endTime) {
@@ -43,10 +61,14 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
     changelog: maintenanceRaw?.changelog || { botUpdates: '', siteUpdates: '' },
   };
 
+  const botInviteUrl = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(config.discord.clientId || '')}&permissions=8&scope=bot`;
+
   res.render('dev', {
     user: req.session.user,
     botGuilds: guildsData,
+    totalMembers,
     ownerId: config.discord.ownerId,
+    botInviteUrl,
     maintenance,
     title: 'لوحة المطور',
   });
@@ -65,6 +87,22 @@ router.get('/guild/:guildId', isAuthenticated, isOwner, async (req, res) => {
     activityCount: activity.length,
     auditCount: audit.length,
   });
+});
+
+// ── Server invite link (join a connected server) ────────────────────────
+router.get('/guild-invite/:guildId', isAuthenticated, isOwner, async (req, res) => {
+  try {
+    const r = await fetch(`${config.botApiUrl}/api/guilds/${req.params.guildId}/invite`, {
+      signal: AbortSignal.timeout(7000),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      return res.status(r.status).json({ error: data?.error || 'تعذر إنشاء رابط الدعوة' });
+    }
+    res.json(data);
+  } catch {
+    res.status(502).json({ error: 'تعذر الاتصال بالبوت' });
+  }
 });
 
 // ── Maintenance mode start / stop / save ──────────────────────────────

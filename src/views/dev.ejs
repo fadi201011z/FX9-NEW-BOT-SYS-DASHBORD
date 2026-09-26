@@ -1,370 +1,674 @@
 <% currentPage = 'dev' %>
-<div class="page-header">
-  <h1><i class="fas fa-code"></i> لوحة المطور</h1>
-  <p>مرحباً، <%= user.globalName || user.username %> — لديك صلاحية كاملة</p>
-</div>
-
-<div class="stats-grid">
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #5865f2">
-      <i class="fas fa-server"></i>
-    </div>
-    <div class="stat-info">
-      <span class="stat-value"><%= botGuilds.length %></span>
-      <span class="stat-label">سيرفرات البوت</span>
-    </div>
+<%
+  const fmt = n => { n = Number(n) || 0; return n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n); };
+  const totalConfigs = botGuilds.reduce((s, g) => s + (g.configCount || 0), 0);
+  const totalAdmins = botGuilds.reduce((s, g) => s + (g.adminCount || 0), 0);
+%>
+<div class="dv">
+  <div class="dv-bg">
+    <div class="dv-orb dv-o1"></div>
+    <div class="dv-orb dv-o2"></div>
+    <div class="dv-grid"></div>
   </div>
 
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287">
-      <i class="fas fa-database"></i>
+  <!-- ── الهيرو ── -->
+  <section class="dv-hero">
+    <div class="dv-avatar">
+      <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+      <span class="dv-status"></span>
     </div>
-    <div class="stat-info">
-      <span class="stat-value" id="totalDbKeys">---</span>
-      <span class="stat-label">مفاتيح DB</span>
-    </div>
-  </div>
-
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #fee75c">
-      <i class="fas fa-users-cog"></i>
-    </div>
-    <div class="stat-info">
-      <span class="stat-value" id="totalAdmins">---</span>
-      <span class="stat-label">إجمالي المدراء</span>
-    </div>
-  </div>
-</div>
-
-<div class="card glass">
-  <div class="card-header"><h3><i class="fas fa-stethoscope"></i> تشخيص الاتصال والإحصائيات</h3></div>
-  <div id="diagRow" class="dev-diag" style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px">
-    <div style="color:var(--text-muted);font-size:.85rem"><i class="fas fa-spinner fa-spin"></i> جارِ الفحص...</div>
-  </div>
-  <div id="diagColls" style="padding:0 20px 16px;display:none;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div>
-</div>
-
-<div class="card glass">
-  <div class="card-header"><h3><i class="fas fa-server"></i> جميع سيرفرات البوت</h3></div>
-  <div class="dev-guilds">
-    <% botGuilds.forEach(g => { %>
-      <div class="dev-guild-item">
-        <div class="dev-guild-info">
-          <strong><%= g.name %></strong>
-          <span>🗄️ <%= g.configCount || 0 %></span>
-          <span>👥 <%= g.adminCount || 0 %></span>
-        </div>
-        <a href="/guilds/<%= g.id %>" class="btn-sm"><i class="fas fa-external-link-alt"></i></a>
+    <div class="dv-hero-main">
+      <div class="dv-eyebrow"><i class="fas fa-code"></i> لوحة المطور — FX9 <span class="dv-ver">v5.0</span></div>
+      <h1>مرحباً، <span class="dv-name"><%= user.globalName || user.username %></span></h1>
+      <p>تحكم كامل بالبوت: السيرفرات المتصلة، التشخيص، قاعدة البيانات، ووضع الصيانة — كلها من مكان واحد.</p>
+      <div class="dv-pills">
+        <span><i class="fas fa-crown" style="color:#fbbf24"></i> صلاحية كاملة</span>
+        <span><i class="fas fa-server" style="color:#818cf8"></i> إدارة مركزية</span>
+        <span><i class="fas fa-shield-halved" style="color:#57f287"></i> أدوات صيانة</span>
+        <span><i class="fas fa-wave-square" style="color:#60a5fa"></i> بيانات مباشرة</span>
       </div>
-    <% }) %>
+      <div class="dv-cta">
+        <a href="<%= botInviteUrl %>" target="_blank" class="dv-btn dv-btn-primary"><i class="fas fa-code-branch"></i> دعوة البوت</a>
+        <a href="/status" class="dv-btn dv-btn-ghost"><i class="fas fa-heartbeat"></i> حالة البوت</a>
+      </div>
+    </div>
+    <div class="dv-hero-side">
+      <div class="dv-role"><i class="fas fa-user-shield"></i> المالك: <b><%= user.globalName || user.username %></b></div>
+      <div class="dv-mini">
+        <div class="dv-mini-ic ic-p"><i class="fas fa-layer-group"></i></div>
+        <div class="dv-mini-txt"><b><%= totalConfigs %></b><span>إعداد مخصص</span></div>
+      </div>
+      <div class="dv-mini">
+        <div class="dv-mini-ic ic-g"><i class="fas fa-users-cog"></i></div>
+        <div class="dv-mini-txt"><b><%= totalAdmins %></b><span>مدراء معتمدون</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── مؤشرات حية ── -->
+  <section class="dv-kpis">
+    <div class="dv-kpi">
+      <div class="dv-kpi-ic ic-p"><i class="fas fa-server"></i></div>
+      <div class="dv-kpi-txt"><b id="dvGuilds"><%= botGuilds.length %></b><span>سيرفر متصل</span></div>
+    </div>
+    <div class="dv-kpi">
+      <div class="dv-kpi-ic ic-g"><i class="fas fa-users"></i></div>
+      <div class="dv-kpi-txt"><b><%= fmt(totalMembers) %></b><span>إجمالي الأعضاء</span></div>
+    </div>
+    <div class="dv-kpi">
+      <div class="dv-kpi-ic ic-a"><i class="fas fa-gauge-high"></i></div>
+      <div class="dv-kpi-txt"><b id="dvPing">—</b><span>سرعة البنج</span></div>
+    </div>
+    <div class="dv-kpi">
+      <div class="dv-kpi-ic ic-c"><i class="fas fa-database"></i></div>
+      <div class="dv-kpi-txt"><b id="dvDbKeys">—</b><span>مفتاح DB</span></div>
+    </div>
+  </section>
+
+  <!-- ── السيرفرات المتصلة بالبوت ── -->
+  <div class="dv-sec-head dv-sec-row">
+    <h2><i class="fas fa-server"></i> السيرفرات المتصلة بالبوت <span class="dv-count"><%= botGuilds.length %></span></h2>
+    <span>جميع السيرفرات التي يعمل فيها البوت مع روابط انضمام</span>
+    <div class="dv-search"><i class="fas fa-search"></i><input id="dvSearch" type="text" placeholder="بحث عن سيرفر..."></div>
+    <button class="dv-refresh" type="button" onclick="location.reload()" title="تحديث القائمة"><i class="fas fa-rotate"></i></button>
   </div>
-</div>
 
-<div class="card glass">
-  <div class="card-header"><h3><i class="fas fa-database"></i> إدارة قاعدة البيانات</h3></div>
-  <div class="dev-actions">
-    <button class="btn-primary" onclick="showDbStats()">
-      <i class="fas fa-chart-bar"></i> إحصائيات DB
-    </button>
-    <button class="btn-danger" onclick="cleanupTickets()">
-      <i class="fas fa-broom"></i> تنظيف التذاكر القديمة
-    </button>
-  </div>
-</div>
-
-<style>
-.mnt-card { overflow: hidden; }
-.mnt-header { padding:20px 24px; display:flex; align-items:center; justify-content:space-between; background:<%= maintenance.enabled ? 'rgba(229,57,53,.08)' : 'transparent' %>; border-bottom:1px solid var(--border); transition:.3s; }
-.mnt-status { display:flex; align-items:center; gap:14px; }
-.mnt-dot { width:14px;height:14px;border-radius:50%;background:<%= maintenance.enabled ? '#e53935' : '#666' %>;box-shadow:<%= maintenance.enabled ? '0 0 20px rgba(229,57,53,.5)' : 'none' %>;animation:<%= maintenance.enabled ? 'mntPulse 1.5s ease-in-out infinite' : 'none' %>; }
-@keyframes mntPulse { 0%,100%{box-shadow:0 0 8px rgba(229,57,53,.4)} 50%{box-shadow:0 0 24px rgba(229,57,53,.7)} }
-.mnt-label { font-weight:700;font-size:.95rem;color:<%= maintenance.enabled ? '#e53935' : '#888' %>; }
-.mnt-body { padding:20px 24px; }
-.mnt-actions { display:flex;gap:10px;flex-wrap:wrap; }
-.mnt-btn { display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;font-weight:700;font-size:.85rem;text-decoration:none;cursor:pointer;border:none;transition:.2s; }
-.mnt-btn:hover { transform:translateY(-1px); }
-.mnt-btn-start { background:linear-gradient(135deg,#4caf50,#388e3c);color:#fff;box-shadow:0 4px 15px rgba(76,175,80,.3); }
-.mnt-btn-start:hover { box-shadow:0 6px 20px rgba(76,175,80,.4); }
-.mnt-btn-stop { background:linear-gradient(135deg,#e53935,#c62828);color:#fff;box-shadow:0 4px 15px rgba(229,57,53,.3); }
-.mnt-btn-stop:hover { box-shadow:0 6px 20px rgba(229,57,53,.4); }
-.mnt-btn-save { background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#fff;box-shadow:0 4px 15px rgba(88,101,242,.3); }
-.mnt-btn-save:hover { box-shadow:0 6px 20px rgba(88,101,242,.4); }
-.mnt-btn-ghost { background:rgba(255,255,255,.04);color:var(--text-muted);border:1px solid var(--border); }
-.mnt-btn-ghost:hover { background:rgba(255,255,255,.08);color:var(--text); }
-.mnt-form-row { margin-bottom:14px; }
-.mnt-form-row:last-child { margin-bottom:0; }
-.mnt-form-row label { display:block;font-size:.82rem;font-weight:600;margin-bottom:5px;color:var(--text-muted); }
-.mnt-form-row input { width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s; }
-.mnt-form-row input:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(88,101,242,.15); }
-.mnt-divider { height:1px;background:var(--border);margin:16px 0; }
-</style>
-
-<div class="card glass mnt-card">
-  <div class="mnt-header">
-    <div class="mnt-status">
-      <div class="mnt-dot"></div>
+  <section class="dv-invite-banner">
+    <div class="dv-invite-txt">
+      <div class="dv-invite-ic"><i class="fas fa-code-branch"></i></div>
       <div>
-        <div class="mnt-label"><%= maintenance.enabled ? 'وضع الصيانة — مفعل' : 'وضع الصيانة — معطل' %></div>
-        <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">
-          <% if (maintenance.enabled) { %>
-            الصيانة عامة — جميع الزوار يتأثرون
-          <% } else { %>
-            كل الخدمات تعمل بشكل طبيعي
-          <% } %>
+        <b>أضف البوت إلى سيرفر آخر</b>
+        <p>ادعُ البوت إلى أي سيرفر تديره — سيظهر هنا تلقائياً مع زر انضمام جاهز.</p>
+      </div>
+    </div>
+    <a href="<%= botInviteUrl %>" target="_blank" class="dv-btn dv-btn-primary"><i class="fas fa-plus"></i> دعوة البوت</a>
+  </section>
+
+  <% if (!botGuilds.length) { %>
+  <section class="dv-empty">
+    <div class="dv-empty-ic"><i class="fas fa-plug-circle-xmark"></i></div>
+    <h4>لا توجد سيرفرات متصلة</h4>
+    <p>البوت غير متصل بأي سيرفر حالياً، أو تعذر الاتصال بالبوت. دعوة البوت هي أول خطوة.</p>
+    <a href="<%= botInviteUrl %>" target="_blank" class="dv-btn dv-btn-primary"><i class="fas fa-code-branch"></i> دعوة البوت</a>
+  </section>
+  <% } else { %>
+  <section class="dv-g-grid">
+    <% botGuilds.forEach(g => { %>
+    <div class="dv-g-card" data-name="<%= g.name %>">
+      <div class="dv-g-ava <%= g.icon ? '' : 'noimg' %>">
+        <% if (g.icon) { %>
+        <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" onerror="this.remove();this.parentNode.classList.add('noimg')">
+        <% } %>
+        <span class="dv-g-letter"><%= (g.name || '?').charAt(0) %></span>
+      </div>
+      <div class="dv-g-body">
+        <div class="dv-g-top">
+          <b><%= g.name %></b>
+          <span class="dv-g-mem"><i class="fas fa-user"></i> <%= fmt(g.memberCount) %></span>
+        </div>
+        <div class="dv-g-meta">
+          <span><i class="fas fa-cog" style="color:#60a5fa"></i> <%= g.configCount || 0 %> إعداد</span>
+          <span><i class="fas fa-users-cog" style="color:#fbbf24"></i> <%= g.adminCount || 0 %> مدراء</span>
+        </div>
+        <div class="dv-g-actions">
+          <button type="button" class="dv-btn dv-btn-join" onclick="joinGuild('<%= g.id %>', this)" data-gname="<%= g.name %>"><i class="fas fa-right-to-bracket"></i> انضمام</button>
+          <a href="/guilds/<%= g.id %>" class="dv-btn dv-btn-ghost"><i class="fas fa-sliders"></i> لوحة التحكم</a>
         </div>
       </div>
     </div>
-    <div class="mnt-actions">
-      <% if (maintenance.enabled) { %>
-        <button type="button" class="mnt-btn mnt-btn-stop" id="mntShowChangelogBtn"><i class="fas fa-power-off"></i> إيقاف الصيانة</button>
-      <% } else { %>
-        <a href="/dev/maintenance/start" id="mntStartBtn" class="mnt-btn mnt-btn-start" style="opacity:.5;pointer-events:none"><i class="fas fa-shield-halved"></i> تفعيل الصيانة</a>
-      <% } %>
+    <% }) %>
+  </section>
+  <% } %>
+
+  <!-- ── تشخيص الاتصال ── -->
+  <div class="dv-sec-head"><h2><i class="fas fa-stethoscope"></i> تشخيص الاتصال والإحصائيات</h2></div>
+  <section class="dv-panel">
+    <div id="diagRow" class="dv-diag">
+      <div class="dv-diag-note"><i class="fas fa-spinner fa-spin"></i> جارِ الفحص...</div>
     </div>
-  </div>
-  <div class="mnt-body" style="<%= maintenance.enabled ? '' : 'opacity:.5' %>">
-    <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:12px;padding:8px 12px;background:rgba(255,152,0,.08);border-radius:8px;border:1px solid rgba(255,152,0,.2)">
-      ⚠️ <strong>ملاحظة:</strong> يجب اختيار المدة الزمنية أولاً لتفعيل زر البدء. يمكنك إدخال <strong>0</strong> للصيانة بدون وقت محدد (مفتوحة).
+    <div id="diagColls" class="dv-diag-colls"></div>
+  </section>
+
+  <!-- ── إدارة قاعدة البيانات ── -->
+  <div class="dv-sec-head"><h2><i class="fas fa-database"></i> إدارة قاعدة البيانات</h2></div>
+  <section class="dv-db-bar">
+    <button type="button" class="dv-btn dv-btn-primary" onclick="showDbStats()"><i class="fas fa-chart-bar"></i> إحصائيات DB</button>
+    <button type="button" class="dv-btn dv-btn-danger" onclick="cleanupTickets()"><i class="fas fa-broom"></i> تنظيف التذاكر القديمة</button>
+  </section>
+
+  <style>
+  .mnt-card { overflow: hidden; }
+  .mnt-header { padding:20px 24px; display:flex; align-items:center; justify-content:space-between; background:<%= maintenance.enabled ? 'rgba(229,57,53,.08)' : 'transparent' %>; border-bottom:1px solid var(--border); transition:.3s; }
+  .mnt-status { display:flex; align-items:center; gap:14px; }
+  .mnt-dot { width:14px;height:14px;border-radius:50%;background:<%= maintenance.enabled ? '#e53935' : '#666' %>;box-shadow:<%= maintenance.enabled ? '0 0 20px rgba(229,57,53,.5)' : 'none' %>;animation:<%= maintenance.enabled ? 'mntPulse 1.5s ease-in-out infinite' : 'none' %>; }
+  @keyframes mntPulse { 0%,100%{box-shadow:0 0 8px rgba(229,57,53,.4)} 50%{box-shadow:0 0 24px rgba(229,57,53,.7)} }
+  .mnt-label { font-weight:700;font-size:.95rem;color:<%= maintenance.enabled ? '#e53935' : '#888' %>; }
+  .mnt-body { padding:20px 24px; }
+  .mnt-actions { display:flex;gap:10px;flex-wrap:wrap; }
+  .mnt-btn { display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;font-weight:700;font-size:.85rem;text-decoration:none;cursor:pointer;border:none;transition:.2s; }
+  .mnt-btn:hover { transform:translateY(-1px); }
+  .mnt-btn-start { background:linear-gradient(135deg,#4caf50,#388e3c);color:#fff;box-shadow:0 4px 15px rgba(76,175,80,.3); }
+  .mnt-btn-start:hover { box-shadow:0 6px 20px rgba(76,175,80,.4); }
+  .mnt-btn-stop { background:linear-gradient(135deg,#e53935,#c62828);color:#fff;box-shadow:0 4px 15px rgba(229,57,53,.3); }
+  .mnt-btn-stop:hover { box-shadow:0 6px 20px rgba(229,57,53,.4); }
+  .mnt-btn-save { background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#fff;box-shadow:0 4px 15px rgba(88,101,242,.3); }
+  .mnt-btn-save:hover { box-shadow:0 6px 20px rgba(88,101,242,.4); }
+  .mnt-btn-ghost { background:rgba(255,255,255,.04);color:var(--text-muted);border:1px solid var(--border); }
+  .mnt-btn-ghost:hover { background:rgba(255,255,255,.08);color:var(--text); }
+  .mnt-form-row { margin-bottom:14px; }
+  .mnt-form-row:last-child { margin-bottom:0; }
+  .mnt-form-row label { display:block;font-size:.82rem;font-weight:600;margin-bottom:5px;color:var(--text-muted); }
+  .mnt-form-row input { width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s; }
+  .mnt-form-row input:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(88,101,242,.15); }
+  .mnt-divider { height:1px;background:var(--border);margin:16px 0; }
+  </style>
+
+  <div class="card glass mnt-card">
+    <div class="mnt-header">
+      <div class="mnt-status">
+        <div class="mnt-dot"></div>
+        <div>
+          <div class="mnt-label"><%= maintenance.enabled ? 'وضع الصيانة — مفعل' : 'وضع الصيانة — معطل' %></div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">
+            <% if (maintenance.enabled) { %>
+              الصيانة عامة — جميع الزوار يتأثرون
+            <% } else { %>
+              كل الخدمات تعمل بشكل طبيعي
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <div class="mnt-actions">
+        <% if (maintenance.enabled) { %>
+          <button type="button" class="mnt-btn mnt-btn-stop" id="mntShowChangelogBtn"><i class="fas fa-power-off"></i> إيقاف الصيانة</button>
+        <% } else { %>
+          <a href="/dev/maintenance/start" id="mntStartBtn" class="mnt-btn mnt-btn-start" style="opacity:.5;pointer-events:none"><i class="fas fa-shield-halved"></i> تفعيل الصيانة</a>
+        <% } %>
+      </div>
     </div>
-    <form method="POST" action="/dev/maintenance/save" id="mntSaveForm">
-      <input type="hidden" name="minutes" id="mntMinutesField" value="">
-      <div style="margin-bottom:12px">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">⏱ المدة</label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-          <button type="button" class="mnt-preset" data-min="15" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">15د</button>
-          <button type="button" class="mnt-preset" data-min="30" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">30د</button>
-          <button type="button" class="mnt-preset" data-min="60" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">1س</button>
-          <button type="button" class="mnt-preset" data-min="120" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">2س</button>
-          <button type="button" class="mnt-preset" data-min="360" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">6س</button>
-          <button type="button" class="mnt-preset" data-min="1440" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">24س</button>
-          <button type="button" id="mntCustomBtn" style="padding:6px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">⌨️ مخصص</button>
+    <div class="mnt-body" style="<%= maintenance.enabled ? '' : 'opacity:.5' %>">
+      <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:12px;padding:8px 12px;background:rgba(255,152,0,.08);border-radius:8px;border:1px solid rgba(255,152,0,.2)">
+        ⚠️ <strong>ملاحظة:</strong> يجب اختيار المدة الزمنية أولاً لتفعيل زر البدء. يمكنك إدخال <strong>0</strong> للصيانة بدون وقت محدد (مفتوحة).
+      </div>
+      <form method="POST" action="/dev/maintenance/save" id="mntSaveForm">
+        <input type="hidden" name="minutes" id="mntMinutesField" value="">
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">⏱ المدة</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+            <button type="button" class="mnt-preset" data-min="15" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">15د</button>
+            <button type="button" class="mnt-preset" data-min="30" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">30د</button>
+            <button type="button" class="mnt-preset" data-min="60" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">1س</button>
+            <button type="button" class="mnt-preset" data-min="120" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">2س</button>
+            <button type="button" class="mnt-preset" data-min="360" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">6س</button>
+            <button type="button" class="mnt-preset" data-min="1440" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">24س</button>
+            <button type="button" id="mntCustomBtn" style="padding:6px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">⌨️ مخصص</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="mntMinutes" min="0" placeholder="عدد الدقائق (0 = بدون وقت محدد)" style="flex:1;min-width:100px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+            <input type="datetime-local" id="mntPicker" style="flex:1.5;min-width:170px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">💬 رسالة الصيانة</label>
+          <input type="text" name="message" id="mntMessage" value="<%= maintenance.message || '' %>" placeholder="الموقع تحت الصيانة حالياً..." style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">📢 روم إشعارات الصيانة (ID)</label>
+          <input type="text" name="channelId" id="mntChannel" value="<%= maintenance.channelId || '' %>" placeholder="أدخل ID الروم في الديسكورد" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s;direction:ltr;text-align:left;font-family:monospace">
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">يُرسل إشعار عند بدء وانتهاء الصيانة في هذا الروم</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
-          <input type="number" id="mntMinutes" min="0" placeholder="عدد الدقائق (0 = بدون وقت محدد)" style="flex:1;min-width:100px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
-          <input type="datetime-local" id="mntPicker" style="flex:1.5;min-width:170px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+          <button type="submit" class="mnt-btn mnt-btn-save"><i class="fas fa-check"></i> حفظ الإعدادات</button>
+          <span style="font-size:.8rem;color:var(--text-muted)" id="mntSummary"></span>
         </div>
-      </div>
-      <div style="margin-bottom:12px">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">💬 رسالة الصيانة</label>
-        <input type="text" name="message" id="mntMessage" value="<%= maintenance.message || '' %>" placeholder="الموقع تحت الصيانة حالياً..." style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
-      </div>
-      <div style="margin-bottom:12px">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">📢 روم إشعارات الصيانة (ID)</label>
-        <input type="text" name="channelId" id="mntChannel" value="<%= maintenance.channelId || '' %>" placeholder="أدخل ID الروم في الديسكورد" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s;direction:ltr;text-align:left;font-family:monospace">
-        <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">يُرسل إشعار عند بدء وانتهاء الصيانة في هذا الروم</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button type="submit" class="mnt-btn mnt-btn-save"><i class="fas fa-check"></i> حفظ الإعدادات</button>
-        <span style="font-size:.8rem;color:var(--text-muted)" id="mntSummary"></span>
-      </div>
-      <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px">💡 حفظ الإعدادات لا يرسل إشعار في الديسكورد. يتم الإرسال فقط عند تفعيل أو إيقاف الصيانة.</div>
-    </form>
-    <script>
-    (function(){
-      var mins = document.getElementById('mntMinutes');
-      var picker = document.getElementById('mntPicker');
-      var hidden = document.getElementById('mntMinutesField');
-      var summary = document.getElementById('mntSummary');
-      var presets = document.querySelectorAll('.mnt-preset');
+        <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px">💡 حفظ الإعدادات لا يرسل إشعار في الديسكورد. يتم الإرسال فقط عند تفعيل أو إيقاف الصيانة.</div>
+      </form>
+      <script>
+      (function(){
+        var mins = document.getElementById('mntMinutes');
+        var picker = document.getElementById('mntPicker');
+        var hidden = document.getElementById('mntMinutesField');
+        var summary = document.getElementById('mntSummary');
+        var presets = document.querySelectorAll('.mnt-preset');
 
-      function setActive(btn) {
-        presets.forEach(function(p) { p.style.background = 'rgba(255,255,255,.04)'; p.style.color = 'var(--text)'; p.style.borderColor = 'var(--border)'; });
-        var c = document.getElementById('mntCustomBtn');
-        c.style.background = 'rgba(255,255,255,.04)'; c.style.color = 'var(--text)'; c.style.borderColor = 'var(--border)';
-        if (btn) { btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--accent)'; }
-      }
-
-      function calcMins() {
-        var m = parseInt(mins.value) || 0;
-        if (m > 0) {
-          picker.value = '';
-          hidden.value = m;
-          summary.textContent = '🕐 تنتهي بعد ' + m + ' دقيقة';
-          return;
+        function setActive(btn) {
+          presets.forEach(function(p) { p.style.background = 'rgba(255,255,255,.04)'; p.style.color = 'var(--text)'; p.style.borderColor = 'var(--border)'; });
+          var c = document.getElementById('mntCustomBtn');
+          c.style.background = 'rgba(255,255,255,.04)'; c.style.color = 'var(--text)'; c.style.borderColor = 'var(--border)';
+          if (btn) { btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--accent)'; }
         }
-        var d = picker.value;
-        if (d) {
-          mins.value = '';
-          var diff = Math.round((new Date(d).getTime() - Date.now()) / 60000);
-          if (diff > 0) {
-            hidden.value = diff;
-            summary.textContent = '📅 تنتهي ' + d;
+
+        function calcMins() {
+          var m = parseInt(mins.value) || 0;
+          if (m > 0) {
+            picker.value = '';
+            hidden.value = m;
+            summary.textContent = '🕐 تنتهي بعد ' + m + ' دقيقة';
             return;
           }
+          var d = picker.value;
+          if (d) {
+            mins.value = '';
+            var diff = Math.round((new Date(d).getTime() - Date.now()) / 60000);
+            if (diff > 0) {
+              hidden.value = diff;
+              summary.textContent = '📅 تنتهي ' + d;
+              return;
+            }
+          }
+          hidden.value = '';
+          summary.textContent = '⏳ غير محددة';
         }
-        hidden.value = '';
-        summary.textContent = '⏳ غير محددة';
-      }
 
-      presets.forEach(function(b) {
-        b.addEventListener('click', function() {
-          setActive(this);
-          mins.value = this.dataset.min;
+        presets.forEach(function(b) {
+          b.addEventListener('click', function() {
+            setActive(this);
+            mins.value = this.dataset.min;
+            picker.value = '';
+            calcMins();
+          });
+        });
+
+        document.getElementById('mntCustomBtn').addEventListener('click', function() {
+          setActive(null);
+          this.style.background = 'var(--accent)'; this.style.color = '#fff'; this.style.borderColor = 'var(--accent)';
+          mins.value = '';
           picker.value = '';
+          picker.focus();
           calcMins();
         });
-      });
 
-      document.getElementById('mntCustomBtn').addEventListener('click', function() {
-        setActive(null);
-        this.style.background = 'var(--accent)'; this.style.color = '#fff'; this.style.borderColor = 'var(--accent)';
-        mins.value = '';
-        picker.value = '';
-        picker.focus();
-        calcMins();
-      });
-
-      mins.addEventListener('input', function() {
-        setActive(null);
-        if (this.value) picker.value = '';
-        calcMins();
-      });
-
-      picker.addEventListener('input', function() {
-        setActive(null);
-        if (this.value) mins.value = '';
-        calcMins();
-      });
-
-      document.getElementById('mntSaveForm').addEventListener('submit', function(e) {
-        calcMins();
-      });
-
-      <% if (maintenance.durationMinutes > 0) { %>
-        mins.value = <%= maintenance.durationMinutes %>;
-        hidden.value = <%= maintenance.durationMinutes %>;
-        summary.textContent = '🕐 تنتهي بعد <%= maintenance.durationMinutes %> دقيقة';
-      <% } %>
-
-      function updateStartBtn() {
-        var btn = document.getElementById('mntStartBtn');
-        if (!btn) return;
-        var hasTime = !!(parseInt(mins.value) > 0) || !!(picker.value) || (parseInt(mins.value) === 0);
-        btn.style.opacity = hasTime ? '1' : '.5';
-        btn.style.pointerEvents = hasTime ? 'auto' : 'none';
-      }
-
-      updateStartBtn();
-      mins.addEventListener('input', updateStartBtn);
-      picker.addEventListener('input', updateStartBtn);
-      presets.forEach(function(b) {
-        b.addEventListener('click', updateStartBtn);
-      });
-      document.getElementById('mntCustomBtn').addEventListener('click', function() {
-        setTimeout(updateStartBtn, 50);
-      });
-    })();
-    </script>
-    <% if (maintenance.enabled) { %>
-    <div class="mnt-divider"></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <a href="/maintenance?preview=1" target="_blank" class="mnt-btn mnt-btn-ghost"><i class="fas fa-eye"></i> معاينة صفحة الصيانة</a>
-      <% if (maintenance.endTime) { %>
-        <span style="font-size:.8rem;color:var(--text-muted)">🕐 تنتهي <span dir="ltr"><%= new Date(maintenance.endTime).toLocaleString('ar-EG') %></span></span>
-      <% } %>
-    </div>
-    <!-- Changelog form (hidden, shown when clicking stop) -->
-    <div class="mnt-divider"></div>
-    <div id="mntChangelogSection" style="display:none">
-      <div style="font-size:.9rem;font-weight:700;margin-bottom:10px;color:var(--text)">
-        <i class="fas fa-scroll"></i> سجل التحديثات — أضف ملخصاً للتغييرات التي تمت أثناء الصيانة
-      </div>
-      <form method="POST" action="/dev/maintenance/stop" id="mntStopForm">
-        <div style="margin-bottom:14px">
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
-            <i class="fas fa-robot"></i> تحديثات البوت — الأوامر، الأنظمة، الحماية، الصوت، التكتات...
-          </label>
-          <textarea name="botUpdates" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.9rem;outline:none;transition:.2s;resize:vertical;box-sizing:border-box;direction:rtl" placeholder="مثال: تم إصلاح مشكلة /ping↵تم إضافة أمر /newcommand↵تم تحسين أداء البوت"><%= maintenance.changelog && maintenance.changelog.botUpdates || '' %></textarea>
-          <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
-        </div>
-        <div style="margin-bottom:14px">
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
-            <i class="fas fa-globe"></i> تحديثات الموقع — لوحة التحكم، التصميم، API، السرعة...
-          </label>
-          <textarea name="siteUpdates" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.9rem;outline:none;transition:.2s;resize:vertical;box-sizing:border-box;direction:rtl" placeholder="مثال: إعادة تصميم صفحة الإحصائيات↵إصلاح مشكلة الوقت في العدّاد↵تحسين سرعة تحميل الصفحات"><%= maintenance.changelog && maintenance.changelog.siteUpdates || '' %></textarea>
-          <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-          <button type="submit" class="mnt-btn mnt-btn-stop" style="font-size:1rem;padding:12px 30px">
-            <i class="fas fa-power-off"></i> تأكيد إيقاف الصيانة وإرسال الإشعار
-          </button>
-          <button type="button" class="mnt-btn mnt-btn-ghost" id="mntCancelChangelog">
-            <i class="fas fa-times"></i> إلغاء
-          </button>
-        </div>
-      </form>
-    </div>
-    <script>
-    (function(){
-      var showBtn = document.getElementById('mntShowChangelogBtn');
-      var section = document.getElementById('mntChangelogSection');
-      var cancelBtn = document.getElementById('mntCancelChangelog');
-      var botField = document.querySelector('textarea[name="botUpdates"]');
-      var siteField = document.querySelector('textarea[name="siteUpdates"]');
-      var stopForm = document.getElementById('mntStopForm');
-
-      // Restore from localStorage if DB is empty (user was typing before refresh)
-      if (botField && siteField) {
-        var savedBot = localStorage.getItem('mntChangelogBot');
-        var savedSite = localStorage.getItem('mntChangelogSite');
-        if (savedBot && !botField.value.trim()) botField.value = savedBot;
-        if (savedSite && !siteField.value.trim()) siteField.value = savedSite;
-        // Auto-save on input
-        botField.addEventListener('input', function() { localStorage.setItem('mntChangelogBot', botField.value); });
-        siteField.addEventListener('input', function() { localStorage.setItem('mntChangelogSite', siteField.value); });
-      }
-
-      if (showBtn && section) {
-        showBtn.addEventListener('click', function() {
-          section.style.display = 'block';
-          showBtn.style.display = 'none';
-          section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        mins.addEventListener('input', function() {
+          setActive(null);
+          if (this.value) picker.value = '';
+          calcMins();
         });
-        // Auto-open if there's unsaved text in localStorage
-        if (localStorage.getItem('mntChangelogBot') || localStorage.getItem('mntChangelogSite')) {
-          showBtn.click();
+
+        picker.addEventListener('input', function() {
+          setActive(null);
+          if (this.value) mins.value = '';
+          calcMins();
+        });
+
+        document.getElementById('mntSaveForm').addEventListener('submit', function(e) {
+          calcMins();
+        });
+
+        <% if (maintenance.durationMinutes > 0) { %>
+          mins.value = <%= maintenance.durationMinutes %>;
+          hidden.value = <%= maintenance.durationMinutes %>;
+          summary.textContent = '🕐 تنتهي بعد <%= maintenance.durationMinutes %> دقيقة';
+        <% } %>
+
+        function updateStartBtn() {
+          var btn = document.getElementById('mntStartBtn');
+          if (!btn) return;
+          var hasTime = !!(parseInt(mins.value) > 0) || !!(picker.value) || (parseInt(mins.value) === 0);
+          btn.style.opacity = hasTime ? '1' : '.5';
+          btn.style.pointerEvents = hasTime ? 'auto' : 'none';
         }
-      }
-      if (cancelBtn && section && showBtn) {
-        cancelBtn.addEventListener('click', function() {
-          section.style.display = 'none';
-          showBtn.style.display = '';
+
+        updateStartBtn();
+        mins.addEventListener('input', updateStartBtn);
+        picker.addEventListener('input', updateStartBtn);
+        presets.forEach(function(b) {
+          b.addEventListener('click', updateStartBtn);
         });
-      }
-      // Clear localStorage on successful form submit
-      if (stopForm) {
-        stopForm.addEventListener('submit', function() {
-          localStorage.removeItem('mntChangelogBot');
-          localStorage.removeItem('mntChangelogSite');
+        document.getElementById('mntCustomBtn').addEventListener('click', function() {
+          setTimeout(updateStartBtn, 50);
         });
-      }
-    })();
-    </script>
-    <% } %>
+      })();
+      </script>
+      <% if (maintenance.enabled) { %>
+      <div class="mnt-divider"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <a href="/maintenance?preview=1" target="_blank" class="mnt-btn mnt-btn-ghost"><i class="fas fa-eye"></i> معاينة صفحة الصيانة</a>
+        <% if (maintenance.endTime) { %>
+          <span style="font-size:.8rem;color:var(--text-muted)">🕐 تنتهي <span dir="ltr"><%= new Date(maintenance.endTime).toLocaleString('ar-EG') %></span></span>
+        <% } %>
+      </div>
+      <!-- Changelog form (hidden, shown when clicking stop) -->
+      <div class="mnt-divider"></div>
+      <div id="mntChangelogSection" style="display:none">
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:10px;color:var(--text)">
+          <i class="fas fa-scroll"></i> سجل التحديثات — أضف ملخصاً للتغييرات التي تمت أثناء الصيانة
+        </div>
+        <form method="POST" action="/dev/maintenance/stop" id="mntStopForm">
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
+              <i class="fas fa-robot"></i> تحديثات البوت — الأوامر، الأنظمة، الحماية، الصوت، التكتات...
+            </label>
+            <textarea name="botUpdates" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.9rem;outline:none;transition:.2s;resize:vertical;box-sizing:border-box;direction:rtl" placeholder="مثال: تم إصلاح مشكلة /ping↵تم إضافة أمر /newcommand↵تم تحسين أداء البوت"><%= maintenance.changelog && maintenance.changelog.botUpdates || '' %></textarea>
+            <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
+          </div>
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
+              <i class="fas fa-globe"></i> تحديثات الموقع — لوحة التحكم، التصميم، API، السرعة...
+            </label>
+            <textarea name="siteUpdates" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.9rem;outline:none;transition:.2s;resize:vertical;box-sizing:border-box;direction:rtl" placeholder="مثال: إعادة تصميم صفحة الإحصائيات↵إصلاح مشكلة الوقت في العدّاد↵تحسين سرعة تحميل الصفحات"><%= maintenance.changelog && maintenance.changelog.siteUpdates || '' %></textarea>
+            <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+            <button type="submit" class="mnt-btn mnt-btn-stop" style="font-size:1rem;padding:12px 30px">
+              <i class="fas fa-power-off"></i> تأكيد إيقاف الصيانة وإرسال الإشعار
+            </button>
+            <button type="button" class="mnt-btn mnt-btn-ghost" id="mntCancelChangelog">
+              <i class="fas fa-times"></i> إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+      <script>
+      (function(){
+        var showBtn = document.getElementById('mntShowChangelogBtn');
+        var section = document.getElementById('mntChangelogSection');
+        var cancelBtn = document.getElementById('mntCancelChangelog');
+        var botField = document.querySelector('textarea[name="botUpdates"]');
+        var siteField = document.querySelector('textarea[name="siteUpdates"]');
+        var stopForm = document.getElementById('mntStopForm');
+
+        // Restore from localStorage if DB is empty (user was typing before refresh)
+        if (botField && siteField) {
+          var savedBot = localStorage.getItem('mntChangelogBot');
+          var savedSite = localStorage.getItem('mntChangelogSite');
+          if (savedBot && !botField.value.trim()) botField.value = savedBot;
+          if (savedSite && !siteField.value.trim()) siteField.value = savedSite;
+          // Auto-save on input
+          botField.addEventListener('input', function() { localStorage.setItem('mntChangelogBot', botField.value); });
+          siteField.addEventListener('input', function() { localStorage.setItem('mntChangelogSite', siteField.value); });
+        }
+
+        if (showBtn && section) {
+          showBtn.addEventListener('click', function() {
+            section.style.display = 'block';
+            showBtn.style.display = 'none';
+            section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          });
+          // Auto-open if there's unsaved text in localStorage
+          if (localStorage.getItem('mntChangelogBot') || localStorage.getItem('mntChangelogSite')) {
+            showBtn.click();
+          }
+        }
+        if (cancelBtn && section && showBtn) {
+          cancelBtn.addEventListener('click', function() {
+            section.style.display = 'none';
+            showBtn.style.display = '';
+          });
+        }
+        // Clear localStorage on successful form submit
+        if (stopForm) {
+          stopForm.addEventListener('submit', function() {
+            localStorage.removeItem('mntChangelogBot');
+            localStorage.removeItem('mntChangelogSite');
+          });
+        }
+      })();
+      </script>
+      <% } %>
+    </div>
+  </div>
+
+  <style>
+  .dv{max-width:1120px;margin:0 auto;position:relative;padding-bottom:28px}
+  .dv-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .dv-orb{position:absolute;border-radius:50%;filter:blur(140px)}
+  .dv-o1{width:520px;height:520px;background:#6366f1;top:-260px;right:-120px;opacity:0.06}
+  .dv-o2{width:420px;height:420px;background:#8b5cf6;bottom:-220px;left:-120px;opacity:0.05}
+  .dv-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 0%,transparent 75%);mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 0%,transparent 75%)}
+
+  /* ── الهيرو ── */
+  .dv-hero{position:relative;z-index:1;display:flex;align-items:center;gap:28px;padding:30px;border-radius:22px;background:rgba(14,14,30,0.55);border:1px solid rgba(255,255,255,0.07);box-shadow:0 24px 70px rgba(0,0,0,0.28);overflow:hidden}
+  .dv-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#6366f1 40%,#8b5cf6 60%,transparent)}
+  .dv-avatar{position:relative;width:88px;height:88px;flex-shrink:0}
+  .dv-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid rgba(99,102,241,0.35);box-shadow:0 0 0 7px rgba(99,102,241,0.08),0 14px 34px rgba(0,0,0,0.35)}
+  .dv-status{position:absolute;bottom:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#57f287;border:4px solid #0e0e1e}
+  .dv-hero-main{flex:1;min-width:0}
+  .dv-eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:0.68rem;font-weight:600;color:#818cf8;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.14);padding:4px 13px;border-radius:100px;margin-bottom:12px}
+  .dv-eyebrow i{font-size:0.6rem}
+  .dv-ver{display:inline-block;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);padding:1px 8px;border-radius:100px;font-size:0.6rem}
+  .dv-hero h1{font-size:1.6rem;font-weight:800;margin:0 0 7px;line-height:1.25}
+  .dv-name{background:linear-gradient(135deg,#818cf8,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .dv-hero p{font-size:0.86rem;color:rgba(255,255,255,0.35);margin:0 0 16px;line-height:1.9}
+  .dv-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .dv-pills span{display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;font-weight:600;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:4px 12px;border-radius:100px}
+  .dv-pills i{font-size:0.65rem}
+  .dv-cta{display:flex;gap:10px;flex-wrap:wrap}
+  .dv-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:11px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;transition:all 0.25s;cursor:pointer;border:none}
+  .dv-btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 6px 22px rgba(99,102,241,0.35)}
+  .dv-btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(99,102,241,0.45);color:#fff}
+  .dv-btn-ghost{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.08)}
+  .dv-btn-ghost:hover{background:rgba(255,255,255,0.07);color:#fff;border-color:rgba(255,255,255,0.15)}
+  .dv-btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 6px 18px rgba(239,68,68,0.25)}
+  .dv-btn-danger:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(239,68,68,0.35);color:#fff}
+  .dv-hero-side{display:flex;flex-direction:column;gap:10px;min-width:200px}
+  .dv-role{display:inline-flex;align-items:center;gap:8px;font-size:0.72rem;color:rgba(255,255,255,0.4);padding:8px 14px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
+  .dv-role i{color:#fbbf24}
+  .dv-role b{color:#c4b5fd;font-weight:700}
+  .dv-mini{display:flex;align-items:center;gap:13px;padding:13px 16px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);transition:border-color 0.25s}
+  .dv-mini:hover{border-color:rgba(99,102,241,0.25)}
+  .dv-mini-ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0}
+  .ic-p{background:rgba(99,102,241,0.12);color:#818cf8}
+  .ic-g{background:rgba(52,211,153,0.12);color:#34d399}
+  .ic-a{background:rgba(251,191,36,0.12);color:#fbbf24}
+  .ic-c{background:rgba(96,165,250,0.12);color:#60a5fa}
+  .dv-mini-txt b{display:block;font-size:1.15rem;font-weight:800;line-height:1.25}
+  .dv-mini-txt span{font-size:0.66rem;color:rgba(255,255,255,0.3)}
+
+  /* ── المؤشرات ── */
+  .dv-kpis{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+  .dv-kpi{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:all 0.25s}
+  .dv-kpi:hover{transform:translateY(-2px);border-color:rgba(99,102,241,0.22);background:rgba(16,16,36,0.7)}
+  .dv-kpi-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+  .dv-kpi-txt b{display:block;font-size:1.35rem;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums}
+  .dv-kpi-txt span{font-size:0.68rem;color:rgba(255,255,255,0.3)}
+
+  /* ── عناوين الأقسام ── */
+  .dv-sec-head{position:relative;z-index:1;display:flex;align-items:center;gap:12px;margin:36px 0 16px}
+  .dv-sec-head h2{font-size:1.05rem;font-weight:800;margin:0;display:flex;align-items:center;gap:9px}
+  .dv-sec-head h2 i{color:#818cf8;font-size:0.95rem}
+  .dv-sec-head span{font-size:0.72rem;color:rgba(255,255,255,0.25)}
+  .dv-sec-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(99,102,241,0.15),transparent)}
+  .dv-sec-row{flex-wrap:wrap}
+  .dv-count{display:inline-flex;min-width:22px;height:22px;padding:0 8px;align-items:center;justify-content:center;border-radius:100px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);color:#818cf8;font-size:0.7rem;font-weight:700}
+  .dv-search{position:relative;display:flex;align-items:center;margin-inline-start:auto}
+  .dv-search i{position:absolute;right:12px;font-size:0.75rem;color:rgba(255,255,255,0.25);pointer-events:none;z-index:1}
+  .dv-search input{width:200px;padding:9px 34px 9px 12px;border-radius:10px;background:rgba(12,12,26,0.55);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);font-family:'Cairo',sans-serif;font-size:0.78rem;outline:none;transition:all 0.25s}
+  .dv-search input:focus{border-color:rgba(99,102,241,0.4);box-shadow:0 0 0 3px rgba(99,102,241,0.08)}
+  .dv-refresh{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);cursor:pointer;font-size:0.85rem;transition:all 0.25s}
+  .dv-refresh:hover{color:#fff;border-color:rgba(99,102,241,0.35);background:rgba(99,102,241,0.1)}
+
+  /* ── بانر دعوة البوت ── */
+  .dv-invite-banner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-radius:14px;background:linear-gradient(120deg,rgba(99,102,241,0.09),rgba(139,92,246,0.06));border:1px solid rgba(99,102,241,0.16);margin-bottom:16px;flex-wrap:wrap}
+  .dv-invite-txt{display:flex;align-items:center;gap:14px;min-width:0}
+  .dv-invite-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:rgba(99,102,241,0.14);color:#818cf8;flex-shrink:0}
+  .dv-invite-txt b{display:block;font-size:0.88rem;font-weight:700}
+  .dv-invite-txt p{font-size:0.72rem;color:rgba(255,255,255,0.35);margin:2px 0 0;line-height:1.7}
+
+  /* ── شبكة السيرفرات ── */
+  .dv-g-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:14px}
+  .dv-g-card{display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:all 0.28s}
+  .dv-g-card:hover{transform:translateY(-4px);border-color:rgba(99,102,241,0.28);background:rgba(16,16,36,0.72);box-shadow:0 18px 48px rgba(0,0,0,0.35)}
+  .dv-g-ava{position:relative;width:52px;height:52px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,rgba(99,102,241,0.16),rgba(139,92,246,0.16));flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .dv-g-ava img{width:100%;height:100%;object-fit:cover}
+  .dv-g-letter{display:none;font-size:1.2rem;font-weight:800;color:#c4b5fd}
+  .dv-g-ava.noimg .dv-g-letter{display:block}
+  .dv-g-body{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .dv-g-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+  .dv-g-top b{font-size:0.9rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dv-g-mem{display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;font-weight:700;color:#57f287;background:rgba(87,242,135,0.08);border:1px solid rgba(87,242,135,0.15);padding:3px 10px;border-radius:100px;flex-shrink:0}
+  .dv-g-mem i{font-size:0.6rem}
+  .dv-g-meta{display:flex;gap:14px;flex-wrap:wrap}
+  .dv-g-meta span{display:inline-flex;align-items:center;gap:6px;font-size:0.7rem;color:rgba(255,255,255,0.4)}
+  .dv-g-meta i{font-size:0.72rem;width:14px;text-align:center}
+  .dv-g-actions{display:flex;gap:8px;margin-top:2px}
+  .dv-btn-join{flex:1;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 5px 16px rgba(99,102,241,0.28);justify-content:center;padding:10px 14px;font-size:0.78rem}
+  .dv-btn-join:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(99,102,241,0.4);color:#fff}
+  .dv-btn-join:disabled{opacity:0.6;pointer-events:none}
+  .dv-g-actions .dv-btn-ghost{flex:1;justify-content:center;padding:10px 14px;font-size:0.78rem}
+  .dv-empty{position:relative;z-index:1;text-align:center;padding:38px 20px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px dashed rgba(255,255,255,0.1)}
+  .dv-empty-ic{width:56px;height:56px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;background:rgba(99,102,241,0.1);color:#818cf8}
+  .dv-empty h4{font-size:0.95rem;font-weight:800;margin:0 0 6px}
+  .dv-empty p{font-size:0.78rem;color:rgba(255,255,255,0.3);margin:0 0 18px}
+
+  /* ── التشخيص و DB ── */
+  .dv-panel{position:relative;z-index:1;padding:20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06)}
+  .dv-diag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+  .dv-diag-note{display:flex;align-items:center;justify-content:center;gap:8px;font-size:0.78rem;color:rgba(255,255,255,0.3);padding:18px 0;grid-column:1/-1}
+  .dv-diag-colls{display:none;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:14px}
+  .dv-diag-colls div{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 10px;font-size:0.78rem}
+  .dv-diag-colls span{color:rgba(255,255,255,0.4)}
+  .dv-db-bar{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap}
+
+  /* ── توست ── */
+  .dv-toast{position:fixed;bottom:28px;left:50%;transform:translate(-50%,10px);z-index:9999;padding:12px 22px;border-radius:12px;font-size:0.82rem;font-weight:600;color:#fff;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 12px 34px rgba(0,0,0,0.4);opacity:0;transition:all 0.3s;pointer-events:none;direction:rtl}
+  .dv-toast.err{background:linear-gradient(135deg,#ef4444,#dc2626)}
+
+  /* ── مودال إحصائيات DB ── */
+  .dv-modal{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);padding:20px}
+  .dv-modal.open{display:flex}
+  .dv-modal-card{width:100%;max-width:620px;max-height:82vh;overflow:auto;border-radius:18px;background:#0e0e1e;border:1px solid rgba(255,255,255,0.1);box-shadow:0 30px 80px rgba(0,0,0,0.6);padding:22px}
+  .dv-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .dv-modal-head b{font-size:0.95rem;font-weight:800;display:flex;align-items:center;gap:9px}
+  .dv-modal-head b i{color:#818cf8}
+  .dv-modal-close{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);cursor:pointer;font-size:0.8rem;transition:all 0.2s}
+  .dv-modal-close:hover{color:#fff;border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.1)}
+  .dv-modal table{width:100%;border-collapse:collapse;font-size:0.78rem}
+  .dv-modal th{text-align:right;padding:9px 10px;color:rgba(255,255,255,0.35);font-weight:600;border-bottom:1px solid rgba(255,255,255,0.07);font-size:0.7rem}
+  .dv-modal td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(255,255,255,0.7)}
+  .dv-modal td b{color:rgba(255,255,255,0.85)}
+  .dv-modal-total{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.15)}
+  .dv-modal-total span{font-size:0.76rem;color:rgba(255,255,255,0.45)}
+  .dv-modal-total b{color:#a5b4fc;font-weight:800;font-size:0.9rem;margin-inline-end:5px}
+
+  /* ── حركة الظهور ── */
+  @keyframes dvUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .dv-hero{animation:dvUp 0.5s ease both}
+  .dv-kpis{animation:dvUp 0.5s ease 0.06s both}
+  .dv-invite-banner{animation:dvUp 0.5s ease 0.1s both}
+  .dv-g-grid{animation:dvUp 0.5s ease 0.14s both}
+  .dv-sec-head{animation:dvUp 0.5s ease both}
+
+  @media(max-width:920px){.dv-hero{flex-direction:column;align-items:flex-start;gap:18px}.dv-hero-side{min-width:0;width:100%}.dv-kpis{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.dv-kpis{grid-template-columns:1fr}.dv-hero{padding:22px}.dv-avatar{width:72px;height:72px}}
+  </style>
+
+  <!-- ── مودال إحصائيات DB ── -->
+  <div class="dv-modal" id="dvDbModal" onclick="if(event.target===this)closeDbStats()">
+    <div class="dv-modal-card">
+      <div class="dv-modal-head">
+        <b><i class="fas fa-database"></i> إحصائيات قاعدة البيانات</b>
+        <button type="button" class="dv-modal-close" onclick="closeDbStats()"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div id="dvDbBody"></div>
+    </div>
   </div>
 </div>
 
 <script>
 const botGuilds = <%= JSON.stringify(botGuilds) %>;
-document.addEventListener('DOMContentLoaded', () => {
-  let totalKeys = 0, totalAdmins = 0;
-  Promise.all(botGuilds.map(g =>
-    fetch(`/api/guild/${g.id}/stats`).then(r => r.json()).then(d => {
-      totalKeys += d.configKeys || 0;
-      totalAdmins += d.adminCount || 0;
-    }).catch(() => {})
-  )).then(() => {
-    document.getElementById('totalDbKeys').textContent = totalKeys;
-    document.getElementById('totalAdmins').textContent = totalAdmins;
+const fmt = n => { n = Number(n) || 0; return n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n); };
+const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function dvToast(msg, isErr) {
+  let t = document.getElementById('dvToast');
+  if (!t) { t = document.createElement('div'); t.id = 'dvToast'; t.className = 'dv-toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.toggle('err', !!isErr);
+  t.style.opacity = '1';
+  t.style.transform = 'translate(-50%,0)';
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%,10px)'; }, 3200);
+}
+
+// ── انضمام إلى سيرفر (رابط دعوة) ──
+async function joinGuild(guildId, btn) {
+  const gname = btn.dataset.gname || 'السيرفر';
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارِ الإنشاء...';
+  try {
+    const r = await fetch(`/dev/guild-invite/${guildId}`);
+    const data = await r.json();
+    if (data.url) {
+      window.open(data.url, '_blank', 'noopener');
+      dvToast('✅ تم إنشاء رابط الانضمام لـ ' + gname);
+    } else {
+      dvToast('⚠️ ' + (data.error || 'تعذر إنشاء رابط الدعوة'), true);
+    }
+  } catch {
+    dvToast('❌ فشل الاتصال بالبوت', true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+}
+
+// ── بحث السيرفرات ──
+function applySearch() {
+  const q = (document.getElementById('dvSearch')?.value || '').trim().toLowerCase();
+  document.querySelectorAll('.dv-g-card').forEach(card => {
+    card.style.display = (!q || (card.dataset.name || '').toLowerCase().includes(q)) ? '' : 'none';
   });
+}
+
+// ── إحصائيات DB (مودال) ──
+function showDbStats() {
+  const rows = botGuilds.map(g =>
+    `<tr><td><b>${esc(g.name)}</b></td><td>${fmt(g.memberCount)}</td><td>${g.configCount || 0}</td><td>${g.adminCount || 0}</td></tr>`
+  ).join('');
+  const cfg = botGuilds.reduce((s, g) => s + (g.configCount || 0), 0);
+  const adm = botGuilds.reduce((s, g) => s + (g.adminCount || 0), 0);
+  const mem = botGuilds.reduce((s, g) => s + (g.memberCount || 0), 0);
+  document.getElementById('dvDbBody').innerHTML =
+    `<table><thead><tr><th>السيرفر</th><th>الأعضاء</th><th>إعدادات</th><th>مدراء</th></tr></thead><tbody>${rows || '<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,.3)">لا توجد بيانات</td></tr>'}</tbody></table>` +
+    `<div class="dv-modal-total"><span>الإجمالي: <b>${cfg}</b> إعداد</span><span>المدراء: <b>${adm}</b></span><span>الأعضاء: <b>${fmt(mem)}</b></span></div>`;
+  document.getElementById('dvDbModal').classList.add('open');
+}
+function closeDbStats() { document.getElementById('dvDbModal').classList.remove('open'); }
+
+// ── تنظيف التذاكر ──
+async function cleanupTickets() {
+  if (!confirm('تنظيف التذاكر القديمة من قاعدة البيانات؟')) return;
+  try {
+    const res = await fetch('/api/tickets/cleanup', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      dvToast('✅ تم حذف ' + data.deleted + ' تذكرة');
+    } else {
+      dvToast('⚠️ ' + (data.error || 'لا يمكن التنظيف'), true);
+    }
+  } catch { dvToast('❌ فشل التنظيف', true); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('dvSearch')?.addEventListener('input', applySearch);
+
+  let keys = 0, admins = 0, pending = botGuilds.length;
+  const settle = () => {
+    if (pending > 0) return;
+    document.getElementById('dvDbKeys').textContent = fmt(keys);
+  };
+  if (pending === 0) { document.getElementById('dvDbKeys').textContent = '0'; }
+  botGuilds.forEach(g => {
+    fetch(`/api/guild/${g.id}/stats`).then(r => r.json()).then(d => {
+      keys += d.configKeys || 0;
+      admins += d.adminCount || 0;
+      pending--; settle();
+    }).catch(() => { pending--; settle(); });
+  });
+
+  fetch('/api/status').then(r => r.json()).then(d => {
+    const el = document.getElementById('dvPing');
+    if (el && d.ping != null) el.textContent = d.ping + 'ms';
+  }).catch(() => {});
 
   fetch('/api/diagnostics').then(r => r.json()).then(d => {
     const row = document.getElementById('diagRow');
     if (!row) return;
     const num = v => v == null || isNaN(v) ? '—' : v;
     const cell = (label, value, ok) =>
-      `<div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
-        <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:4px">${label}</div>
+      `<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px">
+        <div style="font-size:.72rem;color:rgba(255,255,255,0.35);margin-bottom:4px">${label}</div>
         <div style="font-weight:700;font-size:.95rem;color:${ok ? '#57f287' : '#f87171'}">${value}</div>
       </div>`;
     const botOk = d.botApi && d.botApi.online;
@@ -377,24 +681,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (colls && d.mongo && d.mongo.connected && d.mongo.collections) {
       colls.style.display = 'grid';
       colls.innerHTML = Object.entries(d.mongo.collections).map(([k, c]) =>
-        `<div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:.78rem">
-          <span style="color:var(--text-muted)">${k}:</span> <strong>${num(c)}</strong>
-        </div>`).join('');
+        `<div><span>${k}:</span> <strong>${num(c)}</strong></div>`).join('');
     }
   }).catch(() => {});
 });
-
-async function cleanupTickets() {
-  if (!confirm('تنظيف التذاكر القديمة من قاعدة البيانات؟')) return;
-  try {
-    const res = await fetch('/api/tickets/cleanup', { method: 'POST' });
-    const data = await res.json();
-    if (data.success) {
-      alert('✅ تم حذف ' + data.deleted + ' تذكرة');
-    } else {
-      alert('⚠️ ' + (data.error || 'لا يمكن التنظيف'));
-    }
-  } catch { alert('❌ فشل التنظيف'); }
-}
 </script>
-
