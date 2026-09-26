@@ -269,4 +269,25 @@ router.post('/:guildId/images', isAuthenticated, hasGuildAccess, requireRole('ad
   }
 });
 
+// يمرّر الصور الافتراضية من البوت (تُستخدم في زر «عرض الصورة الحالية» عندما
+// لا تكون هناك صورة مخصصة للسيرفر)
+router.get('/:guildId/default-image/:type', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  try {
+    const { type } = req.params;
+    if (!['welcome', 'ticket', 'voice'].includes(type)) {
+      return res.status(400).json({ error: 'Invalid image type' });
+    }
+    const br = await fetch(`${config.botApiUrl}/api/default-images/${type}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!br.ok) return res.status(404).json({ error: 'Default image not found' });
+    const buf = Buffer.from(await br.arrayBuffer());
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(buf);
+  } catch {
+    res.status(502).json({ error: 'Bot unreachable' });
+  }
+});
+
 export default router;

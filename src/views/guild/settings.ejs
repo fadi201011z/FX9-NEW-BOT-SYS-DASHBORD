@@ -105,6 +105,7 @@
             <input type="text" class="ticket-select img-url-input" data-img-url="welcome_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
             <div class="img-actions">
               <button type="button" class="btn-sm btn-save-img" data-img-save="welcome_image"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-sm btn-view-img" data-img-view="welcome_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
               <button type="button" class="btn-delete-sm" data-img-delete="welcome_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
               <span class="ticket-field-state" data-state-of="welcome_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
             </div>
@@ -131,6 +132,7 @@
             <input type="text" class="ticket-select img-url-input" data-img-url="ticket_panel_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
             <div class="img-actions">
               <button type="button" class="btn-sm btn-save-img" data-img-save="ticket_panel_image"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-sm btn-view-img" data-img-view="ticket_panel_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
               <button type="button" class="btn-delete-sm" data-img-delete="ticket_panel_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
               <span class="ticket-field-state" data-state-of="ticket_panel_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
             </div>
@@ -157,6 +159,7 @@
             <input type="text" class="ticket-select img-url-input" data-img-url="voice_panel_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
             <div class="img-actions">
               <button type="button" class="btn-sm btn-save-img" data-img-save="voice_panel_image"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-sm btn-view-img" data-img-view="voice_panel_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
               <button type="button" class="btn-delete-sm" data-img-delete="voice_panel_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
               <span class="ticket-field-state" data-state-of="voice_panel_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
             </div>
@@ -746,8 +749,59 @@
   }
   .btn-save-img:hover { filter: brightness(1.1); }
   .btn-save-img:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-view-img {
+    padding: 7px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1); color: #fff;
+  }
+  .btn-view-img:hover { filter: brightness(1.1); }
   @media (max-width: 560px) { .custom-img-body { flex-direction: column; align-items: stretch; } .custom-img-preview { width: 100%; height: 120px; } }
+
+  /* ─── نافذة عرض الصورة الحالية ───────────────────────────────── */
+  .img-viewer-modal {
+    position: fixed; inset: 0; z-index: 10000;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(5, 6, 12, .78); backdrop-filter: blur(4px);
+    opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility .2s ease;
+    padding: 20px;
+  }
+  .img-viewer-modal.open { opacity: 1; visibility: visible; }
+  .img-viewer-content {
+    background: #12131c; border: 1px solid var(--border); border-radius: 14px;
+    max-width: min(900px, 94vw); max-height: 90vh; overflow: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
+  }
+  .img-viewer-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: #12131c; z-index: 1;
+  }
+  .img-viewer-head strong { font-size: 15px; }
+  .img-viewer-close {
+    border: none; background: rgba(255, 255, 255, .08); color: #fff; width: 32px; height: 32px;
+    border-radius: 8px; cursor: pointer; font-size: 15px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .img-viewer-close:hover { background: rgba(239, 68, 68, .8); }
+  .img-viewer-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .img-viewer-body img {
+    max-width: 100%; max-height: 68vh; border-radius: 10px; display: block; border: 1px solid var(--border);
+  }
+  .img-viewer-note { color: var(--text-muted); font-size: 13px; text-align: center; margin: 0; }
 </style>
+
+<!-- نافذة عرض الصورة الحالية (تظهر بزر «عرض الصورة الحالية» بجانب كل صورة) -->
+<div class="img-viewer-modal" id="imgViewerModal">
+  <div class="img-viewer-content">
+    <div class="img-viewer-head">
+      <strong id="imgViewerTitle">عرض الصورة الحالية</strong>
+      <button type="button" class="img-viewer-close" id="imgViewerClose" title="إغلاق"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="img-viewer-body">
+      <img id="imgViewerImage" alt="الصورة الحالية" />
+      <p class="img-viewer-note" id="imgViewerNote">الصورة المعروضة حالياً على البوت في هذا السيرفر</p>
+    </div>
+  </div>
+</div>
 
 <script>
 const FIELDS = [
@@ -1126,6 +1180,7 @@ async function saveCustomImage(key, value) {
     });
     const data = await res.json();
     if (res.ok && data.success) {
+      customImageValues[key] = value || '';
       setImagePreview(key, value || '');
       setImageState(key, !!value);
       showToast('✅ تم حفظ الصورة' + (data.refreshed ? ' — البنلات حُدّثت فوراً' : ' — ستُطبَّق قريباً'), 'success');
@@ -1147,6 +1202,7 @@ function initCustomImages() {
       if (!data.success) return;
       CUSTOM_IMAGES.forEach(key => {
         const val = data.images[key] || '';
+        customImageValues[key] = val;
         setImagePreview(key, val);
         setImageState(key, !!val);
         const url = document.querySelector('[data-img-url="' + key + '"]');
@@ -1202,6 +1258,69 @@ function initCustomImages() {
     });
   });
 }
+
+// ─── عرض الصورة الحالية (نافذة منبثقة) ────────────────────────────────────
+// الصورة الحالية = المخصصة إن وُجدت، وإلا يُجلب الافتراضي من البوت عبر وكيل الداشبورد
+
+const customImageValues = {};
+
+const DEFAULT_IMG_ENDPOINT = {
+  welcome_image: '/settings/<%= guild.id %>/default-image/welcome',
+  ticket_panel_image: '/settings/<%= guild.id %>/default-image/ticket',
+  voice_panel_image: '/settings/<%= guild.id %>/default-image/voice',
+};
+
+const IMG_VIEW_TITLES = {
+  welcome_image: 'صورة الترحيب',
+  ticket_panel_image: 'صورة بنل التذاكر',
+  voice_panel_image: 'صورة بنل الصوتيات',
+};
+
+function openImgViewer(key) {
+  const modal = document.getElementById('imgViewerModal');
+  const img = document.getElementById('imgViewerImage');
+  const note = document.getElementById('imgViewerNote');
+  const title = document.getElementById('imgViewerTitle');
+  if (!modal || !img) return;
+  if (title) title.textContent = 'عرض الصورة الحالية — ' + (IMG_VIEW_TITLES[key] || key);
+
+  const isCustom = !!(customImageValues[key] || '').trim();
+  const src = isCustom ? customImageValues[key] : DEFAULT_IMG_ENDPOINT[key];
+  img.style.display = 'none';
+  note.textContent = 'جارٍ تحميل الصورة...';
+  img.onload = () => {
+    img.style.display = 'block';
+    note.textContent = isCustom
+      ? 'هذه هي الصورة المخصصة المعروضة حالياً على البوت في هذا السيرفر'
+      : 'لا توجد صورة مخصصة لهذا السيرفر — هذه هي الصورة الافتراضية للبوت';
+  };
+  img.onerror = () => {
+    img.style.display = 'none';
+    note.textContent = 'تعذّر تحميل الصورة — تأكد من أن البوت متصل أو أن الرابط المخصص سليم';
+  };
+  img.src = src;
+  modal.classList.add('open');
+}
+
+function closeImgViewer() {
+  const modal = document.getElementById('imgViewerModal');
+  if (modal) modal.classList.remove('open');
+  const img = document.getElementById('imgViewerImage');
+  if (img) img.src = '';
+}
+
+document.querySelectorAll('[data-img-view]').forEach(btn => {
+  btn.addEventListener('click', () => openImgViewer(btn.dataset.imgView));
+});
+const imgViewerModal = document.getElementById('imgViewerModal');
+if (imgViewerModal) {
+  imgViewerModal.addEventListener('click', (e) => {
+    if (e.target === imgViewerModal) closeImgViewer();
+  });
+}
+const imgViewerClose = document.getElementById('imgViewerClose');
+if (imgViewerClose) imgViewerClose.addEventListener('click', closeImgViewer);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeImgViewer(); });
 
 initCustomImages();
 </script>
