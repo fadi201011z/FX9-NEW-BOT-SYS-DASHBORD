@@ -131,45 +131,24 @@
 
   <!-- ── إدارة قاعدة البيانات ── -->
   <div class="dv-sec-head"><h2><i class="fas fa-database"></i> إدارة قاعدة البيانات</h2></div>
-  <section class="dv-db-bar">
+  <section class="dv-panel dv-db-bar">
     <button type="button" class="dv-btn dv-btn-primary" onclick="showDbStats()"><i class="fas fa-chart-bar"></i> إحصائيات DB</button>
     <button type="button" class="dv-btn dv-btn-danger" onclick="cleanupTickets()"><i class="fas fa-broom"></i> تنظيف التذاكر القديمة</button>
   </section>
 
-  <style>
-  .mnt-card { overflow: hidden; }
-  .mnt-header { padding:20px 24px; display:flex; align-items:center; justify-content:space-between; background:<%= maintenance.enabled ? 'rgba(229,57,53,.08)' : 'transparent' %>; border-bottom:1px solid var(--border); transition:.3s; }
-  .mnt-status { display:flex; align-items:center; gap:14px; }
-  .mnt-dot { width:14px;height:14px;border-radius:50%;background:<%= maintenance.enabled ? '#e53935' : '#666' %>;box-shadow:<%= maintenance.enabled ? '0 0 20px rgba(229,57,53,.5)' : 'none' %>;animation:<%= maintenance.enabled ? 'mntPulse 1.5s ease-in-out infinite' : 'none' %>; }
-  @keyframes mntPulse { 0%,100%{box-shadow:0 0 8px rgba(229,57,53,.4)} 50%{box-shadow:0 0 24px rgba(229,57,53,.7)} }
-  .mnt-label { font-weight:700;font-size:.95rem;color:<%= maintenance.enabled ? '#e53935' : '#888' %>; }
-  .mnt-body { padding:20px 24px; }
-  .mnt-actions { display:flex;gap:10px;flex-wrap:wrap; }
-  .mnt-btn { display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;font-weight:700;font-size:.85rem;text-decoration:none;cursor:pointer;border:none;transition:.2s; }
-  .mnt-btn:hover { transform:translateY(-1px); }
-  .mnt-btn-start { background:linear-gradient(135deg,#4caf50,#388e3c);color:#fff;box-shadow:0 4px 15px rgba(76,175,80,.3); }
-  .mnt-btn-start:hover { box-shadow:0 6px 20px rgba(76,175,80,.4); }
-  .mnt-btn-stop { background:linear-gradient(135deg,#e53935,#c62828);color:#fff;box-shadow:0 4px 15px rgba(229,57,53,.3); }
-  .mnt-btn-stop:hover { box-shadow:0 6px 20px rgba(229,57,53,.4); }
-  .mnt-btn-save { background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#fff;box-shadow:0 4px 15px rgba(88,101,242,.3); }
-  .mnt-btn-save:hover { box-shadow:0 6px 20px rgba(88,101,242,.4); }
-  .mnt-btn-ghost { background:rgba(255,255,255,.04);color:var(--text-muted);border:1px solid var(--border); }
-  .mnt-btn-ghost:hover { background:rgba(255,255,255,.08);color:var(--text); }
-  .mnt-form-row { margin-bottom:14px; }
-  .mnt-form-row:last-child { margin-bottom:0; }
-  .mnt-form-row label { display:block;font-size:.82rem;font-weight:600;margin-bottom:5px;color:var(--text-muted); }
-  .mnt-form-row input { width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s; }
-  .mnt-form-row input:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(88,101,242,.15); }
-  .mnt-divider { height:1px;background:var(--border);margin:16px 0; }
-  </style>
+  <!-- ── وضع الصيانة ── -->
+  <div class="dv-sec-head">
+    <h2><i class="fas fa-shield-halved"></i> وضع الصيانة</h2>
+    <span class="dv-mnt-state <%= maintenance.enabled ? 'on' : '' %>"><i class="fas fa-circle"></i> <%= maintenance.enabled ? 'الصيانة مفعلة' : 'الخدمات تعمل بشكل طبيعي' %></span>
+  </div>
 
-  <div class="card glass mnt-card">
-    <div class="mnt-header">
-      <div class="mnt-status">
-        <div class="mnt-dot"></div>
+  <section class="dv-panel dv-mnt <%= maintenance.enabled ? 'on' : '' %>">
+    <div class="dv-mnt-head">
+      <div class="dv-mnt-status">
+        <div class="dv-mnt-dot"></div>
         <div>
-          <div class="mnt-label"><%= maintenance.enabled ? 'وضع الصيانة — مفعل' : 'وضع الصيانة — معطل' %></div>
-          <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">
+          <div class="dv-mnt-label"><%= maintenance.enabled ? 'وضع الصيانة — مفعل' : 'وضع الصيانة — معطل' %></div>
+          <div class="dv-mnt-sub">
             <% if (maintenance.enabled) { %>
               الصيانة عامة — جميع الزوار يتأثرون
             <% } else { %>
@@ -178,51 +157,58 @@
           </div>
         </div>
       </div>
-      <div class="mnt-actions">
+      <div class="dv-mnt-actions">
         <% if (maintenance.enabled) { %>
-          <button type="button" class="mnt-btn mnt-btn-stop" id="mntShowChangelogBtn"><i class="fas fa-power-off"></i> إيقاف الصيانة</button>
+          <button type="button" class="dv-btn dv-btn-danger" id="mntShowChangelogBtn"><i class="fas fa-power-off"></i> إيقاف الصيانة</button>
         <% } else { %>
-          <a href="/dev/maintenance/start" id="mntStartBtn" class="mnt-btn mnt-btn-start" style="opacity:.5;pointer-events:none"><i class="fas fa-shield-halved"></i> تفعيل الصيانة</a>
+          <a href="/dev/maintenance/start" id="mntStartBtn" class="dv-btn dv-btn-success" style="opacity:.5;pointer-events:none"><i class="fas fa-play"></i> تفعيل الصيانة</a>
         <% } %>
       </div>
     </div>
-    <div class="mnt-body" style="<%= maintenance.enabled ? '' : 'opacity:.5' %>">
-      <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:12px;padding:8px 12px;background:rgba(255,152,0,.08);border-radius:8px;border:1px solid rgba(255,152,0,.2)">
-        ⚠️ <strong>ملاحظة:</strong> يجب اختيار المدة الزمنية أولاً لتفعيل زر البدء. يمكنك إدخال <strong>0</strong> للصيانة بدون وقت محدد (مفتوحة).
+
+    <div class="dv-mnt-body <%= maintenance.enabled ? '' : 'dim' %>">
+      <div class="dv-mnt-note">
+        <i class="fas fa-circle-exclamation"></i>
+        <div>يجب اختيار المدة الزمنية أولاً لتفعيل زر البدء. يمكنك إدخال <strong>0</strong> للصيانة بدون وقت محدد (مفتوحة).</div>
       </div>
+
       <form method="POST" action="/dev/maintenance/save" id="mntSaveForm">
         <input type="hidden" name="minutes" id="mntMinutesField" value="">
-        <div style="margin-bottom:12px">
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">⏱ المدة</label>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-            <button type="button" class="mnt-preset" data-min="15" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">15د</button>
-            <button type="button" class="mnt-preset" data-min="30" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">30د</button>
-            <button type="button" class="mnt-preset" data-min="60" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">1س</button>
-            <button type="button" class="mnt-preset" data-min="120" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">2س</button>
-            <button type="button" class="mnt-preset" data-min="360" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">6س</button>
-            <button type="button" class="mnt-preset" data-min="1440" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">24س</button>
-            <button type="button" id="mntCustomBtn" style="padding:6px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s">⌨️ مخصص</button>
+        <div class="dv-mnt-f">
+          <label>⏱ المدة الزمنية</label>
+          <div class="dv-mnt-presets">
+            <button type="button" class="mnt-preset" data-min="15">15د</button>
+            <button type="button" class="mnt-preset" data-min="30">30د</button>
+            <button type="button" class="mnt-preset" data-min="60">1س</button>
+            <button type="button" class="mnt-preset" data-min="120">2س</button>
+            <button type="button" class="mnt-preset" data-min="360">6س</button>
+            <button type="button" class="mnt-preset" data-min="1440">24س</button>
+            <button type="button" id="mntCustomBtn" class="mnt-preset"><i class="fas fa-keyboard"></i> مخصص</button>
           </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="number" id="mntMinutes" min="0" placeholder="عدد الدقائق (0 = بدون وقت محدد)" style="flex:1;min-width:100px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
-            <input type="datetime-local" id="mntPicker" style="flex:1.5;min-width:170px;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+          <div class="dv-mnt-inputs">
+            <input type="number" id="mntMinutes" min="0" placeholder="عدد الدقائق (0 = بدون وقت محدد)">
+            <input type="datetime-local" id="mntPicker">
           </div>
         </div>
-        <div style="margin-bottom:12px">
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">💬 رسالة الصيانة</label>
-          <input type="text" name="message" id="mntMessage" value="<%= maintenance.message || '' %>" placeholder="الموقع تحت الصيانة حالياً..." style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s">
+
+        <div class="dv-mnt-f">
+          <label>💬 رسالة الصيانة</label>
+          <input type="text" name="message" id="mntMessage" value="<%= maintenance.message || '' %>" placeholder="الموقع تحت الصيانة حالياً...">
         </div>
-        <div style="margin-bottom:12px">
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">📢 روم إشعارات الصيانة (ID)</label>
-          <input type="text" name="channelId" id="mntChannel" value="<%= maintenance.channelId || '' %>" placeholder="أدخل ID الروم في الديسكورد" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);box-sizing:border-box;font-size:.9rem;outline:none;transition:.2s;direction:ltr;text-align:left;font-family:monospace">
-          <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">يُرسل إشعار عند بدء وانتهاء الصيانة في هذا الروم</div>
+
+        <div class="dv-mnt-f">
+          <label>📢 روم إشعارات الصيانة (ID)</label>
+          <input type="text" name="channelId" id="mntChannel" value="<%= maintenance.channelId || '' %>" placeholder="أدخل ID الروم في الديسكورد" style="direction:ltr;text-align:left;font-family:monospace">
+          <div class="dv-hint">يُرسل إشعار عند بدء وانتهاء الصيانة في هذا الروم</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button type="submit" class="mnt-btn mnt-btn-save"><i class="fas fa-check"></i> حفظ الإعدادات</button>
-          <span style="font-size:.8rem;color:var(--text-muted)" id="mntSummary"></span>
+
+        <div class="dv-mnt-save-row">
+          <button type="submit" class="dv-btn dv-btn-primary"><i class="fas fa-check"></i> حفظ الإعدادات</button>
+          <span id="mntSummary"></span>
         </div>
-        <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px">💡 حفظ الإعدادات لا يرسل إشعار في الديسكورد. يتم الإرسال فقط عند تفعيل أو إيقاف الصيانة.</div>
+        <div class="dv-hint">💡 حفظ الإعدادات لا يرسل إشعار في الديسكورد. يتم الإرسال فقط عند تفعيل أو إيقاف الصيانة.</div>
       </form>
+
       <script>
       (function(){
         var mins = document.getElementById('mntMinutes');
@@ -230,12 +216,12 @@
         var hidden = document.getElementById('mntMinutesField');
         var summary = document.getElementById('mntSummary');
         var presets = document.querySelectorAll('.mnt-preset');
+        var customBtn = document.getElementById('mntCustomBtn');
 
         function setActive(btn) {
-          presets.forEach(function(p) { p.style.background = 'rgba(255,255,255,.04)'; p.style.color = 'var(--text)'; p.style.borderColor = 'var(--border)'; });
-          var c = document.getElementById('mntCustomBtn');
-          c.style.background = 'rgba(255,255,255,.04)'; c.style.color = 'var(--text)'; c.style.borderColor = 'var(--border)';
-          if (btn) { btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--accent)'; }
+          presets.forEach(function(p) { p.classList.remove('active'); });
+          if (customBtn) customBtn.classList.remove('active');
+          if (btn) btn.classList.add('active');
         }
 
         function calcMins() {
@@ -269,9 +255,9 @@
           });
         });
 
-        document.getElementById('mntCustomBtn').addEventListener('click', function() {
+        customBtn.addEventListener('click', function() {
           setActive(null);
-          this.style.background = 'var(--accent)'; this.style.color = '#fff'; this.style.borderColor = 'var(--accent)';
+          customBtn.classList.add('active');
           mins.value = '';
           picker.value = '';
           picker.focus();
@@ -314,47 +300,38 @@
         presets.forEach(function(b) {
           b.addEventListener('click', updateStartBtn);
         });
-        document.getElementById('mntCustomBtn').addEventListener('click', function() {
+        customBtn.addEventListener('click', function() {
           setTimeout(updateStartBtn, 50);
         });
       })();
       </script>
+
       <% if (maintenance.enabled) { %>
-      <div class="mnt-divider"></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <a href="/maintenance?preview=1" target="_blank" class="mnt-btn mnt-btn-ghost"><i class="fas fa-eye"></i> معاينة صفحة الصيانة</a>
+      <div class="dv-mnt-divider"></div>
+      <div class="dv-mnt-extra">
+        <a href="/maintenance?preview=1" target="_blank" class="dv-btn dv-btn-ghost"><i class="fas fa-eye"></i> معاينة صفحة الصيانة</a>
         <% if (maintenance.endTime) { %>
-          <span style="font-size:.8rem;color:var(--text-muted)">🕐 تنتهي <span dir="ltr"><%= new Date(maintenance.endTime).toLocaleString('ar-EG') %></span></span>
+          <span class="dv-hint">🕐 تنتهي <span dir="ltr"><%= new Date(maintenance.endTime).toLocaleString('ar-EG') %></span></span>
         <% } %>
       </div>
       <!-- Changelog form (hidden, shown when clicking stop) -->
-      <div class="mnt-divider"></div>
+      <div class="dv-mnt-divider"></div>
       <div id="mntChangelogSection" style="display:none">
-        <div style="font-size:.9rem;font-weight:700;margin-bottom:10px;color:var(--text)">
-          <i class="fas fa-scroll"></i> سجل التحديثات — أضف ملخصاً للتغييرات التي تمت أثناء الصيانة
-        </div>
+        <div class="dv-mnt-chg-title"><i class="fas fa-scroll"></i> سجل التحديثات — أضف ملخصاً للتغييرات التي تمت أثناء الصيانة</div>
         <form method="POST" action="/dev/maintenance/stop" id="mntStopForm">
-          <div style="margin-bottom:14px">
-            <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
-              <i class="fas fa-robot"></i> تحديثات البوت — الأوامر، الأنظمة، الحماية، الصوت، التكتات...
-            </label>
-            <textarea name="botUpdates" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.9rem;outline:none;transition:.2s;resize:vertical;box-sizing:border-box;direction:rtl" placeholder="مثال: تم إصلاح مشكلة /ping↵تم إضافة أمر /newcommand↵تم تحسين أداء البوت"><%= maintenance.changelog && maintenance.changelog.botUpdates || '' %></textarea>
-            <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
+          <div class="dv-mnt-f">
+            <label><i class="fas fa-robot"></i> تحديثات البوت — الأوامر، الأنظمة، الحماية، الصوت، التكتات...</label>
+            <textarea name="botUpdates" rows="4" placeholder="مثال: تم إصلاح مشكلة /ping↵تم إضافة أمر /newcommand↵تم تحسين أداء البوت"><%= maintenance.changelog && maintenance.changelog.botUpdates || '' %></textarea>
+            <div class="dv-hint">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
           </div>
-          <div style="margin-bottom:14px">
-            <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
-              <i class="fas fa-globe"></i> تحديثات الموقع — لوحة التحكم، التصميم، API، السرعة...
-            </label>
-            <textarea name="siteUpdates" rows="4" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.9rem;outline:none;transition:.2s;resize:vertical;box-sizing:border-box;direction:rtl" placeholder="مثال: إعادة تصميم صفحة الإحصائيات↵إصلاح مشكلة الوقت في العدّاد↵تحسين سرعة تحميل الصفحات"><%= maintenance.changelog && maintenance.changelog.siteUpdates || '' %></textarea>
-            <div style="font-size:.75rem;color:var(--text-muted);margin-top:4px">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
+          <div class="dv-mnt-f">
+            <label><i class="fas fa-globe"></i> تحديثات الموقع — لوحة التحكم، التصميم، API، السرعة...</label>
+            <textarea name="siteUpdates" rows="4" placeholder="مثال: إعادة تصميم صفحة الإحصائيات↵إصلاح مشكلة الوقت في العدّاد↵تحسين سرعة تحميل الصفحات"><%= maintenance.changelog && maintenance.changelog.siteUpdates || '' %></textarea>
+            <div class="dv-hint">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
           </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-            <button type="submit" class="mnt-btn mnt-btn-stop" style="font-size:1rem;padding:12px 30px">
-              <i class="fas fa-power-off"></i> تأكيد إيقاف الصيانة وإرسال الإشعار
-            </button>
-            <button type="button" class="mnt-btn mnt-btn-ghost" id="mntCancelChangelog">
-              <i class="fas fa-times"></i> إلغاء
-            </button>
+          <div class="dv-mnt-actions-row">
+            <button type="submit" class="dv-btn dv-btn-danger"><i class="fas fa-power-off"></i> تأكيد إيقاف الصيانة وإرسال الإشعار</button>
+            <button type="button" class="dv-btn dv-btn-ghost" id="mntCancelChangelog"><i class="fas fa-times"></i> إلغاء</button>
           </div>
         </form>
       </div>
@@ -406,7 +383,7 @@
       </script>
       <% } %>
     </div>
-  </div>
+  </section>
 
   <style>
   .dv{max-width:1120px;margin:0 auto;position:relative;padding-bottom:28px}
@@ -433,13 +410,15 @@
   .dv-pills span{display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;font-weight:600;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:4px 12px;border-radius:100px}
   .dv-pills i{font-size:0.65rem}
   .dv-cta{display:flex;gap:10px;flex-wrap:wrap}
-  .dv-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:11px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;transition:all 0.25s;cursor:pointer;border:none}
+  .dv-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:11px;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;transition:all 0.25s;cursor:pointer;border:none;text-decoration:none}
   .dv-btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 6px 22px rgba(99,102,241,0.35)}
   .dv-btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(99,102,241,0.45);color:#fff}
   .dv-btn-ghost{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.08)}
   .dv-btn-ghost:hover{background:rgba(255,255,255,0.07);color:#fff;border-color:rgba(255,255,255,0.15)}
   .dv-btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 6px 18px rgba(239,68,68,0.25)}
   .dv-btn-danger:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(239,68,68,0.35);color:#fff}
+  .dv-btn-success{background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 6px 18px rgba(16,185,129,0.25)}
+  .dv-btn-success:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(16,185,129,0.35);color:#fff}
   .dv-hero-side{display:flex;flex-direction:column;gap:10px;min-width:200px}
   .dv-role{display:inline-flex;align-items:center;gap:8px;font-size:0.72rem;color:rgba(255,255,255,0.4);padding:8px 14px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
   .dv-role i{color:#fbbf24}
@@ -466,7 +445,7 @@
   .dv-sec-head{position:relative;z-index:1;display:flex;align-items:center;gap:12px;margin:36px 0 16px}
   .dv-sec-head h2{font-size:1.05rem;font-weight:800;margin:0;display:flex;align-items:center;gap:9px}
   .dv-sec-head h2 i{color:#818cf8;font-size:0.95rem}
-  .dv-sec-head span{font-size:0.72rem;color:rgba(255,255,255,0.25)}
+  .dv-sec-head span:not(.dv-mnt-state){font-size:0.72rem;color:rgba(255,255,255,0.25)}
   .dv-sec-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(99,102,241,0.15),transparent)}
   .dv-sec-row{flex-wrap:wrap}
   .dv-count{display:inline-flex;min-width:22px;height:22px;padding:0 8px;align-items:center;justify-content:center;border-radius:100px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);color:#818cf8;font-size:0.7rem;font-weight:700}
@@ -517,7 +496,51 @@
   .dv-diag-colls{display:none;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:14px}
   .dv-diag-colls div{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 10px;font-size:0.78rem}
   .dv-diag-colls span{color:rgba(255,255,255,0.4)}
-  .dv-db-bar{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap}
+  .dv-db-bar{display:flex;gap:10px;flex-wrap:wrap}
+
+  /* ── وضع الصيانة ── */
+  .dv-mnt{padding:0;overflow:hidden}
+  .dv-mnt-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap}
+  .dv-mnt-status{display:flex;align-items:center;gap:13px}
+  .dv-mnt-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+  .dv-mnt:not(.on) .dv-mnt-dot{background:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,0.12)}
+  .dv-mnt.on .dv-mnt-dot{background:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,0.12);animation:dvMntPulse 1.6s ease-in-out infinite}
+  @keyframes dvMntPulse{0%,100%{box-shadow:0 0 0 3px rgba(239,68,68,0.14)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0.22)}}
+  .dv-mnt-label{font-weight:800;font-size:0.9rem}
+  .dv-mnt.on .dv-mnt-label{color:#f87171}
+  .dv-mnt-sub{font-size:0.72rem;color:rgba(255,255,255,0.35);margin-top:2px}
+  .dv-mnt-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .dv-mnt-state{display:inline-flex;align-items:center;gap:6px;font-size:0.7rem;font-weight:600;padding:4px 13px;border-radius:100px;font-style:normal}
+  .dv-mnt-state:not(.on){background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.18);color:#34d399}
+  .dv-mnt-state.on{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.22);color:#f87171}
+  .dv-mnt-state i{font-size:0.42rem;animation:dvMntPulse 1.6s ease-in-out infinite}
+  .dv-mnt-body{padding:22px}
+  .dv-mnt-body.dim{opacity:0.55}
+  .dv-mnt-note{display:flex;gap:10px;align-items:flex-start;font-size:0.76rem;color:rgba(255,255,255,0.5);margin-bottom:16px;padding:10px 14px;background:rgba(251,191,36,0.07);border-radius:10px;border:1px solid rgba(251,191,36,0.16);line-height:1.8}
+  .dv-mnt-note i{color:#fbbf24;margin-top:3px;font-size:0.85rem}
+  .dv-mnt-f{margin-bottom:14px}
+  .dv-mnt-f:last-child{margin-bottom:0}
+  .dv-mnt-f label{display:block;font-size:0.78rem;font-weight:600;margin-bottom:6px;color:rgba(255,255,255,0.45)}
+  .dv-mnt-f label i{width:16px;text-align:center;color:#818cf8}
+  .dv-mnt-f input[type=text],.dv-mnt-f input[type=number],.dv-mnt-f input[type=datetime-local],.dv-mnt-f textarea{width:100%;padding:11px 14px;border-radius:11px;background:rgba(12,12,26,0.55);border:1px solid rgba(255,255,255,0.09);color:rgba(255,255,255,0.85);font-family:'Cairo',sans-serif;font-size:0.85rem;outline:none;transition:all 0.25s;box-sizing:border-box}
+  .dv-mnt-f input[type=datetime-local]{color-scheme:dark}
+  .dv-mnt-f input:focus,.dv-mnt-f textarea:focus{border-color:rgba(99,102,241,0.45);box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+  .dv-mnt-f textarea{resize:vertical;direction:rtl;line-height:1.8}
+  .dv-hint{font-size:0.72rem;color:rgba(255,255,255,0.3);margin-top:4px;line-height:1.7}
+  .dv-mnt-presets{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+  .mnt-preset{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.65);cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.8rem;font-weight:600;transition:all 0.22s}
+  .mnt-preset:hover{border-color:rgba(99,102,241,0.35);color:#fff}
+  .mnt-preset.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(99,102,241,0.3)}
+  .dv-mnt-inputs{display:flex;gap:10px;flex-wrap:wrap}
+  .dv-mnt-inputs input[type=number]{flex:1;min-width:120px}
+  .dv-mnt-inputs input[type=datetime-local]{flex:1.5;min-width:180px}
+  .dv-mnt-save-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .dv-mnt-save-row span{font-size:0.78rem;color:rgba(255,255,255,0.4)}
+  .dv-mnt-divider{height:1px;background:rgba(255,255,255,0.06);margin:18px 0}
+  .dv-mnt-extra{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .dv-mnt-chg-title{font-size:0.85rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.85)}
+  .dv-mnt-chg-title i{color:#818cf8}
+  .dv-mnt-actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 
   /* ── توست ── */
   .dv-toast{position:fixed;bottom:28px;left:50%;transform:translate(-50%,10px);z-index:9999;padding:12px 22px;border-radius:12px;font-size:0.82rem;font-weight:600;color:#fff;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 12px 34px rgba(0,0,0,0.4);opacity:0;transition:all 0.3s;pointer-events:none;direction:rtl}
