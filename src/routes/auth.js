@@ -62,7 +62,7 @@ router.get('/discord/callback', async (req, res) => {
     };
 
     req.session.save(() => {
-      res.redirect('/');
+      res.redirect('/home');
     });
   } catch (err) {
     const detail = err.response?.data?.error_description || err.response?.data?.error || err.message;
