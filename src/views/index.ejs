@@ -56,6 +56,8 @@ a { text-decoration:none; color:inherit; }
 .f-nbtn-g { background:rgba(255,255,255,0.04); color:var(--fm); border:1px solid var(--fbo); }
 .f-nbtn-g:hover { background:rgba(255,255,255,0.07); color:white; }
 .f-nbtn-d { background:rgba(237,66,69,0.12); color:#f87171; border:1px solid rgba(237,66,69,0.15); }
+.f-nbtn-gold { background:linear-gradient(135deg,#f5b301,#d97706); color:#141004; font-weight:700; box-shadow:0 3px 14px rgba(245,179,1,0.25); }
+.f-nbtn-gold:hover { transform:translateY(-1px); box-shadow:0 5px 24px rgba(245,179,1,0.4); color:#141004; }
 
 .f-hero {
   position:relative; min-height:100vh; display:flex; align-items:center;
@@ -111,6 +113,14 @@ a { text-decoration:none; color:inherit; }
 .f-btn-p:hover { transform:translateY(-2px); box-shadow:0 8px 36px var(--fg); color:white; }
 .f-btn-s { background:transparent; color:var(--fm); border:1px solid var(--fbo); }
 .f-btn-s:hover { border-color:rgba(255,255,255,0.12); color:white; }
+.f-btn-gold {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:11px 28px; border-radius:10px; font-family:'Cairo',sans-serif;
+  font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.3s; border:none;
+  background:linear-gradient(135deg,#f5b301,#d97706); color:#141004;
+  box-shadow:0 4px 22px rgba(245,179,1,0.25);
+}
+.f-btn-gold:hover { transform:translateY(-2px); box-shadow:0 8px 36px rgba(245,179,1,0.4); color:#141004; }
 
 .f-right { display:flex; align-items:center; justify-content:center; }
 @media (max-width:900px) { .f-right { display:none; } }
@@ -287,6 +297,7 @@ a { text-decoration:none; color:inherit; }
       <span>FX9</span>
     </a>
     <div style="display:flex;align-items:center;gap:8px">
+      <a href="/premium" class="f-nbtn f-nbtn-gold"><i class="fas fa-crown"></i> اشتراك في البريميوم</a>
       <% if (locals.user) { %>
         <a href="/home" class="f-nbtn f-nbtn-p"><i class="fas fa-th-large"></i> لوحة التحكم</a>
         <a href="/auth/logout" class="f-nbtn f-nbtn-d"><i class="fas fa-sign-out-alt"></i> خروج</a>
@@ -317,6 +328,7 @@ a { text-decoration:none; color:inherit; }
           <% } else { %>
             <a href="/auth/discord" class="f-btn f-btn-p"><i class="fab fa-discord"></i> سجل بدقيقة</a>
             <a href="/invite-dev" class="f-btn f-btn-s"><i class="fas fa-code-branch"></i> أضف البوت</a>
+            <a href="/premium" class="f-btn f-btn-gold"><i class="fas fa-crown"></i> اشتراك في البريميوم</a>
           <% } %>
         </div>
       </div>

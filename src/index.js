@@ -231,6 +231,11 @@ app.get('/invite-dev', (req, res) => {
   res.status(200).render('invite-dev', { layout: false, user: req.session?.user || null, title: 'خاصية قيد التطوير' });
 });
 
+// ─── Premium (Under Development) ─────────────────────────────────────────
+app.get('/premium', (req, res) => {
+  res.status(200).render('premium', { layout: false, user: req.session?.user || null, title: 'البريميوم — قريباً' });
+});
+
 // ─── Landing Page ────────────────────────────────────────────────────────
 app.get('/', async (req, res) => {
   if (req.session?.user) {
