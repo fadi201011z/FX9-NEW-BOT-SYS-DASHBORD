@@ -13,30 +13,32 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
   const guild = await resolveGuild(req.session.user.guilds, guildId);
   if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
 
-  async function getCfg(key, def) {
-    const val = await getGuildConfig(guildId, key);
-    return val ? val.value : def;
+  // قراءة كل إعدادات الحماية في استعلام واحد بدل استعلام لكل مفتاح
+  const allGuildConfig = await getAllGuildConfig(guildId);
+  function getCfg(key, def) {
+    const v = allGuildConfig[key];
+    return v === undefined || v === null ? def : v;
   }
 
   const protection = {
-    antiSpamEnabled: await getCfg('anti_spam', 'true'),
-    antiLinkEnabled: await getCfg('anti_link', 'true'),
-    antiMentionEnabled: await getCfg('anti_mention', 'true'),
-    antiNukeEnabled: await getCfg('anti_nuke', 'true'),
-    antiRaidEnabled: await getCfg('anti_raid', 'true'),
-    spamLimit: await getCfg('spam_limit', '5'),
-    spamWindow: await getCfg('spam_window', '5000'),
-    spamPunishment: await getCfg('spam_punishment', 'timeout'),
-    nukeChannelLimit: await getCfg('nuke_channel_limit', '3'),
-    nukeBanLimit: await getCfg('nuke_ban_limit', '5'),
-    nukeWindow: await getCfg('nuke_window', '10000'),
-    raidLimit: await getCfg('raid_limit', '10'),
-    raidWindow: await getCfg('raid_window', '10000'),
+    antiSpamEnabled: getCfg('anti_spam', 'true'),
+    antiLinkEnabled: getCfg('anti_link', 'true'),
+    antiMentionEnabled: getCfg('anti_mention', 'true'),
+    antiNukeEnabled: getCfg('anti_nuke', 'true'),
+    antiRaidEnabled: getCfg('anti_raid', 'true'),
+    spamLimit: getCfg('spam_limit', '5'),
+    spamWindow: getCfg('spam_window', '5000'),
+    spamPunishment: getCfg('spam_punishment', 'timeout'),
+    nukeChannelLimit: getCfg('nuke_channel_limit', '3'),
+    nukeBanLimit: getCfg('nuke_ban_limit', '5'),
+    nukeWindow: getCfg('nuke_window', '10000'),
+    raidLimit: getCfg('raid_limit', '10'),
+    raidWindow: getCfg('raid_window', '10000'),
   };
 
   // Fetch restricted channels
   let restrictedChannels = [];
-  const raw = await getCfg('restricted_channels', '[]');
+  const raw = getCfg('restricted_channels', '[]');
   try { restrictedChannels = JSON.parse(raw); } catch {}
 
   // Fetch guild channels for the dropdown

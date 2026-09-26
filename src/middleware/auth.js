@@ -14,6 +14,7 @@ let guildsRefreshCache = {};
 
 export function clearDashboardRoleCache(userId) {
   delete roleRefreshCache[userId];
+  clearGuildLevelCache(userId); // مسح كاش مستوى الصلاحية للمستخدم نفسه
 }
 
 export async function refreshDashboardRole(req, res, next) {
@@ -98,11 +99,28 @@ export const ROLE_HIERARCHY = { owner: 4, developer: 4, manager: 3, admin: 2, mo
 
 export const ROLE_LABELS = { manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم', member: 'عضو' };
 
+// كاش مُستوى الصلاحية لكل (مستخدم + سيرفر) لتقليل استعلامات DB المتكررة
+const guildLevelCache = new Map();
+const GUILD_LEVEL_TTL = 30000; // 30 ثانية
+
+export function clearGuildLevelCache(userId, guildId) {
+  if (guildId) guildLevelCache.delete(`${userId}:${guildId}`);
+  else if (userId) {
+    for (const key of guildLevelCache.keys()) {
+      if (key.startsWith(userId + ':')) guildLevelCache.delete(key);
+    }
+  } else guildLevelCache.clear();
+}
+
 // Effective permission level WITHIN a specific guild only (per-guild, not global).
 // A support member in guild X no longer inherits a manager role from guild Y.
 export async function getGuildLevel(user, guildId) {
   if (!user) return -1;
   if (user.id === config.discord.ownerId) return 4;
+  const cacheKey = `${user.id}:${guildId}`;
+  const now = Date.now();
+  const cached = guildLevelCache.get(cacheKey);
+  if (cached && now - cached.ts < GUILD_LEVEL_TTL) return cached.level;
   let best = -1;
   try {
     const a = await Admin.findOne({ userId: user.id, guildId }).collation({ locale: 'en', strength: 2 }).lean();
@@ -116,6 +134,7 @@ export async function getGuildLevel(user, guildId) {
       if ((p & 0x8n) === 0x8n || (p & 0x20n) === 0x20n) best = Math.max(best, 3);
     } catch {}
   }
+  guildLevelCache.set(cacheKey, { level: best, ts: now });
   return best;
 }
 

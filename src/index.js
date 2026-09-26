@@ -95,6 +95,9 @@ app.use(async (req, res, next) => {
 });
 
 // ─── Maintenance mode check ────────────────────────────────────────────
+// كاش قصير (5 ثوانٍ) لتجنّب استعلام MongoDB في كل طلب
+let maintenanceCache = { doc: null, ts: 0 };
+const MAINTENANCE_CACHE_TTL = 5000;
 app.use(async (req, res, next) => {
   try {
     const skip = ['/', '/auth', '/maintenance', '/dev', '/api', '/static', '/css', '/js', '/fonts', '/favicon'];
@@ -104,16 +107,22 @@ app.use(async (req, res, next) => {
   if (req.session?.maintenanceBypass) return next();
 
   try {
-    const Maintenance = (await import('./models/Maintenance.js')).default;
-    const doc = await Maintenance.findOne();
-    if (doc && doc.enabled === true) {
-      if (doc.endTime && Date.now() >= doc.endTime) {
+    const now = Date.now();
+    if (now - maintenanceCache.ts > MAINTENANCE_CACHE_TTL || !maintenanceCache.doc) {
+      const Maintenance = (await import('./models/Maintenance.js')).default;
+      const doc = await Maintenance.findOne();
+      if (doc && doc.enabled === true && doc.endTime && Date.now() >= doc.endTime) {
         doc.enabled = false;
         doc.endTime = null;
         await doc.save();
         fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
+        maintenanceCache = { doc: null, ts: Date.now() };
         return next();
       }
+      maintenanceCache = { doc: doc ? doc.toObject() : null, ts: Date.now() };
+    }
+    const doc = maintenanceCache.doc;
+    if (doc && doc.enabled === true) {
       if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
         return res.status(503).json({ error: 'maintenance', message: doc.message, endTime: doc.endTime });
       }
@@ -253,8 +262,8 @@ app.get('/', async (req, res) => {
   let botStats = null;
   try {
     const [cmdRes, botRes] = await Promise.all([
-      fetch(`${config.botApiUrl}/api/commands/stats`).catch(() => null),
-      fetch(`${config.botApiUrl}/api/stats`).catch(() => null),
+      fetch(`${config.botApiUrl}/api/commands/stats`, { signal: AbortSignal.timeout(3000) }).catch(() => null),
+      fetch(`${config.botApiUrl}/api/stats`, { signal: AbortSignal.timeout(3000) }).catch(() => null),
     ]);
     if (cmdRes && cmdRes.ok) cmdStats = await cmdRes.json();
     if (botRes && botRes.ok) botStats = await botRes.json();

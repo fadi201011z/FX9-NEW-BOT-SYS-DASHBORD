@@ -74,6 +74,9 @@ export async function getDiscordUser(userId, botToken) {
 const rolesCache = new Map();
 const ROLES_CACHE_TTL = 300000;
 
+const channelsCache = new Map();
+const CHANNELS_CACHE_TTL = 120000;
+
 export async function getGuildRoles(guildId, botToken) {
   const cached = rolesCache.get(guildId);
   if (cached && Date.now() - cached.ts < ROLES_CACHE_TTL) return cached.data;
@@ -114,14 +117,23 @@ export async function getGuildInfo(guildId, botToken) {
 }
 
 export async function getGuildChannels(guildId, botToken) {
+  const cached = channelsCache.get(guildId);
+  if (cached && Date.now() - cached.ts < CHANNELS_CACHE_TTL) return cached.data;
   try {
     const res = await axios.get(`https://discord.com/api/guilds/${guildId}/channels`, {
       headers: { Authorization: `Bot ${botToken}` },
     });
-    return res.data || [];
+    const data = res.data || [];
+    channelsCache.set(guildId, { data, ts: Date.now() });
+    return data;
   } catch {
     return [];
   }
+}
+
+export function clearGuildChannelsCache(guildId) {
+  if (guildId) channelsCache.delete(guildId);
+  else channelsCache.clear();
 }
 
 export async function getGuildMembersByRole(guildId, roleId, botToken) {
