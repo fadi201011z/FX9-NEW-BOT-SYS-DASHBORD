@@ -32,7 +32,13 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
     nukeWindow: await getCfg('nuke_window', '10000'),
     raidLimit: await getCfg('raid_limit', '10'),
     raidWindow: await getCfg('raid_window', '10000'),
+    badWordsEnabled: await getCfg('bad_words_enabled', 'true'),
+    badWordsPunishment: await getCfg('bad_words_punishment', 'delete'),
   };
+
+  // قائمة الكلمات الممنوعة (مصفوفة)
+  let badWords = [];
+  try { badWords = JSON.parse(await getCfg('bad_words', '[]')) || []; } catch {}
 
   // Fetch restricted channels
   let restrictedChannels = [];
@@ -50,6 +56,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
     user: req.session.user,
     guild,
     protection,
+    badWords,
     restrictedChannels,
     guildChannels,
     title: 'إعدادات الحماية',
@@ -61,7 +68,21 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('ad
     const { guildId } = req.params;
     const updates = req.body;
 
+    // ── إعدادات الكلمات الممنوعة تُكتب بالمفاتيح التي يقرأها البوت مباشرة ──
+    const badWordsEnabled = updates.badWordsEnabled ? 'true' : 'false';
+    const badWordsPunishment = updates.badWordsPunishment || 'delete';
+    let badWordsList = updates.badWordsList;
+    try { JSON.parse(badWordsList || '[]'); } catch { badWordsList = '[]'; }
+    await Promise.all([
+      setGuildConfig(guildId, 'bad_words_enabled', badWordsEnabled),
+      setGuildConfig(guildId, 'bad_words_punishment', badWordsPunishment),
+      setGuildConfig(guildId, 'bad_words', String(badWordsList)),
+    ]);
+
+    // ── بقية الإعدادات (السلوك الحالي) ──
+    const SKIP = new Set(['badWordsEnabled', 'badWordsPunishment', 'badWordsList']);
     for (const [key, value] of Object.entries(updates)) {
+      if (SKIP.has(key)) continue;
       setGuildConfig(guildId, key, String(value));
     }
 

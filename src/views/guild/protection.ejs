@@ -74,6 +74,43 @@
     </div>
     <button type="submit" class="btn-primary"><i class="fas fa-save"></i> حفظ إعدادات الحماية</button>
   </div>
+
+  <!-- ─── الكلمات الممنوعة ─────────────────────────────────────────────── -->
+  <div class="card glass" style="margin-top:20px">
+    <div class="card-header">
+      <h3><i class="fas fa-ban"></i> الكلمات الممنوعة (Bad Words)</h3>
+      <label class="toggle" title="تفعيل/تعطيل الفلتر">
+        <input type="checkbox" name="badWordsEnabled" <%= protection.badWordsEnabled === 'true' ? 'checked' : '' %>>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <p class="card-desc" style="margin:0 20px 16px;color:var(--text-muted);font-size:.85rem">
+      يُحذف أي محتوى يحتوي كلمة من القائمة مع كشف الحيل (التشكيل، الأحرف المتباعدة، الرموز بين الحروف) ويُسجَّل في سجلات الإشراف — إذا خليت القائمة فارغة يعمل البوت بقائمة افتراضية مدمجة
+    </p>
+
+    <div style="padding:0 20px">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <input type="text" id="badWordInput" placeholder="اكتب كلمة ممنوعة ثم اضغط إضافة..." style="flex:1;min-width:220px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);font-family:inherit;outline:none">
+        <button type="button" onclick="addBadWord()" class="btn-primary" style="display:flex;align-items:center;gap:6px;padding:10px 20px">
+          <i class="fas fa-plus"></i> إضافة
+        </button>
+      </div>
+
+      <div class="form-group" style="margin-bottom:14px">
+        <label>العقوبة عند المخالفة</label>
+        <select name="badWordsPunishment">
+          <option value="delete" <%= protection.badWordsPunishment === 'delete' ? 'selected' : '' %>>حذف الرسالة فقط</option>
+          <option value="timeout" <%= protection.badWordsPunishment === 'timeout' ? 'selected' : '' %>>حذف + إيقاف مؤقت 60 ثانية</option>
+        </select>
+      </div>
+
+      <input type="hidden" name="badWordsList" id="badWordsList" value='<%= JSON.stringify(badWords || []) %>'>
+      <div id="badWordsChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px"></div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:16px">
+        <i class="fas fa-info-circle"></i> تُطبق التغييرات على البوت تلقائياً خلال ~10 ثوانٍ — بدون إعادة تشغيل
+      </div>
+    </div>
+  </div>
 </form>
 
 <!-- ─── الرومات المحضورة ────────────────────────────────────────────── -->
@@ -160,4 +197,41 @@ async function removeRestrictedChannel(channelId) {
     showToast('❌ فشل الإزالة');
   }
 }
+
+// ── الكلمات الممنوعة ──
+let currentBadWords = [];
+try { currentBadWords = JSON.parse(document.getElementById('badWordsList').value || '[]'); } catch { currentBadWords = []; }
+const escWord = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function renderBadWords() {
+  const listEl = document.getElementById('badWordsList');
+  const chipsEl = document.getElementById('badWordsChips');
+  if (!listEl || !chipsEl) return;
+  listEl.value = JSON.stringify(currentBadWords);
+  if (!currentBadWords.length) {
+    chipsEl.innerHTML = '<span style="color:var(--text-muted);font-size:.85rem;padding:6px 0"><i class="fas fa-inbox"></i> لا توجد كلمات — يعمل البوت بالقائمة الافتراضية المدمجة</span>';
+    return;
+  }
+  chipsEl.innerHTML = currentBadWords.map((w, i) =>
+    '<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(237,66,69,.12);border:1px solid rgba(237,66,69,.3);border-radius:100px;font-size:.82rem">' +
+      escWord(w) +
+      '<button type="button" onclick="removeBadWord(' + i + ')" style="background:none;border:none;color:#ed4245;cursor:pointer;padding:0;font-size:.75rem;line-height:1" title="حذف الكلمة"><i class="fas fa-times"></i></button>' +
+    '</span>'
+  ).join('');
+}
+function addBadWord() {
+  const inp = document.getElementById('badWordInput');
+  const w = (inp.value || '').trim();
+  if (!w) return showToast('⚠️ اكتب الكلمة أولاً');
+  if (currentBadWords.includes(w)) return showToast('⚠️ هذه الكلمة مضافة مسبقاً');
+  if (currentBadWords.length >= 100) return showToast('⚠️ الحد الأقصى 100 كلمة');
+  currentBadWords.push(w);
+  inp.value = '';
+  renderBadWords();
+  showToast('✅ أُضيفت الكلمة — اضغط «حفظ إعدادات الحماية» لتثبيتها');
+}
+function removeBadWord(i) {
+  currentBadWords.splice(i, 1);
+  renderBadWords();
+}
+renderBadWords();
 </script>
