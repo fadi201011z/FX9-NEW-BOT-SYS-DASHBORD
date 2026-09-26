@@ -85,7 +85,7 @@
       </label>
     </div>
     <p class="card-desc" style="margin:0 20px 16px;color:var(--text-muted);font-size:.85rem">
-      يُحذف أي محتوى يحتوي كلمة من القائمة مع كشف الحيل (التشكيل، الأحرف المتباعدة، الرموز بين الحروف) ويُسجَّل في سجلات الإشراف — إذا خليت القائمة فارغة يعمل البوت بقائمة افتراضية مدمجة
+      يُحذف أي محتوى يحتوي كلمة من القائمة مع كشف الحيل (التشكيل، الأحرف المتباعدة، الرموز بين الحروف) ويُسجَّل في سجلات الإشراف. لكل كلمة: تفعيل/تعطيل مستقل + عقوبة خاصة بها (وإن تُركت «حسب السيرفر» تُطبَّق العقوبة العامة) — إذا خليت القائمة فارغة يعمل البوت بقائمة افتراضية مدمجة
     </p>
 
     <div style="padding:0 20px">
@@ -95,6 +95,12 @@
           <i class="fas fa-plus"></i> إضافة
         </button>
       </div>
+
+      <% if (usingDefaultList) { %>
+        <div style="font-size:.78rem;color:var(--text-muted);background:rgba(88,101,242,.1);border:1px dashed rgba(88,101,242,.4);border-radius:10px;padding:10px 14px;margin-bottom:12px">
+          <i class="fas fa-database"></i> هذه القائمة الافتراضية المدمجة في البوت — تُعرض لأن سيرفرك لا يملك قائمة خاصة بعد. أي تعديل ثم «حفظ» سيثبّتها كقائمة خاصة بسيرفرك.
+        </div>
+      <% } %>
 
       <div class="form-group" style="margin-bottom:14px">
         <label>العقوبة عند المخالفة</label>
@@ -116,7 +122,7 @@
       </div>
 
       <input type="hidden" name="badWordsList" id="badWordsList" value='<%= JSON.stringify(badWords || []) %>'>
-      <div id="badWordsChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px"></div>
+      <div id="badWordsListEl" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px"></div>
       <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:16px">
         <i class="fas fa-info-circle"></i> تُطبق التغييرات على البوت **فوراً** عند الحفظ (دفع مباشر) — بدون إعادة تشغيل. **الإعفاء الوحيد هو مالك السيرفر** — الإدارة والرتب الإشرافية تُعاقب أيضاً على المخالفات، وتأكد أن رتبة البوت أعلى من رتبة الأعضاء مع صلاحيات ModerateMembers/KickMembers/BanMembers.
       </div>
@@ -212,36 +218,60 @@ async function removeRestrictedChannel(channelId) {
 // ── الكلمات الممنوعة ──
 let currentBadWords = [];
 try { currentBadWords = JSON.parse(document.getElementById('badWordsList').value || '[]'); } catch { currentBadWords = []; }
+currentBadWords = (Array.isArray(currentBadWords) ? currentBadWords : []).map(w =>
+  typeof w === 'string' ? { word: w, enabled: true, punishment: '' } : w
+);
 const escWord = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const PUNISHMENT_LABELS = {
+  '': 'حسب السيرفر', 'delete': 'حذف فقط', 'timeout': 'إيقاف مؤقت',
+  'warn': 'تحذير رسمي', 'kick': 'طرد', 'ban': 'حظر'
+};
 function renderBadWords() {
   const listEl = document.getElementById('badWordsList');
-  const chipsEl = document.getElementById('badWordsChips');
-  if (!listEl || !chipsEl) return;
-  listEl.value = JSON.stringify(currentBadWords);
+  const listEl2 = document.getElementById('badWordsListEl');
+  if (!listEl || !listEl2) return;
+  listEl.value = JSON.stringify(currentBadWords.map(w => ({ word: w.word, enabled: w.enabled !== false, punishment: w.punishment || '' })));
   if (!currentBadWords.length) {
-    chipsEl.innerHTML = '<span style="color:var(--text-muted);font-size:.85rem;padding:6px 0"><i class="fas fa-inbox"></i> لا توجد كلمات — يعمل البوت بالقائمة الافتراضية المدمجة</span>';
+    listEl2.innerHTML = '<span style="color:var(--text-muted);font-size:.85rem;padding:6px 0"><i class="fas fa-inbox"></i> لا توجد كلمات — يعمل البوت بالقائمة الافتراضية المدمجة</span>';
     return;
   }
-  chipsEl.innerHTML = currentBadWords.map((w, i) =>
-    '<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(237,66,69,.12);border:1px solid rgba(237,66,69,.3);border-radius:100px;font-size:.82rem">' +
-      escWord(w) +
-      '<button type="button" onclick="removeBadWord(' + i + ')" style="background:none;border:none;color:#ed4245;cursor:pointer;padding:0;font-size:.75rem;line-height:1" title="حذف الكلمة"><i class="fas fa-times"></i></button>' +
-    '</span>'
+  listEl2.innerHTML = currentBadWords.map((w, i) =>
+    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--bg-glass);border:1px solid var(--border);border-radius:10px;' + (w.enabled === false ? 'opacity:.55' : '') + '">' +
+      '<label style="display:inline-flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer;min-width:110px" title="تفعيل/تعطيل">' +
+        '<input type="checkbox" ' + (w.enabled !== false ? 'checked' : '') + ' onchange="toggleBadWord(' + i + ')" style="accent-color:#5865f2;width:16px;height:16px">' +
+        '<strong>' + escWord(w.word) + '</strong>' +
+      '</label>' +
+      '<select onchange="setBadWordPunishment(' + i + ', this.value)" style="flex:1;min-width:150px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);font-family:inherit;font-size:.8rem">' +
+        Object.entries(PUNISHMENT_LABELS).map(([val, label]) =>
+          '<option value="' + val + '" ' + ((w.punishment || '') === val ? 'selected' : '') + '>' + label + '</option>'
+        ).join('') +
+      '</select>' +
+      '<span style="font-size:.7rem;color:var(--text-muted);white-space:nowrap">' + (w.punishment ? 'خاصة بالكلمة' : '') + '</span>' +
+      '<button type="button" onclick="removeBadWord(' + i + ')" style="background:none;border:none;color:#ed4245;cursor:pointer;padding:4px 8px;font-size:.8rem;line-height:1" title="حذف الكلمة"><i class="fas fa-times"></i></button>' +
+    '</div>'
   ).join('');
 }
 function addBadWord() {
   const inp = document.getElementById('badWordInput');
   const w = (inp.value || '').trim();
   if (!w) return showToast('⚠️ اكتب الكلمة أولاً');
-  if (currentBadWords.includes(w)) return showToast('⚠️ هذه الكلمة مضافة مسبقاً');
+  if (currentBadWords.some(x => x.word === w)) return showToast('⚠️ هذه الكلمة مضافة مسبقاً');
   if (currentBadWords.length >= 100) return showToast('⚠️ الحد الأقصى 100 كلمة');
-  currentBadWords.push(w);
+  currentBadWords.push({ word: w, enabled: true, punishment: '' });
   inp.value = '';
   renderBadWords();
   showToast('✅ أُضيفت الكلمة — اضغط «حفظ إعدادات الحماية» لتثبيتها');
 }
 function removeBadWord(i) {
   currentBadWords.splice(i, 1);
+  renderBadWords();
+}
+function toggleBadWord(i) {
+  currentBadWords[i].enabled = currentBadWords[i].enabled !== false ? false : true;
+  renderBadWords();
+}
+function setBadWordPunishment(i, val) {
+  currentBadWords[i].punishment = val;
   renderBadWords();
 }
 function toggleTimeoutField() {
