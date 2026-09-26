@@ -14,6 +14,9 @@ const TICKET_KEY_MAP = {
   log_channel_id: 'logChannelId',
 };
 
+// مفاتيح الصور المخصصة لكل سيرفر (تُقرأ من البوت عبر guildImage.js)
+const CUSTOM_IMAGE_KEYS = ['welcome_image', 'ticket_panel_image', 'voice_panel_image'];
+
 const router = Router();
 
 async function fetchGuildChannels(guildId) {
@@ -204,6 +207,66 @@ router.get('/:guildId/all', isAuthenticated, hasGuildAccess, async (req, res) =>
   const { guildId } = req.params;
   const config = getAllGuildConfig(guildId);
   res.json({ config });
+});
+
+// ─── Custom images (welcome / ticket panel / voice panel) ──────────────────
+// يعيد قيم الصور المخصصة الثلاث (رابط أو base64) — تُستخدم للمعاينة في الواجهة
+router.get('/:guildId/images', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const cfg = await getAllGuildConfig(guildId);
+    const images = {};
+    for (const key of CUSTOM_IMAGE_KEYS) images[key] = cfg[key] || '';
+    res.json({ success: true, images });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// يحفظ صورة مخصصة كقيمة إعداد (رابط مباشر أو base64 data-URI)،
+// ثم يزامن الإعداد مع البوت ويحدّث البنلات فوراً.
+router.post('/:guildId/images', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const { key, value } = req.body;
+    if (!CUSTOM_IMAGE_KEYS.includes(key)) {
+      return res.status(400).json({ error: 'Invalid image key' });
+    }
+
+    const raw = value == null ? '' : String(value).trim();
+    // قبول قيمة فارغة (حذف) أو رابط http(s) أو base64 data-URI فقط
+    if (raw && !/^(https?:\/\/|data:image\/)/i.test(raw)) {
+      return res.status(400).json({ error: 'Must be an image URL or base64 data URI' });
+    }
+
+    const oldValue = (await getGuildConfig(guildId, key))?.value ?? null;
+    if (!raw) {
+      await deleteGuildConfig(guildId, key);
+    } else {
+      await setGuildConfig(guildId, key, raw);
+    }
+
+    logAudit(req.session.user.id, guildId, 'update_setting', key, oldValue, raw || null, req.ip, req.sessionID);
+    logActivity(req.session.user.id, guildId, 'update_setting', key, raw ? `تعديل ${key}` : `حذف ${key}`, req.ip, req.sessionID);
+
+    const synced = await syncConfigToBot();
+
+    // تحديث البنلين (تذاكر + صوتيات) فورياً ليعكسا الصورة الجديدة
+    let refreshed = false;
+    try {
+      const rf = await fetch(`${config.botApiUrl}/api/panels/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId }),
+        signal: AbortSignal.timeout(4000),
+      });
+      refreshed = rf.ok;
+    } catch {}
+
+    res.json({ success: true, key, synced, refreshed });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

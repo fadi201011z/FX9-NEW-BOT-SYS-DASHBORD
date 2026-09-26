@@ -78,6 +78,94 @@
     </div>
   </div>
 
+  <div class="card glass custom-images-card">
+    <div class="card-header">
+      <h3><i class="fas fa-images"></i> الصور المخصصة</h3>
+      <span class="ticket-status" id="imagesStatusBadge"><span class="ticket-status-dot"></span><span id="imagesStatusText">—</span></span>
+    </div>
+    <p class="card-desc">غيّر صور البوت في سيرفرك: بطاقة الترحيب، بنل التذاكر، وبنل الرومات الصوتية — ارفع صورة أو ألصق رابطاً مباشراً، وتُطبق على البوت فوراً</p>
+
+    <div class="custom-images-grid">
+      <!-- صورة الترحيب -->
+      <div class="stat-voice-item item-lg-general" data-for="welcome_image">
+        <div class="stat-voice-icon"><i class="fas fa-door-open"></i></div>
+        <div class="stat-voice-info">
+          <strong>صورة الترحيب</strong>
+          <small>خلفية بطاقة الترحيب عند انضمام عضو جديد</small>
+        </div>
+        <div class="custom-img-body">
+          <div class="custom-img-preview" id="preview-welcome_image">
+            <i class="fas fa-image preview-ph"></i>
+          </div>
+          <div class="custom-img-controls">
+            <label class="img-upload-btn">
+              <i class="fas fa-upload"></i> رفع صورة
+              <input type="file" accept="image/*" hidden data-img-key="welcome_image" />
+            </label>
+            <input type="text" class="ticket-select img-url-input" data-img-url="welcome_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
+            <div class="img-actions">
+              <button type="button" class="btn-sm btn-save-img" data-img-save="welcome_image"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-delete-sm" data-img-delete="welcome_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
+              <span class="ticket-field-state" data-state-of="welcome_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- صورة بنل التذاكر -->
+      <div class="stat-voice-item item-lg-general" data-for="ticket_panel_image">
+        <div class="stat-voice-icon"><i class="fas fa-ticket-alt"></i></div>
+        <div class="stat-voice-info">
+          <strong>صورة بنل التذاكر</strong>
+          <small>الصورة العلوية لبنل فتح التذاكر</small>
+        </div>
+        <div class="custom-img-body">
+          <div class="custom-img-preview" id="preview-ticket_panel_image">
+            <i class="fas fa-image preview-ph"></i>
+          </div>
+          <div class="custom-img-controls">
+            <label class="img-upload-btn">
+              <i class="fas fa-upload"></i> رفع صورة
+              <input type="file" accept="image/*" hidden data-img-key="ticket_panel_image" />
+            </label>
+            <input type="text" class="ticket-select img-url-input" data-img-url="ticket_panel_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
+            <div class="img-actions">
+              <button type="button" class="btn-sm btn-save-img" data-img-save="ticket_panel_image"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-delete-sm" data-img-delete="ticket_panel_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
+              <span class="ticket-field-state" data-state-of="ticket_panel_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- صورة بنل الصوتيات -->
+      <div class="stat-voice-item item-lg-general" data-for="voice_panel_image">
+        <div class="stat-voice-icon"><i class="fas fa-microphone"></i></div>
+        <div class="stat-voice-info">
+          <strong>صورة بنل الصوتيات</strong>
+          <small>الصورة العلوية لبنل القنوات الصوتية المؤقتة</small>
+        </div>
+        <div class="custom-img-body">
+          <div class="custom-img-preview" id="preview-voice_panel_image">
+            <i class="fas fa-image preview-ph"></i>
+          </div>
+          <div class="custom-img-controls">
+            <label class="img-upload-btn">
+              <i class="fas fa-upload"></i> رفع صورة
+              <input type="file" accept="image/*" hidden data-img-key="voice_panel_image" />
+            </label>
+            <input type="text" class="ticket-select img-url-input" data-img-url="voice_panel_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
+            <div class="img-actions">
+              <button type="button" class="btn-sm btn-save-img" data-img-save="voice_panel_image"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-delete-sm" data-img-delete="voice_panel_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
+              <span class="ticket-field-state" data-state-of="voice_panel_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card glass log-card">
     <div class="card-header">
       <h3><i class="fas fa-clipboard-list"></i> قنوات السجلات</h3>
@@ -630,6 +718,35 @@
   }
 
   @media (max-width: 640px) { .role-grid { grid-template-columns: 1fr; } .ticket-counter { justify-content: center; } }
+
+  /* ─── Custom Images ─────────────────────────────────────────── */
+  .custom-images-grid { display: flex; flex-direction: column; gap: 14px; }
+  .custom-img-body { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+  .custom-img-preview {
+    width: 150px; height: 90px; border-radius: 10px; border: 1px dashed var(--border-c, #2a2f45);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    background: rgba(255,255,255,.03); flex-shrink: 0; position: relative;
+  }
+  .custom-img-preview img {
+    width: 100%; height: 100%; object-fit: cover; display: none;
+  }
+  .custom-img-preview .preview-ph { color: #5a607a; font-size: 20px; }
+  .custom-img-controls { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+  .img-upload-btn {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; width: fit-content;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .img-upload-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(124,58,237,.35); }
+  .img-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .btn-save-img {
+    padding: 7px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;
+    background: linear-gradient(135deg, #22c55e, #059669); color: #fff;
+  }
+  .btn-save-img:hover { filter: brightness(1.1); }
+  .btn-save-img:disabled { opacity: .5; cursor: not-allowed; }
+  @media (max-width: 560px) { .custom-img-body { flex-direction: column; align-items: stretch; } .custom-img-preview { width: 100%; height: 120px; } }
 </style>
 
 <script>
@@ -932,4 +1049,159 @@ async function deleteSetting(key) {
     showToast('❌ فشل الحذف', 'error');
   }
 }
+
+// ─── Custom Images (welcome / ticket / voice) ───────────────────────────────
+
+const CUSTOM_IMAGES = ['welcome_image', 'ticket_panel_image', 'voice_panel_image'];
+
+function imgIsDataUri(v) { return typeof v === 'string' && v.startsWith('data:image/'); }
+function imgIsUrl(v) { return typeof v === 'string' && /^https?:\/\//i.test(v); }
+
+function setImagePreview(key, value) {
+  const prev = document.getElementById('preview-' + key);
+  if (!prev) return;
+  // إعادة بناء المحتوى (معاينة أو placeholder)
+  prev.innerHTML = '';
+  if (imgIsDataUri(value) || imgIsUrl(value)) {
+    const img = document.createElement('img');
+    img.src = value;
+    img.alt = '';
+    img.onload = () => {
+      prev.querySelectorAll('img').forEach(i => i.style.display = 'block');
+    };
+    img.onerror = () => {
+      img.style.display = 'none';
+      const ph = document.createElement('i');
+      ph.className = 'fas fa-image preview-ph';
+      prev.appendChild(ph);
+    };
+    prev.appendChild(img);
+    img.style.display = 'none';
+  } else {
+    const ph = document.createElement('i');
+    ph.className = 'fas fa-image preview-ph';
+    prev.appendChild(ph);
+  }
+}
+
+function setImageState(key, has) {
+  const st = document.querySelector('.ticket-field-state[data-state-of="' + key + '"]');
+  if (st) {
+    st.classList.toggle('on', !!has);
+    st.querySelector('span').textContent = has ? 'مخصص' : 'افتراضي';
+  }
+  const item = document.querySelector('.custom-images-grid [data-for="' + key + '"]');
+  if (item) item.classList.toggle('done', !!has);
+}
+
+function updateImagesBadge() {
+  let done = 0;
+  CUSTOM_IMAGES.forEach(key => {
+    const url = document.querySelector('[data-img-url="' + key + '"]');
+    if (url && url.value.trim()) done++;
+  });
+  const badge = document.getElementById('imagesStatusBadge');
+  const text = document.getElementById('imagesStatusText');
+  if (done === 3) {
+    badge.className = 'ticket-status ready';
+    text.textContent = 'جميع الصور مخصصة';
+  } else if (done > 0) {
+    badge.className = 'ticket-status partial';
+    text.textContent = done + ' من 3 مخصصة';
+  } else {
+    badge.className = 'ticket-status empty';
+    text.textContent = 'الافتراضية';
+  }
+}
+
+async function saveCustomImage(key, value) {
+  const btn = document.querySelector('[data-img-save="' + key + '"]');
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ...'; }
+  try {
+    const res = await fetch('/settings/<%= guild.id %>/images', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value: value || '' }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      setImagePreview(key, value || '');
+      setImageState(key, !!value);
+      showToast('✅ تم حفظ الصورة' + (data.refreshed ? ' — البنلات حُدّثت فوراً' : ' — ستُطبَّق قريباً'), 'success');
+    } else {
+      showToast('❌ ' + (data.error || 'فشل الحفظ'), 'error');
+    }
+  } catch {
+    showToast('❌ حدث خطأ في الاتصال', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    updateImagesBadge();
+  }
+}
+
+function initCustomImages() {
+  fetch('/settings/<%= guild.id %>/images')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
+      CUSTOM_IMAGES.forEach(key => {
+        const val = data.images[key] || '';
+        setImagePreview(key, val);
+        setImageState(key, !!val);
+        const url = document.querySelector('[data-img-url="' + key + '"]');
+        if (url && imgIsUrl(val)) url.value = val;
+      });
+      updateImagesBadge();
+    })
+    .catch(() => {});
+
+  // ربط أحداث رفع الصور
+  document.querySelectorAll('input[type=file][data-img-key]').forEach(input => {
+    input.addEventListener('change', () => {
+      const key = input.dataset.imgKey;
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 8 * 1024 * 1024) {
+        showToast('⚠️ الصورة كبيرة جداً (الحد 8MB)', 'warning');
+        input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUri = e.target.result;
+        setImagePreview(key, dataUri);
+        setImageState(key, true);
+        const url = document.querySelector('[data-img-url="' + key + '"]');
+        if (url) url.value = '';
+        saveCustomImage(key, dataUri);
+      };
+      reader.onerror = () => showToast('❌ فشل قراءة الصورة', 'error');
+      reader.readAsDataURL(file);
+      input.value = '';
+    });
+  });
+
+  // أزرار الحفظ (من رابط أو معاينة حاليّة)
+  document.querySelectorAll('[data-img-save]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.imgSave;
+      const url = document.querySelector('[data-img-url="' + key + '"]');
+      saveCustomImage(key, url ? url.value.trim() : '');
+    });
+  });
+
+  // أزرار الحذف (استعادة الافتراضية)
+  document.querySelectorAll('[data-img-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const key = btn.dataset.imgDelete;
+      if (!confirm('هل تريد استعادة الصورة الافتراضية لهذا العنصر؟')) return;
+      const url = document.querySelector('[data-img-url="' + key + '"]');
+      if (url) url.value = '';
+      await saveCustomImage(key, '');
+    });
+  });
+}
+
+initCustomImages();
 </script>
