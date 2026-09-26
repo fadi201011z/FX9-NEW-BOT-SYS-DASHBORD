@@ -101,15 +101,16 @@
             <i class="fas fa-image preview-ph"></i>
           </div>
           <div class="custom-img-controls">
-            <label class="img-upload-btn">
+            <div class="maint-notice"><i class="fas fa-wrench"></i><span>هذه الخاصية تحت الصيانة والتعديل — لا يمكن رفع أو حفظ أو حذف صورة الترحيب حالياً</span></div>
+            <label class="img-upload-btn is-disabled" title="الميزة تحت الصيانة حالياً">
               <i class="fas fa-upload"></i> رفع صورة
-              <input type="file" accept="image/*" hidden data-img-key="welcome_image" />
+              <input type="file" accept="image/*" hidden data-img-key="welcome_image" disabled />
             </label>
-            <input type="text" class="ticket-select img-url-input" data-img-url="welcome_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
+            <input type="text" class="ticket-select img-url-input" data-img-url="welcome_image" placeholder="أو ألصق رابط صورة مباشر https://..." disabled title="الميزة تحت الصيانة حالياً" />
             <div class="img-actions">
-              <button type="button" class="btn-sm btn-save-img" data-img-save="welcome_image"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-sm btn-save-img" data-img-save="welcome_image" disabled title="الميزة تحت الصيانة حالياً"><i class="fas fa-save"></i> حفظ</button>
               <button type="button" class="btn-sm btn-view-img" data-img-view="welcome_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
-              <button type="button" class="btn-delete-sm" data-img-delete="welcome_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
+              <button type="button" class="btn-delete-sm" data-img-delete="welcome_image" disabled title="الميزة تحت الصيانة حالياً"><i class="fas fa-trash"></i></button>
               <span class="ticket-field-state" data-state-of="welcome_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
             </div>
           </div>
@@ -833,6 +834,23 @@
   .maint-glass--lg { padding: 10px 18px; font-size: 15px; gap: 9px; inset-inline-start: 16px; top: 16px; }
   .maint-glass--lg .fa-wrench { font-size: 17px; }
   .maint-glass--banner { inset-inline-start: auto; left: 50%; transform: translateX(-50%); top: 10px; }
+
+  /* تعطيل ضوابط صورة الترحيب (الميزة تحت الصيانة) */
+  .maint-notice {
+    display: inline-flex; align-items: flex-start; gap: 8px;
+    padding: 8px 12px; border-radius: 10px;
+    background: rgba(255, 209, 102, .08);
+    border: 1px dashed rgba(255, 209, 102, .4);
+    color: #ffd166; font-size: 12px; font-weight: 600; line-height: 1.55;
+    width: fit-content; max-width: 100%;
+  }
+  .maint-notice i { margin-top: 2px; animation: maintSpin 7s linear infinite; }
+  .img-upload-btn.is-disabled {
+    opacity: .55; cursor: not-allowed; filter: grayscale(.4); box-shadow: none;
+  }
+  .img-upload-btn.is-disabled:hover { transform: none; box-shadow: none; }
+  .img-url-input:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-save-img:disabled, .btn-delete-sm:disabled { opacity: .4; cursor: not-allowed; filter: grayscale(.35); }
 </style>
 
 <!-- نافذة عرض الصورة الحالية (تظهر بزر «عرض الصورة الحالية» بجانب كل صورة) -->
