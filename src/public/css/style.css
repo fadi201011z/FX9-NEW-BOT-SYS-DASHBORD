@@ -1239,54 +1239,34 @@ a:hover { color: var(--primary-hover); }
 /* ═══ حضور شاشة الاشتراك النشط ═══ */
 .active-screen {
   transform-origin: center center;
+  will-change: transform, opacity, border-radius, filter;
 }
 
-/* ═══ Animation: تصغير احترافي قوي جداً بعد 5 ثوانٍ ═══
-   المراحل: نبضة توهج → اهتزاز → تقشير/طي → انكماش لولبي → نقطة ذهبية → اختفاء */
-.active-screen.collapsing {
-  pointer-events: none;
-  animation:
-    premiumWarp1 0.9s cubic-bezier(0.55, -0.25, 0.3, 1.1) forwards,
-    premiumWarp2 0.6s ease-in 0.9s forwards,
-    premiumWarp3 0.7s cubic-bezier(0.6, 0, 0.8, 1) 1.5s forwards;
-}
-@keyframes premiumWarp1 {
-  0%   { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0 rgba(245,179,1,0)); opacity: 1; }
-  20%  { transform: scale(1.045, 0.96) rotate(-1.2deg); filter: drop-shadow(0 0 30px rgba(245,179,1,0.6)); }
-  40%  { transform: scale(0.97, 1.05) rotate(1.4deg); filter: drop-shadow(0 0 45px rgba(245,179,1,0.8)); }
-  60%  { transform: scale(1.08, 0.9) rotate(-1deg); filter: drop-shadow(0 0 60px rgba(245,179,1,0.95)); }
-  80%  { transform: scale(0.92, 1.09) rotate(1deg); filter: drop-shadow(0 0 70px rgba(245,179,1,1)); }
-  100% { transform: scale(1.01) rotate(0deg); filter: drop-shadow(0 0 40px rgba(245,179,1,0.9)); opacity: 1; }
-}
-@keyframes premiumWarp2 {
-  0%   { transform: scale(1.01) rotate(0deg); border-radius: var(--radius); filter: drop-shadow(0 0 40px rgba(245,179,1,0.9)); opacity: 1; }
-  100% { transform: scale(0.82) rotate(-8deg); border-radius: 42px; filter: drop-shadow(0 0 60px rgba(245,179,1,1)); opacity: 1; }
-}
-@keyframes premiumWarp3 {
-  0%   { transform: scale(0.82) rotate(-8deg); border-radius: 42px; filter: drop-shadow(0 0 60px rgba(245,179,1,1)); opacity: 1; }
-  35%  { transform: scale(0.55) rotate(-120deg); border-radius: 55px; filter: drop-shadow(0 0 80px rgba(245,179,1,1)); opacity: 1; }
-  70%  { transform: scale(0.3) rotate(-260deg); border-radius: 80px; filter: drop-shadow(0 0 90px rgba(245,179,1,0.95)); opacity: 1; }
-  100% { transform: scale(0.05) rotate(-420deg); border-radius: 100px; filter: drop-shadow(0 0 100px rgba(245,179,1,0.9)); opacity: 0.85; }
-}
+/* ═══ حالة الاختفاء بعد الطيران ═══ */
 .active-screen.collapsed {
   display: none !important;
 }
 
-/* ═══ وميض النقطة الجانبية عند اكتمال التصغير ═══ */
-.premium-side-dot.landed .dot { animation: premiumLandBoom 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+/* ═══ حلقة الشحن (قبل الطيران) ═══ */
+.premium-charge-ring {
+  position: absolute; inset: 0; border-radius: inherit;
+  border: 2px solid rgba(245, 179, 1, 0.55);
+  pointer-events: none; z-index: 6;
+}
+
+/* ═══ وميض النقطة الجانبية عند الهبوط ═══ */
+.premium-side-dot.landed { animation: premiumSideLand 0.95s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+@keyframes premiumSideLand {
+  0%   { transform: scale(0.3); filter: brightness(3); }
+  55%  { transform: scale(1.4); filter: brightness(1.6); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.premium-side-dot.landed .dot { animation: premiumLandBoom 0.95s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
 @keyframes premiumLandBoom {
   0%   { transform: scale(1); box-shadow: 0 0 8px #f5b301; }
-  40%  { transform: scale(2.6); box-shadow: 0 0 30px #f5b301; }
-  70%  { transform: scale(0.7); }
+  40%  { transform: scale(2.8); box-shadow: 0 0 34px #f5b301; }
+  70%  { transform: scale(0.65); }
   100% { transform: scale(1); box-shadow: 0 0 8px #f5b301; }
-}
-.premium-side-dot.landed {
-  animation: premiumSideLand 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2);
-}
-@keyframes premiumSideLand {
-  0%   { transform: scale(0.2); filter: brightness(3); }
-  55%  { transform: scale(1.35); filter: brightness(1.5); }
-  100% { transform: scale(1); filter: brightness(1); }
 }
 
 /* ═══ الجسيمات الذهبية المتطايرة أثناء التصغير ═══ */
