@@ -1,20 +1,43 @@
 <% currentPage = 'premium' %>
 <div class="page-header">
   <h1><i class="fas fa-gem" style="color:#f5b301"></i> نظام البريميوم — <%= guild.name %></h1>
-  <p>اختر الخطة المناسبة لسيرفرك واحصل على أفضل تجربة</p>
+  <p>فعّل سيرفرك الآن واحصل على تجربة فاخرة</p>
 </div>
 
 <% if (activePlanId) { %>
-<div class="premium-activated-banner glass fade-in-up">
-  <div class="icon"><i class="fas fa-check"></i></div>
-  <div>
-    <strong>✅ خطة <span style="color:#57f287"><%= activePlanLabel %></span> مفعّلة حالياً</strong>
-    <span>بريميوم هذا السيرفر نشط — استمتع بكل المزايا</span>
-  </div>
-</div>
-<% } %>
+<!-- ═══ الحالة: اشتراك نشط ═══ النافذتان مخفيتان تماماً ═══ -->
+<div class="active-screen glass fade-in-up">
+  <div class="a-icon"><i class="fas fa-crown"></i></div>
+  <h2>خطة <em><%= activePlanLabel %></em> مفعّلة بنجاح</h2>
+  <p class="a-sub">بريميوم هذا السيرفر نشط الآن — استمتع بكل المزايا الفاخرة</p>
 
-<div class="premium-section glass fade-in-up">
+  <div class="active-stats">
+    <div class="active-stat">
+      <span class="v"><i class="fas fa-crown" style="font-size:0.9rem"></i> <%= activePlanLabel %></span>
+      <span class="l">الخطة الحالية</span>
+    </div>
+    <div class="active-stat">
+      <span class="v"><%= remainingText %></span>
+      <span class="l">المدة المتبقية</span>
+    </div>
+    <div class="active-stat">
+      <span class="v"><%= expiresAtText %></span>
+      <span class="l">تاريخ الانتهاء</span>
+    </div>
+    <div class="active-stat">
+      <span class="v"><%= activatedAtText %></span>
+      <span class="l">تاريخ التفعيل</span>
+    </div>
+  </div>
+
+  <button class="a-end-btn" onclick="deactivatePlan()">
+    <i class="fas fa-ban"></i> إنهاء الاشتراك
+  </button>
+  <p style="font-size:0.72rem;color:var(--text-muted);margin-top:10px" id="deactivateMsg"></p>
+</div>
+<% } else { %>
+<!-- ═══ الحالة: لا يوجد اشتراك ═══ النافذتان ظاهرتان فوراً ═══ -->
+<div class="premium-section glass fade-in-up" style="margin-top:0">
   <div class="premium-orb o1"></div>
   <div class="premium-orb o2"></div>
 
@@ -22,69 +45,58 @@
     <div class="premium-crown"><i class="fas fa-crown"></i></div>
     <div>
       <h3><i class="fas fa-gem"></i> نظام البريميوم <span class="premium-vip-badge"><i class="fas fa-crown"></i> VIP</span></h3>
-      <p>اشتراك حصري بمزايا فاخرة لسيرفرك</p>
+      <p>اختر طريقك: اشترك في خطة، أو فعّل بكودك السري</p>
     </div>
   </div>
+</div>
 
-  <button class="plans-reveal-btn" id="plansRevealBtn" onclick="togglePlans()">
-    <i class="fas fa-crown"></i> عرض خطط الاشتراك
-    <i class="fas fa-chevron-down chev"></i>
-  </button>
-  <div class="plans-section" id="plansSection" style="display:none">
-    <div class="plans-grid">
+<div class="gates-grid">
+  <!-- ═══ النافذة 1: الاشتراك في خطة ═══ -->
+  <div class="gate-card gate-plans glass fade-in-up">
+    <div class="gate-head">
+      <div class="gate-icon"><i class="fas fa-credit-card"></i></div>
+      <div>
+        <h4>اشترك في خطة</h4>
+        <p>اختر الخطة الأنسب لسيرفرك وسيتم تفعيلها فوراً</p>
+      </div>
+    </div>
+
+    <div class="gate-plans-inner">
       <% plans.forEach(plan => { %>
-        <% const isActive = activePlanId === plan.id %>
-      <div class="plan-card <%= plan.id === 'ultimate' ? 'plan-ultimate' : 'plan-standard' %> <%= isActive ? 'plan-active' : '' %>">
-        <% if (plan.popular && !isActive) { %>
-          <div class="plan-popular"><i class="fas fa-fire"></i> الأكثر طلباً</div>
-        <% } %>
-        <% if (isActive) { %>
-          <div class="plan-active-badge"><i class="fas fa-check"></i> مفعّلة حالياً</div>
-        <% } %>
-        <div class="plan-head">
-          <div class="plan-icon"><i class="fas <%= plan.icon %>"></i></div>
-          <h4><%= plan.name %></h4>
-          <p><%= plan.tagline %></p>
+      <div class="gate-plan-row <%= plan.id %>">
+        <div class="p-icon"><i class="fas <%= plan.icon %>"></i></div>
+        <div class="p-info">
+          <strong><%= plan.name %>
+            <% if (plan.popular) { %><span class="premium-vip-badge"><i class="fas fa-fire"></i> الأكثر طلباً</span><% } %>
+          </strong>
+          <span><%= plan.tagline %> — <%= plan.features.length %> مزايا</span>
         </div>
-        <div class="plan-price">
-          <span class="amount"><%= plan.price %> <small>/ <%= plan.period %></small></span>
-          <span class="note">أو <%= plan.yearlyPrice %> سنوياً (وفّر أكثر)</span>
-        </div>
-        <ul class="plan-features">
-          <% plan.features.forEach(f => { %>
-            <li><i class="fas fa-check"></i> <%= f %></li>
-          <% }) %>
-        </ul>
-        <% if (isActive) { %>
-          <button class="plan-btn" disabled><i class="fas fa-check"></i> مفعّلة — <%= plan.name %></button>
-        <% } else { %>
-          <button class="plan-btn" onclick="openPayment('<%= plan.id %>')">
-            <i class="fas fa-credit-card"></i> اشترك الآن — <%= plan.name %>
-          </button>
-        <% } %>
+        <div class="p-price"><%= plan.price %></div>
+        <button class="p-btn" onclick="openPayment('<%= plan.id %>')">اشترك</button>
       </div>
       <% }) %>
     </div>
   </div>
-</div>
 
-<!-- ═══ تفعيل بالكود السري ═══ -->
-<div class="activate-section">
-  <div class="activate-card glass">
-    <div class="activate-head">
-      <div class="a-icon"><i class="fas fa-key"></i></div>
+  <!-- ═══ النافذة 2: التفعيل بالكود السري ═══ -->
+  <div class="gate-card gate-code glass fade-in-up">
+    <div class="gate-head">
+      <div class="gate-icon"><i class="fas fa-key"></i></div>
       <div>
         <h4>تفعيل بالكود السري</h4>
-        <p>أدخل كود التفعيل الخاص بك لتفعيل الخطة فوراً</p>
+        <p>أدخل كود التفعيل لتفعيل الخطة فوراً</p>
       </div>
     </div>
-    <form class="activate-form" onsubmit="activatePlan(event)">
-      <input type="text" id="activationCode" placeholder="FX9-XXX-XXXX-XXXX" autocomplete="off" spellcheck="false" maxlength="20">
-      <button type="submit" class="activate-btn" id="activateBtn"><i class="fas fa-key"></i> تفعيل الخطة</button>
+
+    <form class="gate-code-inner" onsubmit="activatePlan(event)">
+      <input type="text" class="code-input" id="activationCode" placeholder="FX9-XXX-XXXX-XXXX" autocomplete="off" spellcheck="false" maxlength="20">
+      <button type="submit" class="code-btn" id="activateBtn"><i class="fas fa-key"></i> تفعيل الخطة الآن</button>
+      <div class="activate-msg" id="activateMsg"></div>
+      <div class="gate-code-note"><i class="fas fa-shield-halved"></i> الكود يتم التحقق منه بشكل آمن على الخادم — ولن يظهر لأي شخص</div>
     </form>
-    <div class="activate-msg" id="activateMsg"></div>
   </div>
 </div>
+<% } %>
 
 <!-- ═══ نافذة الدفع المنبثقة ═══ -->
 <div class="pay-modal-overlay" id="payModal">
@@ -123,14 +135,6 @@
 const PLANS = JSON.parse('<%- JSON.stringify(plans).replace(/'/g, "\\'") %>');
 const GUILD_ID = '<%= guild.id %>';
 
-function togglePlans() {
-  const section = document.getElementById('plansSection');
-  const btn = document.getElementById('plansRevealBtn');
-  const showing = section.style.display !== 'none';
-  section.style.display = showing ? 'none' : 'block';
-  btn.classList.toggle('open', !showing);
-}
-
 function openPayment(planId) {
   const plan = PLANS.find(p => p.id === planId);
   if (!plan) return;
@@ -156,7 +160,6 @@ function confirmPayment() {
   alert('✅ تم تجهيز طلب اشتراك باقة ' + planName + ' — سيتم إتمام الدفع عبر بوابة آمنة (قيد الربط حالياً). سيصلك الإشعار قريباً.');
 }
 
-// إغلاق النافذة بالنقر خارجها
 document.getElementById('payModal').addEventListener('click', (e) => {
   if (e.target.id === 'payModal') closePayment();
 });
@@ -190,7 +193,8 @@ async function activatePlan(e) {
     if (data.success) {
       msg.className = 'activate-msg ok';
       msg.innerHTML = `<i class="fas fa-crown"></i> ${data.message}`;
-      setTimeout(() => location.reload(), 1200);
+      btn.innerHTML = '<i class="fas fa-check"></i> تم التفعيل';
+      setTimeout(() => location.reload(), 1300);
     } else {
       msg.className = 'activate-msg err';
       msg.textContent = '❌ ' + (data.error || 'فشل التفعيل.');
@@ -200,7 +204,28 @@ async function activatePlan(e) {
     msg.textContent = '❌ حدث خطأ في الاتصال، حاول مجدداً.';
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-key"></i> تفعيل الخطة';
+    if (!msg.classList.contains('ok')) btn.innerHTML = '<i class="fas fa-key"></i> تفعيل الخطة الآن';
+  }
+}
+
+// ═══ إنهاء الاشتراك ═══
+async function deactivatePlan() {
+  const msgEl = document.getElementById('deactivateMsg');
+  if (!confirm('⚠️ هل أنت متأكد من إنهاء اشتراك البريميوم؟ ستعود النافذتان للظهور.')) return;
+  try {
+    const res = await fetch(`/premium/${GUILD_ID}/deactivate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    if (data.success) {
+      msgEl.textContent = '✅ ' + data.message;
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      msgEl.textContent = '❌ ' + (data.error || 'فشل الإنهاء.');
+    }
+  } catch {
+    msgEl.textContent = '❌ حدث خطأ في الاتصال.';
   }
 }
 </script>
