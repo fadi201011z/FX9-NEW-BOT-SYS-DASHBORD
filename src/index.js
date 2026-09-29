@@ -23,6 +23,7 @@ import adminRoutes from './routes/admins.js';
 import logRoutes from './routes/logs.js';
 import commandRoutes from './routes/commands.js';
 import protectionRoutes from './routes/protection.js';
+import premiumRoutes from './routes/premium.js';
 import backupRoutes from './routes/backup.js';
 import alertRoutes from './routes/alerts.js';
 import statusRoutes from './routes/status.js';
@@ -76,7 +77,7 @@ import { refreshDashboardRole, getGuildLevel, roleTokenFromLevel } from './middl
 app.use(refreshDashboardRole);
 
 // ─── Inject role level into all views (per-guild inside guild pages) ────
-const GUILD_PATH_RE = /^\/(?:guilds|settings|commands|protection|tickets|voice|logs|notifications|admins|backup)\/([^/]+)/;
+const GUILD_PATH_RE = /^\/(?:guilds|settings|commands|protection|premium|tickets|voice|logs|notifications|admins|backup)\/([^/]+)/;
 app.use(async (req, res, next) => {
   const user = req.session?.user;
   let level = user ? (ROLE_HIERARCHY[user.dashboardRole] ?? -1) : -1;
@@ -144,6 +145,7 @@ app.use('/admins', adminRoutes);
 app.use('/logs', logRoutes);
 app.use('/commands', commandRoutes);
 app.use('/protection', protectionRoutes);
+app.use('/premium', premiumRoutes);
 app.use('/backup', backupRoutes);
 app.use('/alerts', alertRoutes);
 app.use('/api', statusRoutes);
