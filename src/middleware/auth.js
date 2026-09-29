@@ -1,6 +1,7 @@
 import config from '../config.js';
 import { getBotGuilds, refreshToken, getUserGuilds } from '../auth/discord.js';
 import Admin from '../models/Admin.js';
+import { getGuildConfig } from '../database.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
 
@@ -145,6 +146,41 @@ export function roleTokenFromLevel(level) {
   if (level >= 1) return 'moderator';
   if (level >= 0) return 'support';
   return 'member';
+}
+
+// ─── كاش حالة البريميوم لكل سيرفر (لتظهر النقطة في القائمة الجانبية) ───
+const premiumStatusCache = new Map();
+const PREMIUM_STATUS_TTL = 10000; // 10 ثوانٍ
+
+export function clearPremiumStatusCache(guildId) {
+  if (guildId) premiumStatusCache.delete(guildId);
+  else premiumStatusCache.clear();
+}
+
+// إرجاع { active, planId, planLabel } لسيرفر معين
+export async function getGuildPremium(guildId) {
+  if (!guildId) return { active: false, planId: null, planLabel: null };
+  const now = Date.now();
+  const cached = premiumStatusCache.get(guildId);
+  if (cached && now - cached.ts < PREMIUM_STATUS_TTL) return cached.data;
+
+  let data = { active: false, planId: null, planLabel: null };
+  try {
+    const planCfg = await getGuildConfig(guildId, 'premium_plan');
+    const endCfg = await getGuildConfig(guildId, 'premium_expires_at');
+    const planId = planCfg?.value || null;
+    const expiresAt = endCfg?.value ? Number(endCfg.value) : null;
+
+    let active = false;
+    if (planId && (!expiresAt || expiresAt > now)) active = true;
+    data = {
+      active,
+      planId: active ? planId : null,
+      planLabel: active ? (planId === 'ultimate' ? 'Ultimate' : planId === 'standard' ? 'Standard' : planId) : null,
+    };
+  } catch {}
+  premiumStatusCache.set(guildId, { data, ts: now });
+  return data;
 }
 
 export function requireRole(minRole) {

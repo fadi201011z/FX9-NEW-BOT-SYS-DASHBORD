@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, requireRole } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, requireRole, clearPremiumStatusCache } from '../middleware/auth.js';
 import { resolveGuild } from '../services/guildResolver.js';
 import { getGuildConfig, setGuildConfig, deleteGuildConfig, logActivity } from '../database.js';
 
@@ -164,6 +164,7 @@ router.post('/:guildId/activate', isAuthenticated, hasGuildAccess, requireRole('
     await setGuildConfig(guildId, 'premium_plan', planId);
     await setGuildConfig(guildId, 'premium_activated_at', String(now));
     await setGuildConfig(guildId, 'premium_expires_at', String(expires));
+    clearPremiumStatusCache(guildId);
 
     try {
       await logActivity(req.session.user.id, guildId, 'activate_premium', planId,
@@ -191,6 +192,7 @@ router.post('/:guildId/deactivate', isAuthenticated, hasGuildAccess, requireRole
     await deleteGuildConfig(guildId, 'premium_plan');
     await deleteGuildConfig(guildId, 'premium_activated_at');
     await deleteGuildConfig(guildId, 'premium_expires_at');
+    clearPremiumStatusCache(guildId);
     try {
       await logActivity(req.session.user.id, guildId, 'deactivate_premium', null, 'إنهاء/إلغاء اشتراك البريميوم', req.ip, req.sessionID);
     } catch {}

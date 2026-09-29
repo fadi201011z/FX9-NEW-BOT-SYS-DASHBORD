@@ -6,7 +6,8 @@
 
 <% if (activePlanId) { %>
 <!-- ═══ الحالة: اشتراك نشط ═══ النافذتان مخفيتان تماماً ═══ -->
-<div class="active-screen glass fade-in-up">
+<div class="active-screen glass fade-in-up" id="activeScreen">
+  <div class="premium-particles" id="premiumParticles"></div>
   <div class="a-icon"><i class="fas fa-crown"></i></div>
   <h2>خطة <em><%= activePlanLabel %></em> مفعّلة بنجاح</h2>
   <p class="a-sub">بريميوم هذا السيرفر نشط الآن — استمتع بكل المزايا الفاخرة</p>
@@ -227,5 +228,64 @@ async function deactivatePlan() {
   } catch {
     msgEl.textContent = '❌ حدث خطأ في الاتصال.';
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ⚜️ أنيميشن تصغير شاشة الاشتراك → نقطة في القائمة الجانبية
+//  بعد 5 ثوانٍ: انفجار جزيئات ذهبية + تصغير تحرّفي + هبوط على النقطة
+// ════════════════════════════════════════════════════════════════
+const ACTIVE_SCREEN_DELAY = 5000;
+
+function spawnParticles(container) {
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const w = rect.width, h = rect.height;
+  const count = 26;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('span');
+    p.className = 'premium-particle';
+    const size = 4 + Math.random() * 9;
+    const x = w * (0.2 + Math.random() * 0.6);
+    const y = h * (0.25 + Math.random() * 0.5);
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    const dx = (Math.random() - 0.5) * w * 0.85;
+    const dy = -(40 + Math.random() * h * 0.5);
+    p.animate([
+      { transform: 'translate(0,0) scale(1)', opacity: 0 },
+      { opacity: 1, offset: 0.15 },
+      { transform: `translate(${dx}px, ${dy}px) scale(0.25)`, opacity: 0, offset: 1 },
+    ], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)' });
+    container.appendChild(p);
+    setTimeout(() => p.remove(), 1600);
+  }
+}
+
+function collapseActiveScreen() {
+  const screen = document.getElementById('activeScreen');
+  if (!screen) return;
+
+  // 1) انفجار الجسيمات الذهبية
+  spawnParticles(document.getElementById('premiumParticles'));
+
+  // 2) التصغير التحريف القوي
+  screen.classList.add('collapsing');
+
+  // 3) بعد انتهاء الأنيميشن: إخفاء الشاشة + وميض النقطة الجانبية
+  setTimeout(() => {
+    screen.classList.add('collapsed');
+    const dot = document.getElementById('premiumSideDot');
+    if (dot) {
+      dot.classList.add('landed');
+      setTimeout(() => dot.classList.remove('landed'), 1000);
+    }
+  }, 2300); // 0.9 + 0.6 + 0.7 ≈ 2.3 ثانية
+}
+
+// ابدأ العد التنازلي فور ظهور شاشة الاشتراك النشط
+if (document.getElementById('activeScreen')) {
+  setTimeout(collapseActiveScreen, ACTIVE_SCREEN_DELAY);
 }
 </script>

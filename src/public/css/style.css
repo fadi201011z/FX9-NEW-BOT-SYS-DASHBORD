@@ -1209,6 +1209,97 @@ a:hover { color: var(--primary-hover); }
 }
 .active-screen .a-end-btn:hover { background: rgba(237, 66, 69, 0.2); }
 
+/* ═══ Sidebar Premium Dot (النقطة بجانب نظام البريميوم) ═══ */
+.premium-side-dot {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-inline-start: auto; margin-inline-end: 2px;
+  padding: 2px 9px; border-radius: 100px;
+  background: linear-gradient(135deg, rgba(245, 179, 1, 0.18), rgba(217, 119, 6, 0.12));
+  border: 1px solid rgba(245, 179, 1, 0.4);
+  font-size: 0.6rem; font-weight: 800; color: #f5b301;
+  letter-spacing: 0.3px;
+  box-shadow: 0 0 12px rgba(245, 179, 1, 0.25);
+  animation: premiumSidePulse 2.6s ease-in-out infinite;
+}
+.premium-side-dot .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: radial-gradient(circle, #fff3c4, #f5b301 60%);
+  box-shadow: 0 0 8px #f5b301;
+  animation: premiumDotBlink 1.6s ease-in-out infinite;
+}
+@keyframes premiumSidePulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(245, 179, 1, 0.2); }
+  50%      { box-shadow: 0 0 20px rgba(245, 179, 1, 0.45); }
+}
+@keyframes premiumDotBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.8); }
+}
+
+/* ═══ حضور شاشة الاشتراك النشط ═══ */
+.active-screen {
+  transform-origin: center center;
+}
+
+/* ═══ Animation: تصغير احترافي قوي جداً بعد 5 ثوانٍ ═══
+   المراحل: نبضة توهج → اهتزاز → تقشير/طي → انكماش لولبي → نقطة ذهبية → اختفاء */
+.active-screen.collapsing {
+  pointer-events: none;
+  animation:
+    premiumWarp1 0.9s cubic-bezier(0.55, -0.25, 0.3, 1.1) forwards,
+    premiumWarp2 0.6s ease-in 0.9s forwards,
+    premiumWarp3 0.7s cubic-bezier(0.6, 0, 0.8, 1) 1.5s forwards;
+}
+@keyframes premiumWarp1 {
+  0%   { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0 rgba(245,179,1,0)); opacity: 1; }
+  20%  { transform: scale(1.045, 0.96) rotate(-1.2deg); filter: drop-shadow(0 0 30px rgba(245,179,1,0.6)); }
+  40%  { transform: scale(0.97, 1.05) rotate(1.4deg); filter: drop-shadow(0 0 45px rgba(245,179,1,0.8)); }
+  60%  { transform: scale(1.08, 0.9) rotate(-1deg); filter: drop-shadow(0 0 60px rgba(245,179,1,0.95)); }
+  80%  { transform: scale(0.92, 1.09) rotate(1deg); filter: drop-shadow(0 0 70px rgba(245,179,1,1)); }
+  100% { transform: scale(1.01) rotate(0deg); filter: drop-shadow(0 0 40px rgba(245,179,1,0.9)); opacity: 1; }
+}
+@keyframes premiumWarp2 {
+  0%   { transform: scale(1.01) rotate(0deg); border-radius: var(--radius); filter: drop-shadow(0 0 40px rgba(245,179,1,0.9)); opacity: 1; }
+  100% { transform: scale(0.82) rotate(-8deg); border-radius: 42px; filter: drop-shadow(0 0 60px rgba(245,179,1,1)); opacity: 1; }
+}
+@keyframes premiumWarp3 {
+  0%   { transform: scale(0.82) rotate(-8deg); border-radius: 42px; filter: drop-shadow(0 0 60px rgba(245,179,1,1)); opacity: 1; }
+  35%  { transform: scale(0.55) rotate(-120deg); border-radius: 55px; filter: drop-shadow(0 0 80px rgba(245,179,1,1)); opacity: 1; }
+  70%  { transform: scale(0.3) rotate(-260deg); border-radius: 80px; filter: drop-shadow(0 0 90px rgba(245,179,1,0.95)); opacity: 1; }
+  100% { transform: scale(0.05) rotate(-420deg); border-radius: 100px; filter: drop-shadow(0 0 100px rgba(245,179,1,0.9)); opacity: 0.85; }
+}
+.active-screen.collapsed {
+  display: none !important;
+}
+
+/* ═══ وميض النقطة الجانبية عند اكتمال التصغير ═══ */
+.premium-side-dot.landed .dot { animation: premiumLandBoom 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+@keyframes premiumLandBoom {
+  0%   { transform: scale(1); box-shadow: 0 0 8px #f5b301; }
+  40%  { transform: scale(2.6); box-shadow: 0 0 30px #f5b301; }
+  70%  { transform: scale(0.7); }
+  100% { transform: scale(1); box-shadow: 0 0 8px #f5b301; }
+}
+.premium-side-dot.landed {
+  animation: premiumSideLand 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+@keyframes premiumSideLand {
+  0%   { transform: scale(0.2); filter: brightness(3); }
+  55%  { transform: scale(1.35); filter: brightness(1.5); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+/* ═══ الجسيمات الذهبية المتطايرة أثناء التصغير ═══ */
+.premium-particles {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  border-radius: inherit; z-index: 5;
+}
+.premium-particle {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, #fff3c4, #f5b301 45%, transparent 70%);
+  opacity: 0; will-change: transform, opacity;
+}
+
 /* ═══ Quick Actions ═══ */
 .actions-grid {
   display: grid;

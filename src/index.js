@@ -73,7 +73,7 @@ app.set('layout', 'layouts/main');
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Auto-refresh dashboard role from DB ────────────────────────────────
-import { refreshDashboardRole, getGuildLevel, roleTokenFromLevel } from './middleware/auth.js';
+import { refreshDashboardRole, getGuildLevel, roleTokenFromLevel, getGuildPremium } from './middleware/auth.js';
 app.use(refreshDashboardRole);
 
 // ─── Inject role level into all views (per-guild inside guild pages) ────
@@ -92,6 +92,15 @@ app.use(async (req, res, next) => {
   }
   res.locals.roleLevel = level;
   res.locals.guildRole = roleTokenFromLevel(level);
+
+  // ── حالة البريميوم للسيرفر الحالي (للنقطة في القائمة الجانبية) ──
+  res.locals.premiumStatus = { active: false, planId: null, planLabel: null };
+  const gp = req.path.match(GUILD_PATH_RE);
+  if (gp && gp[1]) {
+    try {
+      res.locals.premiumStatus = await getGuildPremium(gp[1]);
+    } catch {}
+  }
   next();
 });
 

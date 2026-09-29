@@ -76,9 +76,14 @@
         <span>الحماية</span>
         <% if (roleLevel < 2) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
-      <a href="/premium/<%= guild.id %>" class="nav-link <%= currentPage === 'premium' ? 'active' : '' %> <%= roleLevel >= 2 ? '' : 'locked' %>" data-req="2" title="نظام البريميوم">
+      <a href="/premium/<%= guild.id %>" class="nav-link <%= currentPage === 'premium' ? 'active' : '' %> <%= roleLevel >= 2 ? '' : 'locked' %>" data-req="2" title="نظام البريميوم" id="premiumSideLink">
         <i class="fas fa-gem"></i>
         <span>نظام البريميوم</span>
+        <% if (locals.premiumStatus && locals.premiumStatus.active) { %>
+          <span class="premium-side-dot" id="premiumSideDot">
+            <span class="dot"></span><%= locals.premiumStatus.planLabel %>
+          </span>
+        <% } %>
         <% if (roleLevel < 2) { %><i class="fas fa-lock nav-lock"></i><% } %>
       </a>
       <a href="/admins/<%= guild.id %>" class="nav-link <%= currentPage === 'admins' ? 'active' : '' %> <%= roleLevel >= 3 ? '' : 'locked' %>" data-req="3" title="المدراء">
