@@ -1,7 +1,7 @@
 <% currentPage = 'premium' %>
 <div class="page-header">
   <h1><i class="fas fa-gem" style="color:#f5b301"></i> نظام البريميوم — <%= guild.name %></h1>
-  <p>قسم البريميوم الخاص بسيرفرك — محتوى فاخر قادم</p>
+  <p>اختر الخطة المناسبة لسيرفرك واحصل على أفضل تجربة</p>
 </div>
 
 <div class="premium-section glass fade-in-up">
@@ -16,11 +16,111 @@
     </div>
   </div>
 
-  <div class="premium-body">
-    <div class="premium-empty">
-      <i class="fas fa-gem"></i>
-      <span>⚜️ هذا القسم فارغ حالياً — المحتوى قيد التحضير</span>
-      <small>سيُضاف هنا ما تختاره: مزايا البريميوم، الأسعار، المقارنات، وأزرار الاشتراك.</small>
+  <button class="plans-reveal-btn" id="plansRevealBtn" onclick="togglePlans()">
+    <i class="fas fa-crown"></i> عرض خطط الاشتراك
+    <i class="fas fa-chevron-down chev"></i>
+  </button>
+  <div class="plans-section" id="plansSection" style="display:none">
+    <div class="plans-grid">
+      <% plans.forEach(plan => { %>
+      <div class="plan-card <%= plan.id === 'ultimate' ? 'plan-ultimate' : 'plan-standard' %>">
+        <% if (plan.popular) { %>
+          <div class="plan-popular"><i class="fas fa-fire"></i> الأكثر طلباً</div>
+        <% } %>
+        <div class="plan-head">
+          <div class="plan-icon"><i class="fas <%= plan.icon %>"></i></div>
+          <h4><%= plan.name %></h4>
+          <p><%= plan.tagline %></p>
+        </div>
+        <div class="plan-price">
+          <span class="amount"><%= plan.price %> <small>/ <%= plan.period %></small></span>
+          <span class="note">أو <%= plan.yearlyPrice %> سنوياً (وفّر أكثر)</span>
+        </div>
+        <ul class="plan-features">
+          <% plan.features.forEach(f => { %>
+            <li><i class="fas fa-check"></i> <%= f %></li>
+          <% }) %>
+        </ul>
+        <button class="plan-btn" onclick="openPayment('<%= plan.id %>')">
+          <i class="fas fa-credit-card"></i> اشترك الآن — <%= plan.name %>
+        </button>
+      </div>
+      <% }) %>
     </div>
   </div>
 </div>
+
+<!-- ═══ نافذة الدفع المنبثقة ═══ -->
+<div class="pay-modal-overlay" id="payModal">
+  <div class="pay-modal">
+    <button class="m-close" onclick="closePayment()"><i class="fas fa-times"></i></button>
+    <div class="m-head">
+      <div class="icon"><i class="fas fa-crown"></i></div>
+      <h3 id="mTitle">اشتراك بريميوم</h3>
+      <div class="m-price" id="mPrice">$4.99 / شهرياً</div>
+    </div>
+    <div class="m-summary">
+      <div class="m-row"><span>السيرفر</span><strong><%= guild.name %></strong></div>
+      <div class="m-row"><span>الخطة</span><strong id="mPlan">Standard</strong></div>
+      <div class="m-row"><span>المدة</span><strong>شهرياً — تجديد تلقائي</strong></div>
+      <div class="m-row"><span>الإجمالي</span><strong style="color:#f5b301" id="mTotal">$4.99</strong></div>
+    </div>
+    <div class="m-methods">
+      <div class="m-method selected" onclick="selectMethod(this)">
+        <span><i class="fas fa-credit-card" style="color:#818cf8"></i> بطاقة بنكية (Visa / Mastercard)</span>
+        <i class="fas fa-check" style="color:#57f287"></i>
+      </div>
+      <div class="m-method" onclick="selectMethod(this)">
+        <span><i class="fas fa-wallet" style="color:#60a5fa"></i> محفظة إلكترونية (PayPal)</span>
+        <i class="fas fa-chevron-left" style="opacity:0.4"></i>
+      </div>
+    </div>
+    <button class="m-confirm" onclick="confirmPayment()">
+      <i class="fas fa-lock"></i> إتمام الدفع الآن
+    </button>
+    <div class="m-note"><i class="fas fa-shield-halved"></i> دفع آمن ومشفر 100% — يمكنك الإلغاء في أي وقت</div>
+  </div>
+</div>
+
+<!-- ═══ JS الصفحة ═══ -->
+<script>
+const PLANS = JSON.parse('<%- JSON.stringify(plans).replace(/'/g, "\\'") %>');
+
+function togglePlans() {
+  const section = document.getElementById('plansSection');
+  const btn = document.getElementById('plansRevealBtn');
+  const showing = section.style.display !== 'none';
+  section.style.display = showing ? 'none' : 'block';
+  btn.classList.toggle('open', !showing);
+}
+
+function openPayment(planId) {
+  const plan = PLANS.find(p => p.id === planId);
+  if (!plan) return;
+  document.getElementById('mTitle').textContent = `اشترك في باقة ${plan.name}`;
+  document.getElementById('mPlan').textContent = plan.name;
+  document.getElementById('mPrice').textContent = `${plan.price} / ${plan.period}`;
+  document.getElementById('mTotal').textContent = plan.price;
+  document.getElementById('payModal').classList.add('show');
+}
+
+function closePayment() {
+  document.getElementById('payModal').classList.remove('show');
+}
+
+function selectMethod(el) {
+  document.querySelectorAll('.m-method').forEach(m => m.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function confirmPayment() {
+  const planName = document.getElementById('mPlan').textContent;
+  closePayment();
+  alert('✅ تم تجهيز طلب اشتراك باقة ' + planName + ' — سيتم إتمام الدفع عبر بوابة آمنة (قيد الربط حالياً). سيصلك الإشعار قريباً.');
+}
+
+// إغلاق النافذة بالنقر خارجها
+document.getElementById('payModal').addEventListener('click', (e) => {
+  if (e.target.id === 'payModal') closePayment();
+});
+</script>
