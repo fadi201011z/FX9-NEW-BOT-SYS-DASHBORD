@@ -970,6 +970,100 @@ a:hover { color: var(--primary-hover); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ═══ Premium Activation ═══ */
+.premium-activated-banner {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(87, 242, 135, 0.1), rgba(87, 242, 135, 0.04));
+  border: 1px solid rgba(87, 242, 135, 0.35);
+}
+.premium-activated-banner .icon {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(87, 242, 135, 0.15); color: #57f287; font-size: 1.1rem;
+}
+.premium-activated-banner strong { display: block; font-size: 0.95rem; }
+.premium-activated-banner span { font-size: 0.78rem; color: var(--text-muted); }
+
+.activate-section { margin-top: 18px; }
+.activate-card {
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  background: var(--bg-glass-hover);
+  border: 1px solid rgba(245, 179, 1, 0.25);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.activate-head { display: flex; align-items: center; gap: 10px; }
+.activate-head .a-icon {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(245, 179, 1, 0.12); color: #f5b301; font-size: 1rem;
+}
+.activate-head h4 { font-size: 0.98rem; font-weight: 800; }
+.activate-head p { font-size: 0.76rem; color: var(--text-muted); }
+.activate-form { display: flex; gap: 10px; }
+.activate-form input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid rgba(245, 179, 1, 0.3);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  direction: ltr;
+  transition: all var(--transition);
+}
+.activate-form input:focus {
+  outline: none;
+  border-color: #f5b301;
+  box-shadow: 0 0 0 3px rgba(245, 179, 1, 0.15);
+}
+.activate-form input::placeholder { letter-spacing: 0; text-transform: none; font-size: 0.8rem; }
+.activate-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #f5b301, #d97706); color: #141004;
+  font-family: var(--font); font-weight: 800; font-size: 0.9rem;
+  transition: all var(--transition); white-space: nowrap;
+}
+[data-theme="light"] .activate-btn { color: #141004; }
+.activate-btn:hover { box-shadow: 0 6px 22px rgba(245, 179, 1, 0.4); transform: translateY(-1px); }
+.activate-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+.activate-msg { font-size: 0.83rem; padding: 10px 14px; border-radius: 10px; display: none; }
+.activate-msg.ok { display: block; background: rgba(87, 242, 135, 0.1); border: 1px solid rgba(87, 242, 135, 0.3); color: #57f287; }
+.activate-msg.err { display: block; background: rgba(237, 66, 69, 0.1); border: 1px solid rgba(237, 66, 69, 0.3); color: #ed4245; }
+.plan-card.plan-active {
+  border-color: rgba(87, 242, 135, 0.5) !important;
+  box-shadow: 0 0 30px rgba(87, 242, 135, 0.12);
+}
+.plan-active-badge {
+  position: absolute; top: -12px; right: 18px;
+  background: linear-gradient(135deg, #57f287, #22c55e);
+  color: #052e16; font-size: 0.68rem; font-weight: 800;
+  padding: 4px 14px; border-radius: 100px;
+  display: flex; align-items: center; gap: 6px;
+  box-shadow: 0 4px 16px rgba(87, 242, 135, 0.4);
+  z-index: 2;
+}
+.plan-card.plan-active .plan-btn {
+  background: rgba(87, 242, 135, 0.12); color: #57f287;
+  border: 1px solid rgba(87, 242, 135, 0.35);
+  cursor: default;
+}
+.plan-card.plan-active .plan-btn:hover { transform: none; box-shadow: none; }
+.plan-card.plan-active.plan-ultimate .plan-btn { background: rgba(87, 242, 135, 0.12); color: #57f287; box-shadow: none; }
+
+@media (max-width: 520px) {
+  .activate-form { flex-direction: column; }
+  .activate-btn { width: 100%; }
+}
+
 /* ═══ Quick Actions ═══ */
 .actions-grid {
   display: grid;

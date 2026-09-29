@@ -4,6 +4,16 @@
   <p>اختر الخطة المناسبة لسيرفرك واحصل على أفضل تجربة</p>
 </div>
 
+<% if (activePlanId) { %>
+<div class="premium-activated-banner glass fade-in-up">
+  <div class="icon"><i class="fas fa-check"></i></div>
+  <div>
+    <strong>✅ خطة <span style="color:#57f287"><%= activePlanLabel %></span> مفعّلة حالياً</strong>
+    <span>بريميوم هذا السيرفر نشط — استمتع بكل المزايا</span>
+  </div>
+</div>
+<% } %>
+
 <div class="premium-section glass fade-in-up">
   <div class="premium-orb o1"></div>
   <div class="premium-orb o2"></div>
@@ -23,9 +33,13 @@
   <div class="plans-section" id="plansSection" style="display:none">
     <div class="plans-grid">
       <% plans.forEach(plan => { %>
-      <div class="plan-card <%= plan.id === 'ultimate' ? 'plan-ultimate' : 'plan-standard' %>">
-        <% if (plan.popular) { %>
+        <% const isActive = activePlanId === plan.id %>
+      <div class="plan-card <%= plan.id === 'ultimate' ? 'plan-ultimate' : 'plan-standard' %> <%= isActive ? 'plan-active' : '' %>">
+        <% if (plan.popular && !isActive) { %>
           <div class="plan-popular"><i class="fas fa-fire"></i> الأكثر طلباً</div>
+        <% } %>
+        <% if (isActive) { %>
+          <div class="plan-active-badge"><i class="fas fa-check"></i> مفعّلة حالياً</div>
         <% } %>
         <div class="plan-head">
           <div class="plan-icon"><i class="fas <%= plan.icon %>"></i></div>
@@ -41,12 +55,34 @@
             <li><i class="fas fa-check"></i> <%= f %></li>
           <% }) %>
         </ul>
-        <button class="plan-btn" onclick="openPayment('<%= plan.id %>')">
-          <i class="fas fa-credit-card"></i> اشترك الآن — <%= plan.name %>
-        </button>
+        <% if (isActive) { %>
+          <button class="plan-btn" disabled><i class="fas fa-check"></i> مفعّلة — <%= plan.name %></button>
+        <% } else { %>
+          <button class="plan-btn" onclick="openPayment('<%= plan.id %>')">
+            <i class="fas fa-credit-card"></i> اشترك الآن — <%= plan.name %>
+          </button>
+        <% } %>
       </div>
       <% }) %>
     </div>
+  </div>
+</div>
+
+<!-- ═══ تفعيل بالكود السري ═══ -->
+<div class="activate-section">
+  <div class="activate-card glass">
+    <div class="activate-head">
+      <div class="a-icon"><i class="fas fa-key"></i></div>
+      <div>
+        <h4>تفعيل بالكود السري</h4>
+        <p>أدخل كود التفعيل الخاص بك لتفعيل الخطة فوراً</p>
+      </div>
+    </div>
+    <form class="activate-form" onsubmit="activatePlan(event)">
+      <input type="text" id="activationCode" placeholder="FX9-XXX-XXXX-XXXX" autocomplete="off" spellcheck="false" maxlength="20">
+      <button type="submit" class="activate-btn" id="activateBtn"><i class="fas fa-key"></i> تفعيل الخطة</button>
+    </form>
+    <div class="activate-msg" id="activateMsg"></div>
   </div>
 </div>
 
@@ -85,6 +121,7 @@
 <!-- ═══ JS الصفحة ═══ -->
 <script>
 const PLANS = JSON.parse('<%- JSON.stringify(plans).replace(/'/g, "\\'") %>');
+const GUILD_ID = '<%= guild.id %>';
 
 function togglePlans() {
   const section = document.getElementById('plansSection');
@@ -123,4 +160,47 @@ function confirmPayment() {
 document.getElementById('payModal').addEventListener('click', (e) => {
   if (e.target.id === 'payModal') closePayment();
 });
+
+// ═══ تفعيل الخطة بالكود السري ═══
+async function activatePlan(e) {
+  e.preventDefault();
+  const input = document.getElementById('activationCode');
+  const msg = document.getElementById('activateMsg');
+  const btn = document.getElementById('activateBtn');
+  const code = input.value.trim();
+
+  msg.className = 'activate-msg';
+  if (!code) {
+    msg.className = 'activate-msg err';
+    msg.textContent = '⚠️ أدخل كود التفعيل أولاً.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ التفعيل...';
+
+  try {
+    const res = await fetch(`/premium/${GUILD_ID}/activate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      msg.className = 'activate-msg ok';
+      msg.innerHTML = `<i class="fas fa-crown"></i> ${data.message}`;
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      msg.className = 'activate-msg err';
+      msg.textContent = '❌ ' + (data.error || 'فشل التفعيل.');
+    }
+  } catch {
+    msg.className = 'activate-msg err';
+    msg.textContent = '❌ حدث خطأ في الاتصال، حاول مجدداً.';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-key"></i> تفعيل الخطة';
+  }
+}
 </script>
