@@ -1,9 +1,15 @@
 import { Router } from 'express';
 import { isAuthenticated, hasGuildAccess, requireRole, clearPremiumStatusCache } from '../middleware/auth.js';
+import { createAttemptLimiter } from '../middleware/security.js';
 import { resolveGuild } from '../services/guildResolver.js';
 import { getGuildConfig, setGuildConfig, deleteGuildConfig, logActivity } from '../database.js';
 
 const router = Router();
+
+// ─── حارس تخمين الأكواد السرية ───────────────────────────────────────────
+// 5 محاولات فاشلة لكل (مستخدم + سيرفر) ثم قفل ساعة.
+// بدون هذا: أي شخص ينشئ سيرفراً وهمياً، يصبح أدمن فيه، ويخمن الكود.
+const codeAttempts = createAttemptLimiter({ max: 5, windowMs: 60 * 60 * 1000 });
 
 // ════════════════════════════════════════════════════════════════════
 //  ⚜️ نظام البريميوم — اشتراك / تفعيل بالكود السري
@@ -152,10 +158,28 @@ router.post('/:guildId/activate', isAuthenticated, hasGuildAccess, requireRole('
       return res.status(400).json({ success: false, error: 'أدخل الكود السري أولاً.' });
     }
 
+    // مفتاح القفل: المستخدم + السيرفر (يمنع التخمين المتوزّع)
+    const lockKey = `${req.session.user.id}:${guildId}`;
+    if (codeAttempts.isLocked(lockKey)) {
+      return res.status(429).json({
+        success: false,
+        error: 'محاولات كثيرة فاشلة. حاول بعد ساعة.',
+      });
+    }
+
     const planId = ACTIVATION_CODES[code];
     if (!planId) {
-      return res.status(400).json({ success: false, error: 'الكود السري غير صحيح.' });
+      const locked = codeAttempts.fail(lockKey);
+      console.warn(`[Premium] Failed code attempt for guild ${guildId} by ${req.session.user.id}${locked ? ' — LOCKED' : ''}`);
+      return res.status(locked ? 429 : 400).json({
+        success: false,
+        error: locked
+          ? 'محاولات كثيرة فاشلة. تم القفل لساعة.'
+          : 'الكود السري غير صحيح.',
+      });
     }
+    // كود صحيح → امسح سجل المحاولات
+    codeAttempts.clear(lockKey);
 
     const plan = PLANS.find(p => p.id === planId);
     const now = Date.now();

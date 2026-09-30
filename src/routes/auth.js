@@ -1,19 +1,41 @@
 import { Router } from 'express';
 import { upsertUser, getUserAdminGuilds } from '../database.js';
-import { getAuthUrl, exchangeCode, getUserInfo, getUserGuilds, refreshToken } from '../auth/discord.js';
+import { getAuthUrl, generateState, exchangeCode, getUserInfo, getUserGuilds, refreshToken } from '../auth/discord.js';
 import config from '../config.js';
 
 const router = Router();
 
+// ─── حارس CSRF لتدفق OAuth ────────────────────────────────────────────────
+// بدون state، يمكن لمهاجم بناء رابط تسجيل دخول يربط حساب الضحية
+// بحسابه (login CSRF). نولّد قيمة عشوائية ونربطها بالجلسة.
+const STATE_TTL_MS = 10 * 60 * 1000; // 10 دقائق
+
 router.get('/discord', (req, res) => {
-  res.redirect(getAuthUrl());
+  const state = generateState();
+  req.session.oauthState = state;
+  req.session.oauthStateAt = Date.now();
+  res.redirect(getAuthUrl(state));
 });
 
 router.get('/discord/callback', async (req, res) => {
   try {
-    const { code, error: discordError } = req.query;
+    const { code, error: discordError, state } = req.query;
     if (discordError) return res.redirect(`/?error=${discordError}`);
     if (!code) return res.redirect('/?error=no_code');
+
+    // ─── التحقق من state ─────────────────────────────────────────────────
+    const savedState = req.session.oauthState;
+    const savedAt = req.session.oauthStateAt || 0;
+    delete req.session.oauthState;
+    delete req.session.oauthStateAt;
+
+    if (!savedState || !state || state !== savedState) {
+      console.warn('[Auth] OAuth state mismatch — possible CSRF attempt.');
+      return res.redirect('/?error=invalid_state');
+    }
+    if (Date.now() - savedAt > STATE_TTL_MS) {
+      return res.redirect('/?error=state_expired');
+    }
 
     const tokenData = await exchangeCode(code);
     const discordUser = await getUserInfo(tokenData.access_token);
@@ -79,7 +101,10 @@ router.get('/logout', (req, res) => {
 
 router.get('/me', (req, res) => {
   if (req.session.user) {
-    res.json({ user: req.session.user });
+    // لا نرسل توكنات OAuth إلى المتصفح أبداً — محفوظة في الجلسة على الخادم فقط.
+    // إرسالها يجعل أي ثغرة XSS تسرق صلاحية ديسكورد كاملة للمستخدم.
+    const { accessToken, refreshToken, ...safeUser } = req.session.user;
+    res.json({ user: safeUser });
   } else {
     res.json({ user: null });
   }

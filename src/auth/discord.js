@@ -1,4 +1,5 @@
 import axios from 'axios';
+import crypto from 'crypto';
 import config from '../config.js';
 import { botFetch, botPost } from '../services/botApi.js';
 
@@ -6,14 +7,20 @@ const CLIENT_ID = config.discord.clientId;
 const CLIENT_SECRET = config.discord.clientSecret;
 const CALLBACK_URL = config.discord.callbackUrl;
 
-export function getAuthUrl() {
+export function getAuthUrl(state) {
   const url = new URL('https://discord.com/api/oauth2/authorize');
   url.searchParams.set('client_id', CLIENT_ID);
   url.searchParams.set('redirect_uri', CALLBACK_URL);
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', config.discord.scopes.join(' '));
   url.searchParams.set('prompt', 'consent');
+  // حماية CSRF: قيمة عشوائية تُربط بالجلسة وتُتحقق عند العودة
+  if (state) url.searchParams.set('state', state);
   return url.toString();
+}
+
+export function generateState() {
+  return crypto.randomBytes(24).toString('hex');
 }
 
 export async function exchangeCode(code) {

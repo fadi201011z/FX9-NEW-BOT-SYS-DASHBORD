@@ -24,6 +24,61 @@ export function securityMiddleware(app) {
     legacyHeaders: false,
   });
   app.use('/api/', limiter);
+
+  // ─── حد صارم على تدفق تسجيل الدخول ─────────────────────────────────────
+  // يمنع إغراق نقطة OAuth منبثقة (وتسريع تخمين رموز التفويض).
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: { error: 'Too many login attempts. Try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use('/auth/discord', authLimiter);
+  app.use('/auth/discord/callback', authLimiter);
+}
+
+// ─── حارس محاولات الأكواد السرية ───────────────────────────────────────────
+// يُستخدم على تفعيل الاشتراك: حد أعلى للمحاولات الفاشلة لكل (مستخدم + سيرفر).
+// بدونه يستطيع أحد إنشاء سيرفر وهمي، أن يكون أدمن فيه، ثم تخمين الكود.
+export function createAttemptLimiter({ max = 5, windowMs = 60 * 60 * 1000 } = {}) {
+  const attempts = new Map();
+
+  // تنظيف دوري حتى لا تتضخم الخريطة في الذاكرة
+  const sweeper = setInterval(() => {
+    const now = Date.now();
+    for (const [key, rec] of attempts) {
+      if (now - rec.first > windowMs) attempts.delete(key);
+    }
+  }, windowMs);
+  if (sweeper.unref) sweeper.unref();
+
+  return {
+    /** يسجّل محاولة فاشلة. يرجع true إن تجاوز الحد. */
+    fail(key) {
+      const now = Date.now();
+      const rec = attempts.get(key);
+      if (!rec || now - rec.first > windowMs) {
+        attempts.set(key, { count: 1, first: now });
+        return false;
+      }
+      rec.count += 1;
+      return rec.count >= max;
+    },
+    /** ينظّف السجل بعد نجاح */
+    clear(key) {
+      attempts.delete(key);
+    },
+    isLocked(key) {
+      const rec = attempts.get(key);
+      if (!rec) return false;
+      if (Date.now() - rec.first > windowMs) {
+        attempts.delete(key);
+        return false;
+      }
+      return rec.count >= max;
+    },
+  };
 }
 
 export function sanitizeInput(req, res, next) {
