@@ -6,6 +6,7 @@ import { sanitizeInput } from '../middleware/security.js';
 import { getGuildChannels, getGuildRoles } from '../auth/discord.js';
 import config from '../config.js';
 import { resolveGuild } from '../services/guildResolver.js';
+import { botFetch, botPost } from '../services/botApi.js';
 
 const TICKET_KEY_MAP = {
   ticket_category: 'ticketCategoryId',
@@ -21,7 +22,7 @@ const router = Router();
 
 async function fetchGuildChannels(guildId) {
   try {
-    const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/channels`);
+    const res = await botFetch(`${config.botApiUrl}/api/guilds/${guildId}/channels`);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) return data;
@@ -35,7 +36,7 @@ async function fetchGuildChannels(guildId) {
 
 async function fetchGuildRoles(guildId) {
   try {
-    const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/roles`);
+    const res = await botFetch(`${config.botApiUrl}/api/guilds/${guildId}/roles`);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) return data;
@@ -80,7 +81,7 @@ async function buildViewData(guildId) {
 
 async function syncConfigToBot() {
   try {
-    const res = await fetch(`${config.botApiUrl}/api/sync-config`, {
+    const res = await botFetch(`${config.botApiUrl}/api/sync-config`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -254,7 +255,7 @@ router.post('/:guildId/images', isAuthenticated, hasGuildAccess, requireRole('ad
     // تحديث البنلين (تذاكر + صوتيات) فورياً ليعكسا الصورة الجديدة
     let refreshed = false;
     try {
-      const rf = await fetch(`${config.botApiUrl}/api/panels/refresh`, {
+      const rf = await botFetch(`${config.botApiUrl}/api/panels/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ guildId }),
@@ -277,7 +278,7 @@ router.get('/:guildId/default-image/:type', isAuthenticated, hasGuildAccess, req
     if (!['welcome', 'ticket', 'voice'].includes(type)) {
       return res.status(400).json({ error: 'Invalid image type' });
     }
-    const br = await fetch(`${config.botApiUrl}/api/default-images/${type}`, {
+    const br = await botFetch(`${config.botApiUrl}/api/default-images/${type}`, {
       signal: AbortSignal.timeout(8000),
     });
     if (!br.ok) return res.status(404).json({ error: 'Default image not found' });

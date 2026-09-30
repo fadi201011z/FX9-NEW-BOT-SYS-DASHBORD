@@ -4,6 +4,7 @@ import { getBotGuilds, getGuildInfo } from '../auth/discord.js';
 import { getAlerts, getUnreadAlerts, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
 import { getTotalTicketCount } from '../services/dataReader.js';
+import { botFetch, botPost } from '../services/botApi.js';
 
 const router = Router();
 
@@ -29,7 +30,7 @@ router.get('/', isAuthenticated, requireRole('manager'), async (req, res) => {
     // Enrich guilds with live member counts from bot API (single call)
     let guildMemberCounts = new Map();
     try {
-      const listRes = await fetch(`${config.botApiUrl}/api/guilds`, {
+      const listRes = await botFetch(`${config.botApiUrl}/api/guilds`, {
         signal: AbortSignal.timeout(4000),
       });
       if (listRes.ok) {
@@ -56,7 +57,7 @@ router.get('/', isAuthenticated, requireRole('manager'), async (req, res) => {
     let totalMembers = 0;
     let botPing = null;
     try {
-      const statsRes = await fetch(`${config.botApiUrl}/api/stats`, {
+      const statsRes = await botFetch(`${config.botApiUrl}/api/stats`, {
         signal: AbortSignal.timeout(4000),
       });
       if (statsRes.ok) {

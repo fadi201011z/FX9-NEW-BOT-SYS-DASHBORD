@@ -5,13 +5,14 @@ import { getBotGuilds } from '../auth/discord.js';
 import Maintenance from '../models/Maintenance.js';
 import config from '../config.js';
 import axios from 'axios';
+import { botFetch, botPost } from '../services/botApi.js';
 
 const router = Router();
 
 // ── Rich bot guilds (bot API -> Discord API fallback) ────────────────────
 async function getRichBotGuilds() {
   try {
-    const r = await fetch(`${config.botApiUrl}/api/guilds/full`, { signal: AbortSignal.timeout(4000) });
+    const r = await botFetch(`${config.botApiUrl}/api/guilds/full`, { signal: AbortSignal.timeout(4000) });
     if (r.ok) {
       const data = await r.json();
       if (Array.isArray(data?.guilds)) return data.guilds;
@@ -92,7 +93,7 @@ router.get('/guild/:guildId', isAuthenticated, isOwner, async (req, res) => {
 // ── Server invite link (join a connected server) ────────────────────────
 router.get('/guild-invite/:guildId', isAuthenticated, isOwner, async (req, res) => {
   try {
-    const r = await fetch(`${config.botApiUrl}/api/guilds/${req.params.guildId}/invite`, {
+    const r = await botFetch(`${config.botApiUrl}/api/guilds/${req.params.guildId}/invite`, {
       signal: AbortSignal.timeout(7000),
     });
     const data = await r.json().catch(() => ({}));
@@ -118,7 +119,7 @@ async function syncMaintenanceToBot(action, channelId, changelog) {
     if (action) body.action = action;
     if (channelId) body.channelId = channelId;
     if (changelog) body.changelog = changelog;
-    await axios.post(`${config.botApiUrl}/api/maintenance/sync`, body, { timeout: 3000 });
+    await botPost(`${config.botApiUrl}/api/maintenance/sync`, body, { timeout: 3000 });
   } catch {}
 }
 

@@ -4,6 +4,7 @@ import { getBotGuilds, getGuildInfo } from '../auth/discord.js';
 import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
 import { getGuildTickets, getTicketGuildConfig } from '../services/dataReader.js';
+import { botFetch, botPost } from '../services/botApi.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
 const CACHE_TTL = 300000;
@@ -14,7 +15,7 @@ async function getBotGuildIds(force) {
     if (botGuildCache.rateLimited && Date.now() - botGuildCache.lastFetch < 60000) return botGuildCache.ids;
   }
   try {
-    const botRes = await fetch(`${config.botApiUrl}/api/guilds`, {
+    const botRes = await botFetch(`${config.botApiUrl}/api/guilds`, {
       signal: AbortSignal.timeout(4000),
     }).catch(() => null);
     if (botRes && botRes.ok) {
@@ -96,7 +97,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
 
     if (botInGuild) {
       try {
-        const botRes = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/info`, {
+        const botRes = await botFetch(`${config.botApiUrl}/api/guilds/${guildId}/info`, {
           signal: AbortSignal.timeout(4000),
         }).catch(() => null);
         if (botRes && botRes.ok) {

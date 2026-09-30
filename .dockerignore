@@ -1,0 +1,33 @@
+# Dependencies (rebuilt inside the image)
+node_modules
+npm-debug.log*
+
+# Environment & secrets — never bake into the image
+.env
+.env.*
+!.env.example
+
+# Git metadata
+.git
+.gitignore
+.github
+
+# Editor / OS noise
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Docs & deployment config that don't belong in the image
+*.md
+README*
+render.yaml
+northflank.yml
+Dockerfile
+.dockerignore
+
+# Logs & temp
+logs
+*.log
+tmp
+.cache

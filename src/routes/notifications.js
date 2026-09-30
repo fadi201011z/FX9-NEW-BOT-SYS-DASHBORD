@@ -4,6 +4,7 @@ import { getGuildChannels } from '../auth/discord.js';
 import Notification from '../models/Notification.js';
 import config from '../config.js';
 import axios from 'axios';
+import { botFetch, botPost } from '../services/botApi.js';
 
 const router = Router();
 
@@ -93,7 +94,7 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, modOnly, async (re
     // Attempt bot sync (non-blocking) — retry once if fails
     let syncOk = false;
     try {
-      await axios.post(`${config.botApiUrl}/api/notifications/add`, {
+      await botPost(`${config.botApiUrl}/api/notifications/add`, {
         guildId, platform, url, discordChannelId, customMessage, channelId,
       }, { timeout: 5000 });
       syncOk = true;
@@ -102,7 +103,7 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, modOnly, async (re
     }
     if (!syncOk) {
       try {
-        await axios.post(`${config.botApiUrl}/api/notifications/add`, {
+        await botPost(`${config.botApiUrl}/api/notifications/add`, {
           guildId, platform, url, discordChannelId, customMessage, channelId,
         }, { timeout: 5000 });
       } catch (e) {
@@ -126,7 +127,7 @@ router.post('/:guildId/announce', isAuthenticated, hasGuildAccess, modOnly, asyn
   }
 
   try {
-    await axios.post(`${config.botApiUrl}/api/announce`, {
+    await botPost(`${config.botApiUrl}/api/announce`, {
       guildId, channelId, title, message, mention, color, image, thumbnail, footer, type, timestamp: timestamp !== false,
     }, { timeout: 10000 });
     res.json({ success: true });
@@ -139,7 +140,7 @@ router.post('/:guildId/announce', isAuthenticated, hasGuildAccess, modOnly, asyn
 // API: force check now
 router.post('/:guildId/checknow/:id', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   try {
-    const { data } = await axios.post(`${config.botApiUrl}/api/notifications/checknow/${req.params.id}`, {}, { timeout: 10000 });
+    const { data } = await botPost(`${config.botApiUrl}/api/notifications/checknow/${req.params.id}`, {}, { timeout: 10000 });
     res.json(data);
   } catch (err) {
     console.error('[Notif] CheckNow error:', err.code || err.message);
@@ -150,7 +151,7 @@ router.post('/:guildId/checknow/:id', isAuthenticated, hasGuildAccess, modOnly, 
 // API: resend latest
 router.post('/:guildId/resend/:id', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   try {
-    const { data } = await axios.post(`${config.botApiUrl}/api/notifications/resend/${req.params.id}`, {}, { timeout: 10000 });
+    const { data } = await botPost(`${config.botApiUrl}/api/notifications/resend/${req.params.id}`, {}, { timeout: 10000 });
     res.json(data);
   } catch (err) {
     console.error('[Notif] Resend error:', err.code || err.message);

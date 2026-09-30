@@ -22,6 +22,10 @@ export default {
 
   botApiUrl: process.env.BOT_API_URL || 'http://localhost:10001',
 
+  // Shared secret that authenticates dashboard -> bot internal API calls.
+  // Must match the bot's API_SECRET. Without it the bot refuses all /api calls.
+  apiSecret: process.env.API_SECRET || '',
+
   mongodb: {
     uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/fx9_dashboard',
   },

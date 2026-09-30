@@ -19,6 +19,7 @@ import GuildConfig from '../models/GuildConfig.js';
 import Maintenance from '../models/Maintenance.js';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
+import { botFetch, botPost } from '../services/botApi.js';
 
 const router = Router();
 
@@ -26,7 +27,7 @@ router.get('/commands/stats', async (req, res) => {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 4000);
-    const botRes = await fetch(`${config.botApiUrl}/api/commands/stats`, { signal: ctrl.signal });
+    const botRes = await botFetch(`${config.botApiUrl}/api/commands/stats`, { signal: ctrl.signal });
     clearTimeout(timer);
     if (botRes.ok) {
       const data = await botRes.json();
@@ -47,7 +48,7 @@ router.get('/status', async (req, res) => {
   const start = Date.now();
   let guildCount = 0, members = null, ping = null, botOnline = false;
   try {
-    const botRes = await fetch(`${config.botApiUrl}/api/stats`, {
+    const botRes = await botFetch(`${config.botApiUrl}/api/stats`, {
       signal: AbortSignal.timeout(4000),
     }).catch(() => null);
     if (botRes && botRes.ok) {
@@ -88,7 +89,7 @@ router.get('/diagnostics', isAuthenticated, isOwner, async (req, res) => {
   };
 
   try {
-    const r = await fetch(`${config.botApiUrl}/api/stats`, { signal: AbortSignal.timeout(4000) });
+    const r = await botFetch(`${config.botApiUrl}/api/stats`, { signal: AbortSignal.timeout(4000) });
     if (r.ok) {
       out.botApi.online = true;
       out.botApi.stats = await r.json();

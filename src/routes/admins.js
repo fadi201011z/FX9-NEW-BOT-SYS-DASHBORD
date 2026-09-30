@@ -5,6 +5,7 @@ import {
   getGuildAdminRoles, setGuildAdminRole, removeGuildAdminRole, getGuildAdminRoleIds,
   getAdminsByGuildAndAddedBy, addAdminRaw, removeAdminByUserGuildAddedBy, getAdminRole,
 } from '../database.js';
+import { botFetch, botPost } from '../services/botApi.js';
 import { sanitizeInput } from '../middleware/security.js';
 import { getGuildRoles, getGuildMember, getGuildMembersByRole, fetchBotMembersByRoles, fetchBotUser, fetchBotMembers, getAllGuildMembersPaginated } from '../auth/discord.js';
 import config from '../config.js';
@@ -176,7 +177,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'),
 
   let guildRoles = [];
   try {
-    const botRes = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/roles`);
+    const botRes = await botFetch(`${config.botApiUrl}/api/guilds/${guildId}/roles`);
     if (botRes.ok) {
       guildRoles = await botRes.json();
     } else {

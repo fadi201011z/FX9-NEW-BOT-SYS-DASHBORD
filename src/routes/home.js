@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated, refreshSessionGuilds } from '../middleware/auth.js';
 import config from '../config.js';
+import { botFetch, botPost } from '../services/botApi.js';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ router.get('/', isAuthenticated, async (req, res) => {
 
   // إظهار السيرفرات التي يتواجد فيها البوت فقط
   try {
-    const botRes = await fetch(`${config.botApiUrl}/api/guilds`, { signal: AbortSignal.timeout(4000) });
+    const botRes = await botFetch(`${config.botApiUrl}/api/guilds`, { signal: AbortSignal.timeout(4000) });
     if (botRes.ok) {
       const data = await botRes.json();
       if (Array.isArray(data.guilds)) {

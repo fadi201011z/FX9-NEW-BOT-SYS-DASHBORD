@@ -5,6 +5,7 @@ import { sanitizeInput } from '../middleware/security.js';
 import { getGuildChannels } from '../auth/discord.js';
 import config from '../config.js';
 import { resolveGuild } from '../services/guildResolver.js';
+import { botFetch, botPost } from '../services/botApi.js';
 
 const router = Router();
 
@@ -70,7 +71,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('ad
 
     // ── مزامنة كاش البوت مع قاعدة البيانات (غير معطّل للرد) ──
     try {
-      await fetch(`${config.botApiUrl}/api/sync-config`, {
+      await botFetch(`${config.botApiUrl}/api/sync-config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -106,7 +107,7 @@ router.post('/:guildId/restricted-channel/add', isAuthenticated, hasGuildAccess,
 
     // Notify bot to send setup message (non-blocking)
     try {
-      const botRes = await fetch(`${config.botApiUrl}/api/restricted-channel-setup`, {
+      const botRes = await botFetch(`${config.botApiUrl}/api/restricted-channel-setup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ guildId, channelId }),

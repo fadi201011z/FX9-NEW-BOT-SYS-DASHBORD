@@ -9,6 +9,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
 import { resolveGuild } from '../services/guildResolver.js';
+import { botFetch, botPost } from '../services/botApi.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BOT_COMMANDS_DIR = path.join(__dirname, '..', '..', '..', 'NEW SYS BOT', 'src', 'commands');
@@ -69,7 +70,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
 
   // Prefer the bot's live command list, fall back to local filesystem / static list
   try {
-    const botRes = await fetch(`${config.botApiUrl}/api/commands`, {
+    const botRes = await botFetch(`${config.botApiUrl}/api/commands`, {
       signal: AbortSignal.timeout(5000),
     });
     if (botRes.ok) {
@@ -138,7 +139,7 @@ router.post('/:guildId/update', isAuthenticated, hasGuildAccess, requireRole('ad
 
     // Try to sync with bot (non-blocking)
     try {
-      await axios.post(`${config.botApiUrl}/api/sync-command`, {
+      await botPost(`${config.botApiUrl}/api/sync-command`, {
         guildId, commandName: command, enabled: isEnabled,
         allowedRoles: existing.allowedRoles || [],
         blockedRoles: existing.blockedRoles || [],
@@ -173,7 +174,7 @@ router.patch('/:guildId/update-description', isAuthenticated, hasGuildAccess, re
 
     // Sync with bot
     try {
-      await axios.post(`${config.botApiUrl}/api/sync-command`, {
+      await botPost(`${config.botApiUrl}/api/sync-command`, {
         guildId, commandName: command,
         enabled: existing.enabled ?? true,
         allowedRoles: existing.allowedRoles || [],
@@ -222,7 +223,7 @@ router.post('/:guildId/permissions', isAuthenticated, hasGuildAccess, requireRol
 
     // Try to sync with bot (non-blocking)
     try {
-      await axios.post(`${config.botApiUrl}/api/sync-command`, {
+      await botPost(`${config.botApiUrl}/api/sync-command`, {
         guildId, commandName: command, enabled: existing.enabled ?? true,
         allowedRoles: ar, blockedRoles: br,
       }, { timeout: 5000 });

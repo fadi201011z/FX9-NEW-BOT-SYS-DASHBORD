@@ -2,6 +2,7 @@ import config from '../config.js';
 import { getBotGuilds, refreshToken, getUserGuilds } from '../auth/discord.js';
 import Admin from '../models/Admin.js';
 import { getGuildConfig } from '../database.js';
+import { botFetch, botPost } from '../services/botApi.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
 
@@ -241,7 +242,7 @@ export async function hasGuildAccess(req, res, next) {
     if (botIds && !botIds.has(guildId)) {
       // قد يكون البوت أُضيف للسيرفر للتو — استعلم مباشرة من البوت (بدون كاش)
       try {
-        const botRes = await fetch(`${config.botApiUrl}/api/guilds`, {
+        const botRes = await botFetch(`${config.botApiUrl}/api/guilds`, {
           signal: AbortSignal.timeout(4000),
         }).catch(() => null);
         if (botRes && botRes.ok) {

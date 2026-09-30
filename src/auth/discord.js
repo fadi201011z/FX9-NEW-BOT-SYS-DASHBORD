@@ -1,5 +1,6 @@
 import axios from 'axios';
 import config from '../config.js';
+import { botFetch, botPost } from '../services/botApi.js';
 
 const CLIENT_ID = config.discord.clientId;
 const CLIENT_SECRET = config.discord.clientSecret;
@@ -148,7 +149,7 @@ export async function getGuildMembersByRole(guildId, roleId, botToken) {
 export async function getAllGuildMembersPaginated(guildId, botToken) {
   // Try bot API first (uses Gateway fetch = all members)
   try {
-    const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/members`);
+    const res = await botFetch(`${config.botApiUrl}/api/guilds/${guildId}/members`);
     if (res.ok) {
       const data = await res.json();
       if (data && data.length > 1) {
@@ -182,20 +183,20 @@ export async function getAllGuildMembersPaginated(guildId, botToken) {
 // ─── Bot API helpers (cache-first, fallback to Discord API) ─────────────
 
 export async function fetchBotMembers(guildId) {
-  const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/members`);
+  const res = await botFetch(`${config.botApiUrl}/api/guilds/${guildId}/members`);
   if (!res.ok) throw new Error('Bot API failed');
   return res.json();
 }
 
 export async function fetchBotMembersByRoles(guildId, roleIds) {
   const query = roleIds.length ? `?roleIds=${roleIds.join(',')}` : '';
-  const res = await fetch(`${config.botApiUrl}/api/guilds/${guildId}/members-by-roles${query}`);
+  const res = await botFetch(`${config.botApiUrl}/api/guilds/${guildId}/members-by-roles${query}`);
   if (!res.ok) throw new Error('Bot API failed');
   return res.json();
 }
 
 export async function fetchBotUser(userId) {
-  const res = await fetch(`${config.botApiUrl}/api/users/${userId}`);
+  const res = await botFetch(`${config.botApiUrl}/api/users/${userId}`);
   if (!res.ok) return null;
   return res.json();
 }

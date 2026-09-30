@@ -32,6 +32,7 @@ import devRoutes from './routes/dev.js';
 import notificationRoutes from './routes/notifications.js';
 
 import homeRoutes from './routes/home.js';
+import { botFetch, botPost } from './services/botApi.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -125,7 +126,7 @@ app.use(async (req, res, next) => {
         doc.enabled = false;
         doc.endTime = null;
         await doc.save();
-        fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
+        botFetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
         maintenanceCache = { doc: null, ts: Date.now() };
         return next();
       }
@@ -202,7 +203,7 @@ app.post('/maintenance/autoend', async (req, res) => {
     if (doc && doc.enabled && doc.endTime && Date.now() >= doc.endTime) {
       doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0;
       await doc.save();
-      fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
+      botFetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
     }
     res.json({ ended: true });
   } catch { res.json({ ended: true }); }
@@ -228,7 +229,7 @@ app.get('/maintenance', async (req, res) => {
       maintenanceRaw.enabled = false;
       maintenanceRaw.endTime = null;
       await maintenanceRaw.save();
-      fetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
+      botFetch(`${config.botApiUrl}/api/maintenance/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'stop' }) }).catch(() => {});
       maintenanceRaw = maintenanceRaw.toObject();
     } else if (maintenanceRaw) {
       maintenanceRaw = maintenanceRaw.toObject();
@@ -273,8 +274,8 @@ app.get('/', async (req, res) => {
   let botStats = null;
   try {
     const [cmdRes, botRes] = await Promise.all([
-      fetch(`${config.botApiUrl}/api/commands/stats`, { signal: AbortSignal.timeout(3000) }).catch(() => null),
-      fetch(`${config.botApiUrl}/api/stats`, { signal: AbortSignal.timeout(3000) }).catch(() => null),
+      botFetch(`${config.botApiUrl}/api/commands/stats`, { signal: AbortSignal.timeout(3000) }).catch(() => null),
+      botFetch(`${config.botApiUrl}/api/stats`, { signal: AbortSignal.timeout(3000) }).catch(() => null),
     ]);
     if (cmdRes && cmdRes.ok) cmdStats = await cmdRes.json();
     if (botRes && botRes.ok) botStats = await botRes.json();
