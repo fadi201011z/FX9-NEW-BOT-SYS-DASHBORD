@@ -348,6 +348,14 @@ router.post('/:guildId/update-role', isAuthenticated, hasGuildAccess, mgrOnly, s
 
 router.post('/webhook/sync-member', async (req, res) => {
   try {
+    // ─── حارس الوارد: البوت وحده هو من يستدعي هذا المسار ──────────────────
+    // بدون هذا التحقق يستطيع أي شخص إعادة مزامنة أدوار أي سيرفر
+    // عبر تخمين guildId/userId فقط.
+    const provided = req.get('x-api-key') || '';
+    if (!config.apiSecret || provided !== config.apiSecret) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const { guildId, userId } = req.body;
     if (!guildId || !userId) return res.status(400).json({ error: 'guildId and userId required' });
 
