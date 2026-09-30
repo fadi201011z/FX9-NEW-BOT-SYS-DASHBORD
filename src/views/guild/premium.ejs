@@ -7,6 +7,7 @@
 <% if (activePlanId) { %>
 <!-- ═══ الحالة: اشتراك نشط ═══ النافذتان مخفيتان تماماً ═══ -->
 <div class="active-screen glass fade-in-up" id="activeScreen">
+  <div class="active-screen-glow" id="activeGlow" aria-hidden="true"></div>
   <div class="premium-particles" id="premiumParticles"></div>
   <div class="a-icon"><i class="fas fa-crown"></i></div>
   <h2>خطة <em><%= activePlanLabel %></em> مفعّلة بنجاح</h2>
@@ -231,19 +232,23 @@ async function deactivatePlan() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  ⚜️ أنيميشن سينمائي احترافي: شاشة الاشتراك → نقطة القائمة الجانبية
-//  تقنية FLIP: قياس فعلي لموضعي البداية والنقطة الجانبية
-//  ثم طيران واحد متواصل (Web Animations API) على قوس سلس
-//  بمنحنى تحرّك واحد (easeInOutQuart) + ذيل ذهبي يتبع المسار
-//  + حلقة شحن قبل الإقلاع + انفجار ذهبي عند الهبوط
+//  ⚜️ أنيميشن سينمائي فائق النعومة: شاشة الاشتراك → نقطة القائمة
+//
+//  🎯 مبادئ الاحترافية المطبّقة (هذا ما يجعل الحركة ناعمة 100%):
+//   1) ملف زمني واحد (Single Timeline) = صفر توقّف بين المراحل
+//   2) نحرّك transform + opacity فقط =Compositor خالص 60/120fps
+//   3) ممنوع تحريك filter / border-radius / box-shadow (repaint)
+//   4) منحنى واحد متصل easeInOutQuart عبر كل مسار الطيران
+//   5) الذيل الذهبي مربوط بـ requestAnimationFrame لا setInterval
+//   6) will-change محدود بالحد الأدنى + will-change removal بعد الانتهاء
 // ════════════════════════════════════════════════════════════════
 const ACTIVE_SCREEN_DELAY = 5000;
 
-// منحنى الحركة الوحيد — نعومة تامة بلا تقطّع (easeInOutQuart)
-const FLY_EASE = 'cubic-bezier(0.65, 0, 0.35, 1)';
+const FLY_EASE = 'cubic-bezier(0.65, 0, 0.35, 1)';       // easeInOutQuart
+const CHARGE_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';     // حركة الشحن
 const easeInOutQuart = (t) => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2);
 
-// نقطة على القوس عند الزمن t (0..1) بنفس منحنى التحرّك
+// نقطة على القوس عند الزمن t بنفس منحنى التحرّك (لدقة الذيل)
 function arcPoint(p0, pm, p1, t) {
   const seg = t < 0.5 ? 0 : 1;
   const sub = seg === 0 ? t / 0.5 : (t - 0.5) / 0.5;
@@ -253,8 +258,29 @@ function arcPoint(p0, pm, p1, t) {
   return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k };
 }
 
-// جسيم ذهبي (يُلحق بـ body بإحداثيات viewport)
+// ─── جسيم ذهبي: fixed + transform/opacity فقط (طبقة GPU صغيرة) ───
 function goldParticle(x, y) {
+  const p = document.createElement('span');
+  p.className = 'premium-particle';
+  p.style.position = 'fixed';
+  p.style.top = '0';
+  p.style.left = '0';
+  const s = 3 + Math.random() * 6;
+  p.style.width = s + 'px';
+  p.style.height = s + 'px';
+  p.style.willChange = 'transform, opacity';
+  const x0 = x - s / 2, y0 = y - s / 2;
+  document.body.appendChild(p);
+  p.animate([
+    { transform: `translate(${x0}px, ${y0}px) scale(1)`, opacity: 0.9 },
+    { transform: `translate(${x0 + (Math.random() - 0.5) * 44}px, ${y0 + (Math.random() - 0.5) * 44}px) scale(0.1)`, opacity: 0 },
+  ], { duration: 360 + Math.random() * 260, easing: 'cubic-bezier(0.2, 0.6, 0.3, 1)' })
+    .finished.then(() => p.remove()).catch(() => p.remove());
+  return p;
+}
+
+// شرارة عمودية (للهبوط): اتجاه + مسافة محدَّدة
+function radialSpark(x, y, ang, dist) {
   const p = document.createElement('span');
   p.className = 'premium-particle';
   p.style.position = 'fixed';
@@ -263,19 +289,24 @@ function goldParticle(x, y) {
   const s = 3 + Math.random() * 7;
   p.style.width = s + 'px';
   p.style.height = s + 'px';
-  p.style.transform = `translate(${x - s / 2}px, ${y - s / 2}px)`;
+  p.style.willChange = 'transform, opacity';
   document.body.appendChild(p);
-  const dx = (Math.random() - 0.5) * 60;
-  const dy = (Math.random() - 0.5) * 60;
-  const a = p.animate([
-    { transform: `translate(${x - s / 2}px, ${y - s / 2}px) scale(1)`, opacity: 0.95 },
-    { transform: `translate(${x - s / 2 + dx}px, ${y - s / 2 + dy}px) scale(0.15)`, opacity: 0 },
-  ], { duration: 380 + Math.random() * 340, easing: 'cubic-bezier(0.2, 0.6, 0.3, 1)' });
-  a.finished.then(() => p.remove()).catch(() => p.remove());
-  return p;
+  p.animate([
+    { transform: `translate(${x}px, ${y}px) scale(1)`, opacity: 1 },
+    { transform: `translate(${x + Math.cos(ang) * dist}px, ${y + Math.sin(ang) * dist}px) scale(0.08)`, opacity: 0 },
+  ], { duration: 500 + Math.random() * 300, easing: 'cubic-bezier(0.15, 0.7, 0.25, 1)' })
+    .finished.then(() => p.remove()).catch(() => p.remove());
 }
 
-// حلقة شحن تتسع وتتلاشى
+function burst(x, y, n) {
+  const count = n || 14;
+  for (let i = 0; i < count; i++) {
+    const ang = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+    radialSpark(x, y, ang, 22 + Math.random() * 50);
+  }
+}
+
+// حلقة شحن تتوسّع وتتلاشى (transform+opacity فقط)
 function chargeRing(container, delay, scale) {
   const r = document.createElement('div');
   r.className = 'premium-charge-ring';
@@ -283,11 +314,11 @@ function chargeRing(container, delay, scale) {
   r.animate([
     { transform: 'scale(0.9)', opacity: 0.9, offset: 0 },
     { transform: `scale(${scale || 1.2})`, opacity: 0, offset: 1 },
-  ], { duration: 540, delay: delay || 0, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' })
+  ], { duration: 520, delay: delay || 0, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' })
     .finished.catch(() => {}).then(() => r.remove());
 }
 
-// شرارات تجميع داخل الشاشة أثناء الشحن (لا تتأثر بالطيران)
+// شرارات التجميع داخل الشاشة أثناء الشحن
 function chargeSparks(container) {
   if (!container) return;
   const c = container.getBoundingClientRect();
@@ -295,41 +326,29 @@ function chargeSparks(container) {
   for (let i = 0; i < 10; i++) {
     const p = document.createElement('span');
     p.className = 'premium-particle';
-    const s = 3 + Math.random() * 6;
+    const s = 3 + Math.random() * 5;
     p.style.width = s + 'px';
     p.style.height = s + 'px';
     p.style.left = (cx + (Math.random() - 0.5) * c.width * 0.4) + 'px';
     p.style.top = (cy + (Math.random() - 0.5) * c.height * 0.4) + 'px';
+    p.style.willChange = 'transform, opacity';
     const ang = Math.random() * Math.PI * 2;
-    const dist = 26 + Math.random() * 60;
+    const dist = 24 + Math.random() * 58;
     container.appendChild(p);
     p.animate([
       { transform: 'translate(0,0) scale(1)', opacity: 0.9, offset: 0 },
       { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0.1)`, opacity: 0, offset: 1 },
-    ], { duration: 420 + Math.random() * 360, easing: 'cubic-bezier(0.15, 0.7, 0.25, 1)' })
+    ], { duration: 400 + Math.random() * 340, easing: 'cubic-bezier(0.15, 0.7, 0.25, 1)' })
       .finished.catch(() => {}).then(() => p.remove());
   }
 }
 
-// انفجار ذهبي لحظي عند نقطة الهبوط
-function burst(x, y, n) {
-  for (let i = 0; i < (n || 12); i++) {
-    const ang = (i / (n || 12)) * Math.PI * 2 + Math.random() * 0.5;
-    const dist = 24 + Math.random() * 52;
-    goldParticle(x + Math.cos(ang) * 4, y + Math.sin(ang) * 4)
-      .animate([
-        { transform: `translate(${x}px, ${y}px) scale(1)`, opacity: 1, offset: 0 },
-        { transform: `translate(${x + Math.cos(ang) * dist}px, ${y + Math.sin(ang) * dist}px) scale(0.08)`, opacity: 0, offset: 1 },
-      ], { duration: 520 + Math.random() * 320, easing: 'cubic-bezier(0.15, 0.7, 0.25, 1)' });
-  }
-}
-
-async function collapseActiveScreen() {
+function collapseActiveScreen() {
   const screen = document.getElementById('activeScreen');
   const badge = document.getElementById('premiumSideDot');
   if (!screen) return;
 
-  // ── FLIP: قياس موضعي البداية والنقطة الجانبية فعلياً ──
+  // ─── FLIP: القياس الفعلي لموضع البداية والنقطة الجانبية ───
   const s = screen.getBoundingClientRect();
   const sx = s.left + s.width / 2;
   const sy = s.top + s.height / 2;
@@ -343,69 +362,76 @@ async function collapseActiveScreen() {
   const dx = tx - sx;
   const dy = ty - sy;
   const dist = Math.hypot(dx, dy);
-  const arcH = Math.min(130, dist * 0.16); // ارتفاع قوس الطيران
+  const arcH = Math.min(120, dist * 0.15); // ارتفاع قوس الطيران
 
   const p0 = { x: sx, y: sy };
   const pm = { x: sx + dx / 2, y: sy + dy / 2 - arcH };
   const p1 = { x: tx, y: ty };
-  const startRadius = getComputedStyle(screen).borderRadius || '18px';
 
-  screen.style.willChange = 'transform, opacity, border-radius, filter';
+  const glow = document.getElementById('activeGlow');
+  const sparksBox = document.getElementById('premiumParticles');
 
-  // ── المرحلة 1: الشحن (0.62ث) — نبضة تجميع + حلقات + شرارات ──
-  chargeSparks(document.getElementById('premiumParticles'));
+  // ─── المرحلة 0: الشحن (توهج + حلقات + شرارات) ───
+  const CHARGE_DUR = 560;
+  if (glow) {
+    glow.animate([
+      { opacity: 0, transform: 'scale(1)', offset: 0 },
+      { opacity: 1, transform: 'scale(1.08)', offset: 0.55 },
+      { opacity: 0.9, transform: 'scale(1.02)', offset: 1 },
+    ], { duration: CHARGE_DUR, easing: CHARGE_EASE, fill: 'forwards' });
+  }
   chargeRing(screen, 0, 1.18);
   chargeRing(screen, 150, 1.12);
-  await screen.animate([
-    { transform: 'scale(1)', filter: 'drop-shadow(0 0 0px rgba(245,179,1,0))', offset: 0 },
-    { transform: 'scale(1.04)', filter: 'drop-shadow(0 0 28px rgba(245,179,1,0.55))', offset: 0.45 },
-    { transform: 'scale(0.985)', filter: 'drop-shadow(0 0 42px rgba(245,179,1,0.78))', offset: 0.8 },
-    { transform: 'scale(1)', filter: 'drop-shadow(0 0 50px rgba(245,179,1,0.9))', offset: 1 },
-  ], { duration: 620, easing: FLY_EASE }).finished;
+  chargeSparks(sparksBox);
 
-  // ── المرحلة 2: الطيران على القوس (طيران واحد متواصل) ──
-  const flightDur = Math.min(1500, 900 + dist * 0.45);
-  const flyAnim = screen.animate([
-    {
-      transform: 'translate(0, 0) scale(1) rotate(0deg)',
-      borderRadius: startRadius, opacity: 1,
-      filter: 'drop-shadow(0 0 50px rgba(245,179,1,0.9))',
-      offset: 0,
-    },
-    {
-      transform: `translate(${pm.x - sx}px, ${pm.y - sy}px) scale(0.42) rotate(-5deg)`,
-      borderRadius: '46%', opacity: 0.97,
-      filter: 'blur(1.4px) drop-shadow(0 0 22px rgba(245,179,1,0.9))',
-      offset: 0.5,
-    },
-    {
-      transform: `translate(${dx}px, ${dy}px) scale(0.035) rotate(0deg)`,
-      borderRadius: '50%', opacity: 0.92,
-      filter: 'blur(0px) drop-shadow(0 0 14px rgba(245,179,1,0.95))',
-      offset: 1,
-    },
-  ], { duration: flightDur, easing: FLY_EASE, fill: 'forwards' });
+  // ─── ملف زمني واحد متصل: الشحن ← الطيران (بلا أي فجوة) ───
+  const flightDur = Math.min(1450, 900 + dist * 0.45);
+  const total = CHARGE_DUR + flightDur;
+  const offPeak = (CHARGE_DUR * 0.5) / total;
+  const offStart = CHARGE_DUR / total;
+  const offMid = (CHARGE_DUR + flightDur * 0.5) / total;
 
-  // ذيل ذهبي يتبع القوس بنفس منحنى الحركة
-  const trailTimer = setInterval(() => {
-    const t = flyAnim.currentTime == null ? 0 : flyAnim.currentTime / flightDur;
-    const pt = arcPoint(p0, pm, p1, Math.max(0, Math.min(1, t)));
-    goldParticle(pt.x, pt.y);
-  }, 34);
+  const anim = screen.animate([
+    { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1, easing: CHARGE_EASE, offset: 0 },
+    { transform: 'translate(0,0) scale(1.045) rotate(0deg)', opacity: 1, easing: CHARGE_EASE, offset: offPeak },
+    { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1, easing: FLY_EASE, offset: offStart },
+    { transform: `translate(${pm.x - sx}px, ${pm.y - sy}px) scale(0.40) rotate(-5deg)`, opacity: 0.97, easing: FLY_EASE, offset: offMid },
+    { transform: `translate(${dx}px, ${dy}px) scale(0.03) rotate(0deg)`, opacity: 0.9, offset: 1 },
+  ], { duration: total, fill: 'forwards' });
 
-  try { await flyAnim.finished; } catch { clearInterval(trailTimer); return; }
-  clearInterval(trailTimer);
-
-  // ── الهبوط: إخفاء الشاشة + انفجار على النقطة + نبضة الشارة ──
-  screen.classList.add('collapsed');
-  burst(tx, ty, 14);
-  if (badge) {
-    badge.classList.add('landed');
-    setTimeout(() => badge.classList.remove('landed'), 1000);
+  // ─── الذيل الذهبي: rAF متزامن مع الأنيميشن (لا setInterval) ───
+  let lastEmit = 0;
+  let finished = false;
+  function tick(now) {
+    if (finished) return;
+    const ct = anim.currentTime;
+    if (ct != null && ct >= CHARGE_DUR) {
+      const t = Math.min(1, (ct - CHARGE_DUR) / flightDur);
+      if (now - lastEmit > 30) {
+        lastEmit = now;
+        const pt = arcPoint(p0, pm, p1, t);
+        goldParticle(pt.x, pt.y);
+      }
+    }
+    requestAnimationFrame(tick);
   }
+  requestAnimationFrame(tick);
+
+  // ─── الهبوط ───
+  anim.finished.catch(() => {}).then(() => {
+    finished = true;
+    screen.classList.add('collapsed');
+    screen.style.willChange = 'auto';
+    if (glow) { glow.getAnimations().forEach(a => a.cancel()); glow.style.opacity = '0'; }
+    burst(tx, ty, 14);
+    if (badge) {
+      badge.classList.add('landed');
+      setTimeout(() => badge.classList.remove('landed'), 1000);
+    }
+  });
 }
 
-// ابدأ العد التنازلي فور ظهور شاشة الاشتراك النشط
+// ابدأ بعد 5 ثوانٍ من ظهور شاشة الاشتراك النشط
 if (document.getElementById('activeScreen')) {
   setTimeout(collapseActiveScreen, ACTIVE_SCREEN_DELAY);
 }

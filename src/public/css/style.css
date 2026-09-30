@@ -1236,10 +1236,30 @@ a:hover { color: var(--primary-hover); }
   50%      { opacity: 0.55; transform: scale(0.8); }
 }
 
-/* ═══ حضور شاشة الاشتراك النشط ═══ */
+/* ═══ شاشة الاشتراك النشط — أداء فائق السلاسة ═══
+   قاعدة ذهبية: لا نحرّك أبداً filter أو border-radius أو box-shadow
+   لأنها خصائص إعادة رسم (repaint) تُبطئ الإطارات. نكتفي بـ transform+opacity. */
 .active-screen {
   transform-origin: center center;
-  will-change: transform, opacity, border-radius, filter;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* طبقة توهج ثابتة (تُحرَّك transform+opacity فقط) خلف المحتوى */
+.active-screen-glow {
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 45%, rgba(245, 179, 1, 0.40), rgba(245, 179, 1, 0.10) 55%, transparent 72%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform, opacity;
+}
+/* كل المحتوى فوق طبقة التوهج */
+.active-screen > *:not(.active-screen-glow) {
+  position: relative;
+  z-index: 1;
 }
 
 /* ═══ حالة الاختفاء بعد الطيران ═══ */
@@ -1252,6 +1272,7 @@ a:hover { color: var(--primary-hover); }
   position: absolute; inset: 0; border-radius: inherit;
   border: 2px solid rgba(245, 179, 1, 0.55);
   pointer-events: none; z-index: 6;
+  will-change: transform, opacity;
 }
 
 /* ═══ وميض النقطة الجانبية عند الهبوط ═══ */
