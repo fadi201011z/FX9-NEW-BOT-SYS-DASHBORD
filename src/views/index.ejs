@@ -114,32 +114,33 @@ button { font-family: inherit; }
 .nx-btn i:last-child { transition: transform .2s cubic-bezier(.23,1,.32,1); }
 .nx-btn:hover i:last-child { transform: translateX(-3px); }
 
-/* The gold "Plus" button, filled rather than outlined.
-   Measured on the source, their Plus is a transparent link with gold text and
-   no border — radius 11px, padding 8px 16px, 13px/500 — so it sits in the nav
-   as a third plain item and the eye slides straight past it. Filling it is
-   ours, and it is what makes it read as the one action in the bar rather than
-   a third piece of navigation. Text goes near-black on gold, ~14:1, where gold
-   text on a transparent background was only ~11:1 against the glass pill.
+/* The gold "Plus" item: the word in gold on nothing at all. Measured on the
+   source — background transparent, color rgb(255,217,61), border 0, radius
+   11px, padding 8px 16px, gap 8px, 13px/500, and a word plus an 18px trailing
+   plus icon. Filling it was wrong and has been reverted: a solid pill made it
+   read as a second, louder call to action sitting next to the real one.
+   Everything below is the source's own values, read out of its stylesheet
+   rather than guessed.
 
    Selector runs through .nx-nav a because the nav's own link rule (.nx-nav a,
-   0-1-1) outranks a bare class (0-1-0) and was repainting the fill white and
-   swapping the padding back to the nav's own. */
+   0-1-1) outranks a bare class (0-1-0) and was forcing the colour to white
+   and the padding to the nav's. border is 0 explicitly because the shared
+   .nx-btn base asks for 1px of transparent border, and the source has none. */
 .nx-nav a.nx-btn-g {
   position: relative; overflow: hidden;
   padding: 8px 16px; gap: 8px; line-height: 1.4;
-  font-size: .8125rem; font-weight: 500;
-  background: var(--nx-gold); color: #0d0b04;
+  border: 0; font-size: .8125rem; font-weight: 500;
+  background: transparent; color: var(--nx-gold);
 }
 .nx-btn-g::before {
   content: ''; position: absolute; inset: 0 auto 0 0; width: 60%; height: 100%;
-  background: linear-gradient(115deg, transparent, rgba(255,255,255,.55), transparent);
+  background: linear-gradient(115deg, transparent, rgba(255,217,61,.35), transparent);
   transform: translateX(-150%) skewX(-20deg);
   transition: transform .6s cubic-bezier(.23,1,.32,1); pointer-events: none;
 }
 .nx-btn-g:hover {
-  background: #ffe066; transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(255,217,61,.3);
+  background: rgba(101,86,23,.5); transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(255,217,61,.25), 0 6px 18px rgba(255,217,61,.18);
 }
 .nx-btn-g:hover::before { transform: translateX(220%) skewX(-20deg); }
 .nx-btn-g:hover i { transform: scale(1.15) rotate(15deg); }
@@ -723,22 +724,39 @@ button { font-family: inherit; }
    to travel exactly --set, which parked the 24px gap under the window at the
    top of every loop and produced a 24px jump once per cycle.
 
-   --dir is the sign of the travel. The middle strip runs left, which is
-   "forward" in this RTL page, and the two outer strips run right, so the
-   three weave instead of running as three parallel belts. --dur is set per row
-   so that every strip covers the same ground per second (~24 px/s) despite
-   the travel distances being 1008 / 864 / 1008. Matching the speed rather
-   than the duration is what makes them read as one system. */
+   Direction is set with animation-direction, never with a negative --travel,
+   and that is not a style preference. This row is RTL, so the track's inline
+   start sits at the row's right edge and the track overflows to the left:
+   measured, the row spans 294..742 and the track -1250..742. Writing local u
+   for distance leftward from the track's right edge, an icon at u is drawn at
+   row-right - u + T, so the 448px window shows exactly u in [T, T+448].
+
+   That means a negative T asks for content at negative u, which is off the
+   front of the track and does not exist. Animating the middle strip to
+   translateX(-864) therefore empties the window outright: sampled at 55%
+   through, zero of its 24 icons were on screen. A third copy of the icons
+   would not help either, because the missing content is at u < 0 while every
+   copy of the track sits at u > 0.
+
+   So T has to stay inside [0, travel] for all three strips, and the direction
+   has to come from how the keyframes are played. Normal playback walks
+   0 -> travel, which reads rightward; reverse playback walks travel -> 0, which
+   reads leftward while still never going negative. --dir picks between them.
+
+   --dur is set per row so that every strip covers the same ground per second
+   (~24 px/s) despite the travel distances being 1008 / 864 / 1008. Matching
+   the speed rather than the duration is what makes them read as one system. */
 .nx-plugins__row {
   display: flex; align-items: center;
   height: 48px; flex-shrink: 0; white-space: nowrap; overflow: hidden;
 }
 .nx-plugins__track {
   --gap: 24px;
-  --travel: calc(var(--dir, -1) * (var(--set) + var(--gap)));
+  --travel: calc(var(--set) + var(--gap));
   display: flex; align-items: center; gap: var(--gap);
   width: max-content; flex-shrink: 0;
   animation: nxMarquee var(--dur) linear infinite;
+  animation-direction: var(--dir, normal);
 }
 .nx-plugins__track > i {
   flex: 0 0 48px; width: 48px; height: 48px;
@@ -749,10 +767,10 @@ button { font-family: inherit; }
   from { transform: translateX(0); }
   to   { transform: translateX(var(--travel)); }
 }
-/*             set     dur     dir     travel  px/s */
-.nx-plugins__row:nth-child(1) { --set: 984px; --dur: 42s; --dir: 1; } /* 1008  24.00 right */
-.nx-plugins__row:nth-child(2) { --set: 840px; --dur: 36s;            } /*  864  24.00 left  */
-.nx-plugins__row:nth-child(3) { --set: 984px; --dur: 42s; --dir: 1; } /* 1008  24.00 right */
+/*             set     dur     dir        travel  px/s  reads */
+.nx-plugins__row:nth-child(1) { --set: 984px; --dur: 42s;                 } /* 1008  24.00  right */
+.nx-plugins__row:nth-child(2) { --set: 840px; --dur: 36s; --dir: reverse; } /*  864  24.00  left  */
+.nx-plugins__row:nth-child(3) { --set: 984px; --dur: 42s;                 } /* 1008  24.00  right */
 .nx-plugins__mark {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 64px; height: 64px; border-radius: 18px;
