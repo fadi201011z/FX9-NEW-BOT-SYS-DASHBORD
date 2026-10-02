@@ -597,11 +597,40 @@ button { font-family: inherit; }
   -webkit-mask-image: radial-gradient(50% 50%, #000 70%, transparent 100%);
   mask-image: radial-gradient(50% 50%, #000 70%, transparent 100%);
 }
+/* ── Plugin marquee ───────────────────────────────────────────────────────
+   The three icon strips above the heading scroll continuously. Measured on
+   the source: each row is a 448px window over a track that overflows it
+   (984 / 840 / 984px), items are fixed 48px boxes with a 24px gap, and the
+   strip is faded by the box mask rather than clipped by the row.
+
+   --set is one full set of icons. Script appends a second copy to the
+   track, so travelling exactly --set puts that copy where the original
+   started and the loop has no seam.
+
+   --dur comes from the source's own travel: the outer rows were measured
+   at 16-22 px/s and the middle row markedly faster, so the middle one is
+   roughly three times quicker. */
 .nx-plugins__row {
-  display: flex; align-items: center; justify-content: center; gap: 24px;
-  height: 48px; flex-shrink: 0; white-space: nowrap;
+  display: flex; align-items: center;
+  height: 48px; flex-shrink: 0; white-space: nowrap; overflow: hidden;
 }
-.nx-plugins__row i { font-size: 1.35rem; color: #6d7382; flex-shrink: 0; }
+.nx-plugins__track {
+  display: flex; align-items: center; gap: 24px;
+  width: max-content; flex-shrink: 0;
+  animation: nxMarquee var(--dur) linear infinite;
+}
+.nx-plugins__track > i {
+  flex: 0 0 48px; width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; color: #6d7382;
+}
+@keyframes nxMarquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-1 * var(--set))); }
+}
+.nx-plugins__row:nth-child(1) { --set: 984px; --dur: 49s; }
+.nx-plugins__row:nth-child(2) { --set: 840px; --dur: 12s; }
+.nx-plugins__row:nth-child(3) { --set: 984px; --dur: 49s; }
 .nx-plugins__mark {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 64px; height: 64px; border-radius: 18px;
@@ -761,6 +790,9 @@ button { font-family: inherit; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
   .nx-js.nx-anim .nx-rv { opacity: 1; transform: none; }
+  /* Stop the strips dead. The second copy stays in the DOM but the row
+     clips it, so the first set simply sits still. */
+  .nx-plugins__track { animation: none !important; }
 }
 </style>
 </head>
@@ -925,25 +957,30 @@ button { font-family: inherit; }
     <div class="nx-wrap">
       <div class="nx-plugins__box">
         <div class="nx-plugins__row" aria-hidden="true">
-          <i class="fas fa-user-shield"></i><i class="fas fa-gavel"></i><i class="fas fa-volume-high"></i>
-          <i class="fas fa-ticket-alt"></i><i class="fas fa-chart-line"></i><i class="fas fa-gamepad"></i>
-          <i class="fas fa-gift"></i><i class="fas fa-robot"></i><i class="fas fa-hashtag"></i>
-          <i class="fas fa-crown"></i><i class="fas fa-palette"></i><i class="fas fa-smile"></i>
-          <i class="fas fa-bell"></i><i class="fas fa-users"></i>
+          <div class="nx-plugins__track">
+            <i class="fas fa-user-shield"></i><i class="fas fa-gavel"></i><i class="fas fa-volume-high"></i>
+            <i class="fas fa-ticket-alt"></i><i class="fas fa-chart-line"></i><i class="fas fa-gamepad"></i>
+            <i class="fas fa-gift"></i><i class="fas fa-robot"></i><i class="fas fa-hashtag"></i>
+            <i class="fas fa-crown"></i><i class="fas fa-palette"></i><i class="fas fa-smile"></i>
+            <i class="fas fa-bell"></i><i class="fas fa-users"></i>
+          </div>
         </div>
         <div class="nx-plugins__row" aria-hidden="true">
-          <i class="fas fa-database"></i><i class="fas fa-wand-magic-sparkles"></i><i class="fas fa-code"></i>
-          <i class="fas fa-music"></i><i class="fas fa-calendar-check"></i><i class="fas fa-clipboard-list"></i>
-          <i class="fas fa-shield"></i><i class="fas fa-microphone"></i><i class="fas fa-handshake"></i>
-          <i class="fas fa-fire"></i><i class="fas fa-star"></i><i class="fas fa-lock"></i>
-          <i class="fas fa-key"></i><i class="fas fa-envelope"></i>
+          <div class="nx-plugins__track">
+            <i class="fas fa-database"></i><i class="fas fa-wand-magic-sparkles"></i><i class="fas fa-code"></i>
+            <i class="fas fa-music"></i><i class="fas fa-calendar-check"></i><i class="fas fa-clipboard-list"></i>
+            <i class="fas fa-shield"></i><i class="fas fa-microphone"></i><i class="fas fa-handshake"></i>
+            <i class="fas fa-lock"></i><i class="fas fa-key"></i><i class="fas fa-envelope"></i>
+          </div>
         </div>
         <div class="nx-plugins__row" aria-hidden="true">
-          <i class="fas fa-comments"></i><i class="fas fa-thumbs-up"></i><i class="fas fa-lightbulb"></i>
-          <i class="fas fa-tools"></i><i class="fas fa-server"></i><i class="fas fa-plug"></i>
-          <i class="fas fa-power-off"></i><i class="fas fa-clock"></i><i class="fas fa-eye"></i>
-          <i class="fas fa-filter"></i><i class="fas fa-book"></i><i class="fas fa-layer-group"></i>
-          <i class="fas fa-bolt"></i><i class="fas fa-sliders"></i>
+          <div class="nx-plugins__track">
+            <i class="fas fa-comments"></i><i class="fas fa-thumbs-up"></i><i class="fas fa-lightbulb"></i>
+            <i class="fas fa-tools"></i><i class="fas fa-server"></i><i class="fas fa-plug"></i>
+            <i class="fas fa-power-off"></i><i class="fas fa-clock"></i><i class="fas fa-eye"></i>
+            <i class="fas fa-filter"></i><i class="fas fa-book"></i><i class="fas fa-layer-group"></i>
+            <i class="fas fa-bolt"></i><i class="fas fa-sliders"></i>
+          </div>
         </div>
         <div class="nx-plugins__mark">
           <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
@@ -1744,6 +1781,17 @@ button { font-family: inherit; }
       start();
     }
   })();
+
+  /* Plugin marquee: each strip needs two identical sets so that translating
+     by exactly one set width lands the second copy where the first began.
+     The icons are copied, not the track — cloning the track itself would
+     nest a second strip inside the first.
+     Without scripting the strips still render, just motionless. */
+  Array.prototype.forEach.call(document.querySelectorAll('.nx-plugins__track'), function (track) {
+    Array.prototype.forEach.call([].slice.call(track.children), function (icon) {
+      track.appendChild(icon.cloneNode(true));
+    });
+  });
 
   /* Sparkle timing is randomised per load — three fixed durations would pulse
      in lockstep and read as one blinking blob. */
