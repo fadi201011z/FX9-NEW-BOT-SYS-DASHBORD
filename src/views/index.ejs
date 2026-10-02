@@ -145,6 +145,19 @@ button { font-family: inherit; }
   position: fixed; top: 0; left: 0; right: 0; z-index: 1001;
   display: flex; flex-direction: column; width: 100%;
   padding: 8px 0; background: transparent; color: #fff;
+  transition: background-color .3s, backdrop-filter .3s;
+}
+/* Clear at the top so the hero starfield reads straight through the bar. Once
+   the page has moved, the bar frosts over: nav labels sit on top of whatever
+   is scrolling underneath, and a tint alone leaves that collision muddy, so
+   the blur does the work and the tint only sets the floor.
+   This part is ours, not a measurement — novax keeps the bar transparent at
+   every scroll position, measured at scrollY 0 and 3000, where backdrop-filter
+   is none. */
+.nx-header.is-stuck {
+  background: rgba(8,8,15,.72);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
 }
 .nx-header__bar {
   display: flex; align-items: center; justify-content: space-between;
@@ -1929,12 +1942,23 @@ button { font-family: inherit; }
     el.style.fontSize = (7 + Math.random() * 4.6).toFixed(1) + 'px';
   });
 
-  /* No scroll shadow on the header. There used to be a scroll listener here
-     writing an inline box-shadow onto #nxHeader, which is why the bar could
-     not be made transparent by editing the stylesheet — an inline style wins.
-     novax has no shadow in any state: box-shadow none at scrollY 0 and at
-     scrollY 3000. Removing the listener is what actually makes the bar
-     transparent, not the background declaration. */
+  /* Frost the header once the page moves. This toggles a class rather than
+     writing an inline style: the previous version here assigned
+     header.style.boxShadow directly, and an inline style outranks the
+     stylesheet, which is why the bar could not be made transparent by editing
+     .nx-header at all. Keeping the blur and the tint in CSS is also what lets
+     them transition. Passive listener, threshold at 8px so the bar stays clear
+     for the first few pixels of travel and only frosts once content is
+     actually passing under it. */
+  (function headerFrost() {
+    var header = document.getElementById('nxHeader');
+    if (!header) return;
+    var onScroll = function () {
+      header.classList.toggle('is-stuck', window.scrollY > 8);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
 
   /* ── Language menu ───────────────────────────────────────────────────────
      Closes on outside click and on Escape; the button keeps aria-expanded in
