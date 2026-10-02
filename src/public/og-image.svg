@@ -65,7 +65,7 @@
   <text x="1070" y="69" text-anchor="middle" font-size="14" fill="#FF0000" font-family="Arial, sans-serif" font-weight="700">v5.0.0</text>
 
   <!-- URL -->
-  <text x="80" y="570" font-size="16" fill="#5865f2" font-family="Arial, sans-serif">fx9-dashboard.onrender.com</text>
+  <text x="80" y="570" font-size="16" fill="#5865f2" font-family="Arial, sans-serif">kratos-botdashboard.onrender.com</text>
 
   <!-- Bottom accent bar -->
   <rect x="0" y="624" width="1200" height="6" fill="url(#accent)"/>
