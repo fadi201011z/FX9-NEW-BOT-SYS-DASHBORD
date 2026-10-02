@@ -1,2 +1,30 @@
+# ─── Dependencies ──────────────────────────────────────────────────────────
+# node_modules was committed by mistake (2,386 files / ~16 MB). Build images
+# install their own dependencies via `npm ci`, so it never belongs in git.
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
 
+# ─── Secrets ───────────────────────────────────────────────────────────────
+# Real credentials must stay local. .env.example is the tracked template.
 .env
+.env.*
+!.env.example
+
+# ─── Local data / caches ───────────────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+.cache/
+tmp/
+temp/
+
+# ─── OS & editor noise ─────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,37 @@
+# ─── FX9 Dashboard — line-ending policy ────────────────────────────────────
+# Normalise every text file to LF both in the repository and in the working
+# tree, regardless of the contributor's OS.
+#
+# Why this matters here:
+#   * The app ships in a Docker image built on Linux. A CRLF byte in the
+#     Dockerfile can surface as `/bin/sh^M: bad interpreter`.
+#   * Git for Windows installs `core.autocrlf=true` at the system level, so a
+#     plain `git clone` on Windows rewrites LF blobs to CRLF on disk. That makes
+#     a healthy checkout look corrupted and hides genuine diffs.
+#
+# `eol=lf` overrides the system autocrlf setting for this repository.
+
+* text=auto eol=lf
+
+# Lock down build/deploy files explicitly — a stray CRLF here breaks the image
+Dockerfile      text eol=lf
+.dockerignore   text eol=lf
+.gitignore      text eol=lf
+
+# Never rewrite binary assets
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.webp    binary
+*.ico     binary
+*.avif    binary
+*.woff    binary
+*.woff2   binary
+*.ttf     binary
+*.eot     binary
+*.otf     binary
+*.mp3     binary
+*.mp4     binary
+*.zip     binary
+*.pdf     binary
