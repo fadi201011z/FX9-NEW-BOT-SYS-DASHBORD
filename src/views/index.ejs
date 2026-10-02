@@ -607,9 +607,11 @@ button { font-family: inherit; }
    track, so travelling exactly --set puts that copy where the original
    started and the loop has no seam.
 
-   --dur comes from the source's own travel: the outer rows were measured
-   at 16-22 px/s and the middle row markedly faster, so the middle one is
-   roughly three times quicker. */
+   All three strips travel left, which is "forward" in this RTL page: a strip
+   moving right would run against the reading direction. --dur is set per
+   row so that every strip covers the same ground per second (~24 px/s)
+   despite the middle set being shorter. Matching the speed rather than the
+   duration is what makes them read as one system instead of three. */
 .nx-plugins__row {
   display: flex; align-items: center;
   height: 48px; flex-shrink: 0; white-space: nowrap; overflow: hidden;
@@ -628,9 +630,10 @@ button { font-family: inherit; }
   from { transform: translateX(0); }
   to   { transform: translateX(calc(-1 * var(--set))); }
 }
-.nx-plugins__row:nth-child(1) { --set: 984px; --dur: 49s; }
-.nx-plugins__row:nth-child(2) { --set: 840px; --dur: 12s; }
-.nx-plugins__row:nth-child(3) { --set: 984px; --dur: 49s; }
+/*             set     px/s    duration */
+.nx-plugins__row:nth-child(1) { --set: 984px; --dur: 41s; } /* 24.0 */
+.nx-plugins__row:nth-child(2) { --set: 840px; --dur: 35s; } /* 24.0 */
+.nx-plugins__row:nth-child(3) { --set: 984px; --dur: 41s; } /* 24.0 */
 .nx-plugins__mark {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 64px; height: 64px; border-radius: 18px;
