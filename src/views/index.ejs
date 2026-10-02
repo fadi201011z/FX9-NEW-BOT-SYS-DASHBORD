@@ -134,12 +134,17 @@ button { font-family: inherit; }
 .nx-btn-g i { transition: transform .2s cubic-bezier(.23,1,.32,1); }
 
 /* ─── Header ────────────────────────────────────────────────────────────── */
+/* The bar is transparent in every scroll state, not just at the top: measured
+   on novax at scrollY 0 and 3000 both give background-color rgba(0,0,0,0),
+   background-image none, box-shadow none, border 0 and no backdrop-filter.
+   The starfield behind the hero reads straight through it. The 82px total is
+   8px of padding over the 66px bar, matching their 82px outer box and 66px
+   inner container. Nothing ever toggles the background, so the .3s
+   background transition that used to sit here was dead CSS. */
 .nx-header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 1100;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1001;
   display: flex; flex-direction: column; width: 100%;
-  padding: 8px 0; background: var(--nx-bar); color: #fff;
-  box-shadow: 0 4px 20px rgba(0,0,0,.28);
-  transition: background .3s;
+  padding: 8px 0; background: transparent; color: #fff;
 }
 .nx-header__bar {
   display: flex; align-items: center; justify-content: space-between;
@@ -1924,17 +1929,12 @@ button { font-family: inherit; }
     el.style.fontSize = (7 + Math.random() * 4.6).toFixed(1) + 'px';
   });
 
-  /* Header shadow once the page scrolls */
-  var header = document.getElementById('nxHeader');
-  if (header) {
-    var onScroll = function () {
-      header.style.boxShadow = window.scrollY > 8
-        ? '0 6px 26px rgba(0,0,0,.42)'
-        : '0 4px 20px rgba(0,0,0,.28)';
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  }
+  /* No scroll shadow on the header. There used to be a scroll listener here
+     writing an inline box-shadow onto #nxHeader, which is why the bar could
+     not be made transparent by editing the stylesheet — an inline style wins.
+     novax has no shadow in any state: box-shadow none at scrollY 0 and at
+     scrollY 3000. Removing the listener is what actually makes the bar
+     transparent, not the background declaration. */
 
   /* ── Language menu ───────────────────────────────────────────────────────
      Closes on outside click and on Escape; the button keeps aria-expanded in
