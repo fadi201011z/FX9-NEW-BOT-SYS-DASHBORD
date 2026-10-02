@@ -143,25 +143,26 @@ button { font-family: inherit; }
    background transition that used to sit here was dead CSS. */
 .nx-header {
   position: fixed; top: 0; left: 0; right: 0; z-index: 1001;
-  display: flex; flex-direction: column; width: 100%;
-  padding: 8px 0; background: transparent; color: #fff;
-  transition: background-color .3s, backdrop-filter .3s;
+  width: 100%; padding-top: 16px; background: transparent; color: #fff;
 }
-/* Clear at the top so the hero starfield reads straight through the bar. Once
-   the page has moved, the bar frosts over: nav labels sit on top of whatever
-   is scrolling underneath, and a tint alone leaves that collision muddy, so
-   the blur does the work and the tint only sets the floor.
-   This part is ours, not a measurement — novax keeps the bar transparent at
-   every scroll position, measured at scrollY 0 and 3000, where backdrop-filter
-   is none. */
-.nx-header.is-stuck {
-  background: rgba(8,8,15,.72);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  backdrop-filter: blur(14px) saturate(140%);
-}
+/* The source is not a bar. Measured on novax, their <header> is an invisible
+   full-width 82px wrapper and the visible part is a floating pill inside it:
+   920x66 at left 24 and top 16, border-radius 9999px, background
+   rgba(60,60,73,.3), backdrop-filter blur(10px), padding 0 24px, no border
+   and no shadow.
+
+   That pill is glass at rest, not only after a scroll, which is why there is
+   no .is-stuck state here any more. The wrapper stays transparent so the pill
+   is the only thing visible, and .nx-wrap already supplies their 24px inset —
+   max-width 1200 with 24px padding gives exactly 920 of pill at a 968
+   viewport. 16px of top padding over the 66px pill lands on the same 82px. */
 .nx-header__bar {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 1rem; height: 66px; width: 100%;
+  gap: 1rem; height: 66px; width: 100%; padding-inline: 24px;
+  border-radius: 9999px;
+  background: rgba(60,60,73,.3);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 .nx-header__left { display: flex; align-items: center; gap: 1.1rem; min-width: 0; }
 .nx-logo { display: inline-flex; flex-shrink: 0; width: 50px; height: 50px; }
@@ -1942,23 +1943,12 @@ button { font-family: inherit; }
     el.style.fontSize = (7 + Math.random() * 4.6).toFixed(1) + 'px';
   });
 
-  /* Frost the header once the page moves. This toggles a class rather than
-     writing an inline style: the previous version here assigned
-     header.style.boxShadow directly, and an inline style outranks the
-     stylesheet, which is why the bar could not be made transparent by editing
-     .nx-header at all. Keeping the blur and the tint in CSS is also what lets
-     them transition. Passive listener, threshold at 8px so the bar stays clear
-     for the first few pixels of travel and only frosts once content is
-     actually passing under it. */
-  (function headerFrost() {
-    var header = document.getElementById('nxHeader');
-    if (!header) return;
-    var onScroll = function () {
-      header.classList.toggle('is-stuck', window.scrollY > 8);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  })();
+  /* No scroll listener on the header any more. Two of them have been here: one
+     assigning header.style.boxShadow inline, which outranked the stylesheet and
+     was the reason .nx-header could not be made transparent; and one toggling
+     .is-stuck to frost the bar on scroll. Neither has a job now that the bar
+     is a glass pill that is glass at rest, measured on novax at
+     rgba(60,60,73,.3) over blur(10px) with no scroll state. */
 
   /* ── Language menu ───────────────────────────────────────────────────────
      Closes on outside click and on Escape; the button keeps aria-expanded in
