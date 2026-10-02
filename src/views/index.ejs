@@ -239,10 +239,18 @@ button { font-family: inherit; }
 }
 
 /* ─── Dashboard showcase ───────────────────────────────────────────────────
-   novax drops a screenshot of their dashboard here, inside a frame whose
-   edges are bled into the page with stacked gradient layers so the image has
-   no visible border. Same four layers, same sizes, same stops — but the
-   picture inside is a CSS rendering of OUR dashboard, not theirs. */
+   novax drops a screenshot of their dashboard in here. Measured off their
+   page: a 1160px-wide image inside a 968px wrapper with padding 70px 0, so
+   the picture runs off both sides and only its content column stays on
+   screen. The image itself carries no radius, no border and no shadow — the
+   stacked gradient layers below are what dissolve whatever edge is left.
+
+   The picture inside is a CSS rendering of OUR dashboard, laid out to the
+   proportions read off their file: a full-width topbar carrying the brand at
+   the start, a 180px sidebar, then a 2-up band of wide cards, a 3-up band of
+   purple gradient tiles, and a second 3-up band. Palette is sampled from
+   their pixels — page #090a11, sidebar #08090f, card #12131c, tiles running
+   #3b1b73 → #2a1850 → #1c1030, brand #681fd1. */
 .nx-shot { position: relative; padding: 0; overflow: hidden; }
 @media (min-width: 900px) { .nx-shot { padding: 70px 0; } }
 .nx-shot__bleed { position: absolute; inset: -128px; pointer-events: none; }
@@ -262,58 +270,110 @@ button { font-family: inherit; }
   position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(to left, #08080f 0, transparent 100%);
 }
-.nx-shot__in { position: relative; z-index: 1; }
+/* Centred with flex rather than auto margins: the panel is wider than this
+   wrapper on a laptop, and flex overflows both edges evenly where auto
+   margins would pin it to one side. The min-height is theirs — a 654px
+   content box around a 466px screenshot, which lands the whole band at the
+   794px the source measures. */
+.nx-shot__in {
+  position: relative; z-index: 1;
+  display: flex; justify-content: center; align-items: center;
+  max-width: none; padding-inline: 0;
+}
+@media (min-width: 900px) { .nx-shot__in { min-height: 654px; } }
 
 /* the dashboard itself, drawn in CSS */
 .nx-dash {
-  display: flex; margin: 0 auto; max-width: 1160px;
-  border-radius: 14px; overflow: hidden;
-  background: #0b0b12; border: 1px solid var(--nx-line);
-  box-shadow: 0 30px 80px rgba(0,0,0,.5); text-align: start;
+  flex: 0 0 1160px; width: 1160px;
+  display: flex; flex-direction: column; overflow: hidden;
+  background: #090a11; border: 0; border-radius: 0; box-shadow: none;
+  text-align: start;
 }
+.nx-dash__bar {
+  flex: 0 0 64px; display: flex; align-items: center; gap: 14px;
+  padding-inline: 20px; background: #0b0c13;
+  border-block-end: 1px solid var(--nx-line-2);
+}
+.nx-dash__brand { display: flex; align-items: center; gap: 9px; font-size: .875rem; font-weight: 700; color: #fff; }
+.nx-dash__brand i {
+  width: 26px; height: 26px; border-radius: 8px;
+  background: linear-gradient(150deg, var(--nx-purple-l), var(--nx-purple));
+  box-shadow: 0 0 18px rgba(104,31,209,.55);
+}
+.nx-dash__crumb { display: flex; align-items: center; gap: 8px; font-size: .75rem; color: var(--nx-muted); }
+.nx-dash__crumb em {
+  width: 6px; height: 6px; border-radius: 50%; font-style: normal;
+  background: var(--nx-green); box-shadow: 0 0 8px rgba(87,242,135,.8);
+}
+.nx-dash__acts { margin-inline-start: auto; display: flex; align-items: center; gap: 10px; }
+.nx-dash__acts s { width: 84px; height: 26px; border-radius: 7px; background: rgba(255,255,255,.07); text-decoration: none; }
+.nx-dash__acts b { width: 30px; height: 26px; border-radius: 7px; background: var(--nx-purple); }
+
+.nx-dash__body { flex: 1; display: flex; min-height: 0; }
 .nx-dash__side {
-  flex-shrink: 0; width: 216px; padding: 14px 10px;
-  background: #0e0e16; border-inline-end: 1px solid var(--nx-line-2);
-  display: flex; flex-direction: column; gap: 4px;
+  flex: 0 0 180px; padding: 14px 10px;
+  background: #08090f; border-inline-end: 1px solid var(--nx-line-2);
+  display: flex; flex-direction: column; gap: 3px;
 }
-.nx-dash__brand {
-  display: flex; align-items: center; gap: 8px; padding: 4px 8px 12px;
-  font-size: .8125rem; font-weight: 700; color: #fff;
-}
-.nx-dash__brand i { width: 22px; height: 22px; border-radius: 7px; background: var(--nx-purple); }
 .nx-dash__grp {
-  padding: 12px 8px 5px; font-size: .625rem; font-weight: 700;
-  letter-spacing: .05em; color: #5b6270;
+  padding: 12px 9px 5px; font-size: .625rem; font-weight: 700;
+  letter-spacing: .04em; color: #5b6270;
 }
 .nx-dash__link {
   display: flex; align-items: center; gap: 9px;
-  padding: 7px 9px; border-radius: 8px; font-size: .75rem; color: #9aa1ae;
+  padding: 6px 9px; border-radius: 7px; font-size: .75rem; color: var(--nx-muted);
 }
-.nx-dash__link i { width: 14px; text-align: center; font-size: .7rem; opacity: .75; }
-.nx-dash__link.is-on { background: rgba(104,31,209,.16); color: #fff; }
+.nx-dash__link i { width: 14px; text-align: center; font-size: .6875rem; opacity: .7; }
+.nx-dash__link.is-on { background: rgba(104,31,209,.2); color: #fff; }
 .nx-dash__link.is-on i { color: var(--nx-violet-2); opacity: 1; }
-.nx-dash__main { flex: 1; min-width: 0; padding: 16px 18px 20px; }
-.nx-dash__top {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--nx-line-2);
+
+.nx-dash__main {
+  flex: 1; min-width: 0; padding: 18px 20px 22px;
+  display: flex; flex-direction: column; gap: 14px;
 }
-.nx-dash__top b { font-size: .9375rem; color: #fff; font-weight: 600; }
-.nx-dash__top span { font-size: .6875rem; color: #5b6270; }
-.nx-dash__stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.nx-dash__stat { padding: 13px 14px; border-radius: 12px; border: 1px solid var(--nx-line); background: #101019; }
-.nx-dash__stat u { display: block; font-size: .625rem; color: #6b7280; text-decoration: none; margin-bottom: 6px; }
-.nx-dash__stat b { font-size: 1.25rem; color: #fff; font-weight: 700; }
-.nx-dash__stat em { font-size: .6875rem; font-style: normal; color: var(--nx-green); }
-.nx-dash__panes { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-top: 12px; }
-.nx-dash__pane { padding: 13px 14px; border-radius: 12px; min-height: 96px; border: 1px solid var(--nx-line); background: #101019; }
-.nx-dash__pane u { display: block; font-size: .625rem; color: #6b7280; text-decoration: none; margin-bottom: 10px; }
-.nx-dash__row { display: flex; align-items: center; gap: 9px; padding: 6px 0; }
-.nx-dash__row s { width: 20px; height: 20px; border-radius: 6px; text-decoration: none; flex-shrink: 0; background: linear-gradient(135deg, #3b3b52, #23232f); }
-.nx-dash__row em { flex: 1; height: 7px; border-radius: 3px; background: rgba(255,255,255,.1); font-style: normal; }
+.nx-dash__head { display: flex; align-items: baseline; gap: 10px; }
+.nx-dash__head b { font-size: 1rem; font-weight: 700; color: #fff; }
+.nx-dash__head span { font-size: .6875rem; color: #5b6270; }
+
+.nx-dash__wide { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.nx-dash__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.nx-dash__card {
+  padding: 14px 16px; border-radius: 12px;
+  border: 1px solid var(--nx-line-2); background: var(--nx-bar);
+}
+.nx-dash__card u { display: block; font-size: .6875rem; color: var(--nx-muted); text-decoration: none; margin-bottom: 10px; }
+.nx-dash__row { display: flex; align-items: center; gap: 9px; padding: 5px 0; }
+.nx-dash__row s {
+  width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+  background: linear-gradient(135deg, #3b3b52, #23232f); text-decoration: none;
+}
+.nx-dash__row em { flex: 1; height: 7px; border-radius: 3px; background: rgba(255,255,255,.09); font-style: normal; }
+
+/* the purple tile band — the one strongly saturated element in their frame */
+.nx-dash__tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.nx-dash__tile {
+  position: relative; padding: 15px 16px; border-radius: 12px;
+  border: 1px solid rgba(139,92,246,.24);
+  background: linear-gradient(155deg, #3b1b73 0, #2a1850 52%, #1c1030 100%);
+}
+.nx-dash__tile u { display: block; font-size: .6875rem; color: #c9b8e8; text-decoration: none; margin-bottom: 8px; }
+.nx-dash__tile b { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; color: #fff; }
+.nx-dash__tile em { display: block; margin-top: 4px; font-size: .6875rem; font-style: normal; color: var(--nx-purple-l); }
+.nx-dash__tile i {
+  position: absolute; inset-block-start: 14px; inset-inline-end: 14px;
+  width: 30px; height: 30px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(140,90,255,.3); border: 1px solid rgba(180,150,255,.35);
+  font-size: .75rem; color: #e9d5ff;
+}
 @media (max-width: 899.98px) {
+  .nx-dash { flex-basis: 100%; width: 100%; }
   .nx-dash__side { display: none; }
-  .nx-dash__stats { grid-template-columns: repeat(2, 1fr); }
-  .nx-dash__panes { grid-template-columns: 1fr; }
+  .nx-dash__wide, .nx-dash__tiles, .nx-dash__cards { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 599.98px) {
+  .nx-dash__wide, .nx-dash__tiles, .nx-dash__cards { grid-template-columns: 1fr; }
+  .nx-dash__acts s { display: none; }
 }
 
 /* ─── Generic section furniture ─────────────────────────────────────────────
@@ -337,8 +397,7 @@ button { font-family: inherit; }
    narrower than the source. */
 .nx-sec__in.nx-wrap,
 .nx-features .nx-wrap,
-.nx-plugins .nx-wrap,
-.nx-shot .nx-wrap { padding-inline: 0; max-width: 1200px; }
+.nx-plugins .nx-wrap { padding-inline: 0; max-width: 1200px; }
 
 .nx-sec__title {
   margin: 0 0 .75rem; font-size: 1.5rem; font-weight: 700;
@@ -863,8 +922,10 @@ button { font-family: inherit; }
 </section>
 
 <!-- ══ Dashboard showcase ═════════════════════════════════════════════════
-     Our own dashboard, drawn in CSS and bled into the page background with
-     the same stacked gradient frame the source uses around its screenshot. -->
+     Our own dashboard, drawn in CSS at the proportions measured off the
+     source's screenshot: topbar, sidebar, wide card band, purple tile band,
+     and a second card band. The panel is borderless and wider than the
+     wrapper, so it bleeds off both sides the way theirs does. -->
 <section class="nx-shot">
   <div class="nx-shot__bleed nx-shot__bleed--a" aria-hidden="true"></div>
   <div class="nx-shot__bleed nx-shot__bleed--b" aria-hidden="true"></div>
@@ -874,49 +935,81 @@ button { font-family: inherit; }
 
   <div class="nx-shot__in nx-wrap">
     <div class="nx-dash">
-      <aside class="nx-dash__side">
+      <div class="nx-dash__bar">
         <div class="nx-dash__brand"><i></i> كراتوس</div>
-        <div class="nx-dash__grp">الرئيسية</div>
-        <span class="nx-dash__link is-on"><i class="fas fa-star"></i> الرئيسية</span>
-        <span class="nx-dash__link"><i class="fas fa-gauge-high"></i> لوحة التحكم</span>
-        <span class="nx-dash__link"><i class="fas fa-server"></i> السيرفرات</span>
-        <span class="nx-dash__link"><i class="fas fa-heart-pulse"></i> حالة البوت</span>
-        <div class="nx-dash__grp">سيرفرك</div>
-        <span class="nx-dash__link"><i class="fas fa-eye"></i> نظرة عامة</span>
-        <span class="nx-dash__link"><i class="fas fa-sliders"></i> الإعدادات</span>
-        <span class="nx-dash__link"><i class="fas fa-terminal"></i> الأوامر</span>
-        <span class="nx-dash__link"><i class="fas fa-ticket-alt"></i> التذاكر</span>
-        <span class="nx-dash__link"><i class="fas fa-volume-high"></i> الغرف المؤقتة</span>
-        <span class="nx-dash__link"><i class="fas fa-clipboard-list"></i> سجل النشاط</span>
-        <span class="nx-dash__link"><i class="fas fa-bell"></i> الإشعارات</span>
-        <span class="nx-dash__link"><i class="fas fa-shield-halved"></i> الحماية</span>
-        <span class="nx-dash__link"><i class="fas fa-crown"></i> البريميوم</span>
-      </aside>
+        <div class="nx-dash__crumb"><em></em> متصل</div>
+        <div class="nx-dash__acts"><s></s><s></s><b></b></div>
+      </div>
 
-      <div class="nx-dash__main">
-        <div class="nx-dash__top">
-          <b>نظرة عامة على السيرفر</b>
-          <span>آخر تحديث منذ لحظات</span>
-        </div>
-        <div class="nx-dash__stats">
-          <div class="nx-dash__stat"><u>الأعضاء</u><b>52</b> <em>+4 هذا الشهر</em></div>
-          <div class="nx-dash__stat"><u>الأوامر</u><b>41</b> <em>نشطة</em></div>
-          <div class="nx-dash__stat"><u>التذاكر</u><b>9</b> <em>مفتوحة</em></div>
-          <div class="nx-dash__stat"><u>في الصوت</u><b>2</b> <em>متصل</em></div>
-        </div>
-        <div class="nx-dash__panes">
-          <div class="nx-dash__pane">
-            <u>أحدث نشاطات</u>
-            <div class="nx-dash__row"><s></s><em></em></div>
-            <div class="nx-dash__row"><s></s><em></em></div>
-            <div class="nx-dash__row"><s></s><em></em></div>
-            <div class="nx-dash__row"><s></s><em></em></div>
+      <div class="nx-dash__body">
+        <aside class="nx-dash__side">
+          <div class="nx-dash__grp">الرئيسية</div>
+          <span class="nx-dash__link is-on"><i class="fas fa-star"></i> نظرة عامة</span>
+          <span class="nx-dash__link"><i class="fas fa-gauge-high"></i> لوحة التحكم</span>
+          <span class="nx-dash__link"><i class="fas fa-server"></i> السيرفرات</span>
+          <div class="nx-dash__grp">سيرفرك</div>
+          <span class="nx-dash__link"><i class="fas fa-sliders"></i> الإعدادات</span>
+          <span class="nx-dash__link"><i class="fas fa-terminal"></i> الأوامر</span>
+          <span class="nx-dash__link"><i class="fas fa-ticket-alt"></i> التذاكر</span>
+          <span class="nx-dash__link"><i class="fas fa-volume-high"></i> الغرف المؤقتة</span>
+          <span class="nx-dash__link"><i class="fas fa-clipboard-list"></i> سجل النشاط</span>
+          <span class="nx-dash__link"><i class="fas fa-bell"></i> الإشعارات</span>
+          <span class="nx-dash__link"><i class="fas fa-shield-halved"></i> الحماية</span>
+          <span class="nx-dash__link"><i class="fas fa-crown"></i> البريميوم</span>
+        </aside>
+
+        <div class="nx-dash__main">
+          <div class="nx-dash__head">
+            <b>نظرة عامة على السيرفر</b>
+            <span>آخر تحديث منذ لحظات</span>
           </div>
-          <div class="nx-dash__pane">
-            <u>حالة البوت</u>
-            <div class="nx-dash__row"><s></s><em></em></div>
-            <div class="nx-dash__row"><s></s><em></em></div>
-            <div class="nx-dash__row"><s></s><em></em></div>
+
+          <div class="nx-dash__wide">
+            <div class="nx-dash__card">
+              <u>أحدث النشاطات</u>
+              <div class="nx-dash__row"><s></s><em></em></div>
+              <div class="nx-dash__row"><s></s><em></em></div>
+              <div class="nx-dash__row"><s></s><em></em></div>
+            </div>
+            <div class="nx-dash__card">
+              <u>حالة البوت</u>
+              <div class="nx-dash__row"><s></s><em></em></div>
+              <div class="nx-dash__row"><s></s><em></em></div>
+              <div class="nx-dash__row"><s></s><em></em></div>
+            </div>
+          </div>
+
+          <div class="nx-dash__tiles">
+            <div class="nx-dash__tile">
+              <u>الأعضاء</u><b>52</b><em>+4 هذا الشهر</em>
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="nx-dash__tile">
+              <u>الأوامر المنفذة</u><b>41</b><em>نشطة</em>
+              <i class="fas fa-bolt"></i>
+            </div>
+            <div class="nx-dash__tile">
+              <u>التذاكر المفتوحة</u><b>9</b><em>بانتظار الرد</em>
+              <i class="fas fa-ticket-alt"></i>
+            </div>
+          </div>
+
+          <div class="nx-dash__cards">
+            <div class="nx-dash__card">
+              <u>الغرف الصوتية</u>
+              <div class="nx-dash__row"><s></s><em></em></div>
+              <div class="nx-dash__row"><s></s><em></em></div>
+            </div>
+            <div class="nx-dash__card">
+              <u>الإعدادات النشطة</u>
+              <div class="nx-dash__row"><s></s><em></em></div>
+              <div class="nx-dash__row"><s></s><em></em></div>
+            </div>
+            <div class="nx-dash__card">
+              <u>الحماية</u>
+              <div class="nx-dash__row"><s></s><em></em></div>
+              <div class="nx-dash__row"><s></s><em></em></div>
+            </div>
           </div>
         </div>
       </div>
