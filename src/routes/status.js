@@ -62,7 +62,7 @@ const secretState = (() => {
     configured: s.length > 0,
     length: s.length,
     hint: s.length >= 32
-      ? crypto.createHmac('sha256', 'fx9-secret-fingerprint-v1').update(s).digest('hex').slice(0, 8)
+      ? crypto.createHmac('sha256', 'krs-secret-fingerprint-v1').update(s).digest('hex').slice(0, 8)
       : null,
   };
 })();
@@ -210,10 +210,10 @@ router.get('/user/activity', isAuthenticated, async (req, res) => {
 
 router.get('/bot/info', async (req, res) => {
   res.json({
-    name: 'FX9 Merged Bot',
+    name: 'Kratos System',
     version: '5.0.0',
-    description: 'FX9 Merged Bot — System + Tickets',
-    dashboard: 'FX9 Dashboard v1.0.0',
+    description: 'Kratos System — System + Tickets',
+    dashboard: 'Kratos Dashboard v1.0.0',
     owner: config.discord.ownerId,
     uptime: process.uptime(),
     nodeVersion: process.version,

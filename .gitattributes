@@ -1,4 +1,4 @@
-# ─── FX9 Dashboard — line-ending policy ────────────────────────────────────
+# ─── Kratos Dashboard — line-ending policy ────────────────────────────────────
 # Normalise every text file to LF both in the repository and in the working
 # tree, regardless of the contributor's OS.
 #

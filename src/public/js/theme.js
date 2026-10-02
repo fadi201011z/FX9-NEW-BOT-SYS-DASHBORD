@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const savedTheme = localStorage.getItem('fx9-theme') || 'dark';
+  const savedTheme = localStorage.getItem('krs-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeIcon(savedTheme);
 });
@@ -8,7 +8,7 @@ function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('fx9-theme', next);
+  localStorage.setItem('krs-theme', next);
   updateThemeIcon(next);
 
   fetch('/api/user/settings/update', {

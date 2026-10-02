@@ -284,7 +284,7 @@ app.get('/', async (req, res) => {
   res.render('index', {
     layout: false,
     user: req.session?.user || null,
-    title: 'FX9 Dashboard — لوحة تحكم البوت',
+    title: 'Kratos Dashboard — لوحة تحكم البوت',
     supportUrl: '#',
     error: errorMap[req.query.error] || null,
     stats: { cmd: cmdStats, bot: botStats },
@@ -305,7 +305,7 @@ app.use((err, req, res, _next) => {
 // ─── Start Server ────────────────────────────────────────────────────────
 const server = app.listen(config.port, '0.0.0.0', () => {
   console.log('═══════════════════════════════════════════════════');
-  console.log(`  FX9 Dashboard v1.0.0`);
+  console.log(`  Kratos Dashboard v1.0.0`);
   console.log(`  Server  → http://localhost:${config.port}`);
   console.log(`  Mode    → ${config.nodeEnv}`);
   console.log(`  WS      → ws://localhost:${config.port}/ws`);

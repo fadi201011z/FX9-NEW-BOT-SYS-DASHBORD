@@ -19,7 +19,14 @@ const codeAttempts = createAttemptLimiter({ max: 5, windowMs: 60 * 60 * 1000 });
 // ════════════════════════════════════════════════════════════════════
 
 // ── أكواد التفعيل السرية (لا تظهر في الصفحة أبداً) ──────────────────
+// Reachable through two prefixes on purpose. The FX9- codes predate the
+// rename to Kratos System and may already be in someone's hands; dropping
+// them would silently invalidate a code that was paid for. The KRS- codes
+// are the same plans under the current brand.
 const ACTIVATION_CODES = {
+  'KRS-STD-4829-KDMN': 'standard',
+  'KRS-ULT-7153-QXWT': 'ultimate',
+  // Legacy aliases — same plans, accepted so existing holders are unaffected.
   'FX9-STD-4829-KDMN': 'standard',
   'FX9-ULT-7153-QXWT': 'ultimate',
 };

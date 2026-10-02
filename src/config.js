@@ -16,7 +16,7 @@ export default {
   },
 
   session: {
-    secret: process.env.SESSION_SECRET || 'fx9-dashboard-secret',
+    secret: process.env.SESSION_SECRET || 'krs-dashboard-secret',
     maxAge: 24 * 60 * 60 * 1000,
   },
 

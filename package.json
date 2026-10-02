@@ -1,7 +1,7 @@
 {
-  "name": "fx9-dashboard",
+  "name": "krs-dashboard",
   "version": "1.0.0",
-  "description": "FX9 Bot Advanced Web Dashboard",
+  "description": "KRS Bot Advanced Web Dashboard",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

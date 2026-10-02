@@ -333,7 +333,7 @@ function updatePreview() {
   const type = document.getElementById('announceType').value;
   const color = getColor();
   const img = document.getElementById('announceImage').value;
-  const footer = document.getElementById('announceFooter').value || `${announceLabels[type]} • FX9 Dashboard`;
+  const footer = document.getElementById('announceFooter').value || `${announceLabels[type]} • Kratos Dashboard`;
   if (!title && !msg) { previewDiv.style.display = 'none'; return; }
   previewDiv.style.display = 'block';
   previewContent.innerHTML = `

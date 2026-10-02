@@ -1,4 +1,4 @@
-# ─── FX9 Dashboard — Northflank / Production Dockerfile ─────────────────────
+# ─── Kratos Dashboard — Northflank / Production Dockerfile ─────────────────────
 # Node 22 Alpine: smallest & fastest, matches discord.js v14 + mongoose 9 reqs
 FROM node:22-alpine
 

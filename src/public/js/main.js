@@ -29,10 +29,10 @@ function toggleSidebarMode() {
   if (!sidebar) return;
   if (sidebar.classList.contains('collapsed')) {
     sidebar.classList.remove('collapsed');
-    localStorage.setItem('fx9-sidebar', 'full');
+    localStorage.setItem('krs-sidebar', 'full');
   } else {
     sidebar.classList.add('collapsed');
-    localStorage.setItem('fx9-sidebar', 'collapsed');
+    localStorage.setItem('krs-sidebar', 'collapsed');
   }
 }
 
@@ -49,7 +49,7 @@ function initSidebar() {
 
   // Restore saved state (desktop only)
   if (window.innerWidth > 768) {
-    const saved = localStorage.getItem('fx9-sidebar');
+    const saved = localStorage.getItem('krs-sidebar');
     if (saved === 'collapsed') sidebar.classList.add('collapsed');
   }
 
@@ -79,7 +79,7 @@ function initSidebar() {
       if (window.innerWidth <= 768) {
         sidebar.classList.remove('collapsed');
       } else {
-        const saved = localStorage.getItem('fx9-sidebar');
+        const saved = localStorage.getItem('krs-sidebar');
         if (saved === 'collapsed') sidebar.classList.add('collapsed');
       }
     }, 200);

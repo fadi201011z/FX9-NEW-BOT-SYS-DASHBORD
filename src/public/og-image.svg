@@ -39,10 +39,10 @@
   <text x="125" y="245" text-anchor="middle" font-size="44" font-weight="bold" fill="white" font-family="Arial, sans-serif">FX</text>
 
   <!-- Title -->
-  <text x="80" y="340" font-size="52" font-weight="800" fill="#e8eaf0" font-family="Arial, sans-serif">FX9 Dashboard</text>
+  <text x="80" y="340" font-size="52" font-weight="800" fill="#e8eaf0" font-family="Arial, sans-serif">Kratos Dashboard</text>
 
   <!-- Subtitle -->
-  <text x="80" y="400" font-size="24" fill="#8e92a4" font-family="Arial, sans-serif">لوحة تحكم متقدمة لإدارة بوت FX9 على ديسكورد</text>
+  <text x="80" y="400" font-size="24" fill="#8e92a4" font-family="Arial, sans-serif">لوحة تحكم متقدمة لإدارة بوت KRS على ديسكورد</text>
 
   <!-- Status dots -->
   <circle cx="80" cy="460" r="6" fill="#57f287"/>
