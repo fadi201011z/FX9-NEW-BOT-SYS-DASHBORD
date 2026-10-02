@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
+import crypto from 'node:crypto';
 import { isAuthenticated, hasGuildAccess, isOwner, clearBotGuildCache } from '../middleware/auth.js';
 import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig, getGuildAdmins } from '../database.js';
 import { getCommandStats } from '../services/syncService.js';
@@ -43,6 +44,28 @@ router.get('/tickets/stats', async (req, res) => {
   const closed = await Ticket.countDocuments({ status: 'closed' });
   res.json({ total, open, closed });
 });
+
+// ─── Shared-secret self-report ─────────────────────────────────────────────
+// A 401 from the bot is ambiguous on its own: the dashboard might have no
+// API_SECRET at all (so botFetch sends no header), or it might hold a stale
+// value from before a rotation. Those need opposite fixes — "add the variable"
+// versus "make the two values identical" — so the page reports which one it is.
+//
+// The secret is never returned. `length` and an HMAC prefix are enough to spot
+// the two failure modes that actually occur: a variable that never saved, and a
+// value that picked up a stray space or newline on paste. The fingerprint is
+// suppressed for short values, where it would help an attacker confirm a guess
+// rather than requiring the full 384-bit secret to match.
+const secretState = (() => {
+  const s = config.apiSecret || '';
+  return {
+    configured: s.length > 0,
+    length: s.length,
+    hint: s.length >= 32
+      ? crypto.createHmac('sha256', 'fx9-secret-fingerprint-v1').update(s).digest('hex').slice(0, 8)
+      : null,
+  };
+})();
 
 router.get('/status', async (req, res) => {
   const start = Date.now();
@@ -97,6 +120,13 @@ router.get('/status', async (req, res) => {
     // Shape kept flat so the landing page can read it without a null check.
     botApiHttp,
     botApiError,
+    // Which side of the mismatch is actually configured? A 401 means the bot
+    // has its secret, so the dashboard is the side that is missing or stale —
+    // but "missing" and "wrong value" need different fixes, and this route is
+    // public so it cannot report the value itself.
+    secretConfigured: secretState.configured,
+    secretLength: secretState.length,
+    secretHint: secretState.hint,
     timestamp: Date.now(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),

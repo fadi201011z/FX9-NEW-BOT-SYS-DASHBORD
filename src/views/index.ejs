@@ -1068,7 +1068,7 @@
       var el = document.getElementById(id);
       if (!el) return;
       el.textContent = txt;
-      el.classList.toggle('is-wait', WAIT_TEXTS.indexOf(txt) !== -1);
+      el.classList.toggle('is-wait', isWaitText(txt));
     }
 
     /* ══════════════════════════════════════════════════════════════════
@@ -1137,8 +1137,13 @@
     /* Every sub-label that means "the bot is not reachable", so they all get the
        same pending tone. Kept in one place because reasonText() picks between
        them based on what /api/status reported. */
-    var WAIT_TEXTS = ['يتصل بالبوت…', 'البوت لم يُحدَّث بعد', 'تعارض API_SECRET',
-                      'API_SECRET غير مُعرَّف', 'البوت لا يستجيب بعد', 'تعذّر الوصول للبوت'];
+    var WAIT_TEXTS = ['يتصل بالبوت…', 'البوت لم يُحدَّث بعد', 'المفتاحان غير متطابقين',
+                      'الداشبورد بلا مفتاح', 'API_SECRET غير مُعرَّف',
+                      'البوت لا يستجيب بعد', 'تعذّر الوصول للبوت'];
+    // 'طول المفتاح N' is generated, so match it by prefix.
+    function isWaitText(t) {
+      return WAIT_TEXTS.indexOf(t) !== -1 || t.indexOf('طول المفتاح ') === 0;
+    }
 
     /* Marks every card as "waiting" while the bot process is unreachable.
        A Render free-tier service sleeps after ~15 min idle, so the bot's
@@ -1150,7 +1155,16 @@
       var e = d && d.botApiError;
       if (!e) return 'يتصل بالبوت…';
       if (e === 'HTTP 404') return 'البوت لم يُحدَّث بعد';
-      if (e === 'HTTP 401' || e === 'HTTP 403') return 'تعارض API_SECRET';
+      if (e === 'HTTP 401' || e === 'HTTP 403') {
+        // The bot rejected our value. Say which side is at fault, because
+        // "add the variable" and "make them equal" are different instructions
+        // and the visitor cannot see either service's config.
+        if (d && d.secretConfigured === false) return 'الداشبورد بلا مفتاح';
+        if (d && typeof d.secretLength === 'number' && d.secretLength !== 96) {
+          return 'طول المفتاح ' + d.secretLength;
+        }
+        return 'المفتاحان غير متطابقين';
+      }
       if (e === 'HTTP 503') return 'API_SECRET غير مُعرَّف';
       if (e === 'timeout') return 'البوت لا يستجيب بعد';
       if (e === 'network') return 'تعذّر الوصول للبوت';
