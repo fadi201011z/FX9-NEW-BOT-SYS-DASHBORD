@@ -1068,7 +1068,7 @@
       var el = document.getElementById(id);
       if (!el) return;
       el.textContent = txt;
-      el.classList.toggle('is-wait', txt === 'يتصل بالبوت…');
+      el.classList.toggle('is-wait', WAIT_TEXTS.indexOf(txt) !== -1);
     }
 
     /* ══════════════════════════════════════════════════════════════════
@@ -1134,17 +1134,37 @@
       card.classList.add(ping < 200 ? 'q-good' : (ping < 450 ? 'q-mid' : 'q-bad'));
     }
 
+    /* Every sub-label that means "the bot is not reachable", so they all get the
+       same pending tone. Kept in one place because reasonText() picks between
+       them based on what /api/status reported. */
+    var WAIT_TEXTS = ['يتصل بالبوت…', 'البوت لم يُحدَّث بعد', 'تعارض API_SECRET',
+                      'API_SECRET غير مُعرَّف', 'البوت لا يستجيب بعد', 'تعذّر الوصول للبوت'];
+
     /* Marks every card as "waiting" while the bot process is unreachable.
        A Render free-tier service sleeps after ~15 min idle, so the bot's
        /api/stats 404s until it wakes and finishes its Discord login. Showing
-       a dash forever made the cards look broken. */
-    function paintWaiting() {
-      setText('frameGuildsVal', 'يتصل بالبوت…');
-      setText('frameMembersVal', 'يتصل بالبوت…');
-      setText('framePingVal', 'يتصل بالبوت…');
+       a dash forever made the cards look broken. The reason from /api/status
+       is surfaced too, because "offline" alone hides whether the cause is a
+       stale bot build (404), a secret mismatch (401) or a wrong URL. */
+    function reasonText(d) {
+      var e = d && d.botApiError;
+      if (!e) return 'يتصل بالبوت…';
+      if (e === 'HTTP 404') return 'البوت لم يُحدَّث بعد';
+      if (e === 'HTTP 401' || e === 'HTTP 403') return 'تعارض API_SECRET';
+      if (e === 'HTTP 503') return 'API_SECRET غير مُعرَّف';
+      if (e === 'timeout') return 'البوت لا يستجيب بعد';
+      if (e === 'network') return 'تعذّر الوصول للبوت';
+      return 'يتصل بالبوت…';
+    }
+
+    function paintWaiting(d) {
+      var why = reasonText(d);
+      setText('frameGuildsVal', why);
+      setText('frameMembersVal', why);
+      setText('framePingVal', why);
       paintPingCard(NaN);
       var lp = document.getElementById('landPill');
-      if (lp) lp.innerHTML = '<span class="fx-dot off"></span> FADIX9 SYSTEM v1.0.11 — البوت نايم، جاري الإقلاع';
+      if (lp) lp.innerHTML = '<span class="fx-dot off"></span> FADIX9 SYSTEM v1.0.11 — ' + why;
     }
 
     // Command statistics → metrics + numbers
@@ -1179,7 +1199,7 @@
           if (!d) throw new Error();
 
           if (!d.botOnline) {
-            paintWaiting();
+            paintWaiting(d);
             // Bot is asleep or still booting — keep trying
             statusTimer = setTimeout(pollStatus, 8000);
             return;
@@ -1204,7 +1224,7 @@
           statusTimer = setTimeout(pollStatus, 30000);
         })
         .catch(function () {
-          paintWaiting();
+          paintWaiting(null);
           statusTimer = setTimeout(pollStatus, 8000);
         });
     }

@@ -47,27 +47,56 @@ router.get('/tickets/stats', async (req, res) => {
 router.get('/status', async (req, res) => {
   const start = Date.now();
   let guildCount = 0, members = null, ping = null, botOnline = false;
+
+  // Why the bot looks offline is the single most useful thing this endpoint
+  // can report, and a bare `false` hides every plausible cause. Each value
+  // below maps to exactly one fix:
+  //   404 → the bot is running an older build, or `ready` never fired
+  //   401 → API_SECRET differs between dashboard and bot
+  //   503 → API_SECRET is not set on the bot at all
+  //   timeout / network → wrong BOT_API_URL, or the bot is still booting
+  //   200 → the bot answered, so `online` must be true
+  // The configured URL is deliberately not included: this route is public.
+  let botApiHttp = null, botApiError = null;
+
   try {
     const botRes = await botFetch(`${config.botApiUrl}/api/stats`, {
       signal: AbortSignal.timeout(4000),
-    }).catch(() => null);
-    if (botRes && botRes.ok) {
-      const botData = await botRes.json();
-      guildCount = botData.guilds ?? guildCount;
-      members = botData.members ?? null;
-      ping = botData.ping ?? null;
-      botOnline = true;
+    }).catch((e) => {
+      botApiError = e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'timeout' : 'network';
+      return null;
+    });
+
+    if (botRes) {
+      botApiHttp = botRes.status;
+      if (botRes.ok) {
+        const botData = await botRes.json();
+        guildCount = botData.guilds ?? guildCount;
+        members = botData.members ?? null;
+        ping = botData.ping ?? null;
+        botOnline = true;
+        botApiError = null;
+      } else {
+        botApiError = `HTTP ${botRes.status}`;
+      }
     }
-  } catch {}
+  } catch (e) {
+    botApiError = 'network';
+  }
+
   if (!botOnline) {
     try {
       const botGuilds = await getBotGuilds(config.discord.botToken);
       guildCount = (botGuilds || []).length;
     } catch {}
   }
+
   res.json({
     status: botOnline ? 'online' : 'offline',
     botOnline,
+    // Shape kept flat so the landing page can read it without a null check.
+    botApiHttp,
+    botApiError,
     timestamp: Date.now(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
