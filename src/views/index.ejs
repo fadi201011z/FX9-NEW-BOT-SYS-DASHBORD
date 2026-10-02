@@ -216,15 +216,36 @@ button { font-family: inherit; }
   animation: nxSparkle 3s ease-in-out infinite;
 }
 
-.nx-hero__in { position: relative; z-index: 2; width: 100%; text-align: center; }
+/* The hero copy column is 920px on novax — their Grid container inside a 968px
+   viewport — with the sub copy capped at 768px inside it. Matching the measure
+   matters here: at 66px type a full-bleed line is long enough that the Arabic
+   breaks in a different place than the Latin did. */
+.nx-hero__in {
+  position: relative; z-index: 2; width: 100%;
+  max-width: 920px; margin-inline: auto; text-align: center;
+}
 .nx-hero__row { width: 100%; animation: nxFadeUp .8s cubic-bezier(.4,0,.2,1) both; }
 .nx-hero__row + .nx-hero__row { animation-delay: .1s; }
 @keyframes nxFadeUp { from { opacity: 0; transform: translateY(-10px); } }
 
+/* Size, weight, line-height and the gradient are all off novax's h1: 64.8 /
+   700 / 81px and linear-gradient(to top, #555, #fff 42%, #fff) behind a
+   transparent text fill.
+
+   Tracking is not. novax measures -0.03em here, and that value is tuned for
+   Poppins — a geometric Latin face whose letters carry real sidebearings and
+   can be pinched together. Arabic is cursive: the shaper emits joined glyph
+   clusters and letter-spacing is inserted between those clusters, so any
+   non-zero value opens the connecting stroke. -1.98px between Arabic letters
+   is not tight type, it is broken joins. Tracking therefore goes to normal on
+   every Arabic run on this page, and the display tightness is rebuilt from
+   word-spacing, which closes the word gaps without separating the letters.
+   Latin runs keep their measured tracking. */
 .nx-hero h1 {
   margin: 0 0 22px;
   font-size: clamp(2rem, 1rem + 5vw, 4.125rem);
-  font-weight: 700; line-height: 1.25; letter-spacing: -.03em;
+  font-weight: 700; line-height: 1.25;
+  letter-spacing: normal; word-spacing: -.05em;
   background: linear-gradient(to top, #555, #fff 42%, #fff);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -317,7 +338,7 @@ button { font-family: inherit; }
 }
 .nx-dash__grp {
   padding: 12px 9px 5px; font-size: .625rem; font-weight: 700;
-  letter-spacing: .04em; color: #5b6270;
+  letter-spacing: normal; color: #5b6270;
 }
 .nx-dash__link {
   display: flex; align-items: center; gap: 9px;
@@ -399,9 +420,12 @@ button { font-family: inherit; }
 .nx-features .nx-wrap,
 .nx-plugins .nx-wrap { padding-inline: 0; max-width: 1200px; }
 
+/* novax measures -0.02em at this size; see the note on .nx-hero h1 for why an
+   Arabic run takes normal tracking instead. */
 .nx-sec__title {
   margin: 0 0 .75rem; font-size: 1.5rem; font-weight: 700;
-  line-height: 1.2; letter-spacing: -.02em; color: #fff; text-align: center;
+  line-height: 1.2; letter-spacing: normal; word-spacing: -.03em;
+  color: #fff; text-align: center;
 }
 .nx-sec__sub {
   font-size: .875rem; line-height: 1.334em; color: var(--nx-muted);
@@ -563,7 +587,7 @@ button { font-family: inherit; }
 }
 .nx-embed__tag {
   display: inline-block; font-size: .625rem; font-weight: 700;
-  letter-spacing: .06em; color: var(--nx-muted); margin-bottom: 7px;
+  letter-spacing: normal; color: var(--nx-muted); margin-bottom: 7px;
 }
 .nx-embed__t { font-size: .9375rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
 .nx-embed__d { font-size: .8125rem; color: var(--nx-muted); }
@@ -714,9 +738,13 @@ button { font-family: inherit; }
 /* ─── CTA + Footer ───────────────────────────────────────────────────────── */
 .nx-cta { position: relative; padding: 100px 0 0; overflow-x: hidden; }
 .nx-cta__top { padding-bottom: 2rem; }
+/* 56px / 1.3 = 72.8px and letter-spacing normal, all measured off novax's
+   equivalent CTA heading. Their value here is already normal, so this one
+   matches the source exactly. */
 .nx-cta__title {
-  font-size: clamp(1.75rem, 4.4vw, 3.25rem); font-weight: 700; line-height: 1.15;
-  letter-spacing: -.02em; color: #fff; text-align: center; margin-bottom: 1.5rem;
+  font-size: clamp(1.75rem, 4.4vw, 3.5rem); font-weight: 700; line-height: 1.3;
+  letter-spacing: normal; word-spacing: -.04em; color: #fff; text-align: center;
+  margin-bottom: 1.5rem;
 }
 .nx-cta__title span {
   background: linear-gradient(to top, #555, #fff 42%, #fff);
@@ -756,7 +784,7 @@ button { font-family: inherit; }
 @media (min-width: 900px) { .nx-cols { grid-template-columns: 1.4fr 1fr 1fr 1fr; } }
 .nx-col h4 {
   margin: 0 0 14px; font-size: .8125rem; font-weight: 700;
-  letter-spacing: .04em; text-transform: uppercase; color: #fff;
+  letter-spacing: normal; text-transform: uppercase; color: #fff;
 }
 .nx-col ul { display: flex; flex-direction: column; gap: 9px; }
 .nx-col a { font-size: .875rem; color: var(--nx-muted); transition: color .2s; }
@@ -1427,7 +1455,7 @@ button { font-family: inherit; }
         <div class="nx-mock">
           <div class="nx-mock__hd"><i class="fas fa-reply"></i><span>الرد التلقائي</span></div>
           <div class="nx-mock__body">
-            <div style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;color:var(--nx-muted);">المُشغِّل</div>
+            <div style="font-size:.6875rem;font-weight:700;color:var(--nx-muted);">المُشغِّل</div>
             <div class="nx-embed">
               <div class="nx-embed__t" style="direction:ltr;text-align:left;">"server ip"</div>
               <div class="nx-embed__d" style="direction:ltr;text-align:left;">play.kratos.gg</div>
