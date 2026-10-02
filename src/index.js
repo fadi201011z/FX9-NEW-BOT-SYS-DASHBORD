@@ -1,5 +1,6 @@
 import express from 'express';
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -52,7 +53,40 @@ app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 securityMiddleware(app);
 
 // ─── Sessions ────────────────────────────────────────────────────────────
+// The store must be persistent. express-session's default MemoryStore keeps
+// sessions in the process's RAM, so any restart wipes them — and this app
+// restarts constantly on Render: every deploy replaces the container, and the
+// free tier spins the service down after ~15 minutes idle.
+//
+// That broke Discord login specifically. The OAuth flow writes req.session.
+// oauthState, bounces the user to Discord for consent, then reads that same
+// state back on the callback. If the process restarted in between, the state
+// was gone and every login died on `state !== savedState`, bouncing the user
+// back to the landing page with ?error=invalid_state.
+//
+// Sessions now live in the MongoDB this app already depends on, so they
+// survive restarts and work across instances.
+function buildSessionStore() {
+  try {
+    return MongoStore.create({
+      mongoUrl: config.mongodb.uri,
+      collectionName: 'sessions',
+      ttl: Math.floor(config.session.maxAge / 1000),
+      autoRemove: 'native',
+      // Expire idle sessions immediately rather than on write, so the TTL
+      // index stays authoritative even if a session is never touched again.
+      touchAfter: 0,
+    });
+  } catch (err) {
+    // Keep login working if Mongo is unreachable at boot. MemoryStore is worse
+    // than a database, but far better than sessions failing outright.
+    console.error('[Session] Mongo store unavailable, falling back to MemoryStore:', err.message);
+    return undefined;
+  }
+}
+
 app.use(session({
+  store: buildSessionStore(),
   secret: config.session.secret,
   resave: false,
   saveUninitialized: false,
