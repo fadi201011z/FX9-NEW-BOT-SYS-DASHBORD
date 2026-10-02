@@ -293,6 +293,31 @@ app.get('/premium', (req, res) => {
 
 // ─── Landing Page ────────────────────────────────────────────────────────
 app.get('/', async (req, res) => {
+  // ─── Recovery for a misconfigured CALLBACK_URL ─────────────────────────────
+  // Discord returns the user to whatever redirect_uri is registered with it.
+  // If CALLBACK_URL holds only the bare origin, the authorization code and
+  // state are delivered to this route instead of the callback handler, where
+  // nothing reads them. The visitor is then shown the landing page and login
+  // fails silently — no error message, no hint of what went wrong.
+  //
+  // Forward the pair to the real handler so a wrong CALLBACK_URL degrades into
+  // a working login rather than a dead end. The CSRF state check still runs in
+  // the callback route, unchanged: this only moves the request, it does not
+  // weaken the guard. Once CALLBACK_URL names the path, Discord goes straight
+  // there and this branch never runs.
+  //
+  // Both code and state must be present and be strings. A repeated ?code=a&code=b
+  // parses to an array, and a lone ?code= is not an OAuth response.
+  const { code, error: oauthError, state } = req.query;
+  if (typeof state === 'string' && state &&
+      (typeof code === 'string' || typeof oauthError === 'string')) {
+    const qs = new URLSearchParams();
+    if (typeof code === 'string') qs.set('code', code);
+    if (typeof oauthError === 'string') qs.set('error', oauthError);
+    qs.set('state', state);
+    return res.redirect(`/auth/discord/callback?${qs}`);
+  }
+
   if (req.session?.user) {
     const role = req.session.user.dashboardRole || 'member';
     const level = ROLE_HIERARCHY[role] ?? -1;
