@@ -114,20 +114,32 @@ button { font-family: inherit; }
 .nx-btn i:last-child { transition: transform .2s cubic-bezier(.23,1,.32,1); }
 .nx-btn:hover i:last-child { transform: translateX(-3px); }
 
-.nx-btn-g {
+/* The gold "Plus" button, filled rather than outlined.
+   Measured on the source, their Plus is a transparent link with gold text and
+   no border — radius 11px, padding 8px 16px, 13px/500 — so it sits in the nav
+   as a third plain item and the eye slides straight past it. Filling it is
+   ours, and it is what makes it read as the one action in the bar rather than
+   a third piece of navigation. Text goes near-black on gold, ~14:1, where gold
+   text on a transparent background was only ~11:1 against the glass pill.
+
+   Selector runs through .nx-nav a because the nav's own link rule (.nx-nav a,
+   0-1-1) outranks a bare class (0-1-0) and was repainting the fill white and
+   swapping the padding back to the nav's own. */
+.nx-nav a.nx-btn-g {
   position: relative; overflow: hidden;
-  padding: .5rem 1rem; gap: .5rem; font-size: .8125rem; font-weight: 500;
-  background: transparent; color: var(--nx-gold);
+  padding: 8px 16px; gap: 8px; line-height: 1.4;
+  font-size: .8125rem; font-weight: 500;
+  background: var(--nx-gold); color: #0d0b04;
 }
 .nx-btn-g::before {
   content: ''; position: absolute; inset: 0 auto 0 0; width: 60%; height: 100%;
-  background: linear-gradient(115deg, transparent, rgba(255,217,61,.35), transparent);
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,.55), transparent);
   transform: translateX(-150%) skewX(-20deg);
   transition: transform .6s cubic-bezier(.23,1,.32,1); pointer-events: none;
 }
 .nx-btn-g:hover {
-  background: rgba(101,86,23,.5); transform: translateY(-1px);
-  box-shadow: 0 0 0 1px rgba(255,217,61,.25), 0 6px 18px rgba(255,217,61,.18);
+  background: #ffe066; transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255,217,61,.3);
 }
 .nx-btn-g:hover::before { transform: translateX(220%) skewX(-20deg); }
 .nx-btn-g:hover i { transform: scale(1.15) rotate(15deg); }
@@ -706,20 +718,25 @@ button { font-family: inherit; }
    strip is faded by the box mask rather than clipped by the row.
 
    --set is one full set of icons. Script appends a second copy to the
-   track, so travelling exactly --set puts that copy where the original
-   started and the loop has no seam.
+   track, so travelling one set plus one gap lands that copy precisely where
+   the original started. The gap has to be inside the travel distance: it used
+   to travel exactly --set, which parked the 24px gap under the window at the
+   top of every loop and produced a 24px jump once per cycle.
 
-   All three strips travel left, which is "forward" in this RTL page: a strip
-   moving right would run against the reading direction. --dur is set per
-   row so that every strip covers the same ground per second (~24 px/s)
-   despite the middle set being shorter. Matching the speed rather than the
-   duration is what makes them read as one system instead of three. */
+   --dir is the sign of the travel. The middle strip runs left, which is
+   "forward" in this RTL page, and the two outer strips run right, so the
+   three weave instead of running as three parallel belts. --dur is set per row
+   so that every strip covers the same ground per second (~24 px/s) despite
+   the travel distances being 1008 / 864 / 1008. Matching the speed rather
+   than the duration is what makes them read as one system. */
 .nx-plugins__row {
   display: flex; align-items: center;
   height: 48px; flex-shrink: 0; white-space: nowrap; overflow: hidden;
 }
 .nx-plugins__track {
-  display: flex; align-items: center; gap: 24px;
+  --gap: 24px;
+  --travel: calc(var(--dir, -1) * (var(--set) + var(--gap)));
+  display: flex; align-items: center; gap: var(--gap);
   width: max-content; flex-shrink: 0;
   animation: nxMarquee var(--dur) linear infinite;
 }
@@ -730,12 +747,12 @@ button { font-family: inherit; }
 }
 @keyframes nxMarquee {
   from { transform: translateX(0); }
-  to   { transform: translateX(calc(-1 * var(--set))); }
+  to   { transform: translateX(var(--travel)); }
 }
-/*             set     px/s    duration */
-.nx-plugins__row:nth-child(1) { --set: 984px; --dur: 41s; } /* 24.0 */
-.nx-plugins__row:nth-child(2) { --set: 840px; --dur: 35s; } /* 24.0 */
-.nx-plugins__row:nth-child(3) { --set: 984px; --dur: 41s; } /* 24.0 */
+/*             set     dur     dir     travel  px/s */
+.nx-plugins__row:nth-child(1) { --set: 984px; --dur: 42s; --dir: 1; } /* 1008  24.00 right */
+.nx-plugins__row:nth-child(2) { --set: 840px; --dur: 36s;            } /*  864  24.00 left  */
+.nx-plugins__row:nth-child(3) { --set: 984px; --dur: 42s; --dir: 1; } /* 1008  24.00 right */
 .nx-plugins__mark {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 64px; height: 64px; border-radius: 18px;
@@ -928,7 +945,7 @@ button { font-family: inherit; }
         <nav class="nx-nav">
           <a href="/commands">الأوامر</a>
           <a href="https://discord.gg/fadix9" target="_blank" rel="noopener">تواصل معنا</a>
-          <a href="/premium" class="nx-btn-g"><i class="fas fa-crown"></i> بلس</a>
+          <a href="/premium" class="nx-btn nx-btn-g"><i class="fas fa-crown"></i> بلس</a>
           <span class="nx-sparks" aria-hidden="true">
             <i class="nx-spark">✦</i><i class="nx-spark">✦</i><i class="nx-spark">✦</i>
           </span>
@@ -1926,9 +1943,11 @@ button { font-family: inherit; }
   })();
 
   /* Plugin marquee: each strip needs two identical sets so that translating
-     by exactly one set width lands the second copy where the first began.
-     The icons are copied, not the track — cloning the track itself would
-     nest a second strip inside the first.
+     by one set plus the gap between them lands the second copy exactly where
+     the first began — the CSS gap sits between the last icon of the first copy
+     and the first of the second, so it has to be counted in the distance.
+     The icons are copied, not the track; cloning the track itself would nest a
+     second strip inside the first.
      Without scripting the strips still render, just motionless. */
   Array.prototype.forEach.call(document.querySelectorAll('.nx-plugins__track'), function (track) {
     Array.prototype.forEach.call([].slice.call(track.children), function (icon) {
