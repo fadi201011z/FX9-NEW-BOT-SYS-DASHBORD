@@ -429,6 +429,14 @@
   .fx-metric.q-good .fx-metric-val { color:var(--ok); text-shadow:0 2px 20px rgba(52,245,165,.4); }
   .fx-metric.q-mid  .fx-metric-val { color:var(--warn); text-shadow:0 2px 20px rgba(251,191,36,.4); }
   .fx-metric.q-bad  .fx-metric-val { color:var(--bad); text-shadow:0 2px 20px rgba(255,92,108,.4); }
+  /* Waiting: dimmed value + gently pulsing sparkline */
+  .fx-metric.q-wait .fx-metric-val { color:var(--fx-dim); text-shadow:none; }
+  .fx-metric.q-wait .fx-metric-ic { animation:fxWait 1.6s ease-in-out infinite; }
+  .fx-metric.q-wait .fx-spark i { animation-duration:1.4s; opacity:.18; }
+  .fx-metric.q-wait .fx-metric-sub { color:var(--warn); background:rgba(251,191,36,.1); border-color:rgba(251,191,36,.22); }
+  @keyframes fxWait { 0%,100%{opacity:.5} 50%{opacity:1} }
+  /* Sub-label in a pending tone */
+  .fx-metric-sub.is-wait { color:var(--warn); background:rgba(251,191,36,.1); border-color:rgba(251,191,36,.22); }
 
   /* Sparkline strip inside metric */
   .fx-spark { display:flex; align-items:flex-end; gap:3px; height:22px; margin-top:11px; position:relative; z-index:2; }
@@ -697,6 +705,20 @@
   </style>
 </head>
 <body>
+<%
+  /* ── Null-safe readers ────────────────────────────────────────────────
+     `stats.bot.members` can legitimately be 0 (or NaN when the bot's guild
+     cache has no memberCount yet). A plain truthiness test treats those as
+     "missing" and renders a dash, which is why the live metrics showed
+     nothing. These helpers only treat null/undefined/NaN as absent. */
+  const botStat = locals.stats && stats.bot ? stats.bot : {};
+  const hasVal = v => v !== null && v !== undefined && !Number.isNaN(v);
+  const orDash  = v => hasVal(v) ? v : '—';
+  const orNum   = v => hasVal(v) ? Number(v).toLocaleString() : '—';
+  const pingTxt = v => hasVal(v) ? v + 'ms' : '—';
+  const pingLbl = v => hasVal(v) && v > 0 ? (v < 200 ? 'ممتاز' : 'جيد') : 'غير متاح';
+  const guildLbl = v => hasVal(v) && v > 0 ? 'متصل' : 'غير متصل';
+%>
 
   <div class="f-ambient" aria-hidden="true">
     <div class="fx-orb o-pu-a"></div>
@@ -779,9 +801,9 @@
                 <div class="fx-metric-top">
                   <span class="fx-metric-ic"><i class="fas fa-server"></i></span>
                 </div>
-                <b class="fx-metric-val" id="frameGuilds"><%= (locals.stats && stats.bot && stats.bot.guilds) ? stats.bot.guilds : '—' %></b>
+                <b class="fx-metric-val" id="frameGuilds"><%= orDash(botStat.guilds) %></b>
                 <span class="fx-metric-lbl">سيرفر نشط</span>
-                <span class="fx-metric-sub" id="frameGuildsVal"><%= (locals.stats && stats.bot && stats.bot.guilds) ? 'متصل' : 'في الانتظار' %></span>
+                <span class="fx-metric-sub" id="frameGuildsVal"><%= guildLbl(botStat.guilds) %></span>
                 <div class="fx-spark"><i style="animation-delay:0s"></i><i style="animation-delay:.15s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.45s"></i><i style="animation-delay:.6s"></i><i style="animation-delay:.75s"></i></div>
               </div>
 
@@ -789,9 +811,9 @@
                 <div class="fx-metric-top">
                   <span class="fx-metric-ic"><i class="fas fa-users"></i></span>
                 </div>
-                <b class="fx-metric-val" id="frameMembers"><%= (locals.stats && stats.bot && stats.bot.members) ? Number(stats.bot.members).toLocaleString() : '—' %></b>
+                <b class="fx-metric-val" id="frameMembers"><%= orNum(botStat.members) %></b>
                 <span class="fx-metric-lbl">عضو مسجَّل</span>
-                <span class="fx-metric-sub" id="frameMembersVal"><%= (locals.stats && stats.bot && stats.bot.members) ? 'مُسجَّل' : '—' %></span>
+                <span class="fx-metric-sub" id="frameMembersVal"><%= hasVal(botStat.members) ? (botStat.members > 0 ? 'مُسجَّل' : 'لا يوجد أعضاء بعد') : 'غير متصل' %></span>
                 <div class="fx-spark"><i style="animation-delay:.1s"></i><i style="animation-delay:.25s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.55s"></i><i style="animation-delay:.7s"></i><i style="animation-delay:.85s"></i></div>
               </div>
 
@@ -799,9 +821,9 @@
                 <div class="fx-metric-top">
                   <span class="fx-metric-ic"><i class="fas fa-gauge-high"></i></span>
                 </div>
-                <b class="fx-metric-val" id="framePing"><%= (locals.stats && stats.bot && stats.bot.ping) ? stats.bot.ping + 'ms' : '—' %></b>
+                <b class="fx-metric-val" id="framePing"><%= pingTxt(botStat.ping) %></b>
                 <span class="fx-metric-lbl">سرعة الاستجابة</span>
-                <span class="fx-metric-sub" id="framePingVal"><%= (locals.stats && stats.bot && stats.bot.ping) ? (stats.bot.ping < 200 ? 'ممتاز' : 'جيد') : '—' %></span>
+                <span class="fx-metric-sub" id="framePingVal"><%= pingLbl(botStat.ping) %></span>
                 <div class="fx-spark"><i style="animation-delay:.05s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.35s"></i><i style="animation-delay:.5s"></i><i style="animation-delay:.65s"></i><i style="animation-delay:.8s"></i></div>
               </div>
 
@@ -809,9 +831,9 @@
                 <div class="fx-metric-top">
                   <span class="fx-metric-ic"><i class="fas fa-terminal"></i></span>
                 </div>
-                <b class="fx-metric-val" id="frameCmdCount"><%= (locals.stats && stats.cmd) ? (stats.cmd.total || 0) : '—' %></b>
+                <b class="fx-metric-val" id="frameCmdCount"><%= (locals.stats && stats.cmd && hasVal(stats.cmd.total)) ? stats.cmd.total : '—' %></b>
                 <span class="fx-metric-lbl">أمر منفَّذ</span>
-                <span class="fx-metric-sub" id="frameCmdVal"><%= (locals.stats && stats.cmd && stats.cmd.total) ? 'منفَّذ' : '—' %></span>
+                <span class="fx-metric-sub" id="frameCmdVal"><%= (locals.stats && stats.cmd && stats.cmd.total > 0) ? 'منفَّذ' : 'قيد التحميل' %></span>
                 <div class="fx-spark"><i style="animation-delay:.12s"></i><i style="animation-delay:.27s"></i><i style="animation-delay:.42s"></i><i style="animation-delay:.57s"></i><i style="animation-delay:.72s"></i><i style="animation-delay:.87s"></i></div>
               </div>
 
@@ -1044,7 +1066,9 @@
 
     function setText(id, txt) {
       var el = document.getElementById(id);
-      if (el) el.textContent = txt;
+      if (!el) return;
+      el.textContent = txt;
+      el.classList.toggle('is-wait', txt === 'يتصل بالبوت…');
     }
 
     /* ══════════════════════════════════════════════════════════════════
@@ -1105,8 +1129,22 @@
     function paintPingCard(ping) {
       var card = document.getElementById('pingCard');
       if (!card) return;
-      card.classList.remove('q-good', 'q-mid', 'q-bad');
+      card.classList.remove('q-good', 'q-mid', 'q-bad', 'q-wait');
+      if (!isFinite(ping)) { card.classList.add('q-wait'); return; }
       card.classList.add(ping < 200 ? 'q-good' : (ping < 450 ? 'q-mid' : 'q-bad'));
+    }
+
+    /* Marks every card as "waiting" while the bot process is unreachable.
+       A Render free-tier service sleeps after ~15 min idle, so the bot's
+       /api/stats 404s until it wakes and finishes its Discord login. Showing
+       a dash forever made the cards look broken. */
+    function paintWaiting() {
+      setText('frameGuildsVal', 'يتصل بالبوت…');
+      setText('frameMembersVal', 'يتصل بالبوت…');
+      setText('framePingVal', 'يتصل بالبوت…');
+      paintPingCard(NaN);
+      var lp = document.getElementById('landPill');
+      if (lp) lp.innerHTML = '<span class="fx-dot off"></span> FADIX9 SYSTEM v1.0.11 — البوت نايم، جاري الإقلاع';
     }
 
     // Command statistics → metrics + numbers
@@ -1116,46 +1154,63 @@
         var per = s.perCategory || {};
         var total = Number(s.total) || 0;
         setMetric('frameCmdCount', total, '');
-        setText('frameCmdVal', total > 0 ? 'منفَّذ' : '—');
+        setText('frameCmdVal', total > 0 ? 'منفَّذ' : 'لا أوامر بعد');
         setMetric('statTickets', Number(per.ticket) || 0, '');
         setMetric('statVoice', Number(per.voice) || 0, '');
         setMetric('statTotal', total, '');
       })
       .catch(function () {
         setText('frameCmdCount', '—');
-        setText('frameCmdVal', '—');
+        setText('frameCmdVal', 'تعذّر الجلب');
         setText('statTickets', '—');
         setText('statVoice', '—');
         setText('statTotal', '—');
       });
 
-    // Bot status → servers / members / ping
-    fetch('/api/status')
-      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
-      .then(function (d) {
-        if (!d) return;
+    /* Bot status → servers / members / ping
+       Polled instead of fetched once. The bot is a separate process that can
+       be sleeping or mid-boot, in which case the dashboard reports
+       botOnline:false. Retrying makes the cards fill in as soon as it wakes. */
+    var statusTimer = null;
+    function pollStatus(first) {
+      fetch('/api/status', { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+        .then(function (d) {
+          if (!d) throw new Error();
 
-        var lp = document.getElementById('landPill');
-        if (lp) {
-          lp.innerHTML = '<span class="fx-dot' + (d.guildCount > 0 ? '' : ' off') + '"></span> FADIX9 SYSTEM v1.0.11 — ' +
-                         (d.guildCount > 0 ? 'شغال' : 'غير متصل');
-        }
+          if (!d.botOnline) {
+            paintWaiting();
+            // Bot is asleep or still booting — keep trying
+            statusTimer = setTimeout(pollStatus, 8000);
+            return;
+          }
 
-        if (d.guildCount !== undefined && d.guildCount !== null) {
+          var lp = document.getElementById('landPill');
+          if (lp) {
+            lp.innerHTML = '<span class="fx-dot"></span> FADIX9 SYSTEM v1.0.11 — شغال';
+          }
+
           setMetric('frameGuilds', d.guildCount, '');
-          setText('frameGuildsVal', d.guildCount > 0 ? 'متصل' : '—');
-        }
-        if (d.members !== undefined && d.members !== null) {
+          setText('frameGuildsVal', (d.guildCount || 0) > 0 ? 'متصل' : 'لا سيرفرات');
+
           setMetric('frameMembers', d.members, '');
-          setText('frameMembersVal', d.members > 0 ? 'مُسجَّل' : '—');
-        }
-        if (d.ping !== undefined && d.ping !== null) {
+          setText('frameMembersVal', (d.members || 0) > 0 ? 'مُسجَّل' : 'لا يوجد أعضاء بعد');
+
           setMetric('framePing', d.ping, 'ms');
-          setText('framePingVal', d.ping > 0 ? (d.ping < 200 ? 'ممتاز' : 'جيد') : '—');
-          paintPingCard(Number(d.ping) || 0);
-        }
-      })
-      .catch(function () {});
+          setText('framePingVal', (d.ping || 0) > 0 ? (d.ping < 200 ? 'ممتاز' : 'جيد') : 'غير متاح');
+          paintPingCard(Number(d.ping));
+
+          // Slow background refresh once everything is live
+          statusTimer = setTimeout(pollStatus, 30000);
+        })
+        .catch(function () {
+          paintWaiting();
+          statusTimer = setTimeout(pollStatus, 8000);
+        });
+    }
+    pollStatus(true);
+    // Stop polling once the visitor leaves
+    window.addEventListener('pagehide', function () { if (statusTimer) clearTimeout(statusTimer); });
 
     /* ══════════════════════════════════════════════════════════════════
        4. Maintenance mode
