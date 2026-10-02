@@ -12,7 +12,7 @@
   <meta property="og:site_name" content="Kratos Dashboard" />
   <meta name="twitter:card" content="summary" />
   <meta name="theme-color" content="#a855f7" />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&amp;family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -209,42 +209,45 @@
 
   .f-nav-acts { display:flex; align-items:center; gap:9px; }
 
-  /* ─── Buttons ─────────────────────────────────────────────────────── */
+  /* ─── Buttons ───────────────────────────────────────────────────────
+     Measured off novax.gg: 11px radius, 15px/500, a contained purple with an
+     inset rim light, and a dark outlined sibling 2px shorter. The old shine
+     sweep is gone because novax's buttons do not have one. */
   .f-btn {
-    position:relative; display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    padding:12px 28px; border-radius:12px; border:1px solid transparent;
-    font-size:.9rem; font-weight:700; cursor:pointer; overflow:hidden;
-    transition:transform .3s var(--ease), box-shadow .3s var(--ease), background .3s;
+    position:relative; display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    min-height:48px; padding:8px 22px; border-radius:11px; border:1px solid transparent;
+    font-family:inherit; font-size:15px; font-weight:500; line-height:1.75;
+    cursor:pointer; white-space:nowrap;
+    transition:transform .3s var(--ease), box-shadow .3s var(--ease), background .3s, border-color .3s;
     will-change:transform;
   }
   .f-btn:hover { transform:translateY(-2px); }
   .f-btn:active { transform:translateY(0) scale(.985); }
-  /* Shine sweep */
-  .f-btn::after {
-    content:''; position:absolute; top:0; left:-120%; width:55%; height:100%;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
-    transform:skewX(-20deg); transition:left .65s var(--ease);
-  }
-  .f-btn:hover::after { left:150%; }
+  .f-btn i { font-size:1.12rem; }
 
   .f-btn-p {
-    background:var(--grad-pu); color:#fff;
-    box-shadow:0 8px 26px rgba(168,85,247,.42), inset 0 1px 0 rgba(255,255,255,.28);
+    background:var(--nx-purple); color:#fff;
+    border-color:var(--nx-rim);
+    box-shadow:inset 0 -4px 10px 0 var(--nx-rim), 0 10px 30px rgba(104,31,209,.4);
   }
-  .f-btn-p:hover { box-shadow:0 14px 42px rgba(168,85,247,.58), inset 0 1px 0 rgba(255,255,255,.35); color:#fff; }
+  .f-btn-p:hover {
+    background:linear-gradient(135deg,#2a1055 0%,#431c85 100%);
+    border-color:#8b4dff; color:#fff;
+    box-shadow:inset 0 -4px 10px 0 rgba(188,146,253,.4), 0 14px 40px rgba(104,31,209,.55);
+  }
 
   .f-btn-ye {
-    background:var(--grad-ye); color:#141004;
-    box-shadow:0 8px 26px rgba(245,230,37,.34), inset 0 1px 0 rgba(255,255,255,.6);
+    min-height:46px; padding:7px 21px;
+    background:#181820; color:#fff; border-color:rgba(139,139,143,.26);
   }
-  .f-btn-ye:hover { box-shadow:0 14px 44px rgba(245,230,37,.5), inset 0 1px 0 rgba(255,255,255,.7); color:#141004; }
+  .f-btn-ye:hover { background:#201f2b; border-color:rgba(139,139,143,.5); color:#fff; }
 
   .f-btn-g {
-    background:rgba(255,255,255,.045); color:var(--fx-mut);
-    border-color:var(--fx-line);
-    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    min-height:46px; padding:7px 21px;
+    background:#181820; color:var(--fx-mut);
+    border-color:rgba(139,139,143,.26);
   }
-  .f-btn-g:hover { color:#fff; border-color:rgba(168,85,247,.4); background:rgba(168,85,247,.1); }
+  .f-btn-g:hover { color:#fff; border-color:rgba(139,139,143,.5); background:#201f2b; }
 
   .f-nbtn {
     display:inline-flex; align-items:center; gap:7px; cursor:pointer;
@@ -282,170 +285,103 @@
   }
   .fx-dot.off { background:var(--bad); animation:none; box-shadow:0 0 10px rgba(255,92,108,.6); }
 
-  /* ─── Hero ────────────────────────────────────────────────────────── */
-  .f-hero { position:relative; z-index:1; min-height:100vh; display:flex; align-items:center; overflow:hidden; }
+  /* ─── Hero ────────────────────────────────────────────────────────────
+     Rebuilt to match novax.gg, every number below read off that page with
+     getComputedStyle rather than eyeballed:
+
+       title      66px / 700 / 1.25 line-height / -0.03em tracking,
+                  centred, filled from linear-gradient(to top,#555,#fff,#fff)
+                  with background-clip:text
+       body       18px / 1.334 / #8890a1, capped at 768px
+       buttons    11px radius, 16px gap, aligned to their bottom edge
+       backdrop   two blurred radial orbs, #681fd1 at .28 and #8c5aff at .16
+       entrance   wrapper fades up from translateY(-10px)
+
+     The planet artwork sitting behind the novax hero is deliberately NOT
+     reproduced. The two orbs below replace it.
+
+     Poppins is loaded for the Latin/numeral runs only. It has no Arabic
+     glyphs, so Cairo picks up the Arabic through the same stack and the page
+     needs no font swap.
+     ─────────────────────────────────────────────────────────────────── */
+  :root {
+    --nx-purple:   #681fd1;
+    --nx-purple-l: #8c5aff;
+    --nx-ink:      #08080f;
+    --nx-muted:    #8890a1;
+    --nx-rim:      rgba(188,146,253,.59);
+  }
+
+  .f-hero {
+    position:relative; z-index:1; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    min-height:657px; padding:80px 24px;
+  }
   .f-hero-inner {
-    position:relative; z-index:3; width:100%; max-width:1220px; margin:0 auto;
-    padding:132px clamp(16px,3vw,32px) 88px;
-    display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(32px,5vw,60px); align-items:center;
-  }
-
-  .f-left { max-width:540px; }
-
-  .f-left h1 {
-    font-size:clamp(2.3rem,5.2vw,3.7rem); font-weight:900; line-height:1.14;
-    margin-bottom:20px; letter-spacing:-.5px;
-  }
-  .f-left h1 em {
-    font-style:normal; position:relative; display:inline-block;
-    background:var(--grad-brand); background-size:220% 100%;
-    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-    animation:fxHue 8s ease-in-out infinite;
-    filter:drop-shadow(0 0 26px rgba(168,85,247,.45));
-  }
-  /* Yellow underline stroke beneath the highlighted word */
-  .f-left h1 em::after {
-    content:''; position:absolute; right:0; left:0; bottom:-6px; height:3px;
-    background:var(--grad-ye); border-radius:100px;
-    box-shadow:0 0 16px rgba(245,230,37,.6);
-    transform:scaleX(0); transform-origin:right;
-    animation:fxStroke 1s var(--ease) .7s forwards;
-  }
-  @keyframes fxStroke { to { transform:scaleX(1); } }
-
-  .f-left > p {
-    font-size:clamp(.92rem,1.6vw,1.02rem); color:var(--fx-mut);
-    line-height:2; margin-bottom:30px; max-width:490px;
-  }
-
-  .f-acts { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:34px; }
-
-  /* Feature chips under CTAs */
-  .f-chips { display:flex; gap:9px; flex-wrap:wrap; }
-  .f-chip {
-    display:inline-flex; align-items:center; gap:7px;
-    padding:7px 15px; border-radius:100px; font-size:.73rem; font-weight:600;
-    color:var(--fx-mut); background:rgba(255,255,255,.035);
-    border:1px solid var(--fx-line);
-    transition:transform .3s var(--ease), border-color .3s, background .3s, color .3s;
-  }
-  .f-chip:hover { transform:translateY(-2px); color:#fff; background:rgba(255,255,255,.07); border-color:rgba(168,85,247,.3); }
-  .f-chip i { font-size:.66rem; }
-  .f-chip.c-pu i { color:var(--pu); }
-  .f-chip.c-ye i { color:var(--ye); }
-
-  /* ─── Live console / metric panel ─────────────────────────────────── */
-  .f-right { display:flex; justify-content:center; }
-
-  .f-frame {
-    position:relative; width:100%; max-width:520px; padding:5px;
-    border-radius:24px; transition:transform .5s var(--ease);
-  }
-  .f-frame-in {
-    position:relative; border-radius:20px; overflow:hidden;
-    background:linear-gradient(158deg, rgba(40,32,86,.5) 0%, rgba(10,9,26,.8) 100%);
-    -webkit-backdrop-filter:var(--blur-lg); backdrop-filter:var(--blur-lg);
-    box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);
-  }
-  /* Pulsing duotone halo behind the console */
-  .f-frame-in::before {
-    content:''; position:absolute; inset:-2px; border-radius:22px; z-index:-1;
-    background:linear-gradient(135deg, rgba(168,85,247,.55), rgba(245,230,37,.4));
-    filter:blur(22px); opacity:.42; animation:fxHalo 5.5s ease-in-out infinite;
-  }
-  @keyframes fxHalo { 0%,100%{opacity:.3; transform:scale(1)} 50%{opacity:.55; transform:scale(1.03)} }
-
-  .f-frame-h {
-    display:flex; align-items:center; gap:11px; padding:14px 18px;
-    background:rgba(255,255,255,.028); border-bottom:1px solid var(--fx-line);
-  }
-  .f-frame-dots { display:flex; gap:6px; }
-  .f-frame-dot { width:9px; height:9px; border-radius:50%; }
-  .f-frame-dot:nth-child(1) { background:#ff5f57; }
-  .f-frame-dot:nth-child(2) { background:var(--ye); }
-  .f-frame-dot:nth-child(3) { background:var(--ok); }
-  .f-frame-title { font-size:.72rem; font-weight:600; color:var(--fx-mut); flex:1; text-align:center; }
-  .f-frame-badge {
-    display:inline-flex; align-items:center; gap:5px; font-size:.6rem; font-weight:700;
-    color:var(--ok); padding:3px 9px; border-radius:100px;
-    background:rgba(52,245,165,.1); border:1px solid rgba(52,245,165,.2);
-  }
-  .f-frame-badge i { font-size:.36rem; }
-
-  .f-frame-b { padding:18px; display:grid; grid-template-columns:1fr 1fr; gap:13px; }
-
-  /* ─── Metric cards ────────────────────────────────────────────────── */
-  .fx-metric {
-    position:relative; padding:16px 15px 14px; border-radius:var(--r-md);
-    background:linear-gradient(160deg, rgba(255,255,255,.055) 0%, rgba(255,255,255,.018) 100%);
-    border:1px solid var(--fx-line); overflow:hidden;
-    transition:transform .4s var(--ease), border-color .4s, box-shadow .4s var(--ease);
-    will-change:transform;
-  }
-  .fx-metric::before {
-    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
-    background:linear-gradient(180deg, rgba(255,255,255,.10), transparent 55%);
-  }
-  /* Accent wash keyed to --a (duotone assignment) */
-  .fx-metric::after {
-    content:''; position:absolute; top:-46px; right:-46px;
-    width:130px; height:130px; border-radius:50%;
-    background:var(--a); filter:blur(46px); opacity:.2;
-    transition:opacity .45s var(--ease);
-    pointer-events:none;
-  }
-  .fx-metric:hover {
-    transform:translateY(-4px);
-    border-color:color-mix(in srgb, var(--a) 45%, transparent);
-    box-shadow:0 18px 44px rgba(0,0,0,.48), 0 0 26px color-mix(in srgb, var(--a) 22%, transparent);
-  }
-  .fx-metric:hover::after { opacity:.42; }
-
-  .fx-metric-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:13px; position:relative; z-index:2; }
-  .fx-metric-ic {
-    width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center;
-    font-size:.88rem; color:var(--a);
-    background:color-mix(in srgb, var(--a) 13%, transparent);
-    border:1px solid color-mix(in srgb, var(--a) 26%, transparent);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
-    transition:transform .4s var(--ease);
-  }
-  .fx-metric:hover .fx-metric-ic { transform:scale(1.1) rotate(-6deg); }
-
-  .fx-metric-val {
-    display:block; font-size:1.72rem; font-weight:900; line-height:1.15;
-    font-variant-numeric:tabular-nums; letter-spacing:-.5px; position:relative; z-index:2;
-    text-shadow:0 2px 20px color-mix(in srgb, var(--a) 40%, transparent);
-  }
-  .fx-metric-lbl { display:block; font-size:.7rem; color:var(--fx-dim); margin-top:3px; position:relative; z-index:2; }
-  .fx-metric-sub {
-    display:inline-flex; align-items:center; gap:5px; margin-top:9px;
-    font-size:.63rem; font-weight:700; color:var(--a);
-    padding:3px 10px; border-radius:100px;
-    background:color-mix(in srgb, var(--a) 11%, transparent);
-    border:1px solid color-mix(in srgb, var(--a) 22%, transparent);
     position:relative; z-index:2;
+    width:100%; max-width:1200px; margin:0 auto;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
   }
-  /* Ping quality modifiers (set from JS) */
-  .fx-metric.q-good .fx-metric-val { color:var(--ok); text-shadow:0 2px 20px rgba(52,245,165,.4); }
-  .fx-metric.q-mid  .fx-metric-val { color:var(--warn); text-shadow:0 2px 20px rgba(251,191,36,.4); }
-  .fx-metric.q-bad  .fx-metric-val { color:var(--bad); text-shadow:0 2px 20px rgba(255,92,108,.4); }
-  /* Waiting: dimmed value + gently pulsing sparkline */
-  .fx-metric.q-wait .fx-metric-val { color:var(--fx-dim); text-shadow:none; }
-  .fx-metric.q-wait .fx-metric-ic { animation:fxWait 1.6s ease-in-out infinite; }
-  .fx-metric.q-wait .fx-spark i { animation-duration:1.4s; opacity:.18; }
-  .fx-metric.q-wait .fx-metric-sub { color:var(--warn); background:rgba(251,191,36,.1); border-color:rgba(251,191,36,.22); }
-  @keyframes fxWait { 0%,100%{opacity:.5} 50%{opacity:1} }
-  /* Sub-label in a pending tone */
-  .fx-metric-sub.is-wait { color:var(--warn); background:rgba(251,191,36,.1); border-color:rgba(251,191,36,.22); }
 
-  /* Sparkline strip inside metric */
-  .fx-spark { display:flex; align-items:flex-end; gap:3px; height:22px; margin-top:11px; position:relative; z-index:2; }
-  .fx-spark i {
-    flex:1; border-radius:2px 2px 0 0; background:var(--a); opacity:.3;
-    transform-origin:bottom; animation:fxBar 2.4s var(--ease-io) infinite;
+  /* The two ambient orbs novax renders behind its hero copy. */
+  .fx-hero-glow { position:absolute; z-index:0; pointer-events:none; border-radius:50%; }
+  .fx-hero-glow.g1 {
+    width:900px; height:608px; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:radial-gradient(closest-side, rgba(104,31,209,.28), rgba(104,31,209,0) 70%);
+    filter:blur(60px);
   }
-  @keyframes fxBar { 0%,100%{transform:scaleY(.3)} 50%{transform:scaleY(1)} }
+  .fx-hero-glow.g2 {
+    width:352px; height:352px; top:14%; right:11%;
+    background:radial-gradient(closest-side, rgba(140,90,255,.16), rgba(140,90,255,0) 70%);
+    filter:blur(50px);
+  }
+
+  .f-hero h1 {
+    margin:0 0 22px; max-width:944px;
+    font-family:'Poppins','Cairo',system-ui,sans-serif;
+    font-size:clamp(2.15rem,5.4vw,66px);
+    font-weight:700; line-height:1.25; letter-spacing:-.03em;
+    background:linear-gradient(to top, #555, #fff 42%, #fff);
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  .f-hero-sub {
+    margin:-20px auto 0; max-width:768px;
+    font-size:18px; line-height:1.334; color:var(--nx-muted);
+  }
+
+  /* Pure CSS entrance rather than .fx-reveal: .fx-reveal starts at opacity 0 and
+     only un-hides when IntersectionObserver fires, so a JS failure would leave
+     the headline invisible. A keyframe animation lands on opacity 1 regardless.
+
+     width:100% is load-bearing. .f-hero-inner is a column flex box with
+     align-items:center, so without it each wrapper shrink-to-fits its own
+     content: the acts wrapper would resolve to exactly the buttons' summed
+     width plus the gap, and the row would wrap on the rounding error. */
+  .fx-hero-in { width:100%; animation:fxHeroIn .8s var(--ease-io) both; }
+  .fx-hero-in + .fx-hero-in { animation-delay:.1s; }
+  @keyframes fxHeroIn { from { opacity:0; transform:translateY(-10px); } }
+
+  .f-hero .f-pill {
+    background:rgba(104,31,209,.12); border-color:rgba(140,90,255,.32);
+    color:var(--nx-purple-l);
+  }
+
+  .f-acts {
+    display:flex; align-items:flex-end; justify-content:center;
+    gap:16px; flex-wrap:wrap; margin-top:40px;
+  }
+
+  /* The maintenance overlay used to sit on the metric console. With no console
+     it re-anchors to a self-sized centred card. The ids frameGlass, glassMsg
+     and glassTimer are unchanged so the existing JS still binds. */
+  .fx-hero-mt { position:relative; display:flex; justify-content:center; width:100%; }
+  .fx-hero-mt .f-frame-glass {
+    inset:auto; top:-10px; left:50%; transform:translateX(-50%);
+    width:min(520px,92%); padding:18px 20px;
+    border-radius:var(--r-md); border:1px solid var(--fx-line);
+  }
+
 
   /* ─── Trust strip ─────────────────────────────────────────────────── */
   .f-strip {
@@ -612,7 +548,6 @@
   @keyframes fxToast { from{opacity:0; transform:translate(-50%,18px)} to{opacity:1; transform:translate(-50%,0)} }
 
   /* ═══ Maintenance mode (classes injected by JS) ════════════════════ */
-  .f-frame { position:relative; }
   .f-frame-glass {
     position:absolute; inset:5px; z-index:10; display:none;
     flex-direction:column; align-items:center; justify-content:center; gap:8px;
@@ -666,12 +601,9 @@
 
   /* ═══ Responsive ══════════════════════════════════════════════════ */
   @media (max-width:1080px) {
-    .f-hero-inner { grid-template-columns:1fr; text-align:center; gap:52px; }
-    .f-left { margin:0 auto; max-width:620px; }
-    .f-left > p { margin-inline:auto; }
-    .f-acts, .f-chips { justify-content:center; }
-    .f-frame { max-width:560px; }
     .f-cards { grid-template-columns:repeat(2,1fr); }
+    .fx-hero-glow.g1 { width:640px; height:460px; }
+    .fx-hero-glow.g2 { width:280px; height:280px; }
   }
   @media (max-width:900px) {
     .f-strip-in { grid-template-columns:repeat(2,1fr); }
@@ -682,17 +614,17 @@
   @media (max-width:640px) {
     .f-nav { height:62px; }
     .f-brand-name { display:none; }
-    .f-hero-inner { padding:112px 16px 64px; }
+    .f-hero { min-height:0; padding:64px 16px; }
+    .f-hero h1 { margin-bottom:18px; }
+    .f-hero-sub { font-size:16px; }
     .f-acts { flex-direction:column; align-items:stretch; }
     .f-btn { width:100%; }
-    .f-frame-b { grid-template-columns:1fr; }
     .f-cards { grid-template-columns:1fr; }
     .f-strip-in, .f-nums { grid-template-columns:1fr; }
     .f-strip-c { padding:18px 14px; }
     .f-footer-inner { flex-direction:column; text-align:center; }
     .mnt-banner-inner { flex-direction:row; text-align:right; padding:7px 14px; gap:9px; }
     .mnt-banner-title { font-size:.77rem; }
-    .fx-metric-val { font-size:1.5rem; }
   }
 
   /* ═══ Reduced motion ══════════════════════════════════════════════ */
@@ -751,104 +683,43 @@
     <div class="f-toast"><i class="fas fa-circle-exclamation"></i> <%= error %></div>
   <% } %>
 
-  <!-- ══════════ Hero ══════════ -->
+  <!-- ══════════ Hero ══════════
+       Mirrors novax.gg: centred copy, one contained button beside one outlined
+       button, two blurred radial orbs behind. The planet artwork from that
+       site is intentionally absent. -->
   <section class="f-hero">
+    <div class="fx-hero-glow g1" aria-hidden="true"></div>
+    <div class="fx-hero-glow g2" aria-hidden="true"></div>
+
     <div class="f-hero-inner">
 
-      <div class="f-left">
+      <div class="fx-hero-in">
         <div class="f-pill" id="landPill"><span class="fx-dot"></span> KRATOS SYSTEM v1.0.11 — شغال</div>
 
-        <h1>أداة متكاملة<br>لإدارة <em>السيرفر</em></h1>
+        <h1>أداة متكاملة لإدارة السيرفر</h1>
 
-        <p>لوحة تحكم شاملة تجمع الحماية، التذاكر، الغرف الصوتية، الإشراف، والإشعارات — كلها في واجهة واحدة بمزامنة فورية.</p>
+        <p class="f-hero-sub">لوحة تحكم شاملة تجمع الحماية، التذاكر، الغرف الصوتية، الإشراف، والإشعارات — كلها في واجهة واحدة بمزامنة فورية.</p>
+      </div>
 
+      <div class="fx-hero-in">
         <div class="f-acts">
           <% if (locals.user) { %>
-            <a href="/home" class="f-btn f-btn-p"><i class="fas fa-th-large"></i> لوحة التحكم</a>
-            <a href="/auth/logout" class="f-btn f-btn-g"><i class="fas fa-sign-out-alt"></i> خروج</a>
+            <a href="/home" class="f-btn f-btn-p"><i class="fab fa-discord"></i> لوحة التحكم <i class="fas fa-arrow-left"></i></a>
+            <a href="/auth/logout" class="f-btn f-btn-g">تسجيل الخروج</a>
           <% } else { %>
-            <a href="/auth/discord" class="f-btn f-btn-p"><i class="fab fa-discord"></i> سجل بدقيقة</a>
-            <a href="/invite-dev" class="f-btn f-btn-ye"><i class="fas fa-code-branch"></i> أضف البوت</a>
-            <a href="/premium" class="f-btn f-btn-g"><i class="fas fa-crown"></i> البريميوم</a>
+            <a href="/auth/discord" class="f-btn f-btn-p"><i class="fab fa-discord"></i> سجل بدقيقة <i class="fas fa-arrow-left"></i></a>
+            <a href="/invite-dev" class="f-btn f-btn-g">أضف البوت</a>
           <% } %>
-        </div>
-
-        <div class="f-chips">
-          <span class="f-chip c-pu"><i class="fas fa-shield-halved"></i> حماية متقدمة</span>
-          <span class="f-chip c-ye"><i class="fas fa-ticket-alt"></i> تذاكر ذكية</span>
-          <span class="f-chip c-pu"><i class="fas fa-microphone"></i> غرف صوتية</span>
-          <span class="f-chip c-ye"><i class="fas fa-bolt"></i> مزامنة فورية</span>
         </div>
       </div>
 
-      <!-- Live metrics console -->
-      <div class="f-right">
-        <div class="f-frame" data-tilt>
-          <div class="f-frame-in">
-
-            <div class="f-frame-h">
-              <div class="f-frame-dots">
-                <div class="f-frame-dot"></div>
-                <div class="f-frame-dot"></div>
-                <div class="f-frame-dot"></div>
-              </div>
-              <span class="f-frame-title">لوحة قياس حيّة — بيانات لحظية</span>
-              <span class="f-frame-badge"><i class="fas fa-circle"></i> LIVE</span>
-            </div>
-
-            <div class="f-frame-b">
-
-              <div class="fx-metric" style="--a:#a855f7">
-                <div class="fx-metric-top">
-                  <span class="fx-metric-ic"><i class="fas fa-server"></i></span>
-                </div>
-                <b class="fx-metric-val" id="frameGuilds"><%= orDash(botStat.guilds) %></b>
-                <span class="fx-metric-lbl">سيرفر نشط</span>
-                <span class="fx-metric-sub" id="frameGuildsVal"><%= guildLbl(botStat.guilds) %></span>
-                <div class="fx-spark"><i style="animation-delay:0s"></i><i style="animation-delay:.15s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.45s"></i><i style="animation-delay:.6s"></i><i style="animation-delay:.75s"></i></div>
-              </div>
-
-              <div class="fx-metric" style="--a:#f5e625">
-                <div class="fx-metric-top">
-                  <span class="fx-metric-ic"><i class="fas fa-users"></i></span>
-                </div>
-                <b class="fx-metric-val" id="frameMembers"><%= orNum(botStat.members) %></b>
-                <span class="fx-metric-lbl">عضو مسجَّل</span>
-                <span class="fx-metric-sub" id="frameMembersVal"><%= hasVal(botStat.members) ? (botStat.members > 0 ? 'مُسجَّل' : 'لا يوجد أعضاء بعد') : 'غير متصل' %></span>
-                <div class="fx-spark"><i style="animation-delay:.1s"></i><i style="animation-delay:.25s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.55s"></i><i style="animation-delay:.7s"></i><i style="animation-delay:.85s"></i></div>
-              </div>
-
-              <div class="fx-metric" id="pingCard" style="--a:#a855f7">
-                <div class="fx-metric-top">
-                  <span class="fx-metric-ic"><i class="fas fa-gauge-high"></i></span>
-                </div>
-                <b class="fx-metric-val" id="framePing"><%= pingTxt(botStat.ping) %></b>
-                <span class="fx-metric-lbl">سرعة الاستجابة</span>
-                <span class="fx-metric-sub" id="framePingVal"><%= pingLbl(botStat.ping) %></span>
-                <div class="fx-spark"><i style="animation-delay:.05s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.35s"></i><i style="animation-delay:.5s"></i><i style="animation-delay:.65s"></i><i style="animation-delay:.8s"></i></div>
-              </div>
-
-              <div class="fx-metric" style="--a:#f5e625">
-                <div class="fx-metric-top">
-                  <span class="fx-metric-ic"><i class="fas fa-terminal"></i></span>
-                </div>
-                <b class="fx-metric-val" id="frameCmdCount"><%= (locals.stats && stats.cmd && hasVal(stats.cmd.total)) ? stats.cmd.total : '—' %></b>
-                <span class="fx-metric-lbl">أمر منفَّذ</span>
-                <span class="fx-metric-sub" id="frameCmdVal"><%= (locals.stats && stats.cmd && stats.cmd.total > 0) ? 'منفَّذ' : 'قيد التحميل' %></span>
-                <div class="fx-spark"><i style="animation-delay:.12s"></i><i style="animation-delay:.27s"></i><i style="animation-delay:.42s"></i><i style="animation-delay:.57s"></i><i style="animation-delay:.72s"></i><i style="animation-delay:.87s"></i></div>
-              </div>
-
-            </div>
-
-            <!-- Maintenance overlay (toggled by JS) -->
-            <div class="f-frame-glass" id="frameGlass">
-              <div class="f-glass-icon"><i class="fas fa-wrench"></i></div>
-              <div class="f-glass-title">وضع الصيانة مفعل</div>
-              <div class="f-glass-msg" id="glassMsg">...</div>
-              <div class="f-glass-time"><i class="fas fa-hourglass-half"></i> <span id="glassTimer">...</span></div>
-            </div>
-
-          </div>
+      <div class="fx-hero-mt">
+        <!-- Maintenance overlay (toggled by JS) -->
+        <div class="f-frame-glass" id="frameGlass">
+          <div class="f-glass-icon"><i class="fas fa-wrench"></i></div>
+          <div class="f-glass-title">وضع الصيانة مفعل</div>
+          <div class="f-glass-msg" id="glassMsg">...</div>
+          <div class="f-glass-time"><i class="fas fa-hourglass-half"></i> <span id="glassTimer">...</span></div>
         </div>
       </div>
 
@@ -1127,14 +998,6 @@
        3. Live data
        ══════════════════════════════════════════════════════════════════ */
 
-    function paintPingCard(ping) {
-      var card = document.getElementById('pingCard');
-      if (!card) return;
-      card.classList.remove('q-good', 'q-mid', 'q-bad', 'q-wait');
-      if (!isFinite(ping)) { card.classList.add('q-wait'); return; }
-      card.classList.add(ping < 200 ? 'q-good' : (ping < 450 ? 'q-mid' : 'q-bad'));
-    }
-
     /* Every sub-label that means "the bot is not reachable", so they all get the
        same pending tone. Kept in one place because reasonText() picks between
        them based on what /api/status reported. */
@@ -1172,40 +1035,34 @@
       return 'يتصل بالبوت…';
     }
 
+    /* The hero no longer carries a metric console, so the status pill is the
+       only live element up there. The numeric cards down in the Numbers
+       section read from /api/commands/stats instead. */
     function paintWaiting(d) {
-      var why = reasonText(d);
-      setText('frameGuildsVal', why);
-      setText('frameMembersVal', why);
-      setText('framePingVal', why);
-      paintPingCard(NaN);
       var lp = document.getElementById('landPill');
-      if (lp) lp.innerHTML = '<span class="fx-dot off"></span> KRATOS SYSTEM v1.0.11 — ' + why;
+      if (lp) lp.innerHTML = '<span class="fx-dot off"></span> KRATOS SYSTEM v1.0.11 — ' + reasonText(d);
     }
 
-    // Command statistics → metrics + numbers
+    // Command statistics → the Numbers section
     fetch('/api/commands/stats')
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (s) {
         var per = s.perCategory || {};
         var total = Number(s.total) || 0;
-        setMetric('frameCmdCount', total, '');
-        setText('frameCmdVal', total > 0 ? 'منفَّذ' : 'لا أوامر بعد');
         setMetric('statTickets', Number(per.ticket) || 0, '');
         setMetric('statVoice', Number(per.voice) || 0, '');
         setMetric('statTotal', total, '');
       })
       .catch(function () {
-        setText('frameCmdCount', '—');
-        setText('frameCmdVal', 'تعذّر الجلب');
         setText('statTickets', '—');
         setText('statVoice', '—');
         setText('statTotal', '—');
       });
 
-    /* Bot status → servers / members / ping
+    /* Bot status → the pill in the hero.
        Polled instead of fetched once. The bot is a separate process that can
        be sleeping or mid-boot, in which case the dashboard reports
-       botOnline:false. Retrying makes the cards fill in as soon as it wakes. */
+       botOnline:false. Retrying makes the pill settle as soon as it wakes. */
     var statusTimer = null;
     function pollStatus(first) {
       fetch('/api/status', { cache: 'no-store' })
@@ -1225,17 +1082,7 @@
             lp.innerHTML = '<span class="fx-dot"></span> KRATOS SYSTEM v1.0.11 — شغال';
           }
 
-          setMetric('frameGuilds', d.guildCount, '');
-          setText('frameGuildsVal', (d.guildCount || 0) > 0 ? 'متصل' : 'لا سيرفرات');
-
-          setMetric('frameMembers', d.members, '');
-          setText('frameMembersVal', (d.members || 0) > 0 ? 'مُسجَّل' : 'لا يوجد أعضاء بعد');
-
-          setMetric('framePing', d.ping, 'ms');
-          setText('framePingVal', (d.ping || 0) > 0 ? (d.ping < 200 ? 'ممتاز' : 'جيد') : 'غير متاح');
-          paintPingCard(Number(d.ping));
-
-          // Slow background refresh once everything is live
+          // Slow background refresh once the bot answers
           statusTimer = setTimeout(pollStatus, 30000);
         })
         .catch(function () {
