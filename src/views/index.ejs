@@ -1,1187 +1,1565 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kratos Dashboard — لوحة تحكم البوت</title>
-  <meta name="description" content="The Kratos Dashboard is an all-in-one, professional control panel designed to streamline and elevate your Discord server management. It brings together all the essential tools you need into a single, sleek interface featuring real-time synchronization.">
-  <meta property="og:title" content="Kratos Dashboard — لوحة تحكم البوت" />
-  <meta property="og:description" content="The Kratos Dashboard is an all-in-one, professional control panel designed to streamline and elevate your Discord server management. It brings together all the essential tools you need into a single, sleek interface featuring real-time synchronization." />
-  <meta property="og:url" content="https://kratos-botdashboard.onrender.com" />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Kratos Dashboard" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="theme-color" content="#a855f7" />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&amp;family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kratos Dashboard — لوحة تحكم البوت</title>
+<meta name="description" content="لوحة تحكم متكاملة لإدارة سيرفرك على ديسكورد — إشراف، تذاكر، غرف صوتية، حماية، وأدوات.">
+<meta name="theme-color" content="#08080f">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
-  <style>
-  /* ═══════════════════════════════════════════════════════════════════════
-     KRS — Landing Design System
-     Duotone identity: Neon Purple  ×  Electric Yellow
-     Deep glassmorphism · ambient glow · glossy cards · micro-interactions
-     ═══════════════════════════════════════════════════════════════════════ */
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kratos System — لوحة تحكم البوت">
+<meta property="og:description" content="أدر سيرفرك، تواصل مع مجتمعك، وافتح كل الإمكانات — كل ذلك في مكان واحد.">
+<meta property="og:site_name" content="Kratos System">
+<meta name="twitter:card" content="summary">
 
-  :root {
-    /* Surfaces */
-    --fx-void:      #04040b;
-    --fx-deep:      #08081a;
-    --fx-line:      rgba(255,255,255,.07);
-    --fx-line-2:    rgba(255,255,255,.13);
-    --fx-txt:       rgba(255,255,255,.92);
-    --fx-mut:       rgba(255,255,255,.44);
-    --fx-dim:       rgba(255,255,255,.26);
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&amp;family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    /* Neon purple */
-    --pu:           #a855f7;
-    --pu-d:         #7c3aed;
-    --pu-l:         #d8b4fe;
-    --pu-a:         rgba(168,85,247,.14);
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Kratos System — landing page
+   Full structural copy of novax.gg, rebuilt from measurements rather than
+   copied markup. Every value below was read off that page with
+   getComputedStyle / the shipped stylesheets.
 
-    /* Electric yellow */
-    --ye:           #f5e625;
-    --ye-d:         #d9b310;
-    --ye-l:         #fef08a;
-    --ye-a:         rgba(245,230,37,.12);
+   Deviations from the source, all deliberate:
+     - no planet artwork. novax paints assets/images/landing/hero.svg across the
+       hero; that file is not reproduced and nothing references it.
+     - the footer wave is drawn with CSS radial gradients instead of their
+       footer.svg.
+     - copy is Arabic. Poppins carries the Latin and numeral runs, Cairo picks
+       up the Arabic through the same stack, so no font swap is needed.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-    /* Signals */
-    --ok:           #34f5a5;
-    --warn:         #fbbf24;
-    --bad:          #ff5c6c;
+:root {
+  /* sampled off novax.gg */
+  --nx-purple:   #681fd1;
+  --nx-purple-l: #8c5aff;
+  --nx-rim:      rgba(188,146,253,.59);
+  --nx-gold:     #ffd93d;
+  --nx-ink:      #08080f;
+  --nx-bar:      #12131c;
+  --nx-panel:    #0d0d14;
+  --nx-panel-2:  #14141d;
+  --nx-muted:    #8890a1;
+  --nx-line:     rgba(255,255,255,.08);
+  --nx-line-2:   rgba(255,255,255,.06);
+  --nx-fill:     rgba(255,255,255,.03);
+  --nx-violet-2: #d8b4fe;
+  --nx-green:    #57f287;
 
-    --r-lg: 22px;
-    --r-md: 16px;
-    --r-sm: 12px;
+  --nx-card-bg: linear-gradient(rgba(255,255,255,.035), rgba(255,255,255,0) 55%), var(--nx-panel);
+  --nx-panel-bg: linear-gradient(rgba(255,255,255,.03), rgba(255,255,255,0) 45%), var(--nx-panel);
+}
 
-    --ease: cubic-bezier(.16,1,.3,1);
-    --ease-io: cubic-bezier(.4,0,.2,1);
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: 'Poppins', 'Cairo', system-ui, sans-serif;
+  background: var(--nx-ink);
+  color: #fff;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+a { text-decoration: none; color: inherit; }
+h1, h2, h3, h4, p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+button { font-family: inherit; }
+::selection { background: rgba(104,31,209,.4); color: #fff; }
 
-    --blur: blur(26px) saturate(165%);
-    --blur-lg: blur(40px) saturate(180%);
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(104,31,209,.4); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(104,31,209,.65); }
 
-    /* Shared glow recipes */
-    --grad-brand: linear-gradient(120deg,var(--pu-l) 0%,var(--pu) 32%,var(--ye) 100%);
-    --grad-pu:    linear-gradient(135deg,var(--pu) 0%,var(--pu-d) 100%);
-    --grad-ye:    linear-gradient(135deg,var(--ye-l) 0%,var(--ye) 45%,var(--ye-d) 100%);
-  }
+.nx-wrap { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+@media (max-width: 599.98px) { .nx-wrap { padding: 0 16px; } }
 
-  * { margin:0; padding:0; box-sizing:border-box; }
+/* ─── Buttons ──────────────────────────────────────────────────────────────
+   novax uses three distinct treatments. .nx-btn-p is the contained purple
+   with the inset bottom rim light; .nx-btn-o the dark outlined sibling;
+   .nx-btn-g the gold "Plus" button, which carries its own sweep. */
+.nx-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  border: 1px solid transparent; border-radius: 11px; cursor: pointer;
+  font-family: inherit; text-transform: capitalize; line-height: 1.75;
+  white-space: nowrap; transition: .3s ease-out, background-color .2s, border-color .2s, transform .16s;
+}
+.nx-btn i { font-size: 1.05rem; }
 
-  html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+.nx-btn-p {
+  padding: 8px 22px; min-height: 48px; font-size: 15px; font-weight: 500;
+  background: var(--nx-purple); color: #fff;
+  border-color: var(--nx-rim);
+  box-shadow: inset 0 -4px 10px 0 var(--nx-rim), 0 10px 30px rgba(104,31,209,.35);
+}
+.nx-btn-p:hover { background: #5e1cbe; border-color: #8b4dff; transform: translateY(-1px); }
 
-  body {
-    font-family:'Cairo',system-ui,sans-serif;
-    background:var(--fx-void);
-    color:var(--fx-txt);
-    overflow-x:hidden;
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-  }
-  a { text-decoration:none; color:inherit; }
-  button { font-family:inherit; }
-  ::selection { background:rgba(168,85,247,.35); color:#fff; }
+.nx-btn-o {
+  padding: 7px 21px; min-height: 46px; font-size: 15px; font-weight: 500;
+  background: #181820; color: #fff; border-color: rgba(139,139,143,.26);
+}
+.nx-btn-o:hover { background: #201f2b; border-color: rgba(139,139,143,.5); }
 
-  ::-webkit-scrollbar { width:8px; height:8px; }
-  ::-webkit-scrollbar-track { background:transparent; }
-  ::-webkit-scrollbar-thumb { background:rgba(168,85,247,.3); border-radius:8px; }
-  ::-webkit-scrollbar-thumb:hover { background:rgba(168,85,247,.5); }
+.nx-btn-g {
+  position: relative; overflow: hidden;
+  padding: .5rem 1rem; gap: .5rem; font-size: .8125rem; font-weight: 500;
+  background: transparent; color: var(--nx-gold);
+}
+.nx-btn-g::before {
+  content: ''; position: absolute; inset: 0 auto 0 0; width: 60%; height: 100%;
+  background: linear-gradient(115deg, transparent, rgba(255,217,61,.35), transparent);
+  transform: translateX(-150%) skewX(-20deg);
+  transition: transform .6s cubic-bezier(.23,1,.32,1); pointer-events: none;
+}
+.nx-btn-g:hover {
+  background: rgba(101,86,23,.5); transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(255,217,61,.25), 0 6px 18px rgba(255,217,61,.18);
+}
+.nx-btn-g:hover::before { transform: translateX(220%) skewX(-20deg); }
+.nx-btn-g:hover i { transform: scale(1.15) rotate(15deg); }
+.nx-btn-g i { transition: transform .2s cubic-bezier(.23,1,.32,1); }
 
-  /* ─── Ambient background layer ─────────────────────────────────────── */
-  .f-ambient {
-    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
-    background:
-      radial-gradient(ellipse 90% 60% at 50% -10%, #14102e 0%, transparent 65%),
-      linear-gradient(180deg, var(--fx-void) 0%, var(--fx-deep) 45%, var(--fx-void) 100%);
-  }
-  .fx-orb {
-    position:absolute; border-radius:50%;
-    filter:blur(120px); will-change:transform;
-    animation:fxDrift 22s var(--ease-io) infinite;
-  }
-  .fx-orb.o-pu-a { width:620px; height:620px; background:var(--pu);   top:-300px; right:-140px; opacity:.20; }
-  .fx-orb.o-pu-b { width:520px; height:520px; background:var(--pu-d); bottom:-280px; left:-160px; opacity:.16; animation-delay:-7s; }
-  .fx-orb.o-ye-a { width:440px; height:440px; background:var(--ye);   top:38%; left:-200px;     opacity:.07; animation-delay:-13s; }
-  .fx-orb.o-ye-b { width:360px; height:360px; background:var(--ye-d); bottom:12%; right:-160px;   opacity:.06; animation-delay:-4s; }
-  @keyframes fxDrift {
-    0%,100% { transform:translate3d(0,0,0) scale(1); }
-    33%     { transform:translate3d(-42px,36px,0) scale(1.09); }
-    66%     { transform:translate3d(34px,-28px,0) scale(.95); }
-  }
+/* ─── Header ────────────────────────────────────────────────────────────── */
+.nx-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1100;
+  display: flex; flex-direction: column; width: 100%;
+  padding: 8px 0; background: var(--nx-bar); color: #fff;
+  box-shadow: 0 4px 20px rgba(0,0,0,.28);
+  transition: background .3s;
+}
+.nx-header__bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; height: 66px; width: 100%;
+}
+.nx-header__left { display: flex; align-items: center; gap: 1.1rem; min-width: 0; }
+.nx-logo { display: inline-flex; flex-shrink: 0; width: 50px; height: 50px; }
+.nx-logo img, .nx-logo svg { width: 100%; height: 100%; display: block; }
+.nx-nav { display: flex; align-items: center; gap: .35rem; }
+.nx-nav a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 64px; padding: 1rem .5rem; border: 0;
+  font-family: inherit; font-size: .8125rem; font-weight: 500; line-height: 0;
+  text-transform: capitalize; color: #fff; border-radius: 11px;
+  transition: background-color .2s;
+}
+.nx-nav a:hover { background: #36363d; }
+.nx-header__right { display: flex; align-items: center; gap: .55rem; }
+.nx-lang {
+  display: flex; align-items: center; gap: .5rem;
+  padding: 0; border: 0; background: transparent; cursor: pointer;
+  font-family: inherit; font-size: .8125rem; font-weight: 500;
+  color: var(--nx-muted); border-radius: 11px; transition: color .15s;
+}
+.nx-lang:hover { color: #fff; }
+.nx-lang i { font-size: .8rem; transition: transform .2s; }
 
-  /* Fine tech grid, masked to fade out */
-  .fx-mesh {
-    position:absolute; inset:0; opacity:.5;
-    background-image:
-      linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
-    background-size:58px 58px;
-    -webkit-mask-image:radial-gradient(ellipse 85% 60% at 50% 0%, #000 0%, transparent 78%);
-    mask-image:radial-gradient(ellipse 85% 60% at 50% 0%, #000 0%, transparent 78%);
-  }
-  /* Scanning beam for ambient motion */
-  .fx-scan {
-    position:absolute; top:0; left:0; right:0; height:220px;
-    background:linear-gradient(180deg, transparent, rgba(168,85,247,.055) 45%, rgba(245,230,37,.035) 60%, transparent);
-    animation:fxScan 11s linear infinite;
-  }
-  @keyframes fxScan { 0%{transform:translateY(-240px)} 100%{transform:translateY(110vh)} }
+/* ─── Hero ────────────────────────────────────────────────────────────────
+   66px/700 Poppins with a background-clip shine, 18px #8890a1 body at
+   768px, 11px-radius buttons, two blurred radial orbs, and a wrapper that
+   fades up from translateY(-10px). The planet SVG that sits behind this on
+   novax is deliberately absent; the orbs replace it. */
+.nx-hero {
+  position: relative; z-index: 1; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 657px; padding: 80px 0;
+  width: 100%;
+}
+.nx-hero__glow { position: absolute; z-index: 0; pointer-events: none; border-radius: 50%; }
+.nx-hero__glow--1 {
+  width: 900px; height: 608px; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: radial-gradient(closest-side, rgba(104,31,209,.28), rgba(104,31,209,0) 70%);
+  filter: blur(60px);
+}
+.nx-hero__glow--2 {
+  width: 352px; height: 352px; top: 14%; right: 11%;
+  background: radial-gradient(closest-side, rgba(140,90,255,.16), rgba(140,90,255,0) 70%);
+  filter: blur(50px);
+}
+.nx-hero__in { position: relative; z-index: 2; width: 100%; text-align: center; }
+.nx-hero__row { width: 100%; animation: nxFadeUp .8s cubic-bezier(.4,0,.2,1) both; }
+.nx-hero__row + .nx-hero__row { animation-delay: .1s; }
+@keyframes nxFadeUp { from { opacity: 0; transform: translateY(-10px); } }
 
-  /* ─── Glass primitives ────────────────────────────────────────────── */
-  .fx-glass {
-    position:relative;
-    background:linear-gradient(158deg, rgba(40,32,86,.60) 0%, rgba(14,12,34,.74) 100%);
-    -webkit-backdrop-filter:var(--blur);
-    backdrop-filter:var(--blur);
-    border-radius:var(--r-lg);
-    box-shadow:
-      0 22px 60px rgba(0,0,0,.46),
-      inset 0 1px 0 rgba(255,255,255,.10),
-      inset 0 -1px 0 rgba(0,0,0,.28);
-    isolation:isolate;
-  }
-  /* Gradient hairline border */
-  .fx-glass::before {
-    content:''; position:absolute; inset:0; border-radius:inherit;
-    padding:1px; pointer-events:none; z-index:2;
-    background:linear-gradient(145deg,
-      rgba(255,255,255,.34) 0%,
-      rgba(255,255,255,.05) 34%,
-      rgba(168,85,247,.30) 68%,
-      rgba(245,230,37,.22) 100%);
-    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite:xor;
-            mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask-composite:exclude;
-  }
-  /* Glossy top sheen */
-  .fx-glass::after {
-    content:''; position:absolute; inset:0; border-radius:inherit;
-    pointer-events:none; z-index:1;
-    background:linear-gradient(178deg, rgba(255,255,255,.085) 0%, rgba(255,255,255,.015) 38%, transparent 62%);
-  }
-  .fx-glass > * { position:relative; z-index:3; }
+.nx-hero h1 {
+  margin: 0 0 22px;
+  font-size: clamp(2rem, 1rem + 5vw, 4.125rem);
+  font-weight: 700; line-height: 1.25; letter-spacing: -.03em;
+  background: linear-gradient(to top, #555, #fff 42%, #fff);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.nx-hero__sub {
+  margin: -20px auto 0; max-width: 768px;
+  font-size: 18px; line-height: 1.334; color: var(--nx-muted);
+}
+.nx-hero__acts {
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 16px; flex-wrap: wrap; margin-top: 40px;
+}
 
-  /* ─── Navigation ──────────────────────────────────────────────────── */
-  .f-nav {
-    position:fixed; top:0; left:0; right:0; z-index:1000;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:0 clamp(16px,3vw,32px); height:70px;
-    background:rgba(6,6,18,.55);
-    -webkit-backdrop-filter:blur(24px) saturate(180%);
-            backdrop-filter:blur(24px) saturate(180%);
-    border-bottom:1px solid var(--fx-line);
-    transition:background .4s var(--ease-io), height .4s var(--ease), border-color .4s;
-  }
-  .f-nav.scrolled {
-    background:rgba(6,6,18,.82);
-    border-bottom-color:rgba(168,85,247,.22);
-    box-shadow:0 12px 40px rgba(0,0,0,.5);
-  }
-  /* Accent hairline under nav */
-  .f-nav::after {
-    content:''; position:absolute; left:0; right:0; bottom:-1px; height:1px;
-    background:linear-gradient(90deg, transparent, var(--pu) 30%, var(--ye) 70%, transparent);
-    opacity:.4; pointer-events:none;
-  }
+/* ─── Dashboard showcase ───────────────────────────────────────────────────
+   novax drops a screenshot of their dashboard here, inside a frame whose
+   edges are bled into the page with stacked gradient layers so the image has
+   no visible border. Same four layers, same sizes, same stops — but the
+   picture inside is a CSS rendering of OUR dashboard, not theirs. */
+.nx-shot { position: relative; padding: 0; overflow: hidden; }
+@media (min-width: 900px) { .nx-shot { padding: 70px 0; } }
+.nx-shot__bleed { position: absolute; inset: -128px; pointer-events: none; }
+.nx-shot__bleed--a { background: linear-gradient(in oklab, rgba(8,8,15,.14) 0, rgba(8,8,15,.08) 50%, rgba(8,8,15,.59) 100%); }
+.nx-shot__bleed--b { background: linear-gradient(to right, rgba(8,8,15,.89) 0, #08080f 50%, rgba(8,8,15,.91) 100%); }
+.nx-shot__bleed--c {
+  background:
+    linear-gradient(to right, rgba(255,255,255,.2) 1px, transparent 1px) 0 0 / 60px 100%,
+    linear-gradient(to bottom, rgba(255,255,255,.2) 1px, transparent 1px) 0 0 / 100% 60px;
+  opacity: .25;
+}
+.nx-shot__vig {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(125% 125% at 50% 10%, rgba(0,0,0,0) 40%, #09090b 100%);
+}
+.nx-shot__fade {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to left, #08080f 0, transparent 100%);
+}
+.nx-shot__in { position: relative; z-index: 1; }
 
-  .f-brand { display:flex; align-items:center; gap:11px; font-size:1.15rem; font-weight:900; color:#fff; letter-spacing:.3px; }
-  .f-brand-badge {
-    position:relative; width:34px; height:34px; border-radius:10px;
-    background:var(--grad-pu); display:flex; align-items:center; justify-content:center;
-    font-size:.85rem; color:#fff; overflow:hidden;
-    box-shadow:0 6px 20px rgba(168,85,247,.5), inset 0 1px 0 rgba(255,255,255,.35);
-    transition:transform .45s var(--ease), box-shadow .45s var(--ease);
-  }
-  .f-brand:hover .f-brand-badge {
-    transform:rotate(-8deg) scale(1.08);
-    box-shadow:0 8px 30px rgba(245,230,37,.5), inset 0 1px 0 rgba(255,255,255,.45);
-  }
-  .f-brand-badge::after {
-    content:''; position:absolute; top:-60%; left:-40%; width:40px; height:200%;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
-    transform:rotate(20deg); animation:fxSheen 4.5s ease-in-out infinite;
-  }
-  @keyframes fxSheen { 0%,72%{left:-40%} 92%,100%{left:130%} }
-  .f-brand-name { background:var(--grad-brand); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:fxHue 7s ease-in-out infinite; }
-  @keyframes fxHue { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+/* the dashboard itself, drawn in CSS */
+.nx-dash {
+  display: flex; margin: 0 auto; max-width: 1160px;
+  border-radius: 14px; overflow: hidden;
+  background: #0b0b12; border: 1px solid var(--nx-line);
+  box-shadow: 0 30px 80px rgba(0,0,0,.5); text-align: start;
+}
+.nx-dash__side {
+  flex-shrink: 0; width: 216px; padding: 14px 10px;
+  background: #0e0e16; border-inline-end: 1px solid var(--nx-line-2);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.nx-dash__brand {
+  display: flex; align-items: center; gap: 8px; padding: 4px 8px 12px;
+  font-size: .8125rem; font-weight: 700; color: #fff;
+}
+.nx-dash__brand i { width: 22px; height: 22px; border-radius: 7px; background: var(--nx-purple); }
+.nx-dash__grp {
+  padding: 12px 8px 5px; font-size: .625rem; font-weight: 700;
+  letter-spacing: .05em; color: #5b6270;
+}
+.nx-dash__link {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 9px; border-radius: 8px; font-size: .75rem; color: #9aa1ae;
+}
+.nx-dash__link i { width: 14px; text-align: center; font-size: .7rem; opacity: .75; }
+.nx-dash__link.is-on { background: rgba(104,31,209,.16); color: #fff; }
+.nx-dash__link.is-on i { color: var(--nx-violet-2); opacity: 1; }
+.nx-dash__main { flex: 1; min-width: 0; padding: 16px 18px 20px; }
+.nx-dash__top {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--nx-line-2);
+}
+.nx-dash__top b { font-size: .9375rem; color: #fff; font-weight: 600; }
+.nx-dash__top span { font-size: .6875rem; color: #5b6270; }
+.nx-dash__stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.nx-dash__stat { padding: 13px 14px; border-radius: 12px; border: 1px solid var(--nx-line); background: #101019; }
+.nx-dash__stat u { display: block; font-size: .625rem; color: #6b7280; text-decoration: none; margin-bottom: 6px; }
+.nx-dash__stat b { font-size: 1.25rem; color: #fff; font-weight: 700; }
+.nx-dash__stat em { font-size: .6875rem; font-style: normal; color: var(--nx-green); }
+.nx-dash__panes { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-top: 12px; }
+.nx-dash__pane { padding: 13px 14px; border-radius: 12px; min-height: 96px; border: 1px solid var(--nx-line); background: #101019; }
+.nx-dash__pane u { display: block; font-size: .625rem; color: #6b7280; text-decoration: none; margin-bottom: 10px; }
+.nx-dash__row { display: flex; align-items: center; gap: 9px; padding: 6px 0; }
+.nx-dash__row s { width: 20px; height: 20px; border-radius: 6px; text-decoration: none; flex-shrink: 0; background: linear-gradient(135deg, #3b3b52, #23232f); }
+.nx-dash__row em { flex: 1; height: 7px; border-radius: 3px; background: rgba(255,255,255,.1); font-style: normal; }
+@media (max-width: 899.98px) {
+  .nx-dash__side { display: none; }
+  .nx-dash__stats { grid-template-columns: repeat(2, 1fr); }
+  .nx-dash__panes { grid-template-columns: 1fr; }
+}
 
-  .f-nav-acts { display:flex; align-items:center; gap:9px; }
+/* ─── Generic section furniture ─────────────────────────────────────────────
+   Every feature section is padding 100px 10px with a centred hairline rule at
+   the top, a 28rem blurred orb pinned to the top-right, and the content
+   sitting one layer above it. */
+.nx-sec { position: relative; padding: 100px 10px; overflow-x: hidden; }
+.nx-sec::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: min(1200px, 100% - 20px); border-top: 1px solid rgba(255,255,255,.06);
+}
+.nx-sec__orb {
+  position: absolute; top: 6%; right: -8%; width: 28rem; height: 28rem;
+  max-width: 70vw; pointer-events: none; z-index: 0;
+  background: radial-gradient(closest-side, rgba(104,31,209,.16), rgba(104,31,209,0) 72%);
+  filter: blur(70px);
+}
+.nx-sec__in { position: relative; z-index: 1; max-width: 1200px; margin-inline: auto; }
+/* The banded sections carry their own 10px gutter; their inner wrapper must
+   not add the 24px container padding on top of it, or the content comes out
+   narrower than the source. */
+.nx-sec__in.nx-wrap,
+.nx-features .nx-wrap,
+.nx-plugins .nx-wrap,
+.nx-shot .nx-wrap { padding-inline: 0; max-width: 1200px; }
 
-  /* ─── Buttons ───────────────────────────────────────────────────────
-     Measured off novax.gg: 11px radius, 15px/500, a contained purple with an
-     inset rim light, and a dark outlined sibling 2px shorter. The old shine
-     sweep is gone because novax's buttons do not have one. */
-  .f-btn {
-    position:relative; display:inline-flex; align-items:center; justify-content:center; gap:9px;
-    min-height:48px; padding:8px 22px; border-radius:11px; border:1px solid transparent;
-    font-family:inherit; font-size:15px; font-weight:500; line-height:1.75;
-    cursor:pointer; white-space:nowrap;
-    transition:transform .3s var(--ease), box-shadow .3s var(--ease), background .3s, border-color .3s;
-    will-change:transform;
-  }
-  .f-btn:hover { transform:translateY(-2px); }
-  .f-btn:active { transform:translateY(0) scale(.985); }
-  .f-btn i { font-size:1.12rem; }
+.nx-sec__title {
+  margin: 0 0 .75rem; font-size: 1.5rem; font-weight: 700;
+  line-height: 1.2; letter-spacing: -.02em; color: #fff; text-align: center;
+}
+.nx-sec__sub {
+  font-size: .875rem; line-height: 1.334em; color: var(--nx-muted);
+  text-align: center; margin: 0 auto .75rem; width: 600px; max-width: 100%;
+  text-wrap: balance;
+}
+@media (min-width: 900px) {
+  .nx-sec__title { font-size: 2.75rem; }
+  .nx-sec__sub { font-size: 1.125rem; }
+}
 
-  .f-btn-p {
-    background:var(--nx-purple); color:#fff;
-    border-color:var(--nx-rim);
-    box-shadow:inset 0 -4px 10px 0 var(--nx-rim), 0 10px 30px rgba(104,31,209,.4);
-  }
-  .f-btn-p:hover {
-    background:linear-gradient(135deg,#2a1055 0%,#431c85 100%);
-    border-color:#8b4dff; color:#fff;
-    box-shadow:inset 0 -4px 10px 0 rgba(188,146,253,.4), 0 14px 40px rgba(104,31,209,.55);
-  }
+/* 12-column row helper — the source uses MUI Grid with a 24px gutter.
+   Below the md breakpoint every cell goes full width, same as MUI's default. */
+.nx-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 1.5rem; width: 100%; }
+@media (min-width: 900px) { .nx-row { gap: 24px; } }
+.nx-row--end { flex-direction: row-reverse; }
+.nx-row > .nx-col-4,
+.nx-row > .nx-col-6,
+.nx-row > .nx-col-8,
+.nx-row > .nx-col-12 { width: 100%; }
+@media (min-width: 900px) {
+  .nx-row > .nx-col-4  { width: calc(100% * 4 / 12 - (24px * 8 / 12)); }
+  .nx-row > .nx-col-6  { width: calc(100% * 6 / 12 - (24px * 6 / 12)); }
+  .nx-row > .nx-col-8  { width: calc(100% * 8 / 12 - (24px * 4 / 12)); }
+  .nx-row > .nx-col-12 { width: 100%; }
+}
+.nx-row > * { min-width: 0; box-sizing: border-box; }
 
-  .f-btn-ye {
-    min-height:46px; padding:7px 21px;
-    background:#181820; color:#fff; border-color:rgba(139,139,143,.26);
-  }
-  .f-btn-ye:hover { background:#201f2b; border-color:rgba(139,139,143,.5); color:#fff; }
+/* ─── Card ──────────────────────────────────────────────────────────────────
+   Two near-identical shells on the source: .mui-1ip3kb8 (full-width band,
+   48px padding) and .mui-1ocz0j1 (grid cell, 40px padding, height 100%). */
+.nx-card {
+  position: relative; overflow: hidden; height: 100%;
+  border-radius: 20px; border: 1px solid var(--nx-line);
+  background: var(--nx-panel-bg);
+  padding: 32px 24px;
+}
+@media (min-width: 900px) { .nx-card { padding: 40px; } }
+.nx-card--band { margin-bottom: 1.5rem; }
+@media (min-width: 900px) { .nx-card--band { padding: 48px; } }
 
-  .f-btn-g {
-    min-height:46px; padding:7px 21px;
-    background:#181820; color:var(--fx-mut);
-    border-color:rgba(139,139,143,.26);
-  }
-  .f-btn-g:hover { color:#fff; border-color:rgba(139,139,143,.5); background:#201f2b; }
+.nx-card__head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.nx-card__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; width: 32px; height: 32px; border-radius: 9px;
+  border: 1px solid rgba(188,146,253,.28); color: var(--nx-violet-2);
+}
+.nx-card__icon i { font-size: .95rem; }
+.nx-card h3 {
+  margin: 0; font-size: 1.15rem; font-weight: 600; line-height: 1.167; color: #fff;
+}
+.nx-card__desc {
+  margin: 0; font-size: .875rem; line-height: 1.334em;
+  color: var(--nx-muted); max-width: 38rem; text-align: start;
+}
+.nx-card__mock { margin-top: 22px; }
 
-  .f-nbtn {
-    display:inline-flex; align-items:center; gap:7px; cursor:pointer;
-    padding:9px 18px; border-radius:11px; border:1px solid transparent;
-    font-size:.82rem; font-weight:700; white-space:nowrap;
-    transition:transform .3s var(--ease), box-shadow .3s var(--ease), background .3s, color .3s;
-  }
-  .f-nbtn:hover { transform:translateY(-2px); }
-  .f-nbtn-p { background:var(--grad-pu); color:#fff; box-shadow:0 5px 20px rgba(168,85,247,.4); }
-  .f-nbtn-p:hover { color:#fff; box-shadow:0 9px 32px rgba(168,85,247,.55); }
-  .f-nbtn-ye { background:var(--grad-ye); color:#141004; box-shadow:0 5px 20px rgba(245,230,37,.32); }
-  .f-nbtn-ye:hover { color:#141004; box-shadow:0 9px 34px rgba(245,230,37,.48); }
-  .f-nbtn-g { background:rgba(255,255,255,.045); color:var(--fx-mut); border-color:var(--fx-line); }
-  .f-nbtn-g:hover { color:#fff; background:rgba(255,255,255,.09); border-color:var(--fx-line-2); }
-  .f-nbtn-d { background:rgba(255,92,108,.1); color:#ff8f9a; border-color:rgba(255,92,108,.18); }
-  .f-nbtn-d:hover { color:#ffb0b8; background:rgba(255,92,108,.17); }
+/* ─── Mockup primitives ────────────────────────────────────────────────────
+   The Discord-shaped panels inside the cards. Every one of these numbers was
+   read off the source: panel #14141d at 16px, rows at 10px, the purple badge
+   at rgba(104,31,209,.22), online dots #57f287 with a 2px panel-coloured
+   ring, and skeleton bars at rgba(255,255,255,.12). */
+.nx-mock {
+  border: 1px solid var(--nx-line); border-radius: 16px;
+  background: var(--nx-panel-2); overflow: hidden;
+}
+.nx-mock--msg { border-radius: 12px; }
+.nx-mock__hd {
+  display: flex; align-items: center; gap: 9px;
+  padding: 13px 16px; border-bottom: 1px solid var(--nx-line-2);
+  font-size: .875rem; font-weight: 600; color: #fff;
+}
+.nx-mock__hd i { color: var(--nx-violet-2); font-size: .9rem; }
+.nx-mock__body { padding: 14px 16px; display: flex; flex-direction: column; gap: 9px; }
 
-  /* ─── Live status pill ────────────────────────────────────────────── */
-  .f-pill {
-    display:inline-flex; align-items:center; gap:8px;
-    padding:6px 15px; border-radius:100px; font-size:.72rem; font-weight:700;
-    color:var(--pu-l); background:rgba(168,85,247,.09);
-    border:1px solid rgba(168,85,247,.24); margin-bottom:20px;
-    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-    box-shadow:0 0 22px rgba(168,85,247,.14), inset 0 1px 0 rgba(255,255,255,.1);
-  }
-  .fx-dot {
-    width:7px; height:7px; border-radius:50%; background:var(--ok); flex-shrink:0;
-    box-shadow:0 0 0 0 rgba(52,245,165,.6); animation:fxPulse 2.1s ease-out infinite;
-  }
-  @keyframes fxPulse {
-    0%   { box-shadow:0 0 0 0 rgba(52,245,165,.55); }
-    70%  { box-shadow:0 0 0 9px rgba(52,245,165,0); }
-    100% { box-shadow:0 0 0 0 rgba(52,245,165,0); }
-  }
-  .fx-dot.off { background:var(--bad); animation:none; box-shadow:0 0 10px rgba(255,92,108,.6); }
+.nx-row-i {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--nx-line-2); background: var(--nx-fill);
+  font-size: .8125rem; color: #d7dae0;
+}
+.nx-row-i > i:first-child { color: var(--nx-muted); font-size: .85rem; width: 16px; text-align: center; }
+.nx-row-i__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx-row-i__end { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
-  /* ─── Hero ────────────────────────────────────────────────────────────
-     Rebuilt to match novax.gg, every number below read off that page with
-     getComputedStyle rather than eyeballed:
+.nx-av {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #4b3a72, #241a3d);
+  border: 2px solid var(--nx-panel-2);
+}
+.nx-av--lg { width: 38px; height: 38px; }
+.nx-av--bot { background: linear-gradient(135deg, var(--nx-purple), #2a1055); display:flex; align-items:center; justify-content:center; font-size:.7rem; color:#fff; }
+.nx-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--nx-green); flex-shrink: 0; }
+.nx-stack { display: flex; }
+.nx-stack .nx-av + .nx-av { margin-inline-start: -7px; }
+.nx-stack .nx-av { width: 18px; height: 18px; }
 
-       title      66px / 700 / 1.25 line-height / -0.03em tracking,
-                  centred, filled from linear-gradient(to top,#555,#fff,#fff)
-                  with background-clip:text
-       body       18px / 1.334 / #8890a1, capped at 768px
-       buttons    11px radius, 16px gap, aligned to their bottom edge
-       backdrop   two blurred radial orbs, #681fd1 at .28 and #8c5aff at .16
-       entrance   wrapper fades up from translateY(-10px)
+.nx-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px; font-size: .6875rem; font-weight: 600;
+  background: rgba(104,31,209,.22); border: 1px solid rgba(188,146,253,.32);
+  color: var(--nx-violet-2); white-space: nowrap;
+}
+.nx-pill--dim { background: rgba(255,255,255,.06); border-color: var(--nx-line); color: var(--nx-muted); }
+.nx-pill--warn { background: rgba(255,217,61,.14); border-color: rgba(255,217,61,.32); color: var(--nx-gold); }
+.nx-pill--ok   { background: rgba(87,242,135,.12); border-color: rgba(87,242,135,.3); color: var(--nx-green); }
 
-     The planet artwork sitting behind the novax hero is deliberately NOT
-     reproduced. The two orbs below replace it.
+.nx-bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+.nx-bar__fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--nx-purple), var(--nx-purple-l));
+}
+.nx-line { height: 8px; border-radius: 3px; background: rgba(255,255,255,.12); }
+.nx-line--w70 { width: 70%; } .nx-line--w45 { width: 45%; } .nx-line--w30 { width: 30%; }
 
-     Poppins is loaded for the Latin/numeral runs only. It has no Arabic
-     glyphs, so Cairo picks up the Arabic through the same stack and the page
-     needs no font swap.
-     ─────────────────────────────────────────────────────────────────── */
-  :root {
-    --nx-purple:   #681fd1;
-    --nx-purple-l: #8c5aff;
-    --nx-ink:      #08080f;
-    --nx-muted:    #8890a1;
-    --nx-rim:      rgba(188,146,253,.59);
-  }
+.nx-meter { display: flex; align-items: center; gap: 14px; }
+.nx-meter__ring {
+  width: 54px; height: 54px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: conic-gradient(var(--nx-purple) 0 72%, rgba(255,255,255,.08) 72% 100%);
+  position: relative;
+}
+.nx-meter__ring::after {
+  content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--nx-panel-2);
+}
+.nx-meter__ring b { position: relative; z-index: 1; font-size: .8125rem; font-weight: 700; color: #fff; }
+.nx-meter__meta { flex: 1; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
 
-  .f-hero {
-    position:relative; z-index:1; overflow:hidden;
-    display:flex; align-items:center; justify-content:center;
-    min-height:657px; padding:80px 24px;
-  }
-  .f-hero-inner {
-    position:relative; z-index:2;
-    width:100%; max-width:1200px; margin:0 auto;
-    display:flex; flex-direction:column; align-items:center; text-align:center;
-  }
+.nx-chipset { display: flex; flex-wrap: wrap; gap: 8px; }
+.nx-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 12px; border-radius: 999px; font-size: .75rem; font-weight: 600;
+  background: var(--nx-fill); border: 1px solid var(--nx-line); color: #d7dae0;
+}
 
-  /* The two ambient orbs novax renders behind its hero copy. */
-  .fx-hero-glow { position:absolute; z-index:0; pointer-events:none; border-radius:50%; }
-  .fx-hero-glow.g1 {
-    width:900px; height:608px; top:50%; left:50%; transform:translate(-50%,-50%);
-    background:radial-gradient(closest-side, rgba(104,31,209,.28), rgba(104,31,209,0) 70%);
-    filter:blur(60px);
-  }
-  .fx-hero-glow.g2 {
-    width:352px; height:352px; top:14%; right:11%;
-    background:radial-gradient(closest-side, rgba(140,90,255,.16), rgba(140,90,255,0) 70%);
-    filter:blur(50px);
-  }
+/* command list: / ban etc */
+.nx-cmd { display: flex; flex-direction: column; gap: 6px; }
+.nx-cmd__row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--nx-line-2); background: var(--nx-fill);
+  font-size: .8125rem;
+}
+.nx-cmd__slash {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 58px; padding: 2px 9px; border-radius: 6px;
+  background: rgba(255,255,255,.06); color: #fff;
+  font-family: ui-monospace, 'Cascadia Code', Menlo, monospace;
+  font-size: .75rem; font-weight: 600; direction: ltr;
+}
+.nx-cmd__row span { color: var(--nx-muted); font-size: .75rem; }
+.nx-cmd__row--on .nx-cmd__slash { background: rgba(87,242,135,.14); color: var(--nx-green); }
 
-  .f-hero h1 {
-    margin:0 0 22px; max-width:944px;
-    font-family:'Poppins','Cairo',system-ui,sans-serif;
-    font-size:clamp(2.15rem,5.4vw,66px);
-    font-weight:700; line-height:1.25; letter-spacing:-.03em;
-    background:linear-gradient(to top, #555, #fff 42%, #fff);
-    -webkit-background-clip:text; background-clip:text;
-    -webkit-text-fill-color:transparent;
-  }
-  .f-hero-sub {
-    margin:-20px auto 0; max-width:768px;
-    font-size:18px; line-height:1.334; color:var(--nx-muted);
-  }
+/* embed preview (the blue-bar Discord embed look, in brand purple) */
+.nx-embed {
+  border-radius: 10px; border: 1px solid var(--nx-line-2);
+  background: var(--nx-fill); padding: 13px 15px;
+  border-inline-start: 4px solid var(--nx-purple);
+}
+.nx-embed__tag {
+  display: inline-block; font-size: .625rem; font-weight: 700;
+  letter-spacing: .06em; color: var(--nx-muted); margin-bottom: 7px;
+}
+.nx-embed__t { font-size: .9375rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.nx-embed__d { font-size: .8125rem; color: var(--nx-muted); }
+.nx-embed__f { display: flex; align-items: center; gap: 7px; margin-top: 9px; font-size: .6875rem; color: #6b7280; }
+.nx-embed__f .nx-av { width: 16px; height: 16px; border-width: 0; }
 
-  /* Pure CSS entrance rather than .fx-reveal: .fx-reveal starts at opacity 0 and
-     only un-hides when IntersectionObserver fires, so a JS failure would leave
-     the headline invisible. A keyframe animation lands on opacity 1 regardless.
+/* message bubble (welcome card) */
+.nx-msg { display: flex; gap: 11px; }
+.nx-msg__col { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.nx-msg__hd { display: flex; align-items: center; gap: 8px; font-size: .8125rem; }
+.nx-msg__hd b { color: #fff; font-weight: 600; }
+.nx-msg__hd span { font-size: .6875rem; color: #6b7280; }
+.nx-msg__bot { background: rgba(104,31,209,.16); color: var(--nx-violet-2); padding: 0 4px; border-radius: 3px; font-size: .625rem; font-weight: 700; }
 
-     width:100% is load-bearing. .f-hero-inner is a column flex box with
-     align-items:center, so without it each wrapper shrink-to-fits its own
-     content: the acts wrapper would resolve to exactly the buttons' summed
-     width plus the gap, and the row would wrap on the rounding error. */
-  .fx-hero-in { width:100%; animation:fxHeroIn .8s var(--ease-io) both; }
-  .fx-hero-in + .fx-hero-in { animation-delay:.1s; }
-  @keyframes fxHeroIn { from { opacity:0; transform:translateY(-10px); } }
+/* tictactoe grid */
+.nx-ttt { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: 150px; }
+.nx-ttt span {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  border-radius: 9px; background: var(--nx-fill); border: 1px solid var(--nx-line-2);
+  font-size: 1.05rem; font-weight: 700; color: var(--nx-violet-2);
+}
+.nx-ttt span.w { color: var(--nx-green); }
 
-  .f-hero .f-pill {
-    background:rgba(104,31,209,.12); border-color:rgba(140,90,255,.32);
-    color:var(--nx-purple-l);
-  }
+/* colour swatches */
+.nx-swatches { display: flex; flex-wrap: wrap; gap: 9px; }
+.nx-sw {
+  width: 38px; height: 38px; border-radius: 10px;
+  border: 2px solid transparent; display: flex; align-items: flex-end; justify-content: center;
+}
+.nx-sw b {
+  font-size: .5625rem; font-weight: 700; color: #fff; padding-bottom: 3px;
+  text-shadow: 0 1px 2px rgba(0,0,0,.5);
+}
 
-  .f-acts {
-    display:flex; align-items:flex-end; justify-content:center;
-    gap:16px; flex-wrap:wrap; margin-top:40px;
-  }
+/* ─── Analytics band ───────────────────────────────────────────────────────
+   The one section that is not built from cards: a copy column carrying a
+   2x2 tile grid, beside a two-series line chart. */
+.nx-an { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: center; }
+@media (min-width: 900px) { .nx-an { grid-template-columns: 445px 1fr; gap: 34px; } }
+.nx-an__copy { font-size: .875rem; line-height: 1.334em; color: var(--nx-muted); margin: 0 0 18px; }
+.nx-an__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.nx-an__tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px 20px; }
+.nx-an__tile i { display: block; font-size: 1.15rem; color: #fff; margin-bottom: 9px; }
+.nx-an__tile p { margin: 0; font-size: .875rem; line-height: 1.334; color: var(--nx-muted); }
+.nx-an__chart { width: 100%; height: auto; overflow: hidden; }
+.nx-an__legend { display: flex; gap: 18px; justify-content: center; margin-top: 6px; }
+.nx-an__legend span { display: inline-flex; align-items: center; gap: 7px; font-size: .6875rem; color: var(--nx-muted); }
+.nx-an__legend s { width: 12px; height: 12px; border-radius: 3px; text-decoration: none; }
 
-  /* The maintenance overlay used to sit on the metric console. With no console
-     it re-anchors to a self-sized centred card. The ids frameGlass, glassMsg
-     and glassTimer are unchanged so the existing JS still binds. */
-  .fx-hero-mt { position:relative; display:flex; justify-content:center; width:100%; }
-  .fx-hero-mt .f-frame-glass {
-    inset:auto; top:-10px; left:50%; transform:translateX(-50%);
-    width:min(520px,92%); padding:18px 20px;
-    border-radius:var(--r-md); border:1px solid var(--fx-line);
-  }
+/* ─── Features band ──────────────────────────────────────────────────────── */
+.nx-features { position: relative; padding: 0 10px 100px; overflow-x: hidden; scroll-margin-top: 110px; }
+/* The source's features band opens flush with its section top — there is no
+   padding above the first row. All the space below comes from an 80px margin
+   inside the grid plus the section's own 100px padding-bottom. */
+.nx-features__pad { padding: 0; }
+.nx-features__grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px; margin-bottom: 80px;
+}
+.nx-fcard {
+  position: relative; padding: 28px 24px; border-radius: 16px;
+  border: 1px solid var(--nx-line); background: var(--nx-card-bg);
+  transition: transform .3s;
+}
+.nx-fcard:hover { transform: translateY(-4px); }
+.nx-fcard__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; margin-bottom: 1rem;
+  background: radial-gradient(120% 120% at 30% 20%, rgba(188,146,253,.28), rgba(104,31,209,.08));
+  border: 1px solid rgba(188,146,253,.28); color: var(--nx-violet-2); font-size: 1.1rem;
+}
+.nx-fcard h3 {
+  margin: 0 0 .5rem; font-size: 1rem; font-weight: 700; line-height: 1.2;
+  word-break: break-word; color: #fff;
+}
+.nx-fcard p { margin: 0; font-size: .875rem; line-height: 1.334em; color: var(--nx-muted); text-wrap: balance; }
 
+/* ─── Plugins band ─────────────────────────────────────────────────────────
+   A 28rem box masked to a soft radial so three icon strips bleed off both
+   edges, with the mark sitting on a 64px plate in the middle. Heading and
+   sub sit below it at the source's 48px / 16px rhythm. */
+.nx-plugins { position: relative; padding: 128px 10px; overflow-x: hidden; }
+.nx-plugins__pad { padding: 0; }
+.nx-plugins__box {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between;
+  gap: 40px; margin-inline: auto;
+  width: 100%; max-width: 28rem; height: 224px;
+  background: color-mix(in srgb, #181820 25%, transparent);
+  -webkit-mask-image: radial-gradient(50% 50%, #000 70%, transparent 100%);
+  mask-image: radial-gradient(50% 50%, #000 70%, transparent 100%);
+}
+.nx-plugins__row {
+  display: flex; align-items: center; justify-content: center; gap: 24px;
+  height: 48px; flex-shrink: 0; white-space: nowrap;
+}
+.nx-plugins__row i { font-size: 1.35rem; color: #6d7382; flex-shrink: 0; }
+.nx-plugins__mark {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 64px; height: 64px; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(104, 31, 209, .6);
+}
+.nx-plugins__mark svg { width: 35px; height: 25px; }
+.nx-plugins h2 {
+  margin: 48px 0 16px; font-size: 2.125rem; font-weight: 700;
+  line-height: 1.167; color: #fff; text-align: center;
+}
+.nx-plugins p {
+  margin: 0 auto 48px; width: 600px; max-width: 100%;
+  font-size: .875rem; line-height: 1.334em; color: var(--nx-muted);
+  text-align: center; text-wrap: balance;
+}
+@media (min-width: 900px) { .nx-plugins p { font-size: 1.125rem; } }
 
-  /* ─── Trust strip ─────────────────────────────────────────────────── */
-  .f-strip {
-    position:relative; z-index:2; max-width:1220px; margin:0 auto;
-    padding:0 clamp(16px,3vw,32px) 68px;
-  }
-  .f-strip-in {
-    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
-    border-radius:var(--r-md); overflow:hidden;
-    background:var(--fx-line);
-    border:1px solid var(--fx-line);
-  }
-  .f-strip-c {
-    padding:22px 18px; text-align:center; background:rgba(12,10,30,.5);
-    -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px);
-    transition:background .35s;
-  }
-  .f-strip-c:hover { background:rgba(168,85,247,.09); }
-  .f-strip-c i { font-size:1rem; color:var(--pu); margin-bottom:9px; display:block; transition:transform .4s var(--ease); }
-  .f-strip-c:nth-child(even) i { color:var(--ye); }
-  .f-strip-c:hover i { transform:translateY(-3px) scale(1.12); }
-  .f-strip-c b { display:block; font-size:.9rem; font-weight:800; margin-bottom:2px; }
-  .f-strip-c span { font-size:.72rem; color:var(--fx-dim); }
+/* ─── CTA + Footer ───────────────────────────────────────────────────────── */
+.nx-cta { position: relative; padding: 100px 0 0; overflow-x: hidden; }
+.nx-cta__top { padding-bottom: 2rem; }
+.nx-cta__title {
+  font-size: clamp(1.75rem, 4.4vw, 3.25rem); font-weight: 700; line-height: 1.15;
+  letter-spacing: -.02em; color: #fff; text-align: center; margin-bottom: 1.5rem;
+}
+.nx-cta__title span {
+  background: linear-gradient(to top, #555, #fff 42%, #fff);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nx-cta__acts { display: flex; justify-content: center; margin-bottom: 3rem; }
 
-  /* ─── Sections ────────────────────────────────────────────────────── */
-  .f-sec { position:relative; z-index:2; padding:clamp(64px,9vw,104px) clamp(16px,3vw,32px); }
-  .f-sec-inner { max-width:1160px; margin:0 auto; }
+/* the CSS redraw of novax's footer.svg — a purple wave, no planet */
+.nx-wave {
+  position: relative; height: 400px; overflow: hidden; pointer-events: none;
+  -webkit-mask-image: radial-gradient(70% 100% at 50% 100%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(70% 100% at 50% 100%, #000 40%, transparent 100%);
+}
+.nx-wave::before, .nx-wave::after {
+  content: ''; position: absolute; left: 50%; transform: translateX(-50%);
+  border-radius: 50%;
+}
+.nx-wave::before {
+  width: 1500px; height: 620px; top: 90px;
+  background: radial-gradient(closest-side, rgba(104,31,209,.42), rgba(104,31,209,0) 70%);
+  filter: blur(70px);
+}
+.nx-wave::after {
+  width: 1100px; height: 420px; top: 210px;
+  background: radial-gradient(closest-side, rgba(196,156,255,.22), rgba(196,156,255,0) 72%);
+  filter: blur(60px);
+}
 
-  .f-center { text-align:center; margin-bottom:clamp(38px,5vw,58px); }
-  .f-label {
-    display:inline-flex; align-items:center; gap:7px; margin-bottom:14px;
-    padding:6px 16px; border-radius:100px; font-size:.7rem; font-weight:700;
-  }
-  .f-label-p { background:rgba(168,85,247,.1); border:1px solid rgba(168,85,247,.24); color:var(--pu-l); }
-  .f-label-y { background:rgba(245,230,37,.09); border:1px solid rgba(245,230,37,.22); color:var(--ye-l); }
-  .f-center h2 { font-size:clamp(1.6rem,3.6vw,2.4rem); font-weight:900; line-height:1.28; margin-bottom:12px; }
-  .f-center h2 em {
-    font-style:normal; background:var(--grad-brand); background-size:200% 100%;
-    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-    animation:fxHue 8s ease-in-out infinite;
-  }
-  .f-center p { color:var(--fx-mut); font-size:.94rem; line-height:1.95; max-width:560px; margin:0 auto; }
+.nx-footer { position: relative; z-index: 1; padding-bottom: 40px; }
+.nx-about { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 3rem; }
+.nx-about__mark { width: 56px; height: 56px; flex-shrink: 0; }
+.nx-about__mark img, .nx-about__mark svg { width: 100%; height: 100%; }
+.nx-about h3 { margin: 0 0 10px; font-size: 1.25rem; font-weight: 700; color: #fff; }
+.nx-about p { margin: 0; font-size: .9375rem; line-height: 1.6; color: var(--nx-muted); max-width: 70ch; }
 
-  /* ─── Feature cards ───────────────────────────────────────────────── */
-  .f-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-  .f-card { padding:26px 24px; transition:transform .45s var(--ease), box-shadow .45s var(--ease); }
-  .f-card:hover { transform:translateY(-6px); box-shadow:0 30px 70px rgba(0,0,0,.55), 0 0 34px color-mix(in srgb, var(--a) 20%, transparent); }
-  /* Bottom duotone rail, reveals on hover */
-  .f-card-rail {
-    position:absolute; bottom:0; right:22px; left:22px; height:2px; border-radius:2px;
-    background:linear-gradient(90deg, transparent, var(--a), var(--a2,var(--a)), transparent);
-    opacity:0; transform:scaleX(.4); transition:opacity .45s var(--ease), transform .45s var(--ease);
-  }
-  .f-card:hover .f-card-rail { opacity:1; transform:scaleX(1); }
+.nx-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px 20px; }
+@media (min-width: 900px) { .nx-cols { grid-template-columns: 1.4fr 1fr 1fr 1fr; } }
+.nx-col h4 {
+  margin: 0 0 14px; font-size: .8125rem; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; color: #fff;
+}
+.nx-col ul { display: flex; flex-direction: column; gap: 9px; }
+.nx-col a { font-size: .875rem; color: var(--nx-muted); transition: color .2s; }
+.nx-col a:hover { color: #fff; }
+.nx-col__soc { display: flex; gap: 8px; }
+.nx-col__soc a {
+  width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px; border: 1px solid var(--nx-line); background: var(--nx-fill);
+  font-size: .875rem; transition: border-color .2s, background .2s;
+}
+.nx-col__soc a:hover { border-color: rgba(188,146,253,.4); background: rgba(104,31,209,.14); }
+.nx-copy {
+  margin-top: 2.5rem; padding-top: 20px; border-top: 1px solid var(--nx-line-2);
+  font-size: .75rem; color: #6b7280; text-align: center;
+}
 
-  .fx-cicon {
-    width:50px; height:50px; border-radius:15px; display:flex; align-items:center; justify-content:center;
-    font-size:1.12rem; margin-bottom:17px; color:var(--a);
-    background:color-mix(in srgb, var(--a) 12%, transparent);
-    border:1px solid color-mix(in srgb, var(--a) 26%, transparent);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 8px 24px color-mix(in srgb, var(--a) 16%, transparent);
-    transition:transform .45s var(--ease), box-shadow .45s var(--ease);
-  }
-  .f-card:hover .fx-cicon { transform:translateY(-3px) scale(1.08) rotate(-6deg); }
-  .f-card h3 { font-size:.95rem; font-weight:800; margin-bottom:7px; }
-  .f-card p { font-size:.8rem; color:var(--fx-dim); line-height:1.95; }
-  .f-card-tag {
-    display:inline-flex; align-items:center; gap:5px; margin-top:14px;
-    font-size:.63rem; font-weight:700; color:var(--a);
-    padding:3px 10px; border-radius:100px;
-    background:color-mix(in srgb, var(--a) 10%, transparent);
-    border:1px solid color-mix(in srgb, var(--a) 20%, transparent);
-  }
+/* ─── Reveal ────────────────────────────────────────────────────────────────
+   Pure keyframes rather than a JS-added class: a scripting failure must not
+   be able to leave the page blank. */
+.nx-rv { opacity: 0; animation: nxRv .7s cubic-bezier(.4,0,.2,1) forwards; }
+.nx-js .nx-rv { animation: none; opacity: 1; }
+.nx-js.nx-anim .nx-rv {
+  opacity: 0; transform: translateY(26px);
+  transition: opacity .7s cubic-bezier(.4,0,.2,1), transform .7s cubic-bezier(.4,0,.2,1);
+}
+.nx-js.nx-anim .nx-rv.nx-in { opacity: 1; transform: none; }
+@keyframes nxRv { to { opacity: 1; } }
 
-  /* ─── Steps ───────────────────────────────────────────────────────── */
-  .f-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; position:relative; }
-  .f-step {
-    position:relative; padding:28px 24px; text-align:center;
-    transition:transform .45s var(--ease);
-  }
-  .f-step:hover { transform:translateY(-5px); }
-  /* Connector line */
-  .f-step:not(:last-child)::after {
-    content:''; position:absolute; top:52px; left:-11px; width:22px; height:1px;
-    background:linear-gradient(90deg, transparent, rgba(168,85,247,.5));
-  }
-  .f-step-num {
-    position:relative; z-index:3; width:52px; height:52px; border-radius:16px;
-    margin:0 auto 18px; display:flex; align-items:center; justify-content:center;
-    font-size:1.2rem; font-weight:900; color:#fff;
-    background:var(--grad-pu); border:1px solid rgba(255,255,255,.16);
-    box-shadow:0 12px 32px rgba(168,85,247,.42), inset 0 1px 0 rgba(255,255,255,.32);
-    transition:transform .5s var(--ease), box-shadow .5s var(--ease), background .5s;
-  }
-  .f-step:nth-child(even) .f-step-num { background:var(--grad-ye); color:#141004; box-shadow:0 12px 32px rgba(245,230,37,.4), inset 0 1px 0 rgba(255,255,255,.6); }
-  .f-step:hover .f-step-num { transform:translateY(-4px) rotate(-8deg) scale(1.08); }
-  .f-step-num::before {
-    content:''; position:absolute; inset:-8px; border-radius:22px;
-    border:1px solid rgba(168,85,247,.3); opacity:0;
-    animation:fxRing 3s var(--ease-io) infinite;
-  }
-  @keyframes fxRing { 0%{opacity:.7; transform:scale(.9)} 70%,100%{opacity:0; transform:scale(1.22)} }
-  .f-step h4 { font-size:1rem; font-weight:800; margin-bottom:7px; }
-  .f-step p { font-size:.8rem; color:var(--fx-dim); line-height:1.9; }
+/* ─── Maintenance banner (existing feature, class injected by JS) ───────── */
+.nx-mnt {
+  display: none; position: fixed; left: 0; right: 0; top: 0; z-index: 1200;
+  background: linear-gradient(90deg, #3a2a05, #2a1055);
+  border-bottom: 1px solid rgba(255,217,61,.3); color: #fff;
+}
+.nx-mnt.nx-show { display: block; }
+.nx-mnt__in {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 9px 16px; font-size: .8rem; text-align: center;
+}
+.nx-mnt__in i { color: var(--nx-gold); }
+.nx-mnt__t { font-weight: 700; }
 
-  /* ─── Numbers ─────────────────────────────────────────────────────── */
-  .f-nums { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
-  .fx-num {
-    padding:30px 20px; text-align:center;
-    transition:transform .45s var(--ease), box-shadow .45s var(--ease);
-  }
-  .fx-num:hover { transform:translateY(-5px) scale(1.02); box-shadow:0 26px 60px rgba(0,0,0,.5), 0 0 30px color-mix(in srgb, var(--a) 20%, transparent); }
-  .fx-num-v {
-    display:block; font-size:clamp(1.9rem,4.4vw,2.7rem); font-weight:900; line-height:1.1;
-    font-variant-numeric:tabular-nums; letter-spacing:-1px;
-    background:var(--g); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-  }
-  .fx-num-l { display:block; font-size:.8rem; color:var(--fx-dim); margin-top:7px; }
-  .fx-num-i { font-size:1.05rem; color:var(--a); margin-bottom:13px; display:block; transition:transform .4s var(--ease); }
-  .fx-num:hover .fx-num-i { transform:translateY(-3px) scale(1.14); }
-
-  /* ─── Final CTA ───────────────────────────────────────────────────── */
-  .f-cta { position:relative; padding:clamp(40px,6vw,64px) clamp(24px,5vw,56px); text-align:center; overflow:hidden; }
-  .f-cta::after { border-radius:inherit; }
-  .f-cta::before {
-    content:''; position:absolute; inset:-1px; border-radius:inherit; z-index:0;
-    background:radial-gradient(ellipse 70% 90% at 50% 0%, rgba(245,230,37,.16), transparent 62%),
-               radial-gradient(ellipse 70% 90% at 50% 100%, rgba(168,85,247,.2), transparent 62%);
-  }
-  .f-cta h2 { font-size:clamp(1.5rem,3.4vw,2.15rem); font-weight:900; margin-bottom:11px; }
-  .f-cta h2 em { font-style:normal; background:var(--grad-brand); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:fxHue 8s ease-in-out infinite; }
-  .f-cta p { color:var(--fx-mut); margin-bottom:28px; font-size:.92rem; line-height:1.85; }
-  .f-cta .f-acts { justify-content:center; margin-bottom:0; }
-
-  /* ─── Footer ──────────────────────────────────────────────────────── */
-  .f-footer { position:relative; z-index:2; border-top:1px solid var(--fx-line); padding:26px clamp(16px,3vw,32px); background:rgba(6,6,18,.5); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); }
-  .f-footer-inner { display:flex; justify-content:space-between; align-items:center; gap:14px; max-width:1160px; margin:0 auto; font-size:.78rem; color:var(--fx-dim); flex-wrap:wrap; }
-  .f-fsocial { display:flex; gap:10px; }
-  .f-fsocial a {
-    width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center;
-    background:rgba(255,255,255,.04); border:1px solid var(--fx-line); color:var(--fx-mut);
-    transition:transform .35s var(--ease), color .3s, border-color .3s, background .3s, box-shadow .35s;
-  }
-  .f-fsocial a:hover { transform:translateY(-3px); color:#fff; border-color:rgba(168,85,247,.45); background:rgba(168,85,247,.14); box-shadow:0 8px 22px rgba(168,85,247,.28); }
-
-  /* ─── Scroll reveal ───────────────────────────────────────────────── */
-  .fx-reveal { opacity:0; transform:translateY(26px); }
-  .fx-reveal.in { opacity:1; transform:none; transition:opacity .8s var(--ease-io), transform .8s var(--ease); }
-  .fx-reveal:nth-child(2).in { transition-delay:.08s; }
-  .fx-reveal:nth-child(3).in { transition-delay:.16s; }
-  .fx-reveal:nth-child(4).in { transition-delay:.24s; }
-  .fx-reveal:nth-child(5).in { transition-delay:.32s; }
-  .fx-reveal:nth-child(6).in { transition-delay:.4s; }
-
-  /* ─── Toast (auth errors) ─────────────────────────────────────────── */
-  .f-toast {
-    position:fixed; bottom:26px; left:50%; transform:translateX(-50%); z-index:9999;
-    background:rgba(255,92,108,.14); -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px);
-    border:1px solid rgba(255,92,108,.24); border-radius:12px;
-    padding:12px 24px; font-size:.84rem; color:#ffb0b8; direction:rtl;
-    box-shadow:0 16px 44px rgba(0,0,0,.5);
-    animation:fxToast .5s var(--ease) both;
-  }
-  @keyframes fxToast { from{opacity:0; transform:translate(-50%,18px)} to{opacity:1; transform:translate(-50%,0)} }
-
-  /* ═══ Maintenance mode (classes injected by JS) ════════════════════ */
-  .f-frame-glass {
-    position:absolute; inset:5px; z-index:10; display:none;
-    flex-direction:column; align-items:center; justify-content:center; gap:8px;
-    background:rgba(8,8,22,.62); -webkit-backdrop-filter:var(--blur-lg); backdrop-filter:var(--blur-lg);
-    border-radius:20px; transition:opacity .5s ease; text-align:center; padding:20px;
-  }
-  .f-frame-glass.show { display:flex; animation:fxFade .5s ease both; }
-  @keyframes fxFade { from{opacity:0} to{opacity:1} }
-  .f-glass-icon {
-    width:46px; height:46px; border-radius:50%;
-    background:rgba(255,92,108,.15); border:1px solid rgba(255,92,108,.25);
-    display:flex; align-items:center; justify-content:center;
-    font-size:1.1rem; color:#ff5c6c; animation:fxBlink 1.3s ease-in-out infinite;
-  }
-  @keyframes fxBlink { 0%,100%{opacity:1} 50%{opacity:.2} }
-  .f-glass-title { font-size:.9rem; font-weight:800; color:rgba(255,255,255,.9); }
-  .f-glass-msg { font-size:.75rem; color:var(--fx-mut); padding:0 12px; line-height:1.7; }
-  .f-glass-time {
-    display:inline-flex; align-items:center; gap:6px; margin-top:4px;
-    padding:4px 14px; border-radius:100px;
-    background:rgba(255,255,255,.05); border:1px solid var(--fx-line);
-    font-family:'Cairo',ui-monospace,monospace; font-size:.72rem; color:var(--fx-mut); direction:ltr;
-  }
-  .f-glass-time i { font-size:.5rem; color:#ff5c6c; animation:fxBlink 1.3s ease-in-out infinite; }
-
-  .mnt-banner {
-    position:sticky; top:0; z-index:10000;
-    background:rgba(255,92,108,.16);
-    -webkit-backdrop-filter:blur(26px) saturate(180%); backdrop-filter:blur(26px) saturate(180%);
-    border-bottom:1px solid rgba(255,255,255,.07);
-    animation:fxDrop .55s var(--ease) both;
-  }
-  @keyframes fxDrop { from{transform:translateY(-100%); opacity:0} to{transform:translateY(0); opacity:1} }
-  .mnt-banner-inner { max-width:1160px; margin:0 auto; padding:9px clamp(16px,3vw,24px); display:flex; align-items:center; gap:12px; direction:rtl; }
-  .mnt-banner-icon {
-    width:34px; height:34px; border-radius:50%; flex-shrink:0;
-    background:rgba(255,92,108,.2); border:1px solid rgba(255,92,108,.28);
-    display:flex; align-items:center; justify-content:center; font-size:.85rem; color:#ff5c6c;
-  }
-  .mnt-banner-text { flex:1; }
-  .mnt-banner-title { font-weight:800; font-size:.84rem; color:rgba(255,255,255,.9); margin-bottom:1px; }
-  .mnt-banner-desc { font-size:.74rem; color:var(--fx-mut); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .mnt-banner-time {
-    display:inline-flex; align-items:center; gap:5px; padding:2px 11px; border-radius:100px;
-    background:rgba(255,255,255,.05); border:1px solid var(--fx-line);
-    font-family:'Cairo',ui-monospace,monospace; font-size:.73rem; color:var(--fx-mut); direction:ltr;
-  }
-  .mnt-banner-time i { font-size:.55rem; color:#ff5c6c; animation:fxBlink 1.3s ease-in-out infinite; }
-  body.mnt-active .f-nav { top:55px; }
-  body.mnt-active .mnt-banner { position:fixed; left:0; right:0; }
-
-  /* ═══ Responsive ══════════════════════════════════════════════════ */
-  @media (max-width:1080px) {
-    .f-cards { grid-template-columns:repeat(2,1fr); }
-    .fx-hero-glow.g1 { width:640px; height:460px; }
-    .fx-hero-glow.g2 { width:280px; height:280px; }
-  }
-  @media (max-width:900px) {
-    .f-strip-in { grid-template-columns:repeat(2,1fr); }
-    .f-nums { grid-template-columns:repeat(2,1fr); }
-    .f-steps { grid-template-columns:1fr; gap:18px; }
-    .f-step:not(:last-child)::after { display:none; }
-  }
-  @media (max-width:640px) {
-    .f-nav { height:62px; }
-    .f-brand-name { display:none; }
-    .f-hero { min-height:0; padding:64px 16px; }
-    .f-hero h1 { margin-bottom:18px; }
-    .f-hero-sub { font-size:16px; }
-    .f-acts { flex-direction:column; align-items:stretch; }
-    .f-btn { width:100%; }
-    .f-cards { grid-template-columns:1fr; }
-    .f-strip-in, .f-nums { grid-template-columns:1fr; }
-    .f-strip-c { padding:18px 14px; }
-    .f-footer-inner { flex-direction:column; text-align:center; }
-    .mnt-banner-inner { flex-direction:row; text-align:right; padding:7px 14px; gap:9px; }
-    .mnt-banner-title { font-size:.77rem; }
-  }
-
-  /* ═══ Reduced motion ══════════════════════════════════════════════ */
-  @media (prefers-reduced-motion:reduce) {
-    *, *::before, *::after {
-      animation-duration:.001ms !important; animation-iteration-count:1 !important;
-      transition-duration:.001ms !important; scroll-behavior:auto !important;
-    }
-    .fx-reveal { opacity:1; transform:none; }
-  }
-  </style>
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 899.98px) {
+  .nx-nav { display: none; }
+  .nx-hero { min-height: 0; padding: 64px 0; }
+  .nx-hero h1 { margin-bottom: 18px; }
+  .nx-hero__sub { font-size: 16px; }
+  .nx-hero__glow--1 { width: 640px; height: 460px; }
+  .nx-hero__glow--2 { width: 280px; height: 280px; }
+  .nx-sec { padding: 64px 10px; }
+}
+@media (max-width: 639.98px) {
+  .nx-hero__acts { flex-direction: column; align-items: stretch; }
+  .nx-hero__acts .nx-btn { width: 100%; }
+  .nx-header__bar { height: 62px; }
+  .nx-logo { width: 42px; height: 42px; }
+  .nx-features__grid { grid-template-columns: 1fr; }
+  .nx-cols { grid-template-columns: 1fr; }
+  .nx-sec__title { font-size: 1.75rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  .nx-js.nx-anim .nx-rv { opacity: 1; transform: none; }
+}
+</style>
 </head>
 <body>
-<%
-  /* ── Null-safe readers ────────────────────────────────────────────────
-     `stats.bot.members` can legitimately be 0 (or NaN when the bot's guild
-     cache has no memberCount yet). A plain truthiness test treats those as
-     "missing" and renders a dash, which is why the live metrics showed
-     nothing. These helpers only treat null/undefined/NaN as absent. */
-  const botStat = locals.stats && stats.bot ? stats.bot : {};
-  const hasVal = v => v !== null && v !== undefined && !Number.isNaN(v);
-  const orDash  = v => hasVal(v) ? v : '—';
-  const orNum   = v => hasVal(v) ? Number(v).toLocaleString() : '—';
-  const pingTxt = v => hasVal(v) ? v + 'ms' : '—';
-  const pingLbl = v => hasVal(v) && v > 0 ? (v < 200 ? 'ممتاز' : 'جيد') : 'غير متاح';
-  const guildLbl = v => hasVal(v) && v > 0 ? 'متصل' : 'غير متصل';
-%>
 
-  <div class="f-ambient" aria-hidden="true">
-    <div class="fx-orb o-pu-a"></div>
-    <div class="fx-orb o-pu-b"></div>
-    <div class="fx-orb o-ye-a"></div>
-    <div class="fx-orb o-ye-b"></div>
-    <div class="fx-mesh"></div>
-    <div class="fx-scan"></div>
-  </div>
-
-  <!-- ══════════ Navigation ══════════ -->
-  <nav class="f-nav" id="fxNav">
-    <a href="/" class="f-brand">
-      <div class="f-brand-badge"><i class="fas fa-bolt"></i></div>
-      <span class="f-brand-name">KRS</span>
-    </a>
-    <div class="f-nav-acts">
-      <a href="/premium" class="f-nbtn f-nbtn-ye"><i class="fas fa-crown"></i> البريميوم</a>
-      <% if (locals.user) { %>
-        <a href="/home" class="f-nbtn f-nbtn-p"><i class="fas fa-th-large"></i> لوحة التحكم</a>
-        <a href="/auth/logout" class="f-nbtn f-nbtn-d"><i class="fas fa-sign-out-alt"></i> خروج</a>
-      <% } else { %>
-        <a href="/auth/discord" class="f-nbtn f-nbtn-p"><i class="fab fa-discord"></i> Login with Discord</a>
-      <% } %>
-    </div>
-  </nav>
-
-  <% if (locals.error) { %>
-    <div class="f-toast"><i class="fas fa-circle-exclamation"></i> <%= error %></div>
-  <% } %>
-
-  <!-- ══════════ Hero ══════════
-       Mirrors novax.gg: centred copy, one contained button beside one outlined
-       button, two blurred radial orbs behind. The planet artwork from that
-       site is intentionally absent. -->
-  <section class="f-hero">
-    <div class="fx-hero-glow g1" aria-hidden="true"></div>
-    <div class="fx-hero-glow g2" aria-hidden="true"></div>
-
-    <div class="f-hero-inner">
-
-      <div class="fx-hero-in">
-        <div class="f-pill" id="landPill"><span class="fx-dot"></span> KRATOS SYSTEM v1.0.11 — شغال</div>
-
-        <h1>أداة متكاملة لإدارة السيرفر</h1>
-
-        <p class="f-hero-sub">لوحة تحكم شاملة تجمع الحماية، التذاكر، الغرف الصوتية، الإشراف، والإشعارات — كلها في واجهة واحدة بمزامنة فورية.</p>
+<!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+<header class="nx-header" id="nxHeader">
+  <div class="nx-wrap">
+    <div class="nx-header__bar">
+      <div class="nx-header__left">
+        <a href="/" class="nx-logo" aria-label="Kratos System">
+          <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+            <defs>
+              <linearGradient id="nxlg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#8c5aff"/>
+                <stop offset="100%" stop-color="#681fd1"/>
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="60" height="60" rx="16" fill="#12131c" stroke="url(#nxlg)" stroke-width="3"/>
+            <path d="M20 22 L32 32 L20 42" fill="none" stroke="#a855f7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M33 42 L45 42" fill="none" stroke="#f5e625" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </a>
+        <nav class="nx-nav">
+          <a href="/commands">الأوامر</a>
+          <a href="https://discord.gg/fadix9" target="_blank" rel="noopener">تواصل معنا</a>
+          <a href="/premium" class="nx-btn-g"><i class="fas fa-crown"></i> بلس</a>
+        </nav>
       </div>
-
-      <div class="fx-hero-in">
-        <div class="f-acts">
-          <% if (locals.user) { %>
-            <a href="/home" class="f-btn f-btn-p"><i class="fab fa-discord"></i> لوحة التحكم <i class="fas fa-arrow-left"></i></a>
-            <a href="/auth/logout" class="f-btn f-btn-g">تسجيل الخروج</a>
-          <% } else { %>
-            <a href="/auth/discord" class="f-btn f-btn-p"><i class="fab fa-discord"></i> سجل بدقيقة <i class="fas fa-arrow-left"></i></a>
-            <a href="/invite-dev" class="f-btn f-btn-g">أضف البوت</a>
-          <% } %>
-        </div>
+      <div class="nx-header__right">
+        <button class="nx-lang" type="button"><i class="fas fa-globe"></i> العربية <i class="fas fa-chevron-down language-chevron"></i></button>
+        <% if (locals.user) { %>
+          <a href="/home" class="nx-btn nx-btn-p">لوحة التحكم</a>
+        <% } else { %>
+          <a href="/auth/discord" class="nx-btn nx-btn-p">دخول</a>
+        <% } %>
       </div>
-
-      <div class="fx-hero-mt">
-        <!-- Maintenance overlay (toggled by JS) -->
-        <div class="f-frame-glass" id="frameGlass">
-          <div class="f-glass-icon"><i class="fas fa-wrench"></i></div>
-          <div class="f-glass-title">وضع الصيانة مفعل</div>
-          <div class="f-glass-msg" id="glassMsg">...</div>
-          <div class="f-glass-time"><i class="fas fa-hourglass-half"></i> <span id="glassTimer">...</span></div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ══════════ Trust strip ══════════ -->
-  <div class="f-strip">
-    <div class="f-strip-in">
-      <div class="f-strip-c"><i class="fas fa-layer-group"></i><b>نظام واحد</b><span>تحكم كامل بدون تنقل</span></div>
-      <div class="f-strip-c"><i class="fas fa-bolt"></i><b>مزامنة فورية</b><span>تحديث لحظي لكل التغييرات</span></div>
-      <div class="f-strip-c"><i class="fas fa-shield-halved"></i><b>حماية متقدمة</b><span>كشف وحظر تلقائي للتهديدات</span></div>
-      <div class="f-strip-c"><i class="fas fa-headset"></i><b>دعم فني</b><span>تذاكر بصلاحيات متعددة</span></div>
     </div>
   </div>
+</header>
 
-  <!-- ══════════ Features ══════════ -->
-  <section class="f-sec">
-    <div class="f-sec-inner">
-      <div class="f-center">
-        <div class="f-label f-label-p"><i class="fas fa-cubes"></i> المزايا</div>
-        <h2>كل أدوات <em>الإدارة</em> في مكان</h2>
-        <p>مجموعة أنظمة متكاملة صممت خصيصاً لتسهيل إدارة سيرفر ديسكورد بشكل احترافي</p>
+<!-- ══ Hero ════════════════════════════════════════════════════════════════
+     Centred copy, one contained button beside one outlined button, two
+     blurred radial orbs behind. The planet artwork that sits behind this
+     section on novax.gg is intentionally absent. -->
+<section class="nx-hero">
+  <div class="nx-hero__glow nx-hero__glow--1" aria-hidden="true"></div>
+  <div class="nx-hero__glow nx-hero__glow--2" aria-hidden="true"></div>
+  <div class="nx-hero__in">
+    <div class="nx-hero__row">
+      <h1>مغامرتك على ديسكورد تبدأ من بين النجوم</h1>
+      <p class="nx-hero__sub">أدِر سيرفرك، تواصل مع مجتمعك، وافتح كل الإمكانات — كل ذلك في مكان واحد.</p>
+    </div>
+    <div class="nx-hero__row">
+      <div class="nx-hero__acts">
+        <a href="/invite-dev" class="nx-btn nx-btn-p">دعوة البوت <i class="fas fa-arrow-left"></i></a>
+        <a href="#features" class="nx-btn nx-btn-o">استكشف المزيد <i class="fas fa-arrow-left"></i></a>
       </div>
+    </div>
+  </div>
+</section>
 
-      <div class="f-cards">
-        <div class="f-card fx-glass fx-reveal" style="--a:#a855f7">
-          <div class="fx-cicon"><i class="fas fa-robot"></i></div>
-          <h3>حماية تلقائية</h3>
-          <p>كشف وحظر تلقائي للهجمات، السبام، والروابط الضارة مع إعدادات أمان ذكية وفلترة مخصصة</p>
-          <span class="f-card-tag"><i class="fas fa-shield"></i> 6 أنظمة حماية</span>
-          <div class="f-card-rail" style="--a:#a855f7;--a2:#f5e625"></div>
+<!-- ══ Dashboard showcase ═════════════════════════════════════════════════
+     Our own dashboard, drawn in CSS and bled into the page background with
+     the same stacked gradient frame the source uses around its screenshot. -->
+<section class="nx-shot">
+  <div class="nx-shot__bleed nx-shot__bleed--a" aria-hidden="true"></div>
+  <div class="nx-shot__bleed nx-shot__bleed--b" aria-hidden="true"></div>
+  <div class="nx-shot__bleed nx-shot__bleed--c" aria-hidden="true"></div>
+  <div class="nx-shot__vig" aria-hidden="true"></div>
+  <div class="nx-shot__fade" aria-hidden="true"></div>
+
+  <div class="nx-shot__in nx-wrap">
+    <div class="nx-dash">
+      <aside class="nx-dash__side">
+        <div class="nx-dash__brand"><i></i> كراتوس</div>
+        <div class="nx-dash__grp">الرئيسية</div>
+        <span class="nx-dash__link is-on"><i class="fas fa-star"></i> الرئيسية</span>
+        <span class="nx-dash__link"><i class="fas fa-gauge-high"></i> لوحة التحكم</span>
+        <span class="nx-dash__link"><i class="fas fa-server"></i> السيرفرات</span>
+        <span class="nx-dash__link"><i class="fas fa-heart-pulse"></i> حالة البوت</span>
+        <div class="nx-dash__grp">سيرفرك</div>
+        <span class="nx-dash__link"><i class="fas fa-eye"></i> نظرة عامة</span>
+        <span class="nx-dash__link"><i class="fas fa-sliders"></i> الإعدادات</span>
+        <span class="nx-dash__link"><i class="fas fa-terminal"></i> الأوامر</span>
+        <span class="nx-dash__link"><i class="fas fa-ticket-alt"></i> التذاكر</span>
+        <span class="nx-dash__link"><i class="fas fa-volume-high"></i> الغرف المؤقتة</span>
+        <span class="nx-dash__link"><i class="fas fa-clipboard-list"></i> سجل النشاط</span>
+        <span class="nx-dash__link"><i class="fas fa-bell"></i> الإشعارات</span>
+        <span class="nx-dash__link"><i class="fas fa-shield-halved"></i> الحماية</span>
+        <span class="nx-dash__link"><i class="fas fa-crown"></i> البريميوم</span>
+      </aside>
+
+      <div class="nx-dash__main">
+        <div class="nx-dash__top">
+          <b>نظرة عامة على السيرفر</b>
+          <span>آخر تحديث منذ لحظات</span>
         </div>
-
-        <div class="f-card fx-glass fx-reveal" style="--a:#f5e625">
-          <div class="fx-cicon"><i class="fas fa-headset"></i></div>
-          <h3>نظام دعم فني</h3>
-          <p>تذاكر دعم بصلاحيات متعددة المستويات مع تقييم الأداء وإدارة متقدمة لفريق الدعم</p>
-          <span class="f-card-tag"><i class="fas fa-ticket-alt"></i> تذاكر ذكية</span>
-          <div class="f-card-rail" style="--a:#f5e625;--a2:#a855f7"></div>
+        <div class="nx-dash__stats">
+          <div class="nx-dash__stat"><u>الأعضاء</u><b>52</b> <em>+4 هذا الشهر</em></div>
+          <div class="nx-dash__stat"><u>الأوامر</u><b>41</b> <em>نشطة</em></div>
+          <div class="nx-dash__stat"><u>التذاكر</u><b>9</b> <em>مفتوحة</em></div>
+          <div class="nx-dash__stat"><u>في الصوت</u><b>2</b> <em>متصل</em></div>
         </div>
-
-        <div class="f-card fx-glass fx-reveal" style="--a:#a855f7">
-          <div class="fx-cicon"><i class="fas fa-wave-square"></i></div>
-          <h3>غرف صوتية</h3>
-          <p>قنوات صوتية مؤقتة مع إنشاء تلقائي، تخصيص كامل، وتحكم دقيق بالصلاحيات والإعدادات</p>
-          <span class="f-card-tag"><i class="fas fa-microphone"></i> استقبال فوري</span>
-          <div class="f-card-rail" style="--a:#a855f7;--a2:#f5e625"></div>
-        </div>
-
-        <div class="f-card fx-glass fx-reveal" style="--a:#f5e625">
-          <div class="fx-cicon"><i class="fas fa-gavel"></i></div>
-          <h3>إشراف متقدم</h3>
-          <p>أوامر مراقبة وإدارة مع سجل مخالفات مفصل، تحذيرات تدريجية، ونظام عقوبات متكامل</p>
-          <span class="f-card-tag"><i class="fas fa-user-shield"></i> صلاحيات مرنة</span>
-          <div class="f-card-rail" style="--a:#f5e625;--a2:#a855f7"></div>
-        </div>
-
-        <div class="f-card fx-glass fx-reveal" style="--a:#a855f7">
-          <div class="fx-cicon"><i class="fas fa-broadcast-tower"></i></div>
-          <h3>متابعة ذكية</h3>
-          <p>رصد فوري لقنوات يوتيوب، تويتر، تويتش، كيك مع إشعارات لحظية وإدارة تلقائية بالكامل</p>
-          <span class="f-card-tag"><i class="fas fa-bell"></i> إشعارات لحظية</span>
-          <div class="f-card-rail" style="--a:#a855f7;--a2:#f5e625"></div>
-        </div>
-
-        <div class="f-card fx-glass fx-reveal" style="--a:#f5e625">
-          <div class="fx-cicon"><i class="fas fa-chart-pie"></i></div>
-          <h3>تحليلات دقيقة</h3>
-          <p>إحصائيات ورسوم بيانية تفاعلية عن أداء السيرفر ونشاط البوت مع تقارير دورية شاملة</p>
-          <span class="f-card-tag"><i class="fas fa-chart-simple"></i> تقارير مباشرة</span>
-          <div class="f-card-rail" style="--a:#f5e625;--a2:#a855f7"></div>
+        <div class="nx-dash__panes">
+          <div class="nx-dash__pane">
+            <u>أحدث نشاطات</u>
+            <div class="nx-dash__row"><s></s><em></em></div>
+            <div class="nx-dash__row"><s></s><em></em></div>
+            <div class="nx-dash__row"><s></s><em></em></div>
+            <div class="nx-dash__row"><s></s><em></em></div>
+          </div>
+          <div class="nx-dash__pane">
+            <u>حالة البوت</u>
+            <div class="nx-dash__row"><s></s><em></em></div>
+            <div class="nx-dash__row"><s></s><em></em></div>
+            <div class="nx-dash__row"><s></s><em></em></div>
+          </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ══════════ Steps ══════════ -->
-  <section class="f-sec" style="padding-top:0">
-    <div class="f-sec-inner">
-      <div class="f-center">
-        <div class="f-label f-label-y"><i class="fas fa-arrow-right"></i> خطوات التشغيل</div>
-        <h2>ابدأ في <em>3 خطوات</em></h2>
-        <p>من التسجيل إلى الإدارة الكاملة — وصول سريع ومباشر بدون تعقيد</p>
-      </div>
-
-      <div class="f-steps">
-        <div class="f-step fx-glass fx-reveal">
-          <div class="f-step-num">1</div>
-          <h4>سجل دخولك</h4>
-          <p>استخدم حساب ديسكورد الخاص بك للدخول المباشر والآمن إلى لوحة التحكم</p>
+<!-- ══ Features ════════════════════════════════════════════════════════════ -->
+<section class="nx-features" id="features">
+  <div class="nx-features__pad">
+    <div class="nx-wrap">
+      <div class="nx-features__grid">
+        <div class="nx-fcard">
+          <div class="nx-fcard__icon"><i class="fas fa-bolt"></i></div>
+          <h3>سرعة فائقة</h3>
+          <p>يستجيب فورًا ليبقي سيرفرك حيًا ونشطًا.</p>
         </div>
-        <div class="f-step fx-glass fx-reveal">
-          <div class="f-step-num">2</div>
-          <h4>اختر سيرفرك</h4>
-          <p>اختر السيرفر الذي تديره من القائمة وابدأ في استكشاف الأدوات المتاحة</p>
+        <div class="nx-fcard">
+          <div class="nx-fcard__icon"><i class="fas fa-shield-halved"></i></div>
+          <h3>آمن</h3>
+          <p>مبني على أفضل الممارسات لحماية مجتمعك.</p>
         </div>
-        <div class="f-step fx-glass fx-reveal">
-          <div class="f-step-num">3</div>
-          <h4>فعّل الإعدادات</h4>
-          <p>خصص إعدادات الحماية، التذاكر، والصلاحيات حسب احتياجات سيرفرك</p>
+        <div class="nx-fcard">
+          <div class="nx-fcard__icon"><i class="fas fa-layer-group"></i></div>
+          <h3>مزايا متكاملة</h3>
+          <p>مليء بالإشراف والمرح والأدوات والمزيد من الإضافات.</p>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════ Numbers ══════════ -->
-  <section class="f-sec" style="padding-top:0">
-    <div class="f-sec-inner">
-      <div class="f-center">
-        <div class="f-label f-label-p"><i class="fas fa-chart-simple"></i> إحصائيات</div>
-        <h2>البوت <em>بالأرقام</em></h2>
-        <p>إحصائيات حية تعكس أداء البوت وانتشاره</p>
-      </div>
-
-      <div class="f-nums">
-        <div class="fx-num fx-glass fx-reveal" style="--a:#a855f7;--g:linear-gradient(135deg,#d8b4fe,#a855f7)">
-          <i class="fas fa-shield-halved fx-num-i"></i>
-          <span class="fx-num-v">6</span>
-          <span class="fx-num-l">أنظمة أمان</span>
-        </div>
-        <div class="fx-num fx-glass fx-reveal" style="--a:#f5e625;--g:linear-gradient(135deg,#fef08a,#f5e625)">
-          <i class="fas fa-ticket-alt fx-num-i"></i>
-          <span class="fx-num-v" id="statTickets"><%= (locals.stats && stats.cmd && stats.cmd.perCategory && stats.cmd.perCategory.ticket) ? stats.cmd.perCategory.ticket : '—' %></span>
-          <span class="fx-num-l">أوامر تذاكر</span>
-        </div>
-        <div class="fx-num fx-glass fx-reveal" style="--a:#a855f7;--g:linear-gradient(135deg,#d8b4fe,#a855f7)">
-          <i class="fas fa-microphone fx-num-i"></i>
-          <span class="fx-num-v" id="statVoice"><%= (locals.stats && stats.cmd && stats.cmd.perCategory && stats.cmd.perCategory.voice) ? stats.cmd.perCategory.voice : '—' %></span>
-          <span class="fx-num-l">أوامر صوتية</span>
-        </div>
-        <div class="fx-num fx-glass fx-reveal" style="--a:#f5e625;--g:linear-gradient(135deg,#fef08a,#f5e625)">
-          <i class="fas fa-terminal fx-num-i"></i>
-          <span class="fx-num-v" id="statTotal"><%= (locals.stats && stats.cmd) ? (stats.cmd.total || '—') : '—' %></span>
-          <span class="fx-num-l">إجمالي الأوامر</span>
+        <div class="nx-fcard">
+          <div class="nx-fcard__icon"><i class="fas fa-sliders"></i></div>
+          <h3>قابل للتخصيص بالكامل</h3>
+          <p>كيّف البوت بسهولة ليناسب احتياجات سيرفرك.</p>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ══════════ Final CTA ══════════ -->
-  <section class="f-sec" style="padding-top:0">
-    <div class="f-sec-inner">
-      <div class="f-cta fx-glass">
-        <h2>انطلق مع <em>KRS</em></h2>
-        <p>أقوى أدوات إدارة السيرفرات — مجانية، سريعة، ومتاحة الآن</p>
-        <div class="f-acts">
-          <% if (locals.user) { %>
-            <a href="/home" class="f-btn f-btn-p"><i class="fas fa-th-large"></i> ابدأ الإدارة</a>
-          <% } else { %>
-            <a href="/auth/discord" class="f-btn f-btn-p"><i class="fab fa-discord"></i> سجل وانطلق</a>
-          <% } %>
-          <a href="/premium" class="f-btn f-btn-ye"><i class="fas fa-crown"></i> اشترك في البريميوم</a>
+<!-- ══ Plugins ════════════════════════════════════════════════════════════ -->
+<section class="nx-plugins">
+  <div class="nx-plugins__pad">
+    <div class="nx-wrap">
+      <div class="nx-plugins__box">
+        <div class="nx-plugins__row" aria-hidden="true">
+          <i class="fas fa-user-shield"></i><i class="fas fa-gavel"></i><i class="fas fa-volume-high"></i>
+          <i class="fas fa-ticket-alt"></i><i class="fas fa-chart-line"></i><i class="fas fa-gamepad"></i>
+          <i class="fas fa-gift"></i><i class="fas fa-robot"></i><i class="fas fa-hashtag"></i>
+          <i class="fas fa-crown"></i><i class="fas fa-palette"></i><i class="fas fa-smile"></i>
+          <i class="fas fa-bell"></i><i class="fas fa-users"></i>
+        </div>
+        <div class="nx-plugins__row" aria-hidden="true">
+          <i class="fas fa-database"></i><i class="fas fa-wand-magic-sparkles"></i><i class="fas fa-code"></i>
+          <i class="fas fa-music"></i><i class="fas fa-calendar-check"></i><i class="fas fa-clipboard-list"></i>
+          <i class="fas fa-shield"></i><i class="fas fa-microphone"></i><i class="fas fa-handshake"></i>
+          <i class="fas fa-fire"></i><i class="fas fa-star"></i><i class="fas fa-lock"></i>
+          <i class="fas fa-key"></i><i class="fas fa-envelope"></i>
+        </div>
+        <div class="nx-plugins__row" aria-hidden="true">
+          <i class="fas fa-comments"></i><i class="fas fa-thumbs-up"></i><i class="fas fa-lightbulb"></i>
+          <i class="fas fa-tools"></i><i class="fas fa-server"></i><i class="fas fa-plug"></i>
+          <i class="fas fa-power-off"></i><i class="fas fa-clock"></i><i class="fas fa-eye"></i>
+          <i class="fas fa-filter"></i><i class="fas fa-book"></i><i class="fas fa-layer-group"></i>
+          <i class="fas fa-bolt"></i><i class="fas fa-sliders"></i>
+        </div>
+        <div class="nx-plugins__mark">
+          <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+            <path d="M20 22 L32 32 L20 42" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M34 42 L46 42" fill="none" stroke="#f5e625" stroke-width="6" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <h2>إضافات لكل ذوق</h2>
+      <p>كل سيرفر مختلف. اختر الإضافات التي تناسب ذوقك واجعل مجتمعك مميزًا.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ Section renderer ═══════════════════════════════════════════════════
+     Every feature band below is the same shape: an optional full-width band
+     card, then a series of 8/4 and 4/8 grid rows. Markup is written out per
+     section rather than data-driven because each mockup is bespoke. -->
+
+<!-- ── User management ─────────────────────────────────────────────────── -->
+<section class="nx-sec">
+  <div class="nx-sec__orb" aria-hidden="true"></div>
+  <div class="nx-sec__in nx-wrap">
+    <h2 class="nx-sec__title">إدارة الأعضاء</h2>
+    <p class="nx-sec__sub">أدر المستخدمين بسهولة، تابع نشاطهم، وحافظ على سيرفرك منظمًا ونشطًا ومحبّبًا للجميع.</p>
+
+    <div class="nx-card nx-card--band">
+      <div class="nx-card__head">
+        <div class="nx-card__icon"><i class="fas fa-volume-high"></i></div>
+        <h3>المتصلون بالصوت</h3>
+      </div>
+      <p class="nx-card__desc">يعرض العدد الحالي للأعضاء المتصلين بقناة صوتية.</p>
+      <div class="nx-card__mock">
+        <div class="nx-mock">
+          <div class="nx-mock__hd"><i class="fas fa-volume-high"></i><span>القنوات الصوتية</span></div>
+          <div class="nx-mock__body">
+            <div class="nx-row-i">
+              <i class="fas fa-hashtag"></i><span class="nx-row-i__name">عام</span>
+              <span class="nx-row-i__end"><span class="nx-stack"><span class="nx-av"></span><span class="nx-av"></span><span class="nx-av"></span><span class="nx-av"></span></span><span class="nx-pill">4 متصل</span></span>
+            </div>
+            <div class="nx-row-i">
+              <i class="fas fa-hashtag"></i><span class="nx-row-i__name">ألعاب</span>
+              <span class="nx-row-i__end"><span class="nx-stack"><span class="nx-av"></span><span class="nx-av"></span><span class="nx-av"></span></span><span class="nx-pill">3 متصل</span></span>
+            </div>
+            <div class="nx-row-i">
+              <i class="fas fa-hashtag"></i><span class="nx-row-i__name">موسيقى</span>
+              <span class="nx-row-i__end"><span class="nx-av"></span><span class="nx-pill">1 متصل</span></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </section>
 
-  <footer class="f-footer">
-    <div class="f-footer-inner">
-      <span>© 2026 KRS — جميع الحقوق محفوظة</span>
-      <div class="f-fsocial">
-        <a href="#" aria-label="Discord"><i class="fab fa-discord"></i></a>
-        <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+    <div class="nx-row">
+      <div class="nx-col-8">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-arrow-trend-up"></i></div>
+            <h3>المستويات</h3>
+          </div>
+          <p class="nx-card__desc">يتابع مستويات المستخدمين ونشاطهم، مع أوامر لإعادة التعيين وعرض الترتيب.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock">
+              <div class="nx-mock__hd"><i class="fas fa-arrow-trend-up"></i><span>ارتقاء المستوى</span></div>
+              <div class="nx-mock__body">
+                <div class="nx-meter">
+                  <div class="nx-meter__ring"><b>12</b></div>
+                  <div class="nx-meter__meta">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                      <span style="font-size:.8125rem;color:#d7dae0;">2,450 / 3,400 XP</span>
+                      <span class="nx-pill">+250 XP</span>
+                    </div>
+                    <div class="nx-bar"><div class="nx-bar__fill" style="width:72%"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nx-col-4">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-hand-wave"></i></div>
+            <h3>الترحيب والوداع</h3>
+          </div>
+          <p class="nx-card__desc">يرحب بالأعضاء الجدد برسالة ترحيب مخصصة.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock nx-mock--msg">
+              <div class="nx-mock__body">
+                <div class="nx-msg">
+                  <span class="nx-av nx-av--lg nx-av--bot"><i class="fas fa-robot"></i></span>
+                  <div class="nx-msg__col">
+                    <div class="nx-msg__hd"><b>Kratos</b><span class="nx-msg__bot">بوت</span><span>اليوم 2:30 م</span></div>
+                    <div style="font-size:.8125rem;color:#fff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">أهلًا بك في كراتوس! <span class="nx-pill">#4,201</span></div>
+                    <div class="nx-line nx-line--w70"></div>
+                    <div class="nx-line nx-line--w45"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <div class="nx-row nx-row--end">
+      <div class="nx-col-4">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-ticket-alt"></i></div>
+            <h3>التذاكر</h3>
+          </div>
+          <p class="nx-card__desc">يتيح للمستخدمين إنشاء تذاكر خاصة للدعم أو الاستفسارات، لتسهيل إدارة المشرفين.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock">
+              <div class="nx-mock__hd"><i class="fas fa-ticket-alt"></i><span>افتح تذكرة</span></div>
+              <div class="nx-mock__body">
+                <div class="nx-row-i"><span class="nx-av nx-av--bot"><i class="fas fa-robot" style="font-size:.6rem"></i></span><span class="nx-row-i__name">اختر تصنيفًا للبدء</span></div>
+                <div class="nx-chipset">
+                  <span class="nx-pill">الدعم</span>
+                  <span class="nx-chip">الفوترة</span>
+                  <span class="nx-chip">بلاغ خطأ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nx-col-8">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-random"></i></div>
+            <h3>القنوات المؤقتة</h3>
+          </div>
+          <p class="nx-card__desc">ينشئ قنوات صوتية مؤقتة تختفي تلقائيًا عندما لا يستخدمها أحد.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock">
+              <div class="nx-mock__hd"><i class="fas fa-random"></i><span>القنوات المؤقتة</span></div>
+              <div class="nx-mock__body">
+                <div class="nx-row-i"><i class="fas fa-plus"></i><span class="nx-row-i__name">+ انضم للإنشاء</span></div>
+                <div class="nx-row-i">
+                  <i class="fas fa-hashtag"></i><i class="fas fa-lock"></i>
+                  <span class="nx-row-i__name">قناة كراتوس</span>
+                  <span class="nx-row-i__end"><span class="nx-pill">أُنشئت تلقائيًا</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Moderation ──────────────────────────────────────────────────────── -->
+<section class="nx-sec">
+  <div class="nx-sec__orb" aria-hidden="true"></div>
+  <div class="nx-sec__in nx-wrap">
+    <h2 class="nx-sec__title">الإشراف</h2>
+    <p class="nx-sec__sub">حافظ على السيطرة بأدوات إشراف قوية، وسجلات مفصلة، وميزات حماية، ونظام بلاغات سهل.</p>
+
+    <div class="nx-card nx-card--band">
+      <div class="nx-card__head">
+        <div class="nx-card__icon"><i class="fas fa-gavel"></i></div>
+        <h3>أدوات الإشراف</h3>
+      </div>
+      <p class="nx-card__desc">أدوات لإدارة السيرفر والإشراف عليه، تشمل الحظر والكتم والإشراف التلقائي وغيرها.</p>
+      <div class="nx-card__mock">
+        <div class="nx-mock">
+          <div class="nx-mock__hd"><i class="fas fa-gavel"></i><span>الإشراف</span></div>
+          <div class="nx-mock__body">
+            <div class="nx-cmd">
+              <div class="nx-cmd__row nx-cmd__row--on"><span class="nx-cmd__slash">/ ban</span><span>حظر عضو نهائيًا</span></div>
+              <div class="nx-cmd__row"><span class="nx-cmd__slash">/ kick</span><span>إزالة عضو من السيرفر</span></div>
+              <div class="nx-cmd__row"><span class="nx-cmd__slash">/ timeout</span><span>تقييد عضو مؤقتًا</span></div>
+              <div class="nx-cmd__row"><span class="nx-cmd__slash">/ warn</span><span>إصدار تحذير لعضو</span></div>
+              <div class="nx-cmd__row"><span class="nx-cmd__slash">/ mute</span><span>منع عضو من الإرسال</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nx-row">
+      <div class="nx-col-6">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-clipboard-list"></i></div>
+            <h3>السجلات</h3>
+          </div>
+          <p class="nx-card__desc">يتتبع أحداث السيرفر المهمة مثل حذف الرسائل وإجراءات الأعضاء.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock">
+              <div class="nx-mock__hd"><i class="fas fa-clipboard-list"></i><span>سجل التدقيق</span></div>
+              <div class="nx-mock__body">
+                <div class="nx-row-i"><i class="fas fa-trash"></i><span class="nx-row-i__name">تم حذف رسالة في #عام</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">قبل 2 د</span></span></div>
+                <div class="nx-row-i"><i class="fas fa-pen"></i><span class="nx-row-i__name">تم تعديل رسالة في #الدعم</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">قبل 14 د</span></span></div>
+                <div class="nx-row-i"><i class="fas fa-user-minus"></i><span class="nx-row-i__name">تم طرد عضو بواسطة مشرف</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">قبل 1 س</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nx-col-6">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-shield-halved"></i></div>
+            <h3>الحماية</h3>
+          </div>
+          <p class="nx-card__desc">يعزز أمان السيرفر عبر ميزات مثل منع الغارات ووسائل الحماية الأخرى.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock">
+              <div class="nx-mock__hd"><i class="fas fa-shield-halved"></i><span>السيرفر محمي</span></div>
+              <div class="nx-mock__body">
+                <div class="nx-row-i"><i class="fas fa-robot"></i><span class="nx-row-i__name">منع الإزعاج</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--ok">مُفعّل</span></span></div>
+                <div class="nx-row-i"><i class="fas fa-user-shield"></i><span class="nx-row-i__name">منع الغارات</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--ok">مُفعّل</span></span></div>
+                <div class="nx-row-i"><i class="fas fa-link"></i><span class="nx-row-i__name">منع الروابط</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--ok">مُفعّل</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nx-card nx-card--band">
+      <div class="nx-card__head">
+        <div class="nx-card__icon"><i class="fas fa-flag"></i></div>
+        <h3>نظام البلاغات</h3>
+      </div>
+      <p class="nx-card__desc">يتيح للمستخدمين الإبلاغ عن الآخرين للمشرفين عند المخالفة.</p>
+      <div class="nx-card__mock">
+        <div class="nx-mock nx-mock--msg">
+          <div class="nx-mock__body">
+            <div class="nx-row-i"><i class="fas fa-flag"></i><span class="nx-row-i__name">تم الإبلاغ عن عضو</span></div>
+            <div class="nx-line nx-line--w70"></div>
+            <div class="nx-line nx-line--w45"></div>
+            <div style="font-size:.75rem;color:var(--nx-muted);">السبب: إزعاج</div>
+            <div class="nx-chipset">
+              <span class="nx-chip"><i class="fas fa-triangle-exclamation" style="color:var(--nx-gold)"></i> تحذير</span>
+              <span class="nx-chip"><i class="fas fa-lock" style="color:#ff5c6c"></i> سجن</span>
+              <span class="nx-chip"><i class="fas fa-volume-xmark" style="color:#ff5c6c"></i> كتم نصي</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── User interaction ────────────────────────────────────────────────── -->
+<section class="nx-sec">
+  <div class="nx-sec__orb" aria-hidden="true"></div>
+  <div class="nx-sec__in nx-wrap">
+    <h2 class="nx-sec__title">تفاعل المستخدمين</h2>
+    <p class="nx-sec__sub">أنشئ تجربة حيّة بميزات تفاعلية قوية تزيد التفاعل وتشجع المشاركة.</p>
+
+    <div class="nx-row">
+      <div class="nx-col-6">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-envelope-open-text"></i></div>
+            <h3>رسوم Embed</h3>
+          </div>
+          <p class="nx-card__desc">أرسل رسومًا بمحتوى، حرّر الرسائل، وتعامل مع الردود الديناميكية بسلاسة.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock nx-mock--msg">
+              <div class="nx-mock__body">
+                <div class="nx-msg">
+                  <span class="nx-av nx-av--lg nx-av--bot"><i class="fas fa-robot"></i></span>
+                  <div class="nx-msg__col">
+                    <div class="nx-msg__hd"><b>Kratos</b><span class="nx-msg__bot">بوت</span><span>اليوم 2:30 م</span></div>
+                    <div class="nx-embed">
+                      <span class="nx-embed__tag">إعلان</span>
+                      <div class="nx-embed__t">تحديث جديد متاح الآن</div>
+                      <div class="nx-embed__d">أضفنا ميزة جديدة إلى كراتوس. جرّبها الآن وشاركنا رأيك.</div>
+                      <div class="nx-embed__f"><span class="nx-av nx-av--bot"><i class="fas fa-robot" style="font-size:.5rem"></i></span> Kratos <span style="opacity:.5">•</span> اليوم 2:30 م</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nx-col-6">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-palette"></i></div>
+            <h3>الألوان</h3>
+          </div>
+          <p class="nx-card__desc">يوفّر نظام ألوان نابضًا ليختار المستخدمون لونهم المفضل.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock">
+              <div class="nx-mock__hd"><i class="fas fa-palette"></i><span>لون Embed</span></div>
+              <div class="nx-mock__body">
+                <div class="nx-swatches">
+                  <span class="nx-sw" style="background:#5865f2"><b>بنفسجي</b></span>
+                  <span class="nx-sw" style="background:#57f287"><b>أخضر</b></span>
+                  <span class="nx-sw" style="background:#fee75c"><b>أصفر</b></span>
+                  <span class="nx-sw" style="background:#eb459e"><b>فوشيا</b></span>
+                  <span class="nx-sw" style="background:#ed4245"><b>أحمر</b></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nx-card nx-card--band">
+      <div class="nx-card__head">
+        <div class="nx-card__icon"><i class="fas fa-hand-pointer"></i></div>
+        <h3>أدوار التفاعل</h3>
+      </div>
+      <p class="nx-card__desc">امنح الأدوار بتفاعل واحد لتكون الإدارة سريعة وتفاعلية.</p>
+      <div class="nx-card__mock">
+        <div class="nx-mock">
+          <div class="nx-mock__hd"><i class="fas fa-hand-pointer"></i><span>احصل على دور</span></div>
+          <div class="nx-mock__body">
+            <div style="font-size:.75rem;color:var(--nx-muted);">تفاعل بإيموجي بالأسفل لاختيار أدوارك</div>
+            <div class="nx-chipset">
+              <span class="nx-chip">🎮 لاعب</span><span class="nx-chip">🎨 فنان</span>
+              <span class="nx-chip">🎧 موسيقي</span><span class="nx-chip">📚 قارئ</span>
+              <span class="nx-chip">🏆 تنافسي</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Utility & automation ────────────────────────────────────────────── -->
+<section class="nx-sec">
+  <div class="nx-sec__orb" aria-hidden="true"></div>
+  <div class="nx-sec__in nx-wrap">
+    <h2 class="nx-sec__title">الأدوات والأتمتة</h2>
+    <p class="nx-sec__sub">أتمت المهام الروتينية، واستفد من الأدوات الأساسية، ونسخ بيانات سيرفرك واستعدها بسهولة.</p>
+
+    <div class="nx-card nx-card--band">
+      <div class="nx-card__head">
+        <div class="nx-card__icon"><i class="fas fa-reply"></i></div>
+        <h3>الرد التلقائي</h3>
+      </div>
+      <p class="nx-card__desc">يرد تلقائيًا على كلمات أو عبارات محددة برسائل جاهزة.</p>
+      <div class="nx-card__mock">
+        <div class="nx-mock">
+          <div class="nx-mock__hd"><i class="fas fa-reply"></i><span>الرد التلقائي</span></div>
+          <div class="nx-mock__body">
+            <div style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;color:var(--nx-muted);">المُشغِّل</div>
+            <div class="nx-embed">
+              <div class="nx-embed__t" style="direction:ltr;text-align:left;">"server ip"</div>
+              <div class="nx-embed__d" style="direction:ltr;text-align:left;">play.kratos.gg</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="nx-pill nx-pill--dim">أدوات</span>
+              <span style="font-size:.75rem;color:var(--nx-muted);">يحتوي على أوامر عامة للمهام اليومية ومعلومات السيرفر.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nx-card nx-card--band">
+      <div class="nx-card__head">
+        <div class="nx-card__icon"><i class="fas fa-user-clock"></i></div>
+        <h3>الأدوات</h3>
+      </div>
+      <p class="nx-card__desc">يحتوي على أوامر عامة للمهام اليومية ومعلومات السيرفر.</p>
+      <div class="nx-card__mock">
+        <div class="nx-mock">
+          <div class="nx-mock__hd"><i class="fas fa-user-clock"></i><span style="direction:ltr;text-align:left;">/user</span></div>
+          <div class="nx-mock__body">
+            <div class="nx-msg">
+              <span class="nx-av nx-av--lg"></span>
+              <div class="nx-msg__col">
+                <div class="nx-msg__hd"><b style="direction:ltr;text-align:left;">@fadi</b></div>
+                <div class="nx-chipset">
+                  <span class="nx-chip">عضو منذ يناير 2024</span>
+                  <span class="nx-chip">4 أدوار</span>
+                  <span class="nx-chip">انضم قبل 8 أشهر</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nx-card nx-card--band">
+      <div class="nx-card__head">
+        <div class="nx-card__icon"><i class="fas fa-database"></i></div>
+        <h3>النسخ الاحتياطي</h3>
+      </div>
+      <p class="nx-card__desc">ينشئ نسخًا من إعدادات السيرفر والأدوار والتكوينات لسهولة الاستعادة.</p>
+      <div class="nx-card__mock">
+        <div class="nx-mock">
+          <div class="nx-mock__hd"><i class="fas fa-database"></i><span>نسخة السيرفر</span></div>
+          <div class="nx-mock__body">
+            <div class="nx-chipset">
+              <span class="nx-pill nx-pill--dim">الإعدادات</span><span class="nx-pill nx-pill--dim">الأدوار</span>
+              <span class="nx-pill nx-pill--dim">القنوات</span><span class="nx-pill nx-pill--dim">الإيموجي</span>
+              <span class="nx-pill nx-pill--dim">الملصقات</span>
+            </div>
+            <div class="nx-row-i"><i class="fas fa-clock"></i><span class="nx-row-i__name">آخر نسخة: قبل ساعتين</span></div>
+            <div class="nx-row-i"><i class="fas fa-rotate-left"></i><span class="nx-row-i__name">استعادة</span><span class="nx-row-i__end"><span class="nx-pill">42 قناة · 18 دورًا · 96 إيموجي</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nx-card nx-card--band">
+      <div class="nx-card__head">
+        <div class="nx-card__icon"><i class="fas fa-robot"></i></div>
+        <h3>الأتمتة</h3>
+      </div>
+      <p class="nx-card__desc">تتمتّم المهام والإجراءات في سيرفرك، فتُبسّط العمليات المتكررة.</p>
+      <div class="nx-card__mock">
+        <div class="nx-mock">
+          <div class="nx-mock__hd"><i class="fas fa-robot"></i><span>محفّزات الأتمتة</span></div>
+          <div class="nx-mock__body">
+            <div class="nx-row-i"><i class="fas fa-user-plus"></i><span class="nx-row-i__name">رسالة مُرسلة</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">نص</span></span></div>
+            <div class="nx-row-i"><i class="fas fa-face-smile"></i><span class="nx-row-i__name">تفاعل مُضاف</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">تفاعل</span></span></div>
+            <div class="nx-row-i"><i class="fas fa-user-tag"></i><span class="nx-row-i__name">دور مُضاف</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">عضو</span></span></div>
+            <div class="nx-row-i"><i class="fas fa-user-minus"></i><span class="nx-row-i__name">دور مُزال</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">عضو</span></span></div>
+            <div class="nx-row-i"><i class="fas fa-volume-high"></i><span class="nx-row-i__name">انضم لقناة صوتية</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">صوت</span></span></div>
+            <div class="nx-row-i"><i class="fas fa-volume-xmark"></i><span class="nx-row-i__name">غادر قناة صوتية</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">صوت</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Fun ─────────────────────────────────────────────────────────────── -->
+<section class="nx-sec">
+  <div class="nx-sec__orb" aria-hidden="true"></div>
+  <div class="nx-sec__in nx-wrap">
+    <h2 class="nx-sec__title">المرح</h2>
+    <p class="nx-sec__sub">أضف الحماس والمرح لسيرفرك عبر الألعاب والجوائز ليبقى مجتمعك مستمتعًا.</p>
+
+    <div class="nx-row">
+      <div class="nx-col-6">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-gamepad"></i></div>
+            <h3>أوامر المرح</h3>
+          </div>
+          <p class="nx-card__desc">أضف ألعابًا مثل الروليت وXO والمزيد من الألعاب القادمة.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock">
+              <div class="nx-mock__hd"><i class="fas fa-gamepad"></i><span>أوامر المرح</span></div>
+              <div class="nx-mock__body" style="flex-direction:row;align-items:center;justify-content:space-between;">
+                <div>
+                  <div style="font-size:.75rem;color:var(--nx-muted);margin-bottom:4px;"><span style="direction:ltr;display:inline-block;">/xo</span> تحدَّ صديقًا</div>
+                  <div class="nx-line nx-line--w45"></div>
+                </div>
+                <div class="nx-ttt">
+                  <span>X</span><span>O</span><span>X</span>
+                  <span>X</span><span>O</span><span>O</span>
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nx-col-6">
+        <div class="nx-card">
+          <div class="nx-card__head">
+            <div class="nx-card__icon"><i class="fas fa-gift"></i></div>
+            <h3>الجوائز</h3>
+          </div>
+          <p class="nx-card__desc">استضف الجوائز بسهولة واسمح للمستخدمين بالمشاركة والفوز بجوائز مميزة.</p>
+          <div class="nx-card__mock">
+            <div class="nx-mock">
+              <div class="nx-mock__hd"><i class="fas fa-gift"></i><span>جائزة</span></div>
+              <div class="nx-mock__body">
+                <div class="nx-embed">
+                  <div class="nx-embed__t">Nitro ديسكورد</div>
+                  <div class="nx-embed__d">تنتهي خلال يومين و14 ساعة</div>
+                  <div class="nx-bar" style="margin-top:11px;"><div class="nx-bar__fill" style="width:63%"></div></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                  <span style="font-size:.75rem;color:var(--nx-muted);">128 مشارك</span>
+                  <span class="nx-pill">🎉 شارك</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Server analytics ────────────────────────────────────────────────── -->
+<section class="nx-sec">
+  <div class="nx-sec__orb" aria-hidden="true"></div>
+  <div class="nx-sec__in nx-wrap">
+    <h2 class="nx-sec__title">تحليلات السيرفر والرؤى</h2>
+    <p class="nx-sec__sub">تابع بيانات سيرفرك القيّمة مثل الانضمام والمغادرة وعدد الرسائل ونشاط القنوات الصوتية.</p>
+
+<div class="nx-an">
+      <div class="nx-an__left">
+        <p class="nx-an__copy">تابع بيانات سيرفرك القيّمة مثل انضمام الأعضاء ومغادرتهم وعدد الرسائل ونشاط القنوات الصوتية، لتحصل على رؤى تُحسّن إدارة سيرفرك.</p>
+        <div class="nx-an__chips">
+          <span class="nx-pill">الانضمام</span>
+          <span class="nx-pill">المغادرة</span>
+          <span class="nx-pill">عدد الرسائل</span>
+          <span class="nx-pill">نشاط القنوات الصوتية</span>
+        </div>
+        <div class="nx-an__tiles">
+          <div class="nx-an__tile">
+            <i class="fas fa-user-plus"></i>
+            <p>تابع الأعضاء الجدد المنضمين لسيرفرك لمراقبة النمو.</p>
+          </div>
+          <div class="nx-an__tile">
+            <i class="fas fa-user-minus"></i>
+            <p>راقب الأعضاء الذين يغادرون سيرفرك للحصول على رؤى حول التفاعل.</p>
+          </div>
+          <div class="nx-an__tile">
+            <i class="fas fa-comment-dots"></i>
+            <p>تابع إجمالي الرسائل المرسلة في سيرفرك.</p>
+          </div>
+          <div class="nx-an__tile">
+            <i class="fas fa-volume-high"></i>
+            <p>تابع الأعضاء النشطين في القنوات الصوتية لتقدير المشاركة.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="nx-an__right">
+        <svg class="nx-an__chart" viewBox="0 0 604 208" preserveAspectRatio="none" aria-label="رسم بياني لنشاط السيرفر">
+          <defs>
+            <linearGradient id="nxan" x1="0" y1="40" x2="0" y2="208" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#681fd1" stop-opacity=".34"/>
+              <stop offset="100%" stop-color="#681fd1" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M10 150 L88 128 L166 138 L244 96 L322 110 L400 66 L478 84 L556 44 L594 58 L594 208 L10 208 Z" fill="url(#nxan)"/>
+          <path d="M10 168 L88 152 L166 160 L244 128 L322 140 L400 104 L478 120 L556 88 L594 96"
+                fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+          <path d="M10 150 L88 128 L166 138 L244 96 L322 110 L400 66 L478 84 L556 44 L594 58"
+                fill="none" stroke="#681fd1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <g fill="#fff">
+            <circle cx="10" cy="150" r="4.45"/><circle cx="88" cy="128" r="4.45"/>
+            <circle cx="166" cy="138" r="4.45"/><circle cx="244" cy="96" r="4.45"/>
+            <circle cx="322" cy="110" r="4.45"/><circle cx="400" cy="66" r="4.45"/>
+            <circle cx="478" cy="84" r="4.45"/><circle cx="556" cy="44" r="4.45"/>
+            <circle cx="594" cy="58" r="4.45"/>
+          </g>
+        </svg>
+        <div class="nx-an__legend">
+          <span><s style="background:#681fd1"></s> هذا الشهر</span>
+          <span><s style="background:#fff"></s> الشهر الماضي</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA + Footer ═══════════════════════════════════════════════════════
+     The wave below is a CSS redraw of novax's footer.svg — two blurred purple
+     radial gradients under a radial mask. Their file is not copied. -->
+<section class="nx-cta">
+  <div class="nx-wrap nx-cta__top">
+    <h2 class="nx-cta__title">جاهز لتجربة رائعة؟<br><span>ابدأ الآن!</span></h2>
+    <div class="nx-cta__acts">
+      <a href="/invite-dev" class="nx-btn nx-btn-p">دعوة البوت <i class="fas fa-arrow-left"></i></a>
+    </div>
+  </div>
+
+  <div class="nx-wave" aria-hidden="true"></div>
+
+  <footer class="nx-wrap nx-footer">
+    <div class="nx-about">
+      <div class="nx-about__mark">
+        <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+          <rect x="2" y="2" width="60" height="60" rx="16" fill="#12131c" stroke="#681fd1" stroke-width="3"/>
+          <path d="M20 22 L32 32 L20 42" fill="none" stroke="#a855f7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M33 42 L45 42" fill="none" stroke="#f5e625" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <h3>عن كراتوس</h3>
+        <p>كراتوس بوت ديسكورد قوي ومتعدد الاستخدامات، ليمنح سيرفرك تجربة متكاملة. بميزات مثل أدوات الإشراف وأوامر المرح والتكاملات المخصصة، يجعل كراتوس إدارة سيرفرك سهلة وجذابة. رفيقك الشامل لإدارة السيرفر.</p>
+      </div>
+    </div>
+
+    <div class="nx-cols">
+      <div class="nx-col">
+        <h4>تواصل معنا</h4>
+        <div class="nx-col__soc">
+          <a href="https://discord.gg/fadix9" target="_blank" rel="noopener" aria-label="Discord"><i class="fab fa-discord"></i></a>
+          <a href="https://x.com" target="_blank" rel="noopener" aria-label="X"><i class="fab fa-x-twitter"></i></a>
+          <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        </div>
+      </div>
+      <div class="nx-col">
+        <h4>الصفحات</h4>
+        <ul>
+          <li><a href="/home">لوحة التحكم</a></li>
+          <li><a href="/premium">بلس</a></li>
+          <li><a href="/commands">الأوامر</a></li>
+        </ul>
+      </div>
+      <div class="nx-col">
+        <h4>قانوني</h4>
+        <ul>
+          <li><a href="/terms">شروط الخدمة</a></li>
+          <li><a href="/privacy">سياسة الخصوصية</a></li>
+          <li><a href="/refund">سياسة الاسترجاع</a></li>
+        </ul>
+      </div>
+      <div class="nx-col">
+        <h4>اللغة</h4>
+        <ul>
+          <li><a href="#">العربية</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="nx-copy">© كل الحقوق محفوظة</div>
   </footer>
+</section>
 
-  <script src="/js/main.js"></script>
-  <script>
-  document.addEventListener('DOMContentLoaded', function () {
+<script>
+(function () {
+  'use strict';
 
-    /* ══════════════════════════════════════════════════════════════════
-       1. Animated number writer  (single source of truth for metrics)
-       ══════════════════════════════════════════════════════════════════ */
-    var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* Reveal is opt-in: html gets .nx-js only when scripting actually runs, so
+     the CSS keyframe fallback keeps the page visible if this never executes. */
+  document.documentElement.classList.add('nx-js');
 
-    function countTo(el, target, suffix, dur) {
-      if (!el) return;
-      suffix = suffix || '';
-      var finalText = target.toLocaleString('en-US') + suffix;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      // لا داعي للتحريك — أو المتصفح في تبويب مخفي (rAF لا تعمل)
-      if (REDUCED || document.hidden || typeof requestAnimationFrame !== 'function') {
-        el.textContent = finalText;
-        return;
-      }
-
-      var t0 = performance.now(), ms = dur || 950, done = false;
-      function finish() {
-        if (done) return;
-        done = true;
-        el.textContent = finalText;
-      }
-      function tick(t) {
-        if (done) return;
-        var p = Math.min(1, (t - t0) / ms);
-        var e = 1 - Math.pow(1 - p, 3);
-        el.textContent = Math.round(target * e).toLocaleString('en-US') + suffix;
-        if (p < 1) requestAnimationFrame(tick); else finish();
-      }
-      el.textContent = '0' + suffix;
-      requestAnimationFrame(tick);
-      // شبكة أمان: التبويبات المخفية قد تُجمّد requestAnimationFrame
-      setTimeout(finish, ms + 260);
-    }
-
-    /* Sets a metric value with count-up. Pass null to show the dash. */
-    function setMetric(id, val, suffix) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      var n = Number(val);
-      if (val === null || val === undefined || !isFinite(n)) { el.textContent = '—'; return; }
-      countTo(el, n, suffix || '');
-    }
-
-    function setText(id, txt) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.textContent = txt;
-      el.classList.toggle('is-wait', isWaitText(txt));
-    }
-
-    /* ══════════════════════════════════════════════════════════════════
-       2. Ambient UI — scroll reveal, tilt, magnetic buttons, nav state
-       ══════════════════════════════════════════════════════════════════ */
-
-    // Scroll reveal
-    var revealTargets = document.querySelectorAll('.fx-reveal');
-    if ('IntersectionObserver' in window && revealTargets.length) {
-      var ro = new IntersectionObserver(function (entries) {
+  if (!reduce && 'IntersectionObserver' in window) {
+    var targets = document.querySelectorAll('.nx-rv');
+    if (targets.length) {
+      document.documentElement.classList.add('nx-anim');
+      var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
-          if (e.isIntersecting) { e.target.classList.add('in'); ro.unobserve(e.target); }
+          if (e.isIntersecting) { e.target.classList.add('nx-in'); io.unobserve(e.target); }
         });
-      }, { threshold: 0.12 });
-      revealTargets.forEach(function (el) { ro.observe(el); });
-    } else {
-      revealTargets.forEach(function (el) { el.classList.add('in'); });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      targets.forEach(function (t) { io.observe(t); });
     }
+  }
 
-    // Nav solidifies on scroll
-    var nav = document.getElementById('fxNav');
-    function onScroll() {
-      if (!nav) return;
-      nav.classList.toggle('scrolled', window.scrollY > 24);
-    }
-    onScroll();
+  /* Header shadow once the page scrolls */
+  var header = document.getElementById('nxHeader');
+  if (header) {
+    var onScroll = function () {
+      header.style.boxShadow = window.scrollY > 8
+        ? '0 6px 26px rgba(0,0,0,.42)'
+        : '0 4px 20px rgba(0,0,0,.28)';
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
 
-    // Subtle 3D tilt on the metrics console
-    var tilt = document.querySelector('[data-tilt]');
-    if (tilt && !REDUCED && window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
-      tilt.addEventListener('mousemove', function (e) {
-        var r = tilt.getBoundingClientRect();
-        var dx = (e.clientX - r.left) / r.width - 0.5;
-        var dy = (e.clientY - r.top) / r.height - 0.5;
-        tilt.style.transform = 'perspective(1400px) rotateX(' + (-dy * 5).toFixed(2) +
-                               'deg) rotateY(' + (dx * 6).toFixed(2) + 'deg) translateY(-3px)';
-      });
-      tilt.addEventListener('mouseleave', function () { tilt.style.transform = ''; });
-    }
+  /* ── Maintenance mode ───────────────────────────────────────────────────
+     Kept from the previous build: the server owns this state, the page only
+     reflects it. */
+  var mc = document.createElement('div');
+  mc.className = 'nx-mnt';
+  mc.innerHTML = '<div class="nx-mnt__in"><i class="fas fa-wrench"></i>'
+    + '<span class="nx-mnt__t">وضع الصيانة مفعل</span>'
+    + '<span class="nx-mnt__msg"></span></div>';
+  document.body.prepend(mc);
+  var mMsg = mc.querySelector('.nx-mnt__msg');
 
-    // Magnetic primary CTA
-    if (!REDUCED && window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
-      document.querySelectorAll('.f-btn-p').forEach(function (b) {
-        b.addEventListener('mousemove', function (e) {
-          var r = b.getBoundingClientRect();
-          b.style.transform = 'translate(' + ((e.clientX - r.left - r.width / 2) * 0.16).toFixed(1) + 'px,' +
-                              ((e.clientY - r.top - r.height / 2) * 0.28).toFixed(1) + 'px)';
-        });
-        b.addEventListener('mouseleave', function () { b.style.transform = ''; });
-      });
-    }
-
-    /* ══════════════════════════════════════════════════════════════════
-       3. Live data
-       ══════════════════════════════════════════════════════════════════ */
-
-    /* Every sub-label that means "the bot is not reachable", so they all get the
-       same pending tone. Kept in one place because reasonText() picks between
-       them based on what /api/status reported. */
-    var WAIT_TEXTS = ['يتصل بالبوت…', 'البوت لم يُحدَّث بعد', 'المفتاحان غير متطابقين',
-                      'الداشبورد بلا مفتاح', 'API_SECRET غير مُعرَّف',
-                      'البوت لا يستجيب بعد', 'تعذّر الوصول للبوت'];
-    // 'طول المفتاح N' is generated, so match it by prefix.
-    function isWaitText(t) {
-      return WAIT_TEXTS.indexOf(t) !== -1 || t.indexOf('طول المفتاح ') === 0;
-    }
-
-    /* Marks every card as "waiting" while the bot process is unreachable.
-       A Render free-tier service sleeps after ~15 min idle, so the bot's
-       /api/stats 404s until it wakes and finishes its Discord login. Showing
-       a dash forever made the cards look broken. The reason from /api/status
-       is surfaced too, because "offline" alone hides whether the cause is a
-       stale bot build (404), a secret mismatch (401) or a wrong URL. */
-    function reasonText(d) {
-      var e = d && d.botApiError;
-      if (!e) return 'يتصل بالبوت…';
-      if (e === 'HTTP 404') return 'البوت لم يُحدَّث بعد';
-      if (e === 'HTTP 401' || e === 'HTTP 403') {
-        // The bot rejected our value. Say which side is at fault, because
-        // "add the variable" and "make them equal" are different instructions
-        // and the visitor cannot see either service's config.
-        if (d && d.secretConfigured === false) return 'الداشبورد بلا مفتاح';
-        if (d && typeof d.secretLength === 'number' && d.secretLength !== 96) {
-          return 'طول المفتاح ' + d.secretLength;
-        }
-        return 'المفتاحان غير متطابقين';
+  fetch('/dev/maintenance/status', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (d && d.enabled) {
+        mc.classList.add('nx-show');
+        if (mMsg && d.message) mMsg.textContent = '— ' + d.message;
       }
-      if (e === 'HTTP 503') return 'API_SECRET غير مُعرَّف';
-      if (e === 'timeout') return 'البوت لا يستجيب بعد';
-      if (e === 'network') return 'تعذّر الوصول للبوت';
-      return 'يتصل بالبوت…';
-    }
-
-    /* The hero no longer carries a metric console, so the status pill is the
-       only live element up there. The numeric cards down in the Numbers
-       section read from /api/commands/stats instead. */
-    function paintWaiting(d) {
-      var lp = document.getElementById('landPill');
-      if (lp) lp.innerHTML = '<span class="fx-dot off"></span> KRATOS SYSTEM v1.0.11 — ' + reasonText(d);
-    }
-
-    // Command statistics → the Numbers section
-    fetch('/api/commands/stats')
-      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
-      .then(function (s) {
-        var per = s.perCategory || {};
-        var total = Number(s.total) || 0;
-        setMetric('statTickets', Number(per.ticket) || 0, '');
-        setMetric('statVoice', Number(per.voice) || 0, '');
-        setMetric('statTotal', total, '');
-      })
-      .catch(function () {
-        setText('statTickets', '—');
-        setText('statVoice', '—');
-        setText('statTotal', '—');
-      });
-
-    /* Bot status → the pill in the hero.
-       Polled instead of fetched once. The bot is a separate process that can
-       be sleeping or mid-boot, in which case the dashboard reports
-       botOnline:false. Retrying makes the pill settle as soon as it wakes. */
-    var statusTimer = null;
-    function pollStatus(first) {
-      fetch('/api/status', { cache: 'no-store' })
-        .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
-        .then(function (d) {
-          if (!d) throw new Error();
-
-          if (!d.botOnline) {
-            paintWaiting(d);
-            // Bot is asleep or still booting — keep trying
-            statusTimer = setTimeout(pollStatus, 8000);
-            return;
-          }
-
-          var lp = document.getElementById('landPill');
-          if (lp) {
-            lp.innerHTML = '<span class="fx-dot"></span> KRATOS SYSTEM v1.0.11 — شغال';
-          }
-
-          // Slow background refresh once the bot answers
-          statusTimer = setTimeout(pollStatus, 30000);
-        })
-        .catch(function () {
-          paintWaiting(null);
-          statusTimer = setTimeout(pollStatus, 8000);
-        });
-    }
-    pollStatus(true);
-    // Stop polling once the visitor leaves
-    window.addEventListener('pagehide', function () { if (statusTimer) clearTimeout(statusTimer); });
-
-    /* ══════════════════════════════════════════════════════════════════
-       4. Maintenance mode
-       ══════════════════════════════════════════════════════════════════ */
-    var mc = document.createElement('div');
-    mc.id = 'mntBanner';
-    document.body.prepend(mc);
-
-    var md = null, ms = null, me = null, mr = null, mb = false;
-
-    function fmt(t) {
-      if (t <= 0) return '0ث';
-      var h = Math.floor(t / 3600000),
-          m = Math.floor((t % 3600000) / 60000),
-          s = Math.floor((t % 60000) / 1000);
-      return (h ? h + 'س ' : '') + (m ? m + 'د ' : '') + s + 'ث';
-    }
-
-    function bld() {
-      mc.innerHTML =
-        '<div class="mnt-banner"><div class="mnt-banner-inner">' +
-          '<div class="mnt-banner-icon"><i class="fas fa-shield-halved"></i></div>' +
-          '<div class="mnt-banner-text">' +
-            '<div class="mnt-banner-title">KRATOS SYSTEM Bot v1.0.11 — وضع الصيانة مفعل</div>' +
-            '<div class="mnt-banner-desc"><span class="mnt-banner-time"><i class="fas fa-circle"></i> <span id="mntTimer">...</span></span><span id="mntMessage"></span></div>' +
-          '</div>' +
-        '</div></div>';
-      document.body.classList.add('mnt-active');
-      mb = true;
-      tick();
-    }
-
-    function rem() {
-      mc.innerHTML = '';
-      document.body.classList.remove('mnt-active');
-      mb = false;
-    }
-
-    function gs(on) {
-      var e = document.getElementById('frameGlass');
-      if (e) e.classList.toggle('show', !!on);
-    }
-
-    function upd() {
-      if (!md || !md.enabled) { rem(); gs(false); return; }
-      if (!mb) bld();
-      var e = document.getElementById('mntMessage');
-      if (e) e.textContent = md.message || 'الموقع تحت الصيانة حالياً';
-      var gm = document.getElementById('glassMsg');
-      if (gm) gm.textContent = md.message || 'الموقع تحت الصيانة حالياً';
-      gs(true);
-    }
-
-    function tick() {
-      var e = document.getElementById('mntTimer'), w = e && e.parentElement;
-      if (!e || !w || !md || !md.enabled) return;
-      var gt = document.getElementById('glassTimer');
-      if (me && mr !== null) {
-        w.style.display = '';
-        var t = 'متبقي ' + fmt(mr);
-        e.textContent = t;
-        if (gt) gt.textContent = t;
-        if (mr > 0) mr = Math.max(0, mr - 1000);
-      } else {
-        w.style.display = 'none';
-        if (gt) gt.textContent = '—';
-      }
-    }
-
-    async function chk() {
-      try {
-        var r = await fetch('/dev/maintenance/status');
-        var d = await r.json();
-        if (d.enabled) {
-          ms = Number(d.startedAt) || Date.now();
-          me = d.endTime ? Number(d.endTime) : null;
-          mr = typeof d.remainMs === 'number' ? d.remainMs : null;
-          md = d;
-        } else {
-          md = null; me = null; mr = null;
-        }
-        upd();
-      } catch {}
-    }
-
-    chk();
-    setInterval(chk, 30000);
-    setInterval(tick, 1000);
-  });
-  </script>
+    })
+    .catch(function () {});
+})();
+</script>
 </body>
 </html>
