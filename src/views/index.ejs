@@ -643,6 +643,36 @@ button { font-family: inherit; }
   font-size: .875rem; transition: border-color .2s, background .2s;
 }
 .nx-col__soc a:hover { border-color: rgba(188,146,253,.4); background: rgba(104,31,209,.14); }
+
+/* Language control. A real button, not an anchor to nowhere: the label always
+   reports the active locale and the menu is where new ones get added. */
+.nx-lang { position: relative; display: inline-block; }
+.nx-lang__btn {
+  display: flex; align-items: center; gap: 8px; height: 30px; padding: 0;
+  border: 0; border-radius: 11px; background: transparent;
+  font-size: .8333rem; font-weight: 500; color: var(--nx-muted);
+  cursor: pointer; transition: color .2s;
+}
+.nx-lang__btn:hover, .nx-lang__btn[aria-expanded="true"] { color: #fff; }
+.nx-lang__btn svg { width: 30px; height: 30px; flex-shrink: 0; }
+.nx-lang__menu {
+  position: absolute; inset-inline-start: 0; top: calc(100% + 8px); z-index: 5;
+  min-width: 132px; padding: 5px; border-radius: 11px;
+  border: 1px solid var(--nx-line); background: #14141d;
+  box-shadow: 0 18px 40px rgba(0,0,0,.5);
+  display: none; flex-direction: column; gap: 2px;
+}
+.nx-lang__menu.is-open { display: flex; }
+.nx-lang__opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 7px 9px; border: 0; border-radius: 8px; background: transparent;
+  font-size: .8125rem; color: #b6bcc8; text-align: start; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.nx-lang__opt:hover { background: rgba(255,255,255,.05); color: #fff; }
+.nx-lang__opt[aria-current="true"] { color: var(--nx-violet-2); }
+.nx-lang__opt i { font-size: .7rem; }
+
 .nx-copy {
   margin-top: 2.5rem; padding-top: 20px; border-top: 1px solid var(--nx-line-2);
   font-size: .75rem; color: #6b7280; text-align: center;
@@ -1470,10 +1500,11 @@ button { font-family: inherit; }
     <div class="nx-cols">
       <div class="nx-col">
         <h4>تواصل معنا</h4>
+        <!-- Discord is the only channel with a real address. Add further
+             accounts here as they exist — a link to x.com or instagram.com
+             with no handle sends people to those sites' homepages. -->
         <div class="nx-col__soc">
           <a href="https://discord.gg/fadix9" target="_blank" rel="noopener" aria-label="Discord"><i class="fab fa-discord"></i></a>
-          <a href="https://x.com" target="_blank" rel="noopener" aria-label="X"><i class="fab fa-x-twitter"></i></a>
-          <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
         </div>
       </div>
       <div class="nx-col">
@@ -1494,9 +1525,24 @@ button { font-family: inherit; }
       </div>
       <div class="nx-col">
         <h4>اللغة</h4>
-        <ul>
-          <li><a href="#">العربية</a></li>
-        </ul>
+        <div class="nx-lang">
+          <button class="nx-lang__btn" type="button" id="nxLangBtn"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="nxLangMenu"
+                  aria-label="اللغة: العربية">
+            <svg viewBox="0 0 32 32" aria-hidden="true">
+              <circle cx="16" cy="16" r="12" fill="none" stroke="#8890a1" stroke-width="2"/>
+              <ellipse cx="16" cy="16" rx="5" ry="12" fill="none" stroke="#8890a1" stroke-width="2"/>
+              <path d="M5 12h22M5 20h22M4.6 16h22.8" stroke="#8890a1" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span>العربية</span>
+          </button>
+          <div class="nx-lang__menu" id="nxLangMenu" role="menu" aria-labelledby="nxLangBtn">
+            <button class="nx-lang__opt" type="button" role="menuitem" aria-current="true">
+              <span>العربية</span><i class="fas fa-check"></i>
+            </button>
+            <!-- Further locales go here as translations land. -->
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1538,6 +1584,32 @@ button { font-family: inherit; }
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
   }
+
+  /* ── Language menu ───────────────────────────────────────────────────────
+     Closes on outside click and on Escape; the button keeps aria-expanded in
+     step so the state is never announced wrong. */
+  (function langMenu() {
+    var btn = document.getElementById('nxLangBtn');
+    var menu = document.getElementById('nxLangMenu');
+    if (!btn || !menu) return;
+
+    function setOpen(open) {
+      menu.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setOpen(!menu.classList.contains('is-open'));
+    });
+    menu.addEventListener('click', function (e) { e.stopPropagation(); });
+    document.addEventListener('click', function () { setOpen(false); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+  })();
 
   /* ── Maintenance mode ───────────────────────────────────────────────────
      Kept from the previous build: the server owns this state, the page only
