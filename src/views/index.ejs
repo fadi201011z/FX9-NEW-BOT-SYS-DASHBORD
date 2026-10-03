@@ -515,6 +515,145 @@ button { font-family: inherit; }
 }
 .nx-card__mock { margin-top: 22px; }
 
+/* ─── Split cards ────────────────────────────────────────────────────────────
+   The Utility & automation band is the one place the source stands the copy
+   and its mock side by side rather than stacking them, and the heading runs
+   larger there (30.4px rather than 18.4px) with no icon beside it. The shell
+   is untouched — same 48px padding, #0d0d14, radius 20px — so inside it sits
+   a 32px flex row with justify-content: space-between and align-items: center,
+   flipping to row-reverse on the second and fourth card to move the mock to
+   the opposite side. Under RTL the flip mirrors on its own, which is the same
+   design read the other way round. */
+.nx-card--split { margin-bottom: 1.5rem; }
+.nx-card--split > .nx-card__row > .nx-card__copy > h3 {
+  margin: 0 0 8px; font-size: 1.9rem; font-weight: 600; line-height: 1.167;
+}
+@media (min-width: 900px) {
+  .nx-card--split { padding: 48px; }
+  .nx-card--split > .nx-card__row {
+    display: flex; gap: 32px; align-items: center; justify-content: space-between;
+  }
+  .nx-card--split--flip > .nx-card__row { flex-direction: row-reverse; }
+  .nx-card--split .nx-card__copy { flex: 0 1 368px; min-width: 0; }
+  .nx-card--split .nx-card__mock { flex: 0 1 auto; min-width: 0; margin-top: 0; }
+}
+@media (max-width: 899px) {
+  .nx-card--split > .nx-card__row { display: block; }
+  .nx-card--split .nx-card__copy > .nx-card__desc { max-width: none; }
+}
+
+/* The panel on the mock side: 20px padding, 10px between rows, and rows that
+   are inset surfaces (rgba(255,255,255,.03) inside a 1px .06 border at radius
+   10px) rather than the flat strips the stacked cards use. Content width, not
+   stretched — the source sizes these panels to what they hold. */
+.nx-mock--flow {
+  display: flex; flex-direction: column;
+  width: fit-content; max-width: 100%;
+  /* min() rather than a flat 420px: min-width outranks max-width, so a fixed
+     floor would push the panel past the card edge on a narrow screen. */
+  min-width: min(420px, 100%);
+  padding: 20px; gap: 10px;
+}
+.nx-mock__lbl {
+  display: flex; align-items: center; gap: 8px;
+  font-size: .875rem; font-weight: 500; color: #e8ddff;
+}
+.nx-mock__lbl i { font-size: .8125rem; }
+.nx-inset {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 10px;
+  border: 1px solid var(--nx-line-2); background: var(--nx-fill);
+}
+.nx-inset i { color: var(--nx-muted); font-size: .8125rem; }
+.nx-inset__k { flex-shrink: 0; font-size: .8125rem; color: var(--nx-muted); }
+.nx-inset__v { font-size: .8125rem; color: #fff; }
+.nx-inset__act {
+  margin-inline-start: auto; flex-shrink: 0; padding: 3px 12px; border-radius: 999px;
+  background: rgba(104,31,209,.22); color: var(--nx-violet-2);
+  font-size: .75rem; font-weight: 600;
+}
+.nx-arrow { display: flex; align-items: center; justify-content: center; color: #a78bd6; font-size: .8125rem; }
+.nx-out {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .8125rem; color: #fff;
+}
+.nx-out__who { font-weight: 700; }
+.nx-out__line { color: var(--nx-muted); }
+.nx-pairs { display: flex; align-items: center; gap: 16px; font-size: .8125rem; color: #fff; }
+.nx-pairs span { display: inline-flex; align-items: center; gap: 6px; }
+.nx-pairs i { color: var(--nx-muted); font-size: .75rem; }
+.nx-tags { display: flex; align-items: center; gap: 8px; font-size: .8125rem; color: #fff; }
+.nx-tags span {
+  padding: 4px 11px; border-radius: 999px;
+  border: 1px solid var(--nx-line-2); background: var(--nx-fill);
+}
+
+/* Trigger grid on the automation card. Two columns 16px apart; each cell pads
+   12px vertically so the rules between rows come from the row gap, and the
+   heading is a 16px/600 weight over a 14px body in the muted grey. */
+.nx-trg {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px; margin: 32px 0 0; padding: 0; list-style: none;
+}
+.nx-trg__c { padding: 12px 0; min-width: 0; }
+.nx-trg__h { display: flex; align-items: center; gap: 5px; }
+.nx-trg__h i { flex-shrink: 0; width: 24px; height: 24px; color: var(--nx-violet-2); font-size: .8125rem; }
+.nx-trg__h h4 {
+  margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.235; color: #fff;
+}
+.nx-trg__c p {
+  margin: 12px 0 0; font-size: .875rem; line-height: 1.334; color: var(--nx-muted);
+}
+
+/* Orbit graphic standing in for the automation flow illustration: the same
+   450x364 footprint and the same concentric-ring silhouette, drawn here in CSS
+   with our palette rather than lifted from the source's artwork. Each trigger
+   is a transparent square of a given diameter, centred and then rotated, with
+   the dot parked at its top edge — so the dot sits at that angle on a circle
+   whose size tracks the box, and turning the square walks the dot round it. */
+.nx-orbit {
+  position: relative; width: 450px; max-width: 100%; aspect-ratio: 450 / 364;
+  display: grid; place-items: center;
+}
+.nx-orbit__ring {
+  position: absolute; top: 50%; left: 50%; border-radius: 50%;
+  translate: -50% -50%;
+  border: 1px solid rgba(168,85,247,.22);
+}
+.nx-orbit__ring--3 { width: 100%; height: 100%; }
+.nx-orbit__ring--2 { width: 72%; height: 72%; border-color: rgba(168,85,247,.3); }
+.nx-orbit__ring--1 { width: 44%; height: 44%; border-color: rgba(168,85,247,.4); }
+.nx-orbit__hub {
+  position: relative; display: grid; place-items: center;
+  width: 74px; height: 74px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(104,31,209,.42), rgba(104,31,209,0) 72%);
+  color: var(--nx-violet-2); font-size: 1.5rem;
+}
+/* translate and rotate are separate properties and translate is applied first,
+   so the square is centred before it turns — putting both on `transform` would
+   rotate the element and then shove it sideways along the rotated axes. */
+.nx-orbit__dot {
+  position: absolute; top: 50%; left: 50%;
+  width: var(--r); aspect-ratio: 1;
+  translate: -50% -50%; rotate: var(--a);
+  display: grid; place-items: start center;
+  pointer-events: none;
+}
+.nx-orbit__dot i {
+  width: 11px; height: 11px; margin-top: -5.5px; border-radius: 50%;
+  background: var(--nx-violet-2); box-shadow: 0 0 0 4px rgba(168,85,247,.16);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nx-orbit__dot { animation: nxOrbit 40s linear infinite; }
+}
+@media (max-width: 479.98px) {
+  .nx-trg { grid-template-columns: minmax(0, 1fr); }
+}
+@keyframes nxOrbit {
+  from { rotate: var(--a); }
+  to   { rotate: calc(var(--a) + 360deg); }
+}
+
 /* ─── Mockup primitives ────────────────────────────────────────────────────
    The Discord-shaped panels inside the cards. Every one of these numbers was
    read off the source: panel #14141d at 16px, rows at 10px, the purple badge
@@ -875,29 +1014,33 @@ button { font-family: inherit; }
   filter: blur(60px);
 }
 
-.nx-footer { position: relative; z-index: 1; padding-bottom: 40px; }
-.nx-about { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 3rem; }
-.nx-about__mark { width: 56px; height: 56px; flex-shrink: 0; }
-.nx-about__mark img, .nx-about__mark svg { width: 100%; height: 100%; }
-.nx-about h3 { margin: 0 0 10px; font-size: 1.25rem; font-weight: 700; color: #fff; }
-.nx-about p { margin: 0; font-size: .9375rem; line-height: 1.6; color: var(--nx-muted); max-width: 70ch; }
+/* ─── Footer ─────────────────────────────────────────────────────────────────
+   Measured on the source, and it is not the four-column link farm this used
+   to be. There the about block is a narrow 25% column carrying the heading,
+   the paragraph at 14px/21px in rgba(255,255,255,.6) and the language control
+   16px beneath it — the language switch is part of the about column, not a
+   fourth link module. The three link modules sit to the right, 16px apart,
+   each headed by a 20px/700 h3 with its list 16px below, and the items are
+   12.8px/400 rather than 14px, 20px apart.
 
-.nx-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px 20px; }
-@media (min-width: 900px) { .nx-cols { grid-template-columns: 1.4fr 1fr 1fr 1fr; } }
-.nx-col h4 {
-  margin: 0 0 14px; font-size: .8125rem; font-weight: 700;
-  letter-spacing: normal; text-transform: uppercase; color: #fff;
+   The copyright is not centred text either: a 2px #141422 rule at radius 50px
+   and opacity .6 spanning the column, then the notice at 12.8px/19.2px on the
+   left with 40px circular social buttons on the right. */
+.nx-footer { position: relative; z-index: 1; padding-top: 80px; }
+.nx-foot__grid { display: grid; grid-template-columns: 1fr; gap: 40px; padding-bottom: 50px; }
+@media (min-width: 900px) { .nx-foot__grid { grid-template-columns: 25% 1fr; gap: 48px; } }
+.nx-foot__about h3 {
+  margin: 0 0 16px; font-size: 1.25rem; font-weight: 700;
+  line-height: 1.167; color: #fff;
 }
-.nx-col ul { display: flex; flex-direction: column; gap: 9px; }
-.nx-col a { font-size: .875rem; color: var(--nx-muted); transition: color .2s; }
-.nx-col a:hover { color: #fff; }
-.nx-col__soc { display: flex; gap: 8px; }
-.nx-col__soc a {
-  width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 9px; border: 1px solid var(--nx-line); background: var(--nx-fill);
-  font-size: .875rem; transition: border-color .2s, background .2s;
-}
-.nx-col__soc a:hover { border-color: rgba(188,146,253,.4); background: rgba(104,31,209,.14); }
+.nx-foot__about p { margin: 0; font-size: .875rem; line-height: 21px; color: rgba(255,255,255,.6); }
+.nx-foot__about .nx-lang { margin-top: 16px; }
+
+.nx-foot__links { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 16px; }
+.nx-foot__mod h3 { margin: 0 0 16px; font-size: 1.25rem; font-weight: 700; line-height: 1.167; color: #fff; }
+.nx-foot__mod ul { display: flex; flex-direction: column; gap: 20px; margin: 0; padding: 0; list-style: none; }
+.nx-foot__mod a { font-size: .8rem; line-height: 1.334; color: rgba(255,255,255,.6); transition: color .2s; }
+.nx-foot__mod a:hover { color: #fff; }
 
 /* Language control. A real button, not an anchor to nowhere: the label always
    reports the active locale and the menu is where new ones get added. */
@@ -928,10 +1071,23 @@ button { font-family: inherit; }
 .nx-lang__opt[aria-current="true"] { color: var(--nx-violet-2); }
 .nx-lang__opt i { font-size: .7rem; }
 
-.nx-copy {
-  margin-top: 2.5rem; padding-top: 20px; border-top: 1px solid var(--nx-line-2);
-  font-size: .75rem; color: #6b7280; text-align: center;
+.nx-foot__rule {
+  margin: 0 0 21px; border: 0; border-top: 2px solid #141422;
+  border-radius: 50px; opacity: .6;
 }
+.nx-foot__row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding-bottom: 40px;
+}
+.nx-foot__note { font-size: .8rem; line-height: 19.2px; color: #fff; }
+.nx-foot__soc { display: flex; gap: 8px; }
+.nx-foot__soc a {
+  width: 40px; height: 40px; padding: 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; color: #fff; font-size: 1.25rem;
+  transition: background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.nx-foot__soc a:hover { background-color: rgba(255,255,255,.08); }
 
 /* ─── Reveal ────────────────────────────────────────────────────────────────
    Pure keyframes rather than a JS-added class: a scripting failure must not
@@ -975,7 +1131,7 @@ button { font-family: inherit; }
   .nx-header__bar { height: 62px; }
   .nx-logo { width: 42px; height: 42px; }
   .nx-features__grid { grid-template-columns: 1fr; }
-  .nx-cols { grid-template-columns: 1fr; }
+  .nx-foot__links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nx-sec__title { font-size: 1.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1600,94 +1756,117 @@ button { font-family: inherit; }
     <h2 class="nx-sec__title">الأدوات والأتمتة</h2>
     <p class="nx-sec__sub">أتمت المهام الروتينية، واستفد من الأدوات الأساسية، ونسخ بيانات سيرفرك واستعدها بسهولة.</p>
 
-    <div class="nx-card nx-card--band">
-      <div class="nx-card__head">
-        <div class="nx-card__icon"><i class="fas fa-reply"></i></div>
-        <h3>الرد التلقائي</h3>
-      </div>
-      <p class="nx-card__desc">يرد تلقائيًا على كلمات أو عبارات محددة برسائل جاهزة.</p>
-      <div class="nx-card__mock">
-        <div class="nx-mock">
-          <div class="nx-mock__hd"><i class="fas fa-reply"></i><span>الرد التلقائي</span></div>
-          <div class="nx-mock__body">
-            <div style="font-size:.6875rem;font-weight:700;color:var(--nx-muted);">المُشغِّل</div>
-            <div class="nx-embed">
-              <div class="nx-embed__t" style="direction:ltr;text-align:left;">"server ip"</div>
-              <div class="nx-embed__d" style="direction:ltr;text-align:left;">play.kratos.gg</div>
+    <!-- Copy beside the mock rather than above it; the second and fourth cards
+         take the mirror layout so the two sides alternate down the band. -->
+    <div class="nx-card nx-card--band nx-card--split">
+      <div class="nx-card__row">
+        <div class="nx-card__copy">
+          <h3>الرد التلقائي</h3>
+          <p class="nx-card__desc">يرد تلقائيًا على كلمات أو عبارات محددة برسائل جاهزة.</p>
+        </div>
+        <div class="nx-card__mock">
+          <div class="nx-mock nx-mock--flow">
+            <div class="nx-mock__lbl"><i class="fas fa-reply"></i><span>الرد التلقائي</span></div>
+            <div class="nx-inset">
+              <span class="nx-inset__k">المُحفّز</span>
+              <span class="nx-inset__v">"ip السيرفر"</span>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span class="nx-pill nx-pill--dim">أدوات</span>
-              <span style="font-size:.75rem;color:var(--nx-muted);">يحتوي على أوامر عامة للمهام اليومية ومعلومات السيرفر.</span>
-            </div>
+            <div class="nx-arrow"><i class="fas fa-arrow-down"></i></div>
+            <div class="nx-out"><i class="fas fa-reply"></i><span style="direction:ltr;">play.kratos.gg</span></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="nx-card nx-card--band">
-      <div class="nx-card__head">
-        <div class="nx-card__icon"><i class="fas fa-user-clock"></i></div>
-        <h3>الأدوات</h3>
-      </div>
-      <p class="nx-card__desc">يحتوي على أوامر عامة للمهام اليومية ومعلومات السيرفر.</p>
-      <div class="nx-card__mock">
-        <div class="nx-mock">
-          <div class="nx-mock__hd"><i class="fas fa-user-clock"></i><span style="direction:ltr;text-align:left;">/user</span></div>
-          <div class="nx-mock__body">
-            <div class="nx-msg">
+    <div class="nx-card nx-card--band nx-card--split nx-card--split--flip">
+      <div class="nx-card__row">
+        <div class="nx-card__copy">
+          <h3>الأدوات</h3>
+          <p class="nx-card__desc">يحتوي على أوامر عامة للمهام اليومية ومعلومات السيرفر.</p>
+        </div>
+        <div class="nx-card__mock">
+          <div class="nx-mock nx-mock--flow">
+            <div class="nx-mock__lbl"><i class="fas fa-user-clock"></i><span style="direction:ltr;text-align:left;">/user</span></div>
+            <div class="nx-out">
               <span class="nx-av nx-av--lg"></span>
-              <div class="nx-msg__col">
-                <div class="nx-msg__hd"><b style="direction:ltr;text-align:left;">@fadi</b></div>
-                <div class="nx-chipset">
-                  <span class="nx-chip">عضو منذ يناير 2024</span>
-                  <span class="nx-chip">4 أدوار</span>
-                  <span class="nx-chip">انضم قبل 8 أشهر</span>
-                </div>
-              </div>
+              <span class="nx-out__who" style="direction:ltr;">@fadi</span>
+              <span class="nx-out__line">عضو منذ يناير 2024</span>
+            </div>
+            <div class="nx-pairs">
+              <span><i class="fas fa-shield-halved"></i>4 أدوار</span>
+              <span><i class="fas fa-calendar-days"></i>انضم قبل 8 أشهر</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="nx-card nx-card--band">
-      <div class="nx-card__head">
-        <div class="nx-card__icon"><i class="fas fa-database"></i></div>
-        <h3>النسخ الاحتياطي</h3>
-      </div>
-      <p class="nx-card__desc">ينشئ نسخًا من إعدادات السيرفر والأدوار والتكوينات لسهولة الاستعادة.</p>
-      <div class="nx-card__mock">
-        <div class="nx-mock">
-          <div class="nx-mock__hd"><i class="fas fa-database"></i><span>نسخة السيرفر</span></div>
-          <div class="nx-mock__body">
-            <div class="nx-chipset">
-              <span class="nx-pill nx-pill--dim">الإعدادات</span><span class="nx-pill nx-pill--dim">الأدوار</span>
-              <span class="nx-pill nx-pill--dim">القنوات</span><span class="nx-pill nx-pill--dim">الإيموجي</span>
-              <span class="nx-pill nx-pill--dim">الملصقات</span>
+    <div class="nx-card nx-card--band nx-card--split">
+      <div class="nx-card__row">
+        <div class="nx-card__copy">
+          <h3>النسخ الاحتياطي</h3>
+          <p class="nx-card__desc">ينشئ نسخًا من إعدادات السيرفر والأدوار والتكوينات لسهولة الاستعادة.</p>
+        </div>
+        <div class="nx-card__mock">
+          <div class="nx-mock nx-mock--flow">
+            <div class="nx-mock__lbl"><i class="fas fa-database"></i><span>نسخة السيرفر</span></div>
+            <div class="nx-inset">
+              <i class="fas fa-clock"></i>
+              <span class="nx-inset__v">آخر نسخة: قبل ساعتين</span>
+              <span class="nx-inset__act">استعادة</span>
             </div>
-            <div class="nx-row-i"><i class="fas fa-clock"></i><span class="nx-row-i__name">آخر نسخة: قبل ساعتين</span></div>
-            <div class="nx-row-i"><i class="fas fa-rotate-left"></i><span class="nx-row-i__name">استعادة</span><span class="nx-row-i__end"><span class="nx-pill">42 قناة · 18 دورًا · 96 إيموجي</span></span></div>
+            <div class="nx-tags">
+              <span>42 قناة</span><span>18 دورًا</span><span>96 إيموجي</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="nx-card nx-card--band">
-      <div class="nx-card__head">
-        <div class="nx-card__icon"><i class="fas fa-robot"></i></div>
-        <h3>الأتمتة</h3>
-      </div>
-      <p class="nx-card__desc">تتمتّم المهام والإجراءات في سيرفرك، فتُبسّط العمليات المتكررة.</p>
-      <div class="nx-card__mock">
-        <div class="nx-mock">
-          <div class="nx-mock__hd"><i class="fas fa-robot"></i><span>محفّزات الأتمتة</span></div>
-          <div class="nx-mock__body">
-            <div class="nx-row-i"><i class="fas fa-user-plus"></i><span class="nx-row-i__name">رسالة مُرسلة</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">نص</span></span></div>
-            <div class="nx-row-i"><i class="fas fa-face-smile"></i><span class="nx-row-i__name">تفاعل مُضاف</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">تفاعل</span></span></div>
-            <div class="nx-row-i"><i class="fas fa-user-tag"></i><span class="nx-row-i__name">دور مُضاف</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">عضو</span></span></div>
-            <div class="nx-row-i"><i class="fas fa-user-minus"></i><span class="nx-row-i__name">دور مُزال</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">عضو</span></span></div>
-            <div class="nx-row-i"><i class="fas fa-volume-high"></i><span class="nx-row-i__name">انضم لقناة صوتية</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">صوت</span></span></div>
-            <div class="nx-row-i"><i class="fas fa-volume-xmark"></i><span class="nx-row-i__name">غادر قناة صوتية</span><span class="nx-row-i__end"><span class="nx-pill nx-pill--dim">صوت</span></span></div>
+    <div class="nx-card nx-card--band nx-card--split nx-card--split--flip">
+      <div class="nx-card__row">
+        <div class="nx-card__copy">
+          <h3>الأتمتة</h3>
+          <p class="nx-card__desc">تتمتّم المهام والإجراءات في سيرفرك، فتُبسّط العمليات المتكررة.</p>
+          <ul class="nx-trg">
+            <li class="nx-trg__c">
+              <div class="nx-trg__h"><i class="fas fa-user-plus"></i><h4>رسالة مُرسلة</h4></div>
+              <p>تُنفَّذ فور وصول رسالة تحتوي كلمة أو نمطًا محددًا.</p>
+            </li>
+            <li class="nx-trg__c">
+              <div class="nx-trg__h"><i class="fas fa-face-smile"></i><h4>تفاعل مُضاف</h4></div>
+              <p>عند إضافة تفاعل معيّن إلى رسالة في قناة محددة.</p>
+            </li>
+            <li class="nx-trg__c">
+              <div class="nx-trg__h"><i class="fas fa-user-tag"></i><h4>دور مُضاف</h4></div>
+              <p>حين يُمنح عضو دورًا أو يُسحب منه دور.</p>
+            </li>
+            <li class="nx-trg__c">
+              <div class="nx-trg__h"><i class="fas fa-user-minus"></i><h4>دور مُزال</h4></div>
+              <p>فور سحب دور من عضو، لتنقية الصلاحيات آليًا.</p>
+            </li>
+            <li class="nx-trg__c">
+              <div class="nx-trg__h"><i class="fas fa-volume-high"></i><h4>انضم لقناة صوتية</h4></div>
+              <p>عند دخول عضو قناة صوتية مسجّلة في القائمة.</p>
+            </li>
+            <li class="nx-trg__c">
+              <div class="nx-trg__h"><i class="fas fa-volume-xmark"></i><h4>غادر قناة صوتية</h4></div>
+              <p>فور مغادرة أي عضو لقناة صوتية من القائمة.</p>
+            </li>
+          </ul>
+        </div>
+        <div class="nx-card__mock">
+          <div class="nx-orbit" aria-hidden="true">
+            <span class="nx-orbit__ring nx-orbit__ring--3"></span>
+            <span class="nx-orbit__ring nx-orbit__ring--2"></span>
+            <span class="nx-orbit__ring nx-orbit__ring--1"></span>
+            <span class="nx-orbit__dot" style="--r:50%;  --a:-72deg"><i></i></span>
+            <span class="nx-orbit__dot" style="--r:50%;  --a:26deg"><i></i></span>
+            <span class="nx-orbit__dot" style="--r:72%;  --a:-14deg"><i></i></span>
+            <span class="nx-orbit__dot" style="--r:72%;  --a:118deg"><i></i></span>
+            <span class="nx-orbit__dot" style="--r:100%; --a:66deg"><i></i></span>
+            <span class="nx-orbit__dot" style="--r:100%; --a:196deg"><i></i></span>
+            <span class="nx-orbit__hub"><i class="fas fa-robot"></i></span>
           </div>
         </div>
       </div>
@@ -1836,49 +2015,14 @@ button { font-family: inherit; }
 
   <div class="nx-wave" aria-hidden="true"></div>
 
-  <footer class="nx-wrap nx-footer">
-    <div class="nx-about">
-      <div class="nx-about__mark">
-        <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
-          <rect x="2" y="2" width="60" height="60" rx="16" fill="#12131c" stroke="#681fd1" stroke-width="3"/>
-          <path d="M20 22 L32 32 L20 42" fill="none" stroke="#a855f7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M33 42 L45 42" fill="none" stroke="#f5e625" stroke-width="5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div>
+  <footer class="nx-footer">
+   <div class="nx-wrap">
+    <div class="nx-foot__grid">
+      <!-- The language switch sits under the about paragraph, inside the same
+           narrow column — it is not a fourth link module. -->
+      <div class="nx-foot__about">
         <h3>عن كراتوس</h3>
         <p>كراتوس بوت ديسكورد قوي ومتعدد الاستخدامات، ليمنح سيرفرك تجربة متكاملة. بميزات مثل أدوات الإشراف وأوامر المرح والتكاملات المخصصة، يجعل كراتوس إدارة سيرفرك سهلة وجذابة. رفيقك الشامل لإدارة السيرفر.</p>
-      </div>
-    </div>
-
-    <div class="nx-cols">
-      <div class="nx-col">
-        <h4>تواصل معنا</h4>
-        <!-- Discord is the only channel with a real address. Add further
-             accounts here as they exist — a link to x.com or instagram.com
-             with no handle sends people to those sites' homepages. -->
-        <div class="nx-col__soc">
-          <a href="https://discord.gg/fadix9" target="_blank" rel="noopener" aria-label="Discord"><i class="fab fa-discord"></i></a>
-        </div>
-      </div>
-      <div class="nx-col">
-        <h4>الصفحات</h4>
-        <ul>
-          <li><a href="/home">لوحة التحكم</a></li>
-          <li><a href="/premium">بلس</a></li>
-          <li><a href="/commands">الأوامر</a></li>
-        </ul>
-      </div>
-      <div class="nx-col">
-        <h4>قانوني</h4>
-        <ul>
-          <li><a href="/terms">شروط الخدمة</a></li>
-          <li><a href="/privacy">سياسة الخصوصية</a></li>
-          <li><a href="/refund">سياسة الاسترجاع</a></li>
-        </ul>
-      </div>
-      <div class="nx-col">
-        <h4>اللغة</h4>
         <div class="nx-lang">
           <button class="nx-lang__btn" type="button" id="nxLangBtn"
                   aria-haspopup="true" aria-expanded="false" aria-controls="nxLangMenu"
@@ -1898,9 +2042,44 @@ button { font-family: inherit; }
           </div>
         </div>
       </div>
+
+      <div class="nx-foot__links">
+        <div class="nx-foot__mod">
+          <h3>تواصل معنا</h3>
+          <!-- Discord is the only channel with a real address. Add further
+               accounts here as they exist — a link to x.com or instagram.com
+               with no handle sends people to those sites' homepages. -->
+          <ul>
+            <li><a href="https://discord.gg/fadix9" target="_blank" rel="noopener">ديسكورد</a></li>
+          </ul>
+        </div>
+        <div class="nx-foot__mod">
+          <h3>الصفحات</h3>
+          <ul>
+            <li><a href="/home">لوحة التحكم</a></li>
+            <li><a href="/premium">بلس</a></li>
+            <li><a href="/commands">الأوامر</a></li>
+          </ul>
+        </div>
+        <div class="nx-foot__mod">
+          <h3>قانوني</h3>
+          <ul>
+            <li><a href="/terms">شروط الخدمة</a></li>
+            <li><a href="/privacy">سياسة الخصوصية</a></li>
+            <li><a href="/refund">سياسة الاسترجاع</a></li>
+          </ul>
+        </div>
+      </div>
     </div>
 
-    <div class="nx-copy">© كل الحقوق محفوظة</div>
+    <hr class="nx-foot__rule">
+    <div class="nx-foot__row">
+      <span class="nx-foot__note">© كل الحقوق محفوظة</span>
+      <div class="nx-foot__soc">
+        <a href="https://discord.gg/fadix9" target="_blank" rel="noopener" aria-label="ديسكورد"><i class="fab fa-discord"></i></a>
+      </div>
+    </div>
+   </div>
   </footer>
 </section>
 
