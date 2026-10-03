@@ -1,0 +1,38 @@
+<!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+<header class="nx-header" id="nxHeader">
+  <div class="nx-wrap">
+    <div class="nx-header__bar">
+      <div class="nx-header__left">
+        <a href="/" class="nx-logo" aria-label="Kratos System">
+          <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+            <defs>
+              <linearGradient id="nxlg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#8c5aff"/>
+                <stop offset="100%" stop-color="#681fd1"/>
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="60" height="60" rx="16" fill="#12131c" stroke="url(#nxlg)" stroke-width="3"/>
+            <path d="M20 22 L32 32 L20 42" fill="none" stroke="#a855f7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M33 42 L45 42" fill="none" stroke="#f5e625" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </a>
+        <nav class="nx-nav">
+          <a href="/commands"<%= locals.page === 'commands' ? ' aria-current="page"' : '' %>>الأوامر</a>
+          <a href="https://discord.gg/fadix9" target="_blank" rel="noopener">تواصل معنا</a>
+          <a href="/premium" class="nx-btn nx-btn-g"><i class="fas fa-crown"></i> بلس</a>
+          <span class="nx-sparks" aria-hidden="true">
+            <i class="nx-spark">✦</i><i class="nx-spark">✦</i><i class="nx-spark">✦</i>
+          </span>
+        </nav>
+      </div>
+      <div class="nx-header__right">
+        <button class="nx-lang" type="button"><i class="fas fa-globe"></i> العربية <i class="fas fa-chevron-down language-chevron"></i></button>
+        <% if (locals.user) { %>
+          <a href="/home" class="nx-btn nx-btn-p"><i class="fas fa-gauge-high nx-sico"></i> لوحة التحكم</a>
+        <% } else { %>
+          <a href="/auth/discord" class="nx-btn nx-btn-p"><i class="fas fa-right-to-bracket nx-sico"></i> دخول</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</header>

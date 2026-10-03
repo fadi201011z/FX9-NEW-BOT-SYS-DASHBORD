@@ -1,0 +1,220 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Kratos System — /commands
+   Structural copy of novax.gg/ar/commands, rebuilt from measurements rather
+   than copied markup. Every value below was read off that page with
+   getComputedStyle and its shipped stylesheets.
+
+   What the source actually is, once measured:
+     heading + subtitle over one rotated purple radial, then a ten-item tab
+     strip with a 4px white indicator, then a 226px inline search box, then one
+     collapsed accordion per command — 134 of them. The accordion is not a
+     category group: it is a single command, and it is the only thing on the
+     page that repeats.
+
+   The source sets all of this in Cairo; we set it in Tajawal, like the rest of
+   the site. The type scale, weights and colours are the source's.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cm-page { padding: 240px 0 0; position: relative; overflow-x: clip; }
+
+/* The heading block. The source hangs a 400px box, rotated 20deg, 200px above
+   the heading so the glow starts just under the fixed header and the heading
+   sits in its lower half. The gradient ends on the page colour, so the box has
+   no visible edge and its exact height does not matter. */
+.cm-head { position: relative; text-align: center; }
+.cm-head__glow {
+  position: absolute; z-index: 0; top: -200px; left: 50%;
+  width: min(1000px, 100%); height: 400px;
+  transform: translateX(-50%) rotate(20deg);
+  background: radial-gradient(rgba(104,31,209,.3), var(--nx-ink) 62%, var(--nx-ink));
+  pointer-events: none;
+}
+.cm-head h1 {
+  position: relative; margin: 0;
+  font-size: clamp(1.8rem, 1rem + 3.2vw, 2.7rem);
+  font-weight: 700; line-height: 1.8; color: #fff;
+}
+.cm-head p {
+  position: relative; margin: 8px 0 0;
+  font-size: 1.125rem; font-weight: 400; line-height: 1.334; color: var(--nx-muted);
+}
+
+/* ─── Tabs ─────────────────────────────────────────────────────────────────
+   Ten equal 90px slots on one line with a 1px rule underneath and a 4px white
+   indicator. The strip scrolls sideways rather than wrapping — the source uses
+   MUI's scrollableX, and at a phone width ten Arabic labels cannot fit. */
+.cm-tabs {
+  position: relative; display: flex; align-items: center;
+  margin-top: 80px; margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255,255,255,.13);
+  overflow-x: auto; scrollbar-width: none;
+}
+.cm-tabs::-webkit-scrollbar { display: none; }
+/* min-height is the source's, carried by its Tabs root rather than by the tab
+   itself: 48px is what makes every slot 48 tall even when a label is one line
+   of Arabic, and the strip 49 with its 1px rule underneath. */
+.cm-tab {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 90px; min-height: 48px; padding: 12px 16px;
+  border: 0; background: transparent; cursor: pointer;
+  font-family: inherit; font-size: .875rem; font-weight: 500; line-height: 1.25;
+  color: rgba(215,220,236,.55); white-space: nowrap;
+  transition: color .15s;
+}
+.cm-tab:hover { color: rgba(215,220,236,.7); }
+.cm-tab[aria-selected="true"] { color: #fff; }
+.cm-tab:focus-visible { outline: 2px solid var(--nx-glow); outline-offset: -4px; border-radius: 4px; }
+.cm-tabs__ink {
+  position: absolute; bottom: 0; left: 0;
+  width: var(--cm-ink-w, 90px); height: 4px;
+  border-radius: 10px 10px 0 0; background: #fff;
+  transform: translateX(var(--cm-ink-x, 0px));
+  transition: transform .3s cubic-bezier(.4,0,.2,1), width .3s cubic-bezier(.4,0,.2,1);
+  will-change: transform, width;
+}
+
+/* ─── Search ───────────────────────────────────────────────────────────────
+   The source's box is 226x37 — the adornment plus a default-width input — and
+   its 1px outline is drawn by MUI's notched overlay, so it never affects
+   layout. Reproduced with an inset shadow rather than a border to keep the
+   measured box, and 188px on the input to keep the total at 226. */
+.cm-search {
+  display: inline-flex; align-items: center;
+  margin-bottom: 24px; padding-left: 14px;
+  border-radius: 11px; background: #0e0e15; color: #fff;
+  font-size: .875rem; font-weight: 400; line-height: 1.4375em;
+  box-shadow: inset 0 0 0 1px #2f3139;
+  transition: box-shadow .1s ease-out;
+}
+.cm-search:hover { box-shadow: inset 0 0 0 1px var(--nx-purple); }
+.cm-search:focus-within { box-shadow: inset 0 0 0 2px var(--nx-purple); }
+.cm-search__ico {
+  display: flex; align-items: center; max-height: 2em; white-space: nowrap;
+  margin-right: 8px; color: #fff; flex: none;
+}
+.cm-search__ico svg { width: 16px; height: 16px; display: block; }
+.cm-search input {
+  width: 188px; min-width: 0;
+  padding: 8.5px 14px 8.5px 4px;
+  border: 0; background: transparent; outline: 0;
+  font: inherit; color: #fff;
+}
+.cm-search input::placeholder { color: rgba(255,255,255,.5); opacity: 1; }
+.cm-search input::-webkit-search-cancel-button { display: none; }
+
+/* ─── Command list ─────────────────────────────────────────────────────────
+   One collapsed accordion per command. The base is a 2px transparent border and
+   hover swaps it for 1px of #6c7084, so the card loses a pixel of content box
+   on hover exactly as the source's does; the indicator of the change is the
+   border colour, not the size. */
+.cm-list { padding-bottom: 80px; }
+.cm-acc {
+  position: relative; width: 100%;
+  background: #15151e; color: var(--nx-muted);
+  border: 2px solid transparent; border-radius: 11px;
+  margin: 5px 0 8px;
+  transition: border-color .3s cubic-bezier(.4,0,.2,1), margin .3s cubic-bezier(.4,0,.2,1);
+}
+.cm-acc:first-of-type { border-top-left-radius: 4px; border-top-right-radius: 4px; }
+.cm-acc:last-of-type  { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
+.cm-acc:hover, .cm-acc.is-open { border-width: 1px; border-color: #6c7084; }
+.cm-acc.is-open { margin: 16px 0; }
+
+.cm-acc__sum {
+  display: flex; align-items: center; justify-content: center; position: relative;
+  width: 100%; min-height: 48px; padding: 0 16px; margin: 0;
+  border: 0; background: transparent; cursor: pointer;
+  font: inherit; color: inherit; text-align: center;
+}
+.cm-acc.is-open .cm-acc__sum { min-height: 64px; }
+.cm-acc__sum:focus-visible { outline: 2px solid var(--nx-glow); outline-offset: -2px; }
+
+/* 10px of margin and 8px of padding, which is what makes the source's summary
+   100 tall over a 64px block. Its MUI base says 12px and its own rule overrides
+   it down to 10, so 10 is the measured value rather than the default. */
+.cm-acc__body {
+  display: flex; align-items: center; justify-content: space-between;
+  flex: 1 1 auto; padding: .5rem; margin: 10px 0; text-align: start;
+  transition: margin .15s cubic-bezier(.4,0,.2,1);
+}
+.cm-acc.is-open .cm-acc__body { margin: 20px 0; }
+
+/* Shrink-wraps rather than filling: the source's grid row is a flex item with
+   no grow, so the card's content hugs the start edge and the chevron stays
+   pinned to the far end. */
+/* The source resets the wrapping heading to nothing, so the button below it is
+   the only thing in the box. */
+.cm-acc__h { all: unset; }
+.cm-acc__row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; min-width: 0; }
+/* One block holding both lines, which is what puts the description under the
+   name instead of beside it. */
+.cm-acc__cell { display: block; min-width: 0; }
+/* Block-level flex rather than the source's inline-flex. An inline-level box
+   sits on the text baseline, so its line takes a strut and half-leading from
+   whatever line-height the page inherits — 8px of slack here where the source's
+   Cairo produced 3px, which is why the card came out 110 against their 104.
+   Neither number is a design decision; both are font metrics leaking into
+   layout. A block box has no baseline to negotiate, so the stack below is the
+   same on any face and the 3px is stated outright. */
+.cm-acc__head { display: flex; align-items: center; min-width: 0; }
+.cm-acc__ico { display: inline-flex; align-items: center; flex: none; color: var(--nx-muted); }
+.cm-acc__ico svg { width: 40px; height: 40px; display: block; }
+.cm-acc__name {
+  margin: 0 .3rem 0 0;
+  font-size: 1rem; font-weight: 600; line-height: 1.235; color: #fff;
+  /* Names are Latin inside an RTL row. Isolating keeps a hyphenated one
+     (setup-welcome) from being reordered by the bidi algorithm. */
+  unicode-bidi: isolate; direction: ltr;
+}
+.cm-acc__desc {
+  display: block; margin: 3px 0 0; min-width: 0;
+  font-size: .875rem; font-weight: 400; line-height: 1.5; color: #9494a3;
+}
+.cm-acc__caret {
+  display: flex; flex: none; color: #fff;
+  transform: rotate(0deg); transition: transform .15s cubic-bezier(.4,0,.2,1);
+}
+.cm-acc__caret svg { width: 24px; height: 24px; display: block; }
+.cm-acc.is-open .cm-acc__caret { transform: rotate(180deg); }
+
+/* The reveal. Height is animated from JS because there is no intrinsic value to
+   transition to; the inner block carries the source's padding, of which the
+   left inset is 10px rather than 24px — that asymmetry is the source's. */
+.cm-acc__panel {
+  height: 0; overflow: hidden; visibility: hidden;
+  transition: height .3s cubic-bezier(.4,0,.2,1);
+}
+.cm-acc.is-open .cm-acc__panel { visibility: visible; }
+.cm-acc__panel-in {
+  display: flex; width: 100%;
+  padding: 32px 24px 32px 10px; border-radius: 0 0 11px 11px; background: #0f0f19;
+}
+.cm-acc__ex { flex: 0 0 auto; min-width: 0; }
+.cm-acc__ex + .cm-acc__ex { margin-inline-start: 40px; }
+.cm-acc__ex-label { margin: 0; font-size: .875rem; font-weight: 400; line-height: 1.5; color: #fff; }
+.cm-acc__usage {
+  margin: 0; font-size: .75rem; font-weight: 500; line-height: 1.6;
+  white-space: pre-line; direction: ltr; text-align: end; color: #9494a3;
+}
+
+/* ─── Empty state ──────────────────────────────────────────────────────────
+   The source has nothing to show here: with a filter that matches no command it
+   renders an empty page under the tabs. A single line saying so is the one
+   honest addition on the page. */
+.cm-empty {
+  margin: 8px 0 0; padding: 40px 0; text-align: center;
+  font-size: .9375rem; font-weight: 400; color: var(--nx-muted);
+}
+.cm-empty[hidden] { display: none; }
+
+/* ─── Narrow ───────────────────────────────────────────────────────────────
+   The source's own numbers already survive a phone: the tab strip scrolls, and
+   the 90px minimum still holds at two labels. Only the heading needs help. */
+@media (max-width: 640px) {
+  .cm-page { padding-top: 150px; }
+  .cm-tabs { margin-top: 56px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-tabs__ink, .cm-acc, .cm-acc__body, .cm-acc__caret, .cm-acc__panel { transition: none !important; }
+}

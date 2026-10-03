@@ -1,0 +1,231 @@
+(function () {
+  'use strict';
+
+  /* Reveal is opt-in: html gets .nx-js only when scripting actually runs, so
+     the CSS keyframe fallback keeps the page visible if this never executes. */
+  document.documentElement.classList.add('nx-js');
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!reduce && 'IntersectionObserver' in window) {
+    var targets = document.querySelectorAll('.nx-rv');
+    if (targets.length) {
+      document.documentElement.classList.add('nx-anim');
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add('nx-in'); io.unobserve(e.target); }
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      targets.forEach(function (t) { io.observe(t); });
+    }
+  }
+
+  /* ── Starfield ───────────────────────────────────────────────────────────
+     Sparse white points drifting behind the hero. Constants come from
+     measuring the source's own canvas: ~34 particles over a 968x724 field,
+     pure white, peak alpha 176 (0.69 of 255), and a drift slow enough that
+     consecutive frames barely differ.
+
+     Three things this deliberately does not do: it stops when the hero
+     scrolls out of view, it stops when the tab is hidden, and under
+     prefers-reduced-motion it paints a single static frame and never
+     schedules another. */
+  (function starfield() {
+    var canvas = document.getElementById('nxSky');
+    if (!canvas || !canvas.getContext) return;
+
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Density is expressed per megapixel so the field thins out on phones
+    // instead of crowding, then rounded to a sane minimum.
+    var REF_AREA = 968 * 724;
+    var PER_MEGA = 34 / (REF_AREA / 1e6);
+
+    var stars = [];
+    var w = 0, h = 0, dpr = 1;
+    var raf = 0;
+    var visible = true;
+    var pageHidden = false;
+
+    function seed() {
+      var n = Math.max(14, Math.round((w * h / 1e6) * PER_MEGA));
+      stars = [];
+      for (var i = 0; i < n; i++) {
+        stars.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          // Slow, and biased upward-left so the drift reads as depth rather
+          // than a flat pan.
+          vx: -(0.02 + Math.random() * 0.05),
+          vy: -(0.01 + Math.random() * 0.035),
+          // Measured point size: the source's field carries ~21 lit pixels
+          // per particle, which is what a radius near 2px at this density
+          // produces. Anything smaller reads as sensor noise, not stars.
+          r: 1.5 + Math.random() * 1.2,
+          a: 0.22 + Math.random() * 0.47,
+          // Twinkle rate and phase, so no two pulse together.
+          tw: 0.0006 + Math.random() * 0.0016,
+          ph: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function resize() {
+      var rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = rect.width;
+      h = rect.height;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      seed();
+    }
+
+    function draw(t) {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#fff';
+      for (var i = 0; i < stars.length; i++) {
+        var s = stars[i];
+        // Ease each point back inside the field instead of popping it to the
+        // far edge, which would read as a flicker at the boundary.
+        if (s.x < -4) s.x += w + 8;
+        if (s.y < -4) s.y += h + 8;
+        if (s.x > w + 4) s.x -= w + 8;
+        if (s.y > h + 4) s.y -= h + 8;
+        s.x += s.vx;
+        s.y += s.vy;
+        var tw = 0.62 + 0.38 * Math.sin(t * s.tw + s.ph);
+        ctx.globalAlpha = s.a * tw;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function loop(t) {
+      draw(t);
+      raf = window.requestAnimationFrame(loop);
+    }
+
+    function start() {
+      if (raf || reduce || pageHidden || !visible) return;
+      raf = window.requestAnimationFrame(loop);
+    }
+    function stop() {
+      if (!raf) return;
+      window.cancelAnimationFrame(raf);
+      raf = 0;
+    }
+
+    resize();
+    // Paint immediately rather than waiting on the first animation frame.
+    // requestAnimationFrame does not fire in a background tab, so a page
+    // loaded in one would otherwise show an empty sky until it was focused.
+    draw(0);
+
+    // Under reduced motion the frame painted above is the whole effect.
+    if (!reduce) {
+      // A tab that is already hidden when the script runs will not get frames
+      // anyway; the visibilitychange handler below starts it when it returns.
+      pageHidden = document.hidden;
+      var rt = 0;
+      window.addEventListener('resize', function () {
+        window.clearTimeout(rt);
+        rt = window.setTimeout(function () { resize(); if (!raf) draw(0); }, 150);
+      });
+
+      document.addEventListener('visibilitychange', function () {
+        pageHidden = document.hidden;
+        if (pageHidden) stop(); else start();
+      });
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            visible = e.isIntersecting;
+            if (visible) start(); else stop();
+          });
+        }, { threshold: 0 }).observe(canvas);
+      }
+      start();
+    }
+  })();
+
+  /* Plugin marquee: each strip needs two identical sets so that translating
+     by one set plus the gap between them lands the second copy exactly where
+     the first began — the CSS gap sits between the last icon of the first copy
+     and the first of the second, so it has to be counted in the distance.
+     The icons are copied, not the track; cloning the track itself would nest a
+     second strip inside the first.
+     Without scripting the strips still render, just motionless. */
+  Array.prototype.forEach.call(document.querySelectorAll('.nx-plugins__track'), function (track) {
+    Array.prototype.forEach.call([].slice.call(track.children), function (icon) {
+      track.appendChild(icon.cloneNode(true));
+    });
+  });
+
+  /* Sparkle timing is randomised per load — three fixed durations would pulse
+     in lockstep and read as one blinking blob. */
+  Array.prototype.forEach.call(document.querySelectorAll('.nx-spark'), function (el) {
+    el.style.animationDuration = (2.8 + Math.random() * 0.4).toFixed(2) + 's';
+    el.style.fontSize = (7 + Math.random() * 4.6).toFixed(1) + 'px';
+  });
+
+  /* No scroll listener on the header any more. Two of them have been here: one
+     assigning header.style.boxShadow inline, which outranked the stylesheet and
+     was the reason .nx-header could not be made transparent; and one toggling
+     .is-stuck to frost the bar on scroll. Neither has a job now that the bar
+     is a glass pill that is glass at rest, measured on novax at
+     rgba(60,60,73,.3) over blur(10px) with no scroll state. */
+
+  /* ── Language menu ───────────────────────────────────────────────────────
+     Closes on outside click and on Escape; the button keeps aria-expanded in
+     step so the state is never announced wrong. */
+  (function langMenu() {
+    var btn = document.getElementById('nxLangBtn');
+    var menu = document.getElementById('nxLangMenu');
+    if (!btn || !menu) return;
+
+    function setOpen(open) {
+      menu.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setOpen(!menu.classList.contains('is-open'));
+    });
+    menu.addEventListener('click', function (e) { e.stopPropagation(); });
+    document.addEventListener('click', function () { setOpen(false); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+  })();
+
+  /* ── Maintenance mode ───────────────────────────────────────────────────
+     Kept from the previous build: the server owns this state, the page only
+     reflects it. */
+  var mc = document.createElement('div');
+  mc.className = 'nx-mnt';
+  mc.innerHTML = '<div class="nx-mnt__in"><i class="fas fa-wrench"></i>'
+    + '<span class="nx-mnt__t">وضع الصيانة مفعل</span>'
+    + '<span class="nx-mnt__msg"></span></div>';
+  document.body.prepend(mc);
+  var mMsg = mc.querySelector('.nx-mnt__msg');
+
+  fetch('/dev/maintenance/status', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (d && d.enabled) {
+        mc.classList.add('nx-show');
+        if (mMsg && d.message) mMsg.textContent = '— ' + d.message;
+      }
+    })
+    .catch(function () {});
+})();
+

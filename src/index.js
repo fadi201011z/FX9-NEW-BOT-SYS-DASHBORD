@@ -343,6 +343,7 @@ app.get('/', async (req, res) => {
   res.render('index', {
     layout: false,
     user: req.session?.user || null,
+    page: 'home',
     title: 'Kratos Dashboard — لوحة تحكم البوت',
     supportUrl: '#',
     error: errorMap[req.query.error] || null,

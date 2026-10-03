@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الأوامر — Kratos System</title>
+<meta name="description" content="جميع أوامر بوت كراتوس مقسّمة حسب القسم، مع شرح مختصر لكل أمر وطريقة استدعائه.">
+<meta name="theme-color" content="#090713">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="الأوامر — Kratos System">
+<meta property="og:description" content="جميع أوامر بوت كراتوس مقسّمة حسب القسم، مع شرح مختصر لكل أمر وطريقة استدعائه.">
+<meta property="og:site_name" content="Kratos System">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- Same stylesheet the landing page uses, so the header and the footer below
+     are literally the same rules rather than a lookalike copy of them. -->
+<link rel="stylesheet" href="/css/landing.css">
+<link rel="stylesheet" href="/css/commands.css">
+</head>
+<body>
+
+<%- include('partials/landing-head') %>
+
+<!-- ══ Commands ═════════════════════════════════════════════════════════════
+     Replica of novax.gg/ar/commands: heading over one rotated radial, a tab
+     strip with a sliding indicator, a search box, then one collapsed accordion
+     per command. Built from this bot's live command list, not a static copy. -->
+<section class="cm-page">
+  <div class="nx-wrap">
+    <div class="cm-head">
+      <span class="cm-head__glow" aria-hidden="true"></span>
+      <h1>جميع الأوامر</h1>
+      <p>هنا ستجد جميع الأوامر التي يوفرها بوت كراتوس</p>
+    </div>
+
+    <div class="cm-tabs" id="cmTabs" role="tablist" aria-label="أقسام الأوامر">
+      <% categories.forEach(function (cat, i) { %>
+      <button class="cm-tab" type="button" role="tab" id="cm-tab-<%= i %>"
+              aria-controls="cm-list" aria-selected="<%= i === 0 ? 'true' : 'false' %>"
+              tabindex="<%= i === 0 ? '0' : '-1' %>"
+              data-cat="<%= cat.id %>"><%= cat.label %></button>
+      <% }) %>
+      <span class="cm-tabs__ink" aria-hidden="true"></span>
+    </div>
+
+    <div class="cm-search">
+      <span class="cm-search__ico" aria-hidden="true">
+        <svg viewBox="0 0 18 18"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 7.75C1.5 4.29829 4.29829 1.5 7.75 1.5C11.2017 1.5 14 4.29829 14 7.75C14 11.2017 11.2017 14 7.75 14C4.29829 14 1.5 11.2017 1.5 7.75Z" fill="currentColor" fill-opacity=".4"/><path d="M11.6073 12.668L15.2196 16.2803C15.5125 16.5732 15.9874 16.5732 16.2803 16.2803C16.5732 15.9874 16.5732 15.5126 16.2803 15.2197L12.668 11.6073C12.3581 12.0018 12.0018 12.3581 11.6073 12.668Z" fill="currentColor"/></svg>
+      </span>
+      <input type="search" id="cmSearch" placeholder="بحث" aria-label="ابحث في الأوامر" autocomplete="off">
+    </div>
+
+    <div class="cm-list" id="cm-list" role="tabpanel" aria-labelledby="cm-tab-0">
+      <% commands.forEach(function (cmd, i) { %>
+      <%
+        // Search runs over the name, the description and the section name, so
+        // typing "نطق" or "ban" or "تذاكر" all find their command.
+        var haystack = [cmd.name, cmd.description, cmd.label].join(' ').toLowerCase();
+      %>
+      <div class="cm-acc" data-cat="<%= cmd.category %>" data-q="<%= haystack.replace(/"/g, '&quot;') %>">
+        <h3 class="cm-acc__h">
+          <button class="cm-acc__sum" type="button" id="cm-s-<%= i %>"
+                  aria-expanded="false" aria-controls="cm-p-<%= i %>">
+            <span class="cm-acc__body">
+              <span class="cm-acc__row">
+                <span class="cm-acc__cell">
+                  <span class="cm-acc__head">
+                    <span class="cm-acc__ico" aria-hidden="true">
+                      <svg viewBox="0 0 18 18"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 4.75C2 3.23079 3.23079 2 4.75 2H13.25C14.7692 2 16 3.23079 16 4.75V13.25C16 14.7692 14.7692 16 13.25 16H4.75C3.23079 16 2 14.7692 2 13.25V4.75Z" fill="currentColor" fill-opacity=".4"/><path fill-rule="evenodd" clip-rule="evenodd" d="M9 12.25C9 11.8358 9.33579 11.5 9.75 11.5H12.25C12.6642 11.5 13 11.8358 13 12.25C13 12.6642 12.6642 13 12.25 13H9.75C9.33579 13 9 12.6642 9 12.25Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.21967 6.71967C5.51256 6.42678 5.98744 6.42678 6.28033 6.71967L8.78033 9.21967C9.07322 9.51256 9.07322 9.98744 8.78033 10.2803L6.28033 12.7803C5.98744 13.0732 5.51256 13.0732 5.21967 12.7803C4.92678 12.4874 4.92678 12.0126 5.21967 11.7197L7.18934 9.75L5.21967 7.78033C4.92678 7.48744 4.92678 7.01256 5.21967 6.71967Z" fill="currentColor"/></svg>
+                    </span>
+                    <span class="cm-acc__name"><%= cmd.name %></span>
+                  </span>
+                  <span class="cm-acc__desc"><%= cmd.description || 'بدون وصف' %></span>
+                </span>
+              </span>
+            </span>
+            <span class="cm-acc__caret" aria-hidden="true">
+              <svg viewBox="0 0 18 18"><path d="M9,13.5c-.192,0-.384-.073-.53-.22L2.22,7.03c-.293-.293-.293-.768,0-1.061s.768-.293,1.061,0l5.72,5.72,5.72-5.72c.293-.293.768-.293,1.061,0s.293.768,0,1.061l-6.25,6.25c-.146.146-.338.22-.53.22Z" fill="currentColor"/></svg>
+            </span>
+          </button>
+        </h3>
+        <div class="cm-acc__panel" id="cm-p-<%= i %>" role="region" aria-labelledby="cm-s-<%= i %>">
+          <div class="cm-acc__panel-in">
+            <div class="cm-acc__ex">
+              <p class="cm-acc__ex-label">أمثلة</p>
+              <p class="cm-acc__usage">/<%= cmd.name %></p>
+            </div>
+            <div class="cm-acc__ex">
+              <p class="cm-acc__ex-label">القسم</p>
+              <p class="cm-acc__usage" style="direction:rtl;text-align:right"><%= cmd.label %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+
+    <p class="cm-empty" id="cmEmpty" hidden>لا توجد نتائج مطابقة.</p>
+  </div>
+</section>
+
+<%- include('partials/landing-foot') %>
+
+<script>
+/* ─── Tabs, search and the accordions ──────────────────────────────────────
+   Three behaviours, no dependency. The tab strip scrolls rather than wrapping,
+   so the selected tab is scrolled into view on the way in and on every change.
+
+   The panel has no intrinsic height to transition to, so opening measures the
+   inner block and opening animation runs from zero to that. On transitionend it
+   is released to auto, which keeps the panel correct if the text inside it
+   reflows — a window resize mid-open would otherwise clip it.
+
+   Filtering hides a card that is open by closing it first, so the indicator is
+   never left on a card the reader cannot see. */
+(function () {
+  'use strict';
+
+  var tabs = document.getElementById('cmTabs');
+  var ink = tabs.querySelector('.cm-tabs__ink');
+  var tablist = tabs.querySelectorAll('.cm-tab');
+  var panel = document.getElementById('cm-list');
+  var empty = document.getElementById('cmEmpty');
+  var search = document.getElementById('cmSearch');
+  var cards = Array.prototype.slice.call(panel.querySelectorAll('.cm-acc'));
+  var current = 'all';
+
+  function moveInk() {
+    var on = tabs.querySelector('.cm-tab[aria-selected="true"]');
+    if (!on) return;
+    ink.style.setProperty('--cm-ink-x', on.offsetLeft + 'px');
+    ink.style.setProperty('--cm-ink-w', on.offsetWidth + 'px');
+    /* The strip scrolls, and offsetLeft is measured from the strip's own left
+       edge, so the indicator follows it without any extra bookkeeping. */
+    if (on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+
+  function setOpen(card, open) {
+    var btn = card.querySelector('.cm-acc__sum');
+    var body = card.querySelector('.cm-acc__panel');
+    if (open) {
+      body.style.height = body.firstElementChild.offsetHeight + 'px';
+      card.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+    } else {
+      /* From its current pixel height, not from auto, or there is nothing to
+         animate back from. */
+      body.style.height = body.offsetHeight + 'px';
+      void body.offsetHeight;
+      body.style.height = '0px';
+      card.classList.remove('is-open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  panel.addEventListener('click', function (e) {
+    var btn = e.target.closest('.cm-acc__sum');
+    if (!btn) return;
+    var card = btn.closest('.cm-acc');
+    setOpen(card, btn.getAttribute('aria-expanded') !== 'true');
+  });
+
+  panel.addEventListener('transitionend', function (e) {
+    if (e.propertyName !== 'height') return;
+    var body = e.target;
+    if (body.parentElement.classList.contains('is-open')) body.style.height = 'auto';
+  });
+
+  function apply() {
+    var q = search.value.trim().toLowerCase();
+    var shown = 0;
+    cards.forEach(function (card) {
+      var hit = (current === 'all' || card.dataset.cat === current) &&
+                (!q || card.dataset.q.indexOf(q) !== -1);
+      card.hidden = !hit;
+      if (hit) {
+        shown++;
+      } else if (card.classList.contains('is-open')) {
+        setOpen(card, false);
+      }
+    });
+    panel.hidden = shown === 0;
+    empty.hidden = shown !== 0;
+  }
+
+  tabs.addEventListener('click', function (e) {
+    var tab = e.target.closest('.cm-tab');
+    if (!tab) return;
+    current = tab.dataset.cat;
+    Array.prototype.forEach.call(tablist, function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+    });
+    panel.setAttribute('aria-labelledby', tab.id);
+    moveInk();
+    apply();
+  });
+
+  /* Arrow keys along the strip, in reading order — left is forward in RTL. */
+  tabs.addEventListener('keydown', function (e) {
+    var step = e.key === 'ArrowLeft' ? 1 : e.key === 'ArrowRight' ? -1 : 0;
+    if (!step) return;
+    var i = Array.prototype.indexOf.call(tablist, tabs.querySelector('.cm-tab[aria-selected="true"]'));
+    if (i < 0) return;
+    var next = tablist[(i + step + tablist.length) % tablist.length];
+    next.focus();
+    next.click();
+    e.preventDefault();
+  });
+
+  search.addEventListener('input', apply);
+
+  /* Fonts land after first paint and the tab labels change width with them. */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveInk);
+  window.addEventListener('resize', moveInk);
+  moveInk();
+})();
+</script>
+
+<%- include('partials/landing-script') %>
+</body>
+</html>
