@@ -16,7 +16,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&amp;family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <style>
@@ -31,8 +31,9 @@
        hero; that file is not reproduced and nothing references it.
      - the footer wave is drawn with CSS radial gradients instead of their
        footer.svg.
-     - copy is Arabic. Poppins carries the Latin and numeral runs, Cairo picks
-       up the Arabic through the same stack, so no font swap is needed.
+     - copy is Arabic, set in IBM Plex Sans Arabic rather than the source's
+       stack. Latin and numerals still run in IBM Plex Sans: one superfamily,
+        cut for both scripts at once, so the two never disagree on shape.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -60,7 +61,7 @@
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
-  font-family: 'Poppins', 'Cairo', system-ui, sans-serif;
+  font-family: 'IBM Plex Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif;
   background: var(--nx-ink);
   color: #fff;
   line-height: 1.6;
@@ -82,16 +83,35 @@ button { font-family: inherit; }
 @media (max-width: 599.98px) { .nx-wrap { padding: 0 16px; } }
 
 /* ─── Buttons ──────────────────────────────────────────────────────────────
-   novax uses three distinct treatments. .nx-btn-p is the contained purple
+   novax uses four distinct treatments. .nx-btn-p is the contained purple
    with the inset bottom rim light; .nx-btn-o the dark outlined sibling;
-   .nx-btn-g the gold "Plus" button, which carries its own sweep. */
+   .nx-btn-d the dark outlined button that still carries the purple rim, which
+   is what the closing call to action uses; .nx-btn-g the gold "Plus" button,
+   which carries its own sweep.
+
+   Icons are laid out the way MUI lays them out, not with flex gap. Measured on
+   the source, every one of these buttons reports gap: normal and instead
+   carries a real icon box: a 30x30 flex span holding a 30x30 graphic on the
+   end of the label. The single exception is the header's own call to action,
+   which uses a 24x24 box on the start with margin-inline-start -4px and
+   margin-inline-end 8px. Reproducing the box rather than the glyph is the
+   point — the box is what sets the button's width. */
 .nx-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0;
   border: 1px solid transparent; border-radius: 11px; cursor: pointer;
   font-family: inherit; text-transform: capitalize; line-height: 1.75;
   white-space: nowrap; transition: .3s ease-out, background-color .2s, border-color .2s, transform .16s;
 }
 .nx-btn i { font-size: 1.05rem; }
+.nx-btn .nx-ico {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; font-size: 1.375rem; flex: none;
+}
+.nx-btn .nx-sico {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; font-size: 1.05rem; flex: none;
+  margin-inline-start: -4px; margin-inline-end: 8px;
+}
 
 .nx-btn-p {
   padding: 8px 22px; min-height: 48px; font-size: 15px; font-weight: 500;
@@ -109,6 +129,17 @@ button { font-family: inherit; }
   background: #181820; color: #fff; border-color: rgba(139,139,143,.26);
 }
 .nx-btn-o:hover { background: #201f2b; border-color: rgba(139,139,143,.5); }
+
+/* The closing CTA's button. Measured on novax: 144x46, padding 7px 21px,
+   background #181820, and a border plus inset rim that are still purple
+   (rgba(188,146,253,.59)) — so it reads as the dark outlined button wearing the
+   primary's rim rather than as a second contained button. */
+.nx-btn-d {
+  padding: 7px 21px; min-height: 46px; font-size: 15px; font-weight: 500;
+  background: #181820; color: #fff; border-color: var(--nx-rim);
+  box-shadow: inset 0 -4px 10px 0 var(--nx-rim);
+}
+.nx-btn-d:hover { background: #201f2b; border-color: #8b4dff; }
 
 /* Trailing arrow slides on hover, matching the source's endIcon timing. */
 .nx-btn i:last-child { transition: transform .2s cubic-bezier(.23,1,.32,1); }
@@ -190,6 +221,9 @@ button { font-family: inherit; }
 }
 .nx-nav a:hover { background: #36363d; }
 .nx-header__right { display: flex; align-items: center; gap: .55rem; }
+/* The header's call to action is the source's 112x42, not the hero's 146x48 —
+   padding 7px 21px rather than 8px 22px. Measured on novax. */
+.nx-header__right .nx-btn { padding: 7px 21px; min-height: 42px; }
 .nx-lang {
   display: flex; align-items: center; gap: .5rem;
   padding: 0; border: 0; background: transparent; cursor: pointer;
@@ -200,7 +234,7 @@ button { font-family: inherit; }
 .nx-lang i { font-size: .8rem; transition: transform .2s; }
 
 /* ─── Hero ────────────────────────────────────────────────────────────────
-   66px/700 Poppins with a background-clip shine, 18px #8890a1 body at
+   64.8px/700 IBM Plex Sans with a background-clip shine, 18px #8890a1 body at
    768px, 11px-radius buttons, two blurred radial orbs, and a wrapper that
    fades up from translateY(-10px). The planet SVG that sits behind this on
    novax is deliberately absent; the orbs replace it. */
@@ -265,8 +299,8 @@ button { font-family: inherit; }
    transparent text fill.
 
    Tracking is not. novax measures -0.03em here, and that value is tuned for
-   Poppins — a geometric Latin face whose letters carry real sidebearings and
-   can be pinched together. Arabic is cursive: the shaper emits joined glyph
+   the Latin face they set it in — a grotesque whose letters carry real
+   sidebearings and can be pinched together. Arabic is cursive: the shaper emits joined glyph
    clusters and letter-spacing is inserted between those clusters, so any
    non-zero value opens the connecting stroke. -1.98px between Arabic letters
    is not tight type, it is broken joins. Tracking therefore goes to normal on
@@ -275,7 +309,7 @@ button { font-family: inherit; }
    Latin runs keep their measured tracking. */
 .nx-hero h1 {
   margin: 0 0 22px;
-  font-size: clamp(2rem, 1rem + 5vw, 4.125rem);
+  font-size: clamp(2rem, 1rem + 5vw, 4.05rem);
   font-weight: 700; line-height: 1.25;
   letter-spacing: normal; word-spacing: -.05em;
   background: linear-gradient(to top, #555, #fff 42%, #fff);
@@ -980,25 +1014,44 @@ button { font-family: inherit; }
 @media (min-width: 900px) { .nx-plugins p { font-size: 1.125rem; } }
 
 /* ─── CTA + Footer ───────────────────────────────────────────────────────── */
-.nx-cta { position: relative; padding: 100px 0 0; overflow-x: hidden; }
-.nx-cta__top { padding-bottom: 2rem; }
+/* The source runs a -100px bottom margin on both the closing call to action and
+   the wave, which is what makes the footer ride up into the foot of the glow
+   instead of starting below it. Reproduced, including the clip that keeps the
+   bleed off the horizontal axis.
+
+   clip rather than hidden matters here: hidden on one axis forces the other to
+   auto, which turns this section into a scroll container and the negative
+   margins would be swallowed by it. The hidden line stays as the fallback for
+   anything that does not understand clip. */
+.nx-cta {
+  position: relative; padding: 100px 0 0;
+  overflow-x: hidden; overflow-x: clip;
+}
+.nx-cta__top { padding-bottom: 0; margin-bottom: -100px; }
 /* 56px / 1.3 = 72.8px and letter-spacing normal, all measured off novax's
    equivalent CTA heading. Their value here is already normal, so this one
-   matches the source exactly. */
+   matches the source exactly.
+
+   Their heading is a flat 56px, not a clamp — a clamp was reading 45.9px at a
+   1036px viewport, which made the whole band 66px shorter than theirs. Below
+   900px it steps down by hand instead, so the desktop value is the measured
+   one and not whatever the viewport happens to divide down to. */
 .nx-cta__title {
-  font-size: clamp(1.75rem, 4.4vw, 3.5rem); font-weight: 700; line-height: 1.3;
+  font-size: 2rem; font-weight: 700; line-height: 1.3;
   letter-spacing: normal; word-spacing: -.04em; color: #fff; text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: .85rem;
 }
+@media (min-width: 900px) { .nx-cta__title { font-size: 3.5rem; } }
 .nx-cta__title span {
   background: linear-gradient(to top, #555, #fff 42%, #fff);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
-.nx-cta__acts { display: flex; justify-content: center; margin-bottom: 3rem; }
+.nx-cta__acts { display: flex; justify-content: center; margin-bottom: 0; }
 
 /* the CSS redraw of novax's footer.svg — a purple wave, no planet */
 .nx-wave {
-  position: relative; height: 400px; overflow: hidden; pointer-events: none;
+  position: relative; height: 400px; margin-bottom: -100px;
+  overflow: hidden; pointer-events: none;
   -webkit-mask-image: radial-gradient(70% 100% at 50% 100%, #000 40%, transparent 100%);
   mask-image: radial-gradient(70% 100% at 50% 100%, #000 40%, transparent 100%);
 }
@@ -1030,7 +1083,7 @@ button { font-family: inherit; }
    and opacity .6 spanning the column, then the notice at 12.8px/19.2px on the
    left with 40px circular social buttons on the right. */
 .nx-footer { position: relative; z-index: 1; padding-top: 80px; }
-.nx-foot__grid { display: grid; grid-template-columns: 1fr; gap: 40px; padding-bottom: 50px; }
+.nx-foot__grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
 @media (min-width: 900px) { .nx-foot__grid { grid-template-columns: 25% 1fr; gap: 48px; } }
 .nx-foot__about h3 {
   margin: 0 0 16px; font-size: 1.25rem; font-weight: 700;
@@ -1074,13 +1127,22 @@ button { font-family: inherit; }
 .nx-lang__opt[aria-current="true"] { color: var(--nx-violet-2); }
 .nx-lang__opt i { font-size: .7rem; }
 
+/* The copyright block sits 100px clear of the about/link row. That clearance
+   is the source's own `padding: 100px 24px 0` on its closing container, and it
+   is deliberately generous: the source leaves roughly 145px of air under its
+   link modules before the hairline because its about column runs 145px taller
+   than they do. Reproducing the 100px and not the 21px this used to carry. */
 .nx-foot__rule {
-  margin: 0 0 21px; border: 0; border-top: 2px solid #141422;
+  margin: 100px 0 10px; border: 0; border-top: 2px solid #141422;
   border-radius: 50px; opacity: .6;
 }
+/* The row carries the source's 50px closing padding. On the source that lives
+   on the grid, but only because the copyright block is a child of it there;
+   here the copyright sits beside the grid, so the padding moves with it or the
+   50px would land above the rule instead of below the notice. */
 .nx-foot__row {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; padding-bottom: 40px;
+  gap: 16px; padding-bottom: 50px;
 }
 .nx-foot__note { font-size: .8rem; line-height: 19.2px; color: #fff; }
 .nx-foot__soc { display: flex; gap: 8px; }
@@ -1179,9 +1241,9 @@ button { font-family: inherit; }
       <div class="nx-header__right">
         <button class="nx-lang" type="button"><i class="fas fa-globe"></i> العربية <i class="fas fa-chevron-down language-chevron"></i></button>
         <% if (locals.user) { %>
-          <a href="/home" class="nx-btn nx-btn-p">لوحة التحكم</a>
+          <a href="/home" class="nx-btn nx-btn-p"><i class="fas fa-gauge-high nx-sico"></i> لوحة التحكم</a>
         <% } else { %>
-          <a href="/auth/discord" class="nx-btn nx-btn-p">دخول</a>
+          <a href="/auth/discord" class="nx-btn nx-btn-p"><i class="fas fa-right-to-bracket nx-sico"></i> دخول</a>
         <% } %>
       </div>
     </div>
@@ -1203,8 +1265,8 @@ button { font-family: inherit; }
     </div>
     <div class="nx-hero__row">
       <div class="nx-hero__acts">
-        <a href="/invite-dev" class="nx-btn nx-btn-p">دعوة البوت <i class="fas fa-arrow-left"></i></a>
-        <a href="#features" class="nx-btn nx-btn-o">استكشف المزيد <i class="fas fa-arrow-left"></i></a>
+        <a href="/invite-dev" class="nx-btn nx-btn-p">دعوة البوت <i class="fas fa-arrow-left nx-ico"></i></a>
+        <a href="#features" class="nx-btn nx-btn-o">استكشف المزيد <i class="fas fa-arrow-left nx-ico"></i></a>
       </div>
     </div>
   </div>
@@ -2012,7 +2074,7 @@ button { font-family: inherit; }
   <div class="nx-wrap nx-cta__top">
     <h2 class="nx-cta__title">جاهز لتجربة رائعة؟<br><span>ابدأ الآن!</span></h2>
     <div class="nx-cta__acts">
-      <a href="/invite-dev" class="nx-btn nx-btn-p">دعوة البوت <i class="fas fa-arrow-left"></i></a>
+      <a href="/invite-dev" class="nx-btn nx-btn-d">دعوة البوت <i class="fas fa-arrow-left nx-ico"></i></a>
     </div>
   </div>
 
