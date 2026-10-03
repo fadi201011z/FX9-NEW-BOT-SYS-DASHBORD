@@ -1,3 +1,5 @@
+@import url('/css/tokens.css');
+
 /* ═══════════════════════════════════════════════════════════════════════════
    Kratos System — landing page
    Full structural copy of novax.gg, rebuilt from measurements rather than
@@ -14,39 +16,10 @@
        face, so the two scripts can never disagree on shape. The type scale is
        the source's, not the brief's: the hero holds 64.8px and the closing CTA
        56px, where the brief asked for 36-48px.
+
+   The palette moved to css/tokens.css so the dashboard can share it. This file
+   no longer declares :root.
    ═══════════════════════════════════════════════════════════════════════════ */
-
-:root {
-  /* Palette. Everything the design brief names is a token here; the values it
-     does not name stay as sampled off novax.gg, because those were measured
-     rather than chosen. --nx-ink is the one deliberate departure: the brief
-     asks for #07050E/#090713 and the source's #08080f is the same near-black
-     purple, so the brief's second option wins. */
-  --nx-purple:   #681fd1;
-  --nx-purple-l: #8c5aff;
-  --nx-glow:     #a855f7;
-  --nx-rim:      rgba(188,146,253,.59);
-  --nx-gold:     #ffd93d;
-  --nx-ink:      #090713;
-  --nx-bar:      #12131c;
-  --nx-panel:    #0d0d14;
-  --nx-panel-2:  #14141d;
-  --nx-muted:    #8890a1;
-  /* Body copy and links: the brief's #9CA3AF / #A1A1AA pair, folded to one
-     value since nothing in the page needs them to differ. */
-  --nx-body:     #9ca3af;
-  --nx-line:     rgba(255,255,255,.08);
-  --nx-line-2:   rgba(255,255,255,.06);
-  --nx-fill:     rgba(255,255,255,.03);
-  --nx-violet-2: #d8b4fe;
-  --nx-green:    #57f287;
-  /* Glass: #120E24 at 80%, per the brief. */
-  --nx-glass:    rgba(18,14,36,.8);
-  --nx-glass-br: rgba(168,85,247,.2);
-
-  --nx-card-bg: linear-gradient(rgba(255,255,255,.035), rgba(255,255,255,0) 55%), var(--nx-panel);
-  --nx-panel-bg: linear-gradient(rgba(255,255,255,.03), rgba(255,255,255,0) 45%), var(--nx-panel);
-}
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }

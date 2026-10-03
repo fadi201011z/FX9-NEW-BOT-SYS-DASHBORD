@@ -37,7 +37,7 @@
   </div>
 
   <div class="stat-card glass" style="animation-delay:0.1s">
-    <div class="stat-icon" style="--stat-color:#5865f2">
+    <div class="stat-icon" style="--stat-color:#a855f7">
       <i class="fas fa-server"></i>
     </div>
     <div class="stat-info">
@@ -77,7 +77,7 @@
   </div>
 
   <div class="stat-card glass" style="animation-delay:0.3s">
-    <div class="stat-icon" style="--stat-color:#5865f2">
+    <div class="stat-icon" style="--stat-color:#a855f7">
       <i class="fas fa-globe"></i>
     </div>
     <div class="stat-info">
@@ -131,7 +131,7 @@
     </div>
     <div class="ticket-stats-grid">
       <div class="ticket-stat-item">
-        <div class="ticket-stat-icon" style="background:rgba(88,101,242,0.15);color:#5865f2">
+        <div class="ticket-stat-icon" style="background:rgba(168,85,247,0.15);color:#a855f7">
           <i class="fas fa-inbox"></i>
         </div>
         <div class="ticket-stat-info">
@@ -175,7 +175,7 @@
   <div class="card-header">
     <h3><i class="fas fa-chart-area" style="color:var(--primary)"></i> أداء الخادم</h3>
     <div class="chart-legend">
-      <span><span class="legend-dot" style="background:#5865f2"></span> زمن الاستجابة</span>
+      <span><span class="legend-dot" style="background:#a855f7"></span> زمن الاستجابة</span>
     </div>
   </div>
   <div class="chart-container">
@@ -265,9 +265,22 @@ function updateChart() {
     perfChart.update('none');
   } else {
     const ctx = document.getElementById('performanceChart').getContext('2d');
-    const isDark = getComputedStyle(document.body).getPropertyValue('--bg-primary').trim() === '#0a0b1e';
-    const textColor = getComputedStyle(document.body).getPropertyValue('--text').trim();
-    const mutedColor = getComputedStyle(document.body).getPropertyValue('--text-muted').trim();
+    /*
+     * Chart.js paints onto a canvas, so it cannot inherit a CSS rule and the
+     * tokens have to be read across.
+     *
+     * Two of the three locals that used to stand here were dead: `isDark`
+     * compared --bg-primary against the literal '#0a0b1e' and `textColor` was
+     * assigned and never read. When the palette moved off navy onto #090713 the
+     * comparison began failing on every load, silently, and nothing noticed
+     * because nothing consumed the result.
+     */
+    const chartStyle = getComputedStyle(document.body);
+    const mutedColor = chartStyle.getPropertyValue('--text-muted').trim();
+    const textColor = chartStyle.getPropertyValue('--text').trim();
+    // The site's frosted surface, at the alpha it is authored with, so the
+    // tooltip sits on the same glass as every other floating panel.
+    const glassColor = chartStyle.getPropertyValue('--nx-glass').trim();
 
     perfChart = new Chart(ctx, {
       type: 'line',
@@ -276,21 +289,21 @@ function updateChart() {
         datasets: [{
           label: 'زمن الاستجابة (ms)',
           data: historyData.map(d => d.value),
-          borderColor: '#5865f2',
+          borderColor: '#a855f7',
           backgroundColor: (ctx) => {
             const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
-            g.addColorStop(0, 'rgba(88,101,242,0.25)');
-            g.addColorStop(1, 'rgba(88,101,242,0)');
+            g.addColorStop(0, 'rgba(168,85,247,0.25)');
+            g.addColorStop(1, 'rgba(168,85,247,0)');
             return g;
           },
           fill: true,
           tension: 0.3,
           pointRadius: 3,
-          pointBackgroundColor: '#5865f2',
+          pointBackgroundColor: '#a855f7',
           pointBorderColor: 'transparent',
           pointHoverRadius: 6,
           pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: '#5865f2',
+          pointHoverBorderColor: '#a855f7',
           pointHoverBorderWidth: 3,
           borderWidth: 2,
         }]
@@ -301,10 +314,10 @@ function updateChart() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(10,11,30,0.9)',
-            titleColor: '#fff',
-            bodyColor: '#e8eaf0',
-            borderColor: 'rgba(255,255,255,0.08)',
+            backgroundColor: glassColor,
+            titleColor: textColor,
+            bodyColor: textColor,
+            borderColor: 'rgba(168,85,247,0.2)',
             borderWidth: 1,
             padding: 12,
             cornerRadius: 8,
@@ -370,7 +383,7 @@ setInterval(loadStatus, 15000);
     left: -60px;
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, rgba(88,101,242,0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
   }
@@ -379,20 +392,20 @@ setInterval(loadStatus, 15000);
     width: 64px;
     height: 64px;
     border-radius: 18px;
-    background: linear-gradient(135deg, rgba(88,101,242,0.2), rgba(88,101,242,0.05));
-    border: 1px solid rgba(88,101,242,0.2);
+    background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(168,85,247,0.05));
+    border: 1px solid rgba(168,85,247,0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.8rem;
-    color: #5865f2;
+    color: #a855f7;
     flex-shrink: 0;
   }
   .status-hero-pulse {
     position: absolute;
     top: -4px; left: -4px; right: -4px; bottom: -4px;
     border-radius: 22px;
-    border: 2px solid rgba(88,101,242,0.15);
+    border: 2px solid rgba(168,85,247,0.15);
     animation: heroPulse 2s ease-in-out infinite;
   }
   @keyframes heroPulse {

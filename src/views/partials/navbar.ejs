@@ -47,15 +47,23 @@
             <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
             <div>
               <strong><%= user.globalName || user.username %></strong>
-              <span><%= user.isOwner ? '👑 المالك' : ({ manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم فني' }[locals.guildRole || user.dashboardRole] || 'مدير') %></span>
+              <%# perms.roleLabel comes from ROLE_LABELS in capabilities.js -- the one
+                  place a role is named. The map this used to inline had admin and
+                  moderator the wrong way round, so the badge called an admin a
+                  developer and a moderator an admin. %>
+              <span><%= perms.isOwner ? '👑 ' + perms.roleLabel : perms.roleLabel %></span>
             </div>
           </div>
           <div class="user-menu-body">
-            <a href="/dashboard" class="<%= roleLevel >= 3 ? '' : 'locked' %>" data-req="3"><i class="fas fa-th-large"></i> لوحة التحكم<% if (roleLevel < 3) { %> <i class="fas fa-lock nav-lock"></i><% } %></a>
+            <a href="/dashboard" class="<%= perms.can.dashboard ? '' : 'locked' %>" data-req="3"><i class="fas fa-th-large"></i> لوحة التحكم<% if (!perms.can.dashboard) { %> <i class="fas fa-lock nav-lock"></i><% } %></a>
             <a href="/guilds"><i class="fas fa-server"></i> السيرفرات</a>
             <a href="/status"><i class="fas fa-heartbeat"></i> حالة البوت</a>
             <a href="/docs"><i class="fas fa-book"></i> التوثيق</a>
-            <a href="/dev" class="<%= roleLevel >= 4 ? '' : 'locked' %>" data-req="4"><i class="fas fa-code"></i> لوحة المطور<% if (roleLevel < 4) { %> <i class="fas fa-lock nav-lock"></i><% } %></a>
+            <%# Hidden outright for anyone who is not a bot developer. A lock here
+                invited people to ask for the role it stands for. %>
+            <% if (perms.can.dev) { %>
+              <a href="/dev"><i class="fas fa-code"></i> لوحة المطور</a>
+            <% } %>
             <hr>
             <a href="/auth/logout" class="danger"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
           </div>

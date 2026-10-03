@@ -11,13 +11,13 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Kratos Dashboard" />
   <meta property="og:locale" content="ar_AR" />
-  <meta name="theme-color" content="#a855f7" />
+  <meta name="theme-color" content="#090713" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="<%= typeof ogTitle !== 'undefined' ? ogTitle : title + ' — Kratos Dashboard' %>" />
   <meta name="twitter:description" content="<%= typeof ogDesc !== 'undefined' ? ogDesc : 'Kratos Dashboard — لوحة تحكم متقدمة لإدارة بوت KRS على ديسكورد' %>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
@@ -34,11 +34,55 @@
   <script src="/js/websocket.js"></script>
   <script src="/js/main.js"></script>
   <script>
-const autoRefreshPages = ['dashboard', 'guild-overview', 'tickets', 'voice', 'admins', 'logs', 'guilds', 'dev', 'status'];
-const currentPg = '<%= typeof currentPage !== "undefined" ? currentPage : "" %>';
-if (autoRefreshPages.includes(currentPg)) {
-  setInterval(() => location.reload(), 45000);
-}
+    /*
+     * Auto-refresh, guarded.
+     *
+     * This used to be an unconditional location.reload() on a 45 second timer, on
+     * nine pages. It threw
+     * away scroll position, any dropdown or modal the user had open, and
+     * whatever they had half-typed into a form -- a bot admin configuring a
+     * server could lose a paragraph of text because the clock ran out.
+     *
+     * Same intent, three guards:
+     *   1. refresh while the tab is in the background, so returning to it lands
+     *      on fresh data instead of stale data;
+     *   2. never refresh with a modal open or a field focused;
+     *   3. never refresh within a few seconds of the user having touched the
+     *      page -- a reload under a moving mouse is the same as (2).
+     * If any guard says busy, the refresh is deferred, not dropped: `due` stays
+     * set and the next visibilitychange or focus retries it.
+     */
+    const autoRefreshPages = ['dashboard', 'guild-overview', 'tickets', 'voice', 'admins', 'logs', 'guilds', 'dev', 'status'];
+    const currentPg = '<%= typeof currentPage !== "undefined" ? currentPage : "" %>';
+    if (autoRefreshPages.includes(currentPg)) {
+      const REFRESH_MS = 45000;
+      const SETTLE_MS = 8000;
+      let due = false;
+      let lastTouch = 0;
+
+      ['pointerdown', 'keydown', 'wheel', 'input'].forEach(function (ev) {
+        document.addEventListener(ev, function () { lastTouch = Date.now(); }, { passive: true, capture: true });
+      });
+
+      setInterval(function () { due = true; }, REFRESH_MS);
+
+      function refreshBlocked() {
+        if (document.visibilityState !== 'visible') return true;
+        if (document.querySelector('.modal.show, .pay-modal.show, .dropdown.show, .user-menu-dropdown.show, .notif-menu.show')) return true;
+        var el = document.activeElement;
+        if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return true;
+        return Date.now() - lastTouch < SETTLE_MS;
+      }
+
+      function flushRefresh() {
+        if (!due || refreshBlocked()) return;
+        due = false;
+        location.reload();
+      }
+
+      document.addEventListener('visibilitychange', flushRefresh);
+      window.addEventListener('focus', flushRefresh);
+    }
   </script>
 </body>
 </html>

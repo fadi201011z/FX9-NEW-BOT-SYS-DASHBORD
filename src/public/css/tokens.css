@@ -1,0 +1,68 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Kratos System — shared tokens
+
+   The single source of colour, radius and measurement for the whole site: the
+   public pages and the logged-in dashboard both build on this file, so a value
+   is defined once and cannot drift between the two.
+
+   It was lifted out of landing.css rather than copied from it. Two copies of a
+   palette is exactly how a site ends up with two identities, which is what
+   this replaces -- the dashboard used to be Discord blurple on #0a0b1e while
+   the pages in front of it were purple on #090713.
+
+   Why tokens and not the whole of landing.css: landing.css sets bare `body`,
+   `button`, `a` and `h1` rules for its own layout, so loading it on a
+   dashboard page would reach into the shell. The tokens carry no selectors.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Palette. Everything the design brief names is a token here; the values it
+     does not name stay as sampled off novax.gg, because those were measured
+     rather than chosen. --nx-ink is the one deliberate departure: the brief
+     asks for #07050E/#090713 and the source's #08080f is the same near-black
+     purple, so the brief's second option wins. */
+  --nx-purple:   #681fd1;
+  --nx-purple-l: #8c5aff;
+  --nx-glow:     #a855f7;
+  --nx-rim:      rgba(188,146,253,.59);
+  --nx-gold:     #ffd93d;
+  --nx-ink:      #090713;
+  --nx-bar:      #12131c;
+  --nx-panel:    #0d0d14;
+  --nx-panel-2:  #14141d;
+  --nx-muted:    #8890a1;
+  /* Body copy and links: the brief's #9CA3AF / #A1A1AA pair, folded to one
+     value since nothing in the page needs them to differ. */
+  --nx-body:     #9ca3af;
+  --nx-line:     rgba(255,255,255,.08);
+  --nx-line-2:   rgba(255,255,255,.06);
+  --nx-fill:     rgba(255,255,255,.03);
+  --nx-violet-2: #d8b4fe;
+  --nx-green:    #57f287;
+  /* Glass: #120E24 at 80%, per the brief. */
+  --nx-glass:    rgba(18,14,36,.8);
+  --nx-glass-br: rgba(168,85,247,.2);
+
+  --nx-card-bg: linear-gradient(rgba(255,255,255,.035), rgba(255,255,255,0) 55%), var(--nx-panel);
+  --nx-panel-bg: linear-gradient(rgba(255,255,255,.03), rgba(255,255,255,0) 45%), var(--nx-panel);
+
+  /* ── Measurements ──────────────────────────────────────────────────────
+     Used by the dashboard shell. landing.css does not read these; they live
+     here so both halves of the site measure the same corner and the same top
+     bar, and neither has to hard-code a number. */
+  --nx-font: 'Tajawal', system-ui, sans-serif;
+  --nx-mono: ui-monospace, 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+  /* The brief asks for 20-24px on cards and 8-12px on controls. */
+  --nx-radius-lg: 22px;
+  --nx-radius-md: 16px;
+  --nx-radius: 11px;
+  --nx-radius-sm: 8px;
+
+  --nx-shadow:    0 24px 70px rgba(0,0,0,.34);
+  --nx-shadow-sm: 0 8px 28px rgba(0,0,0,.24);
+  --nx-glow-shadow: 0 10px 34px rgba(168,85,247,.30);
+
+  --nx-shell-w:   262px;
+  --nx-topbar-h:  64px;
+}

@@ -146,7 +146,7 @@
   </div>
   <section class="hd-grid">
     <% if (roleLevel >= 3) { %>
-    <a href="/dashboard" class="hd-card" style="--hc:#6366f1">
+    <a href="/dashboard" class="hd-card" style="--hc:#a855f7">
       <div class="hd-card-ic" style="background:rgba(99,102,241,0.1);color:#818cf8"><i class="fas fa-th-large"></i></div>
       <h3>لوحة التحكم</h3>
       <p>نظرة عامة وإحصائيات شاملة لأداء سيرفرك.</p>
@@ -196,7 +196,7 @@
     <h2><i class="fas fa-link"></i> روابط سريعة</h2>
   </div>
   <section class="hd-links">
-    <a href="/status" class="hd-link"><i class="fas fa-heartbeat" style="color:#6366f1"></i><span>حالة البوت</span></a>
+    <a href="/status" class="hd-link"><i class="fas fa-heartbeat" style="color:#a855f7"></i><span>حالة البوت</span></a>
     <% if (roleLevel >= 4) { %><a href="/dev" class="hd-link"><i class="fas fa-code" style="color:#a78bfa"></i><span>المطور</span></a><% } %>
     <a href="/docs" class="hd-link"><i class="fas fa-book" style="color:#34d399"></i><span>التوثيق</span></a>
     <button onclick="toggleTheme()" class="hd-link"><i class="fas fa-palette" style="color:#fbbf24"></i><span>السمة</span></button>
@@ -207,13 +207,13 @@
 .hd{max-width:1120px;margin:0 auto;position:relative;padding-bottom:28px}
 .hd-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
 .hd-orb{position:absolute;border-radius:50%;filter:blur(140px)}
-.hd-o1{width:520px;height:520px;background:#6366f1;top:-260px;right:-120px;opacity:0.06}
-.hd-o2{width:420px;height:420px;background:#8b5cf6;bottom:-220px;left:-120px;opacity:0.05}
+.hd-o1{width:520px;height:520px;background:#a855f7;top:-260px;right:-120px;opacity:0.06}
+.hd-o2{width:420px;height:420px;background:#7c3aed;bottom:-220px;left:-120px;opacity:0.05}
 .hd-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 0%,transparent 75%);mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 0%,transparent 75%)}
 
 /* ── الترحيب ── */
 .hd-hero{position:relative;z-index:1;display:flex;align-items:center;gap:28px;padding:30px;border-radius:22px;background:rgba(14,14,30,0.55);border:1px solid rgba(255,255,255,0.07);box-shadow:0 24px 70px rgba(0,0,0,0.28);overflow:hidden}
-.hd-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#6366f1 40%,#8b5cf6 60%,transparent)}
+.hd-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#a855f7 40%,#7c3aed 60%,transparent)}
 .hd-avatar{position:relative;width:88px;height:88px;flex-shrink:0}
 .hd-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid rgba(99,102,241,0.35);box-shadow:0 0 0 7px rgba(99,102,241,0.08),0 14px 34px rgba(0,0,0,0.35)}
 .hd-status{position:absolute;bottom:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#57f287;border:4px solid #0e0e1e}
@@ -229,7 +229,7 @@
 .hd-pills i{font-size:0.65rem}
 .hd-cta{display:flex;gap:10px;flex-wrap:wrap}
 .hd-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:11px;font-family:'Tajawal', system-ui, sans-serif;font-size:0.82rem;font-weight:600;transition:all 0.25s}
-.hd-btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 6px 22px rgba(99,102,241,0.35)}
+.hd-btn-primary{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;box-shadow:0 6px 22px rgba(99,102,241,0.35)}
 .hd-btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(99,102,241,0.45);color:#fff}
 .hd-btn-ghost{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.08)}
 .hd-btn-ghost:hover{background:rgba(255,255,255,0.07);color:#fff;border-color:rgba(255,255,255,0.15)}
@@ -317,14 +317,14 @@
 /* ── بطاقات الأنظمة ── */
 .hd-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .hd-card{position:relative;padding:24px 20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:all 0.28s;overflow:hidden;display:block}
-.hd-card::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--hc,#6366f1),transparent);opacity:0;transition:opacity 0.3s}
+.hd-card::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--hc,#a855f7),transparent);opacity:0;transition:opacity 0.3s}
 .hd-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,0.1);background:rgba(16,16,36,0.72);box-shadow:0 18px 48px rgba(0,0,0,0.35),0 0 0 1px rgba(99,102,241,0.06)}
 .hd-card:hover::after{opacity:1}
 .hd-card-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;margin-bottom:15px;transition:all 0.3s}
 .hd-card:hover .hd-card-ic{transform:translateY(-2px) scale(1.05)}
 .hd-card h3{font-size:0.92rem;font-weight:700;margin:0 0 5px}
 .hd-card p{font-size:0.73rem;color:rgba(255,255,255,0.28);margin:0;line-height:1.8}
-.hd-card-go{position:absolute;top:20px;left:20px;font-size:0.8rem;color:var(--hc,#6366f1);opacity:0;transform:translateX(4px);transition:all 0.3s}
+.hd-card-go{position:absolute;top:20px;left:20px;font-size:0.8rem;color:var(--hc,#a855f7);opacity:0;transform:translateX(4px);transition:all 0.3s}
 .hd-card:hover .hd-card-go{opacity:1;transform:translateX(0)}
 
 /* ── الروابط ── */

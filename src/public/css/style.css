@@ -1,45 +1,61 @@
+@import url('/css/tokens.css');
+
 /* ═══════════════════════════════════════════════════════════════════════════
    Kratos Dashboard — Main Stylesheet
-   Dark/Light theme · Glassmorphism · RTL · Responsive
+   Dark/Light theme · RTL · Responsive
+
+   This file used to carry its own palette: Discord blurple #a855f7 on navy
+   #090713. The public pages in front of it were purple on #090713, so a user
+   logging in landed somewhere that looked like a different website.
+
+   The names below are kept -- 499 var() references across these rules read
+   them -- but every value now resolves through css/tokens.css, the file the
+   public pages use too. One palette for the whole site.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --bg-primary: #0a0b1e;
-  --bg-secondary: #12142d;
-  --bg-card: rgba(18, 20, 45, 0.7);
-  --bg-glass: rgba(255, 255, 255, 0.05);
-  --bg-glass-hover: rgba(255, 255, 255, 0.08);
-  --text: #e8eaf0;
-  --text-muted: #8e92a4;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-light: rgba(255, 255, 255, 0.04);
-  --primary: #5865f2;
-  --primary-hover: #4752c4;
-  --primary-glow: rgba(88, 101, 242, 0.3);
-  --success: #57f287;
-  --warning: #fee75c;
+  --bg-primary: var(--nx-ink);
+  --bg-secondary: var(--nx-panel);
+  /* The brief's card glass: #120E24 at 80%. */
+  --bg-card: var(--nx-glass);
+  --bg-glass: var(--nx-fill);
+  /* Hover used to be a lighter white; on the purple field a violet wash reads
+     as the same gesture without going grey. */
+  --bg-glass-hover: rgba(168,85,247,.10);
+  --text: #ece9f7;
+  --text-muted: var(--nx-body);
+  --border: var(--nx-line);
+  --border-light: var(--nx-line-2);
+  --primary: var(--nx-glow);
+  --primary-hover: #7c3aed;
+  --primary-glow: rgba(168,85,247,.30);
+  --success: var(--nx-green);
+  --warning: #ffd93d;
   --danger: #ed4245;
-  --info: #5865f2;
-  --sidebar-width: 260px;
-  --navbar-height: 64px;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --font: 'Tajawal', system-ui, sans-serif;
+  --info: var(--nx-glow);
+  --sidebar-width: var(--nx-shell-w);
+  --navbar-height: var(--nx-topbar-h);
+  /* The brief asks for 8-12px on controls and 20-24px on cards. */
+  --radius: var(--nx-radius);
+  --radius-sm: var(--nx-radius-sm);
+  --shadow: var(--nx-shadow-sm);
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --font: var(--nx-font);
 }
 
+/* Kept because the navbar still offers the toggle. The public pages are dark
+   only, so this is a light variant of the same purple, not a second brand. */
 [data-theme="light"] {
-  --bg-primary: #f0f2f5;
+  --bg-primary: #f6f4fc;
   --bg-secondary: #ffffff;
-  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card: rgba(255, 255, 255, 0.82);
   --bg-glass: rgba(255, 255, 255, 0.7);
-  --bg-glass-hover: rgba(255, 255, 255, 0.85);
-  --text: #1a1b2e;
-  --text-muted: #6b6f82;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-light: rgba(0, 0, 0, 0.04);
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --bg-glass-hover: rgba(124,58,237,.08);
+  --text: #1c1533;
+  --text-muted: #5c5470;
+  --border: rgba(124,58,237,.16);
+  --border-light: rgba(124,58,237,.10);
+  --shadow: 0 8px 32px rgba(60,40,120,0.10);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -378,7 +394,7 @@ a:hover { color: var(--primary-hover); }
 }
 .nav-link.active {
   color: var(--primary);
-  background: rgba(88, 101, 242, 0.1);
+  background: rgba(168, 85, 247, 0.1);
   border-right-color: var(--primary);
 }
 .nav-link.locked {
@@ -499,12 +515,12 @@ a:hover { color: var(--primary-hover); }
 
 .btn-discord {
   display: inline-flex; align-items: center; gap: 8px;
-  background: #5865f2; color: white; border: none;
+  background: #a855f7; color: white; border: none;
   padding: 10px 24px; border-radius: 24px;
   font-family: var(--font); font-size: 0.875rem; font-weight: 600;
   cursor: pointer; transition: all var(--transition);
 }
-.btn-discord:hover { background: #4752c4; color: white; transform: translateY(-1px); }
+.btn-discord:hover { background: #7c3aed; color: white; transform: translateY(-1px); }
 
 .btn-refresh {
   background: none; border: 1px solid var(--border);
@@ -836,8 +852,8 @@ a:hover { color: var(--primary-hover); }
 }
 .plan-card:hover { transform: translateY(-4px); }
 .plan-card.plan-standard {
-  border-color: rgba(88, 101, 242, 0.35);
-  background: linear-gradient(170deg, rgba(88, 101, 242, 0.08), var(--bg-glass-hover));
+  border-color: rgba(168, 85, 247, 0.35);
+  background: linear-gradient(170deg, rgba(168, 85, 247, 0.08), var(--bg-glass-hover));
 }
 .plan-card.plan-ultimate {
   border-color: rgba(245, 179, 1, 0.55);
@@ -863,8 +879,8 @@ a:hover { color: var(--primary-hover); }
   font-size: 1.4rem;
 }
 .plan-standard .plan-icon {
-  background: rgba(88, 101, 242, 0.15); color: #818cf8;
-  border: 1px solid rgba(88, 101, 242, 0.35);
+  background: rgba(168, 85, 247, 0.15); color: #818cf8;
+  border: 1px solid rgba(168, 85, 247, 0.35);
 }
 .plan-ultimate .plan-icon {
   background: linear-gradient(135deg, rgba(245, 179, 1, 0.2), rgba(217, 119, 6, 0.12));
@@ -895,10 +911,10 @@ a:hover { color: var(--primary-hover); }
   cursor: pointer; border: none; transition: all var(--transition);
 }
 .plan-standard .plan-btn {
-  background: rgba(88, 101, 242, 0.15); color: #818cf8;
-  border: 1px solid rgba(88, 101, 242, 0.3);
+  background: rgba(168, 85, 247, 0.15); color: #818cf8;
+  border: 1px solid rgba(168, 85, 247, 0.3);
 }
-.plan-standard .plan-btn:hover { background: rgba(88, 101, 242, 0.28); transform: translateY(-1px); }
+.plan-standard .plan-btn:hover { background: rgba(168, 85, 247, 0.28); transform: translateY(-1px); }
 .plan-ultimate .plan-btn {
   background: linear-gradient(135deg, #f5b301, #d97706); color: #141004;
   box-shadow: 0 4px 18px rgba(245, 179, 1, 0.35);
@@ -1088,8 +1104,8 @@ a:hover { color: var(--primary-hover); }
   border: 1px solid rgba(245, 179, 1, 0.3);
 }
 .gate-card.gate-code {
-  background: linear-gradient(170deg, rgba(88, 101, 242, 0.08), var(--bg-glass-hover));
-  border: 1px solid rgba(88, 101, 242, 0.25);
+  background: linear-gradient(170deg, rgba(168, 85, 247, 0.08), var(--bg-glass-hover));
+  border: 1px solid rgba(168, 85, 247, 0.25);
 }
 .gate-head { display: flex; align-items: center; gap: 12px; }
 .gate-icon {
@@ -1097,7 +1113,7 @@ a:hover { color: var(--primary-hover); }
   display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
 }
 .gate-plans .gate-icon { background: rgba(245, 179, 1, 0.14); color: #f5b301; border: 1px solid rgba(245, 179, 1, 0.35); }
-.gate-code .gate-icon { background: rgba(88, 101, 242, 0.14); color: #818cf8; border: 1px solid rgba(88, 101, 242, 0.35); }
+.gate-code .gate-icon { background: rgba(168, 85, 247, 0.14); color: #818cf8; border: 1px solid rgba(168, 85, 247, 0.35); }
 .gate-head h4 { font-size: 1.02rem; font-weight: 800; }
 .gate-head p { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
 .gate-plans-inner { display: flex; flex-direction: column; gap: 12px; }
@@ -1112,7 +1128,7 @@ a:hover { color: var(--primary-hover); }
   width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; font-size: 1rem;
 }
-.gate-plan-row.standard .p-icon { background: rgba(88, 101, 242, 0.14); color: #818cf8; }
+.gate-plan-row.standard .p-icon { background: rgba(168, 85, 247, 0.14); color: #818cf8; }
 .gate-plan-row.ultimate .p-icon { background: rgba(245, 179, 1, 0.16); color: #f5b301; border: 1px solid rgba(245, 179, 1, 0.4); }
 .gate-plan-row .p-info { flex: 1; }
 .gate-plan-row .p-info strong { display: block; font-size: 0.9rem; }
@@ -1138,7 +1154,7 @@ a:hover { color: var(--primary-hover); }
   padding: 13px 14px;
   border-radius: 10px;
   background: var(--bg-card);
-  border: 1px solid rgba(88, 101, 242, 0.35);
+  border: 1px solid rgba(168, 85, 247, 0.35);
   color: var(--text);
   font-family: var(--font);
   font-size: 1.05rem;
@@ -1151,16 +1167,16 @@ a:hover { color: var(--primary-hover); }
 .gate-code-inner .code-input:focus {
   outline: none;
   border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.18);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.18);
 }
 .gate-code-inner .code-btn {
   width: 100%; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
-  background: linear-gradient(135deg, #818cf8, #5865f2); color: #fff;
+  background: linear-gradient(135deg, #818cf8, #a855f7); color: #fff;
   font-family: var(--font); font-weight: 800; font-size: 0.9rem;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: all var(--transition);
 }
-.gate-code-inner .code-btn:hover { box-shadow: 0 6px 20px rgba(88, 101, 242, 0.4); transform: translateY(-1px); }
+.gate-code-inner .code-btn:hover { box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4); transform: translateY(-1px); }
 .gate-code-inner .code-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 .gate-code-note { font-size: 0.74rem; color: var(--text-muted); text-align: center; }
 
@@ -1351,7 +1367,7 @@ a:hover { color: var(--primary-hover); }
 .config-key { color: var(--text-muted); }
 .config-value {
   font-family: monospace; font-weight: 600;
-  background: rgba(88, 101, 242, 0.1); padding: 2px 8px; border-radius: 4px;
+  background: rgba(168, 85, 247, 0.1); padding: 2px 8px; border-radius: 4px;
 }
 .config-more { text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 8px; }
 
@@ -1376,7 +1392,7 @@ a:hover { color: var(--primary-hover); }
 .activity-info strong, .log-info strong { display: block; font-size: 0.85rem; }
 .activity-info span, .log-info span { font-size: 0.75rem; color: var(--text-muted); }
 .log-info small { display: block; font-size: 0.7rem; color: var(--text-muted); }
-.log-info code { font-size: 0.75rem; background: rgba(88, 101, 242, 0.15); padding: 1px 6px; border-radius: 3px; }
+.log-info code { font-size: 0.75rem; background: rgba(168, 85, 247, 0.15); padding: 1px 6px; border-radius: 3px; }
 .activity-time, .log-time { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; }
 
 .audit-item i { font-size: 1.1rem; color: var(--info); }
@@ -1481,7 +1497,7 @@ a:hover { color: var(--primary-hover); }
   font-size: 0.75rem; font-weight: 600;
 }
 .role-manager { background: rgba(237, 66, 69, 0.15); color: var(--danger); }
-.role-admin { background: rgba(88, 101, 242, 0.15); color: var(--primary); }
+.role-admin { background: rgba(168, 85, 247, 0.15); color: var(--primary); }
 .role-moderator { background: rgba(254, 231, 92, 0.15); color: var(--warning); }
 .role-support { background: rgba(87, 242, 135, 0.15); color: var(--success); }
 
@@ -1561,7 +1577,7 @@ a:hover { color: var(--primary-hover); }
 }
 .command-category {
   font-size: 0.7rem; padding: 2px 8px; border-radius: 4px;
-  background: rgba(88, 101, 242, 0.15); color: var(--primary); font-weight: 600;
+  background: rgba(168, 85, 247, 0.15); color: var(--primary); font-weight: 600;
 }
 .command-body h3 { font-size: 0.9rem; font-weight: 700; direction: ltr; text-align: left; }
 .command-body p { font-size: 0.78rem; color: var(--text-muted); margin: 4px 0; }
@@ -1588,7 +1604,7 @@ a:hover { color: var(--primary-hover); }
 .doc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .doc-category {
   font-size: 0.7rem; padding: 2px 8px; border-radius: 4px;
-  background: rgba(88, 101, 242, 0.15); color: var(--primary); font-weight: 600;
+  background: rgba(168, 85, 247, 0.15); color: var(--primary); font-weight: 600;
 }
 .doc-command {
   font-size: 0.85rem; font-weight: 700; direction: ltr;
@@ -1599,7 +1615,7 @@ a:hover { color: var(--primary-hover); }
 .doc-options strong { font-size: 0.78rem; display: block; margin-bottom: 4px; }
 .doc-options ul { list-style: none; }
 .doc-options li { font-size: 0.78rem; color: var(--text-muted); padding: 2px 0; }
-.doc-options code { font-size: 0.75rem; background: rgba(88, 101, 242, 0.15); padding: 1px 5px; border-radius: 3px; }
+.doc-options code { font-size: 0.75rem; background: rgba(168, 85, 247, 0.15); padding: 1px 5px; border-radius: 3px; }
 .required { color: var(--danger); }
 
 /* ═══ Backup ═══ */
@@ -1679,7 +1695,7 @@ a:hover { color: var(--primary-hover); }
 }
 .hero-badge {
   display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(88, 101, 242, 0.15); color: var(--primary);
+  background: rgba(168, 85, 247, 0.15); color: var(--primary);
   padding: 8px 20px; border-radius: 24px; font-size: 0.85rem; font-weight: 600;
   margin-bottom: 24px;
 }
@@ -1890,11 +1906,11 @@ a:hover { color: var(--primary-hover); }
   min-width: 24px; height: 24px; padding: 0 6px;
   border-radius: 12px; font-size: 0.7rem; font-weight: 700;
 }
-.badge-blue { background: rgba(88,101,242,0.15); color: var(--primary); }
+.badge-blue { background: rgba(168,85,247,0.15); color: var(--primary); }
 .badge-green { background: rgba(87,242,135,0.15); color: var(--success); }
 .badge-red { background: rgba(237,66,69,0.15); color: var(--danger); }
 .badge-yellow { background: rgba(254,231,92,0.15); color: var(--warning); }
-.badge-info { background: rgba(88,101,242,0.12); color: var(--primary); }
+.badge-info { background: rgba(168,85,247,0.12); color: var(--primary); }
 .badge-default { background: var(--bg-glass-hover); color: var(--text-muted); }
 
 /* ═══ Keyboard Shortcuts Hint ═══ */
@@ -1997,7 +2013,7 @@ a:hover { color: var(--primary-hover); }
 }
 .admin-role-card:hover { border-color: var(--primary); background: var(--bg-glass-hover); }
 .admin-role-card.active {
-  border-color: var(--primary); background: rgba(88,101,242,0.08);
+  border-color: var(--primary); background: rgba(168,85,247,0.08);
 }
 .admin-role-card .role-color-dot {
   width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
@@ -2035,7 +2051,7 @@ a:hover { color: var(--primary-hover); }
   padding: 3px 10px; border-radius: 999px; white-space: nowrap;
 }
 .admin-role-card.active .role-count {
-  color: #fff; background: rgba(88,101,242,0.35); border-color: var(--primary);
+  color: #fff; background: rgba(168,85,247,0.35); border-color: var(--primary);
 }
 .admin-role-card .role-level-badge { font-size: 0.68rem; padding: 2px 8px; margin-inline-start: 4px; }
 .role-search { position: relative; max-width: 320px; }
@@ -2233,3 +2249,98 @@ a:hover { color: var(--primary-hover); }
   color: var(--text-secondary);
 }
 .ticket-stats i { color: var(--accent); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SITE SURFACES
+
+   Declared last so it wins on order against the rules above, which were written
+   against a different palette and a flatter look.
+
+   The frosted card is the treatment the public pages already use on their about
+   card, copied value for value rather than approximated: rgba(18,14,36,.8) over
+   a blur(14px) with a rgba(168,85,247,.2) rim and an inset top highlight.
+   Sourcing it from tokens.css means this file cannot drift from landing.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.card,
+.stat-card,
+.guild-card,
+.plan-card,
+.doc-card,
+.command-card,
+.protection-card,
+.feature-card,
+.admin-role-card,
+.gate-card,
+.loading-card,
+.skeleton-card,
+.shortcuts-panel,
+.status-details {
+  background: var(--nx-glass);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--nx-glass-br);
+  border-radius: var(--nx-radius-lg);
+  box-shadow: var(--nx-shadow-sm), inset 0 1px 0 rgba(255,255,255,.045);
+}
+
+/* The brief puts card corners at 20-24px; the shared token is 22px. */
+
+/* .glass is the navbar, the sidebar and every dropdown. Held to 14px to match
+   the cards above -- the rule above it asked for 20px, which is past the brief's
+   12-16px band and reads as frosted rather than glass. */
+.glass {
+  background: var(--nx-glass);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--nx-glass-br);
+  border-radius: var(--nx-radius-lg);
+}
+
+.modal-box {
+  border-radius: var(--nx-radius-lg);
+  border: 1px solid var(--nx-glass-br);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+/* ── Your standing in this server ────────────────────────────────────────────
+   Added with the per-guild permission rework. The sidebar used to draw locks
+   from a level that had nothing to do with what the routes allowed, so it is
+   worth showing the number it now actually compares against. */
+.sidebar-role {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 14px 12px;
+  padding: 9px 12px;
+  border-radius: var(--nx-radius);
+  border: 1px solid var(--nx-glass-br);
+  background: var(--nx-fill);
+  font-size: .82rem;
+  color: var(--nx-muted);
+}
+
+.sidebar-role > i {
+  color: var(--nx-glow);
+  font-size: .85rem;
+}
+
+.sidebar-role-label {
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* The developer chip. A different colour from the role label on purpose: being
+   a bot developer grants the dev panel and nothing over this server, and the
+   badge should not read as a rank inside the guild. */
+.sidebar-role-dev {
+  margin-inline-start: auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--nx-violet-2);
+  background: rgba(168,85,247,.16);
+  border: 1px solid rgba(168,85,247,.34);
+}
