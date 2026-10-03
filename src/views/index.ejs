@@ -1082,7 +1082,32 @@ button { font-family: inherit; }
    The copyright is not centred text either: a 2px #141422 rule at radius 50px
    and opacity .6 spanning the column, then the notice at 12.8px/19.2px on the
    left with 40px circular social buttons on the right. */
-.nx-footer { position: relative; z-index: 1; padding-top: 80px; }
+/* The source frames its footer, and the frame is the whole trick: a 2px
+   transparent border carrying two background layers that are clipped
+   differently.
+
+   The upper layer is clipped to padding-box and runs from almost clear at the
+   top to #0f0f19 by 55%, which is what gives the footer a body colour one step
+   lighter than the page. The lower layer is clipped to border-box, so the only
+   part of it that is ever visible is the 2px band the transparent border leaves
+   free — a purple rim, brightest across the top and fading down the sides,
+   because its own gradient reaches transparent at 47% of the height.
+
+   Corners are 28px at the top and square at the bottom, where the footer meets
+   the end of the page. The 2px border also pulls the content 2px in, which is
+   what puts the grid at x26 rather than x24 — the source's measured inset. */
+.nx-footer {
+  position: relative; z-index: 1;
+  padding-top: 80px;
+  border: 2px solid transparent;
+  border-bottom: 0;
+  border-radius: 28px 28px 0 0;
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  background-image:
+    linear-gradient(rgba(247, 33, 33, .01) -52%, #0f0f19 55%),
+    linear-gradient(#681fd1 -9%, rgba(0, 0, 0, 0) 47%);
+}
 /* align-items: start is the source's own setting on this row and it matters:
    the link modules stop at their content height instead of being stretched down
    to the about column, which is roughly 155px taller and leaves that much air
