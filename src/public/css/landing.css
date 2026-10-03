@@ -176,33 +176,43 @@ button { font-family: inherit; }
 .nx-btn-g:hover i { transform: scale(1.15) rotate(15deg); }
 .nx-btn-g i { transition: transform .2s cubic-bezier(.23,1,.32,1); }
 
-/* ─── Header ────────────────────────────────────────────────────────────── */
-/* The bar is transparent in every scroll state, not just at the top: measured
-   on novax at scrollY 0 and 3000 both give background-color rgba(0,0,0,0),
-   background-image none, box-shadow none, border 0 and no backdrop-filter.
-   The starfield behind the hero reads straight through it. The 82px total is
-   8px of padding over the 66px bar, matching their 82px outer box and 66px
-   inner container. Nothing ever toggles the background, so the .3s
-   background transition that used to sit here was dead CSS. */
+/* ─── Header ──────────────────────────────────────────────────────────────
+   Two states, and the page is only ever in one of them:
+
+     at the top      the pill is not there. No fill, no frost, so the
+                     starfield and the hero read straight through it.
+     scrolled        the pill takes its glass back — rgba(60,60,73,.3) over
+                     blur(10px), the values measured on novax.
+
+   The switch is .is-stuck on .nx-header, toggled from
+   src/public/js/header-stuck.js. That file is deliberately separate: the
+   shared landing script partial must stay byte-identical to the block
+   audited out of index.ejs, so nothing about the header goes in there.
+
+   blur(0) rather than no filter at rest, because a transition from the
+   keyword `none` has nothing to interpolate from and would snap. */
 .nx-header {
   position: fixed; top: 0; left: 0; right: 0; z-index: 1001;
   width: 100%; padding-top: 16px; background: transparent; color: #fff;
 }
 /* The source is not a bar. Measured on novax, their <header> is an invisible
    full-width 82px wrapper and the visible part is a floating pill inside it:
-   920x66 at left 24 and top 16, border-radius 9999px, background
-   rgba(60,60,73,.3), backdrop-filter blur(10px), padding 0 24px, no border
-   and no shadow.
-
-   That pill is glass at rest, not only after a scroll, which is why there is
-   no .is-stuck state here any more. The wrapper stays transparent so the pill
-   is the only thing visible, and .nx-wrap already supplies their 24px inset —
-   max-width 1200 with 24px padding gives exactly 920 of pill at a 968
-   viewport. 16px of top padding over the 66px pill lands on the same 82px. */
+   920x66 at left 24 and top 16, border-radius 9999px, padding 0 24px, no
+   border and no shadow. .nx-wrap supplies their 24px inset — max-width 1200
+   with 24px padding gives exactly 920 of pill at a 968 viewport. 16px of top
+   padding over the 66px pill lands on the same 82px. */
 .nx-header__bar {
   display: flex; align-items: center; justify-content: space-between;
   gap: 1rem; height: 66px; width: 100%; padding-inline: 24px;
   border-radius: 9999px;
+  background: transparent;
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  transition: background-color .3s cubic-bezier(.4,0,.2,1),
+              -webkit-backdrop-filter .3s cubic-bezier(.4,0,.2,1),
+              backdrop-filter .3s cubic-bezier(.4,0,.2,1);
+}
+.nx-header.is-stuck .nx-header__bar {
   background: rgba(60,60,73,.3);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);

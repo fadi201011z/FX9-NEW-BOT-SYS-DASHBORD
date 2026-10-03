@@ -17,7 +17,11 @@
           </svg>
         </a>
         <nav class="nx-nav">
-          <a href="/commands"<%= locals.page === 'commands' ? ' aria-current="page"' : '' %>>الأوامر</a>
+          <%# The quotes must be template text, not output. EJS's escaped-output tag
+              escapes them, and an unquoted attribute value does not decode
+              entities, so emitting the whole attribute through it shipped
+              aria-current=&#34;page&#34; and the parsed value was never "page". %>
+          <a href="/commands"<% if (locals.page === 'commands') { %> aria-current="page"<% } %>>الأوامر</a>
           <a href="https://discord.gg/fadix9" target="_blank" rel="noopener">تواصل معنا</a>
           <a href="/premium" class="nx-btn nx-btn-g"><i class="fas fa-crown"></i> بلس</a>
           <span class="nx-sparks" aria-hidden="true">
@@ -36,3 +40,7 @@
     </div>
   </div>
 </header>
+<!-- Transparent at the top, glass once the page moves. Kept out of
+     partials/landing-script.ejs on purpose: that partial must stay
+     byte-identical to the block audited out of index.ejs. -->
+<script src="/js/header-stuck.js" defer></script>
