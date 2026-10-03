@@ -1,109 +1,101 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
-  <meta name="description" content="اشتراك البريميوم — الخاصية لا تزال قيد البرمجة والتطوير، انتظرونا!">
-  <meta property="og:title" content="Kratos Premium — قريباً" />
-  <meta property="og:description" content="اشتراك البريميوم — الخاصية لا تزال قيد البرمجة والتطوير، انتظرونا!" />
-  <meta property="og:url" content="https://kratos-botdashboard.onrender.com" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="theme-color" content="#a855f7" />
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <style>
-:root{--pb:#06060e;--pc:#0c0c1a;--pbo:rgba(255,255,255,0.04);--pt:rgba(255,255,255,0.87);--pm:rgba(255,255,255,0.3);--pg1:#f5b301;--pg2:#d97706;--pgg:rgba(245,179,1,0.18)}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Tajawal', system-ui, sans-serif;background:var(--pb);color:var(--pt);overflow-x:hidden;direction:rtl}
-a{text-decoration:none;color:inherit}
-.p-page{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:linear-gradient(180deg,#06060e 0%,#0a0a1e 40%,#06060e 100%)}
-.p-bg{position:absolute;inset:0;background:radial-gradient(ellipse 55% 40% at 30% 0%,rgba(245,179,1,0.07) 0%,transparent 60%),radial-gradient(ellipse 45% 35% at 70% 100%,rgba(217,119,6,0.05) 0%,transparent 55%)}
-.p-grid{position:absolute;inset:0;opacity:0.2;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:50px 50px}
-.p-orb{position:absolute;border-radius:50%;filter:blur(130px);animation:pDrift 16s ease-in-out infinite}
-.p-o1{width:380px;height:380px;background:var(--pg1);top:-120px;right:15%;opacity:0.07}
-.p-o2{width:280px;height:280px;background:var(--pg2);bottom:-100px;left:15%;opacity:0.05;animation-delay:-8s}
-@keyframes pDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(25px,-30px) scale(1.08)}}
-.p-wrap{position:relative;z-index:1;width:100%;max-width:560px;padding:24px}
-.p-card{background:rgba(12,12,26,0.7);backdrop-filter:blur(24px);border:1px solid var(--pbo);border-radius:18px;padding:44px 32px;text-align:center;position:relative;overflow:hidden}
-.p-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--pg1),var(--pg2),transparent);opacity:0.5}
-.p-icon{width:76px;height:76px;border-radius:50%;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:1.9rem;background:linear-gradient(135deg,rgba(245,179,1,0.12),rgba(217,119,6,0.14));border:1px solid rgba(245,179,1,0.2);position:relative;box-shadow:0 0 30px rgba(245,179,1,0.15)}
-.p-icon i{background:linear-gradient(135deg,var(--pg1),var(--pg2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.p-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(245,179,1,0.06);border:1px solid rgba(245,179,1,0.12);padding:4px 14px;border-radius:100px;font-size:0.68rem;font-weight:500;color:var(--pg1);margin-bottom:14px}
-.p-pill i{font-size:0.45rem;color:var(--pg1);animation:pBlink 1.4s ease-in-out infinite}
-@keyframes pBlink{0%,100%{opacity:1}50%{opacity:.25}}
-.p-card h1{font-size:1.5rem;font-weight:800;margin-bottom:6px}
-.p-card h1 em{font-style:normal;background:linear-gradient(135deg,var(--pg1),var(--pg2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.p-card .p-sub{font-size:0.9rem;color:var(--pm);line-height:1.8;margin-bottom:8px}
-.p-lang{display:flex;flex-direction:column;gap:12px;margin:22px 0 8px}
-.p-lang-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid var(--pbo);text-align:right}
-.p-lang-flag{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0}
-.p-lang-item strong{display:block;font-size:0.8rem;margin-bottom:2px}
-.p-lang-item span{font-size:0.82rem;color:var(--pm);line-height:1.7}
-.p-dev{display:flex;align-items:center;justify-content:center;gap:10px;margin:20px 0;padding:12px;border-radius:12px;background:rgba(245,179,1,0.05);border:1px dashed rgba(245,179,1,0.25)}
-.p-dev-bar{display:flex;gap:5px}
-.p-dev-bar span{width:8px;height:8px;border-radius:50%;background:var(--pg1);animation:pBounce 1.2s ease-in-out infinite}
-.p-dev-bar span:nth-child(2){animation-delay:.15s}
-.p-dev-bar span:nth-child(3){animation-delay:.3s}
-@keyframes pBounce{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}
-.p-dev-text{font-size:0.8rem;font-weight:600;color:var(--pt)}
-.p-actions{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-.p-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:10px;font-family:'Tajawal', system-ui, sans-serif;font-weight:600;font-size:0.85rem;transition:all 0.25s;cursor:pointer;border:none}
-.p-btn-g{background:linear-gradient(135deg,var(--pg1),var(--pg2));color:#141004;box-shadow:0 3px 14px var(--pgg);font-weight:700}
-.p-btn-g:hover{transform:translateY(-1px);box-shadow:0 6px 24px var(--pgg)}
-.p-btn-d{background:rgba(88,101,242,0.12);color:#818cf8;border:1px solid rgba(88,101,242,0.15)}
-.p-btn-d:hover{background:rgba(88,101,242,0.18)}
-.p-btn-s{background:rgba(255,255,255,0.04);color:var(--pm);border:1px solid var(--pbo)}
-.p-btn-s:hover{background:rgba(255,255,255,0.07);color:white}
-.p-foot{margin-top:18px;font-size:0.72rem;color:rgba(255,255,255,0.2)}
-@media(max-width:600px){.p-card{padding:32px 20px}.p-wrap{padding:16px}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>البريميوم — Kratos System</title>
+<meta name="description" content="اشتراك كراتوس البريميوم — قيد التطوير. انضم لديسكورد ليصلك إشعار فور إطلاقها.">
+<meta name="theme-color" content="#090713">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="البريميوم — Kratos System">
+<meta property="og:description" content="اشتراك كراتوس البريميوم — قيد التطوير. انضم لديسكورد ليصلك إشعار فور إطلاقها.">
+<meta property="og:site_name" content="Kratos System">
+<meta property="og:url" content="https://kratos-botdashboard.onrender.com/premium">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- landing.css first: it carries the header, the buttons, the footer wave and
+     the tokens, all of which this page uses as-is. premium.css only adds what is
+     unique to a single-card page. -->
+<link rel="stylesheet" href="/css/landing.css">
+<link rel="stylesheet" href="/css/premium.css">
 </head>
 <body>
-  <div class="p-page">
-    <div class="p-bg"></div>
-    <div class="p-grid"></div>
-    <div class="p-orb p-o1"></div>
-    <div class="p-orb p-o2"></div>
-    <div class="p-wrap">
-      <div class="p-card">
-        <div class="p-icon"><i class="fas fa-crown"></i></div>
-        <div class="p-pill"><i class="fas fa-circle"></i> قريباً — Coming Soon</div>
-        <h1>اشتراك <em>البريميوم</em></h1>
-        <p class="p-sub">الخاصية لا تزال في طريقها للبرمجة والتطوير — <strong style="color:#f5b301">انتظرونا</strong>، سنطلقها قريباً.</p>
 
-        <div class="p-lang">
-          <div class="p-lang-item">
-            <div class="p-lang-flag" style="background:rgba(52,211,153,0.1);color:#34d399"><i class="fas fa-globe"></i></div>
+<%- include('partials/landing-head') %>
+
+<!-- ══ Premium ═════════════════════════════════════════════════════════════
+     Still under development, and still saying so. What changed is that it now
+     looks like the rest of the site: the same header, the same starfield and
+     purple radial the commands page opens with, a glass card, the site's
+     buttons, the same wave and footer. The old page was a gold card on its own
+     near-black with a <style> block in the template, which read as a different
+     website that happened to share a domain. -->
+<section class="pr-page">
+  <canvas class="nx-sky" id="nxSky" aria-hidden="true"></canvas>
+
+  <div class="pr-head">
+    <span class="pr-glow" aria-hidden="true"></span>
+    <div class="nx-wrap">
+      <div class="pr-head__inner">
+        <span class="pr-pill"><i class="fas fa-circle" aria-hidden="true"></i> قيد التطوير — Under Development</span>
+        <h1>اشتراك <em>البريميوم</em></h1>
+        <p>الخاصية لا تزال في طريقها للبرمجة — انضم لديسكورد ليصلك إشعار فور إطلاقها.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pr-in">
+    <div class="nx-wrap">
+      <div class="pr-card">
+        <div class="pr-icon" aria-hidden="true"><i class="fas fa-crown"></i></div>
+        <p class="pr-title">قريباً</p>
+        <p class="pr-sub">نعمل على هذه الخاصية الآن، إن شاء الله تكون جاهزة <strong>قريباً</strong>.</p>
+
+        <div class="pr-notes">
+          <div class="pr-note">
+            <div class="pr-note__ico" aria-hidden="true"><i class="fas fa-globe"></i></div>
             <div>
-              <strong style="color:rgba(255,255,255,0.85)">العربية</strong>
+              <strong>العربية</strong>
               <span>هذه الخاصية لا تزال قيد البرمجة والتطوير، ونعمل عليها بجد لتصل إليك بأفضل شكل. انتظرونا قريباً!</span>
             </div>
           </div>
-          <div class="p-lang-item">
-            <div class="p-lang-flag" style="background:rgba(96,165,250,0.1);color:#60a5fa"><i class="fas fa-language"></i></div>
+          <div class="pr-note">
+            <div class="pr-note__ico pr-note__ico--en" aria-hidden="true"><i class="fas fa-language"></i></div>
             <div>
-              <strong style="color:rgba(255,255,255,0.85)">English</strong>
+              <strong>English</strong>
               <span>This feature is still under development. We're working hard to bring it to you — stay tuned!</span>
             </div>
           </div>
         </div>
 
-        <div class="p-dev">
-          <div class="p-dev-bar"><span></span><span></span><span></span></div>
-          <span class="p-dev-text">قيد التطوير — Under Development</span>
+        <div class="pr-bar">
+          <div class="pr-bar__track" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span class="pr-bar__text">قيد التطوير — Under Development</span>
         </div>
 
-        <div class="p-actions">
-          <a href="https://discord.gg/ENQut4HHKb" target="_blank" class="p-btn p-btn-d"><i class="fab fa-discord"></i> تواصل معنا عبر الديسكورد</a>
-          <a href="/" class="p-btn p-btn-s"><i class="fas fa-arrow-right"></i> العودة للصفحة الرئيسية</a>
-          <% if (locals.user) { %><a href="/home" class="p-btn p-btn-g"><i class="fas fa-th-large"></i> لوحة التحكم</a><% } %>
+        <div class="pr-acts">
+          <a href="https://discord.gg/fadix9" target="_blank" rel="noopener" class="nx-btn nx-btn-d"><i class="fab fa-discord"></i> تواصل معنا عبر الديسكورد</a>
+          <% if (locals.user) { %>
+          <a href="/home" class="nx-btn nx-btn-p"><i class="fas fa-gauge-high nx-sico"></i> لوحة التحكم</a>
+          <% } %>
+          <a href="/" class="nx-btn nx-btn-o"><i class="fas fa-arrow-right nx-ico"></i> العودة للصفحة الرئيسية</a>
         </div>
-        <div class="p-foot">Kratos Dashboard &copy; 2026 — Premium</div>
+
+        <p class="pr-foot">Kratos System &copy; 2026</p>
       </div>
     </div>
   </div>
+</section>
+
+<%- include('partials/landing-foot') %>
+
+<%- include('partials/landing-script') %>
 </body>
 </html>

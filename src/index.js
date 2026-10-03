@@ -287,8 +287,18 @@ app.get('/invite-dev', (req, res) => {
 });
 
 // ─── Premium (Under Development) ─────────────────────────────────────────
+// The page is still the same message it has always been — under development —
+// but it now wears the site's own design: the shared landing header, the
+// starfield and purple radial, a glass card, the site buttons, the shared wave
+// and footer. page: 'premium' is passed for the header's current-page marking,
+// the way /commands passes its own.
 app.get('/premium', (req, res) => {
-  res.status(200).render('premium', { layout: false, user: req.session?.user || null, title: 'البريميوم — قريباً' });
+  res.status(200).render('premium', {
+    layout: false,
+    page: 'premium',
+    user: req.session?.user || null,
+    title: 'البريميوم — قريباً',
+  });
 });
 
 // ─── Landing Page ────────────────────────────────────────────────────────
