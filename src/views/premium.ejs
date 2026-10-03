@@ -35,8 +35,11 @@
      looks like the rest of the site: the same header, the same starfield and
      purple radial the commands page opens with, a glass card, the site's
      buttons, the same wave and footer. The old page was a gold card on its own
-     near-black with a <style> block in the template, which read as a different
-     website that happened to share a domain. -->
+     near-black with an inline style block in the template, which read as a
+     different website that happened to share a domain. That is spelled out in
+     words rather than as a tag on purpose: a markup-looking token inside a
+     comment is invisible to the DOM but still greppable, which makes every
+     "no inline styles" check on this page report a tag that is not there. -->
 <section class="pr-page">
   <canvas class="nx-sky" id="nxSky" aria-hidden="true"></canvas>
 

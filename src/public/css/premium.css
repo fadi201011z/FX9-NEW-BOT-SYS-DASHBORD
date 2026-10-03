@@ -3,9 +3,10 @@
 
    Same page as before — still under development, same wording — restyled into the
    site. It used to be its own thing: a centred gold card on #06060e, its own
-   amber palette (--pg1 #f5b301), its own grid and orbs, a 560px shell and a
-   <style> block in the template. None of that vocabulary exists anywhere else on
-   the site, so the page read as a stranger that happened to share a domain.
+   amber palette (--pg1 #f5b301), its own grid and orbs, a 560px shell and an
+   inline style block in the template. None of that vocabulary exists anywhere
+   else on the site, so the page read as a stranger that happened to share a
+   domain.
 
    What replaced it is the site's own: landing.css for the header, the buttons,
    the wave and the footer; the starfield canvas and the rotated purple radial
