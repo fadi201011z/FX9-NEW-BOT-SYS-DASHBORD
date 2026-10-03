@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, requireRole, refreshSessionGuilds, ROLE_HIERARCHY } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, refreshSessionGuilds } from '../middleware/auth.js';
 import { getBotGuilds, getGuildInfo } from '../auth/discord.js';
 import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
@@ -42,7 +42,12 @@ async function getBotGuildIds(force) {
 
 const router = Router();
 
-router.get('/', isAuthenticated, requireRole('support'), async (req, res) => {
+// No role guard here on purpose. The filter below already answers "which
+// servers can this person actually do anything in" -- Discord admin rights or
+// an Admin record, per server. A global role check on top of that used to
+// return 403 to a Discord administrator who had never been appointed, and to
+// anyone with zero servers, who should see an empty list rather than a refusal.
+router.get('/', isAuthenticated, async (req, res) => {
   // حدّث قائمة السيرفرات من Discord ليعكس أي سيرفر جديد أُضيف له البوت
   await refreshSessionGuilds(req);
   const allGuilds = req.session.user.guilds || [];

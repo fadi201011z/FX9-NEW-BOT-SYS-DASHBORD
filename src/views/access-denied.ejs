@@ -69,6 +69,41 @@
             تسجيل الخروج
           </a>
         </div>
+      <% } else if (reason === 'developer') { %>
+        <div class="denied-status-badge">قسم المطورين</div>
+        <h1>لوحة المطور مخصّصة لمطوّري البوت</h1>
+        <p class="denied-subtitle">هذه المنطقة مشمولة بمطوّري نظام كرatos فقط — حسابك مسجّل الدخول، لكنه ليس ضمنهم</p>
+        <div class="denied-features">
+          <div class="denied-feature">
+            <div class="denied-feature-icon"><i class="fas fa-code"></i></div>
+            <div class="denied-feature-text">
+              <strong>لوحة المطور</strong>
+              <span>أدوات النظام والصيانة وإدارة المطوّرين — لا تُفتح لأحد غير المطوّرين</span>
+            </div>
+          </div>
+          <div class="denied-feature">
+            <div class="denied-feature-icon"><i class="fab fa-discord"></i></div>
+            <div class="denied-feature-text">
+              <strong>تحتاج وصول؟</strong>
+              <span>راسل مالك البوت — إضافة المطوّرين تتم من داخل لوحة المطور بواسطة المالك</span>
+            </div>
+          </div>
+        </div>
+        <div class="denied-divider"></div>
+        <div class="denied-actions">
+          <a href="/home" class="denied-btn denied-btn-primary">
+            <i class="fas fa-home"></i>
+            الصفحة الرئيسية
+          </a>
+          <a href="/guilds" class="denied-btn denied-btn-secondary">
+            <i class="fas fa-server"></i>
+            السيرفرات
+          </a>
+          <a href="/auth/logout" class="denied-btn denied-btn-outline">
+            <i class="fas fa-sign-out-alt"></i>
+            تسجيل الخروج
+          </a>
+        </div>
       <% } else { %>
         <div class="denied-status-badge">صلاحية محدودة</div>
         <h1>لا يمكنك الوصول إلى هنا</h1>

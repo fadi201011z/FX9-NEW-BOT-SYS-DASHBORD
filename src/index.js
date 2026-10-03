@@ -12,7 +12,6 @@ import expressLayouts from 'express-ejs-layouts';
 import config from './config.js';
 import { securityMiddleware } from './middleware/security.js';
 import { setupWebSocket } from './websocket/index.js';
-import { ROLE_HIERARCHY } from './middleware/auth.js';
 
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
@@ -108,32 +107,33 @@ app.set('layout', 'layouts/main');
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Auto-refresh dashboard role from DB ────────────────────────────────
-import { refreshDashboardRole, getGuildLevel, roleTokenFromLevel, getGuildPremium } from './middleware/auth.js';
+import { refreshDashboardRole, getGuildPremium } from './middleware/auth.js';
+import { resolve } from './services/capabilities.js';
 app.use(refreshDashboardRole);
 
-// ─── Inject role level into all views (per-guild inside guild pages) ────
-const GUILD_PATH_RE = /^\/(?:guilds|settings|commands|protection|premium|tickets|voice|logs|notifications|admins|backup)\/([^/]+)/;
+// ─── One permission object per request ──────────────────────────────────
+// The guards on the routes, the locks in the sidebar and the buttons in the
+// views all read this one object, so they cannot answer differently.
+const GUILD_PATH_RE = /^\/(?:guilds|settings|commands|protection|premium|tickets|voice|logs|notifications|admins|backup|overview)\/([^/]+)/;
 app.use(async (req, res, next) => {
   const user = req.session?.user;
-  let level = user ? (ROLE_HIERARCHY[user.dashboardRole] ?? -1) : -1;
-  if (user?.isOwner) {
-    level = 4;
-  } else {
-    const m = req.path.match(GUILD_PATH_RE);
-    if (m && m[1] && user) {
-      const guildLevel = await getGuildLevel(user, m[1]);
-      if (guildLevel >= 0) level = guildLevel;
-    }
-  }
-  res.locals.roleLevel = level;
-  res.locals.guildRole = roleTokenFromLevel(level);
+  const m = req.path.match(GUILD_PATH_RE);
+  const guildId = m && m[1] ? m[1] : null;
+
+  const perms = await resolve(user, guildId);
+  req.perms = perms;
+  res.locals.perms = perms;
+  res.locals.isDeveloper = perms.isDeveloper;
+  // Still consumed by the older templates. Same number, now per-guild by
+  // construction instead of by a second, disagreeing calculation.
+  res.locals.roleLevel = perms.level;
+  res.locals.guildRole = perms.role;
 
   // ── حالة البريميوم للسيرفر الحالي (للنقطة في القائمة الجانبية) ──
   res.locals.premiumStatus = { active: false, planId: null, planLabel: null };
-  const gp = req.path.match(GUILD_PATH_RE);
-  if (gp && gp[1]) {
+  if (guildId) {
     try {
-      res.locals.premiumStatus = await getGuildPremium(gp[1]);
+      res.locals.premiumStatus = await getGuildPremium(guildId);
     } catch {}
   }
   next();
@@ -345,9 +345,8 @@ app.get('/', async (req, res) => {
   }
 
   if (req.session?.user) {
-    const role = req.session.user.dashboardRole || 'member';
-    const level = ROLE_HIERARCHY[role] ?? -1;
-    return res.redirect(level >= 3 ? '/dashboard' : '/home');
+    const perms = await resolve(req.session.user, null);
+    return res.redirect(perms.can.dashboard ? '/dashboard' : '/home');
   }
   const errorMap = {
     auth_failed: 'auth_failed',

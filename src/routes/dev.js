@@ -1,13 +1,32 @@
 import { Router } from 'express';
-import { isAuthenticated, isOwner } from '../middleware/auth.js';
-import { getAllGuildConfig, getGuildAdmins, getActivity, getAuditLogs } from '../database.js';
+import { isAuthenticated, isOwnerOrDeveloper } from '../middleware/auth.js';
+import { getAllGuildConfig, getGuildAdmins, getActivity, getAuditLogs, logActivity } from '../database.js';
 import { getBotGuilds } from '../auth/discord.js';
 import Maintenance from '../models/Maintenance.js';
+import BotDeveloper from '../models/BotDeveloper.js';
+import { invalidate } from '../services/capabilities.js';
 import config from '../config.js';
 import axios from 'axios';
 import { botFetch, botPost } from '../services/botApi.js';
 
 const router = Router();
+
+// A Discord user id is 17-20 digits. Checked before it reaches the database so
+// a typo cannot create an unreachable row nobody can ever remove.
+const DISCORD_ID_RE = /^\d{17,20}$/;
+
+// Result of the developer add/remove forms, mapped back to a sentence. Codes
+// only travel in the URL -- the text is looked up here, so nothing a caller
+// sends ends up on the page as-is.
+const DEV_OK = { added: 'تمت إضافة المطور بنجاح', removed: 'تمت إزالة المطور' };
+const DEV_ERR = {
+  'bad-id': 'Discord ID غير صحيح — يجب أن يكون 17-20 رقماً',
+  'self': 'هذا الحساب هو المالك ويملك الصلاحية بالفعل',
+  'exists': 'هذا الشخص مطور بالفعل',
+  'missing': 'هذا الشخص ليس مطوراً',
+  'db': 'تعذّر تنفيذ العملية، حاول مرة أخرى',
+  'denied': 'إضافة أو إزالة المطورين متاحة للمالك فقط',
+};
 
 // ── Rich bot guilds (bot API -> Discord API fallback) ────────────────────
 async function getRichBotGuilds() {
@@ -25,7 +44,7 @@ async function getRichBotGuilds() {
   return [];
 }
 
-router.get('/', isAuthenticated, isOwner, async (req, res) => {
+router.get('/', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   const botGuilds = await getRichBotGuilds();
 
   const guildsData = [];
@@ -64,6 +83,18 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
 
   const botInviteUrl = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(config.discord.clientId || '')}&permissions=8&scope=bot`;
 
+  let developers = [];
+  try {
+    developers = await BotDeveloper.find({}).sort({ addedAt: -1 }).lean();
+  } catch {}
+
+  let notice = null;
+  if (req.query.ok && DEV_OK[req.query.ok]) {
+    notice = { kind: 'ok', text: DEV_OK[req.query.ok] };
+  } else if (req.query.err && DEV_ERR[req.query.err]) {
+    notice = { kind: 'err', text: DEV_ERR[req.query.err] };
+  }
+
   res.render('dev', {
     user: req.session.user,
     botGuilds: guildsData,
@@ -71,11 +102,14 @@ router.get('/', isAuthenticated, isOwner, async (req, res) => {
     ownerId: config.discord.ownerId,
     botInviteUrl,
     maintenance,
+    developers,
+    notice,
+    isOwner: req.perms?.isOwner || false,
     title: 'لوحة المطور',
   });
 });
 
-router.get('/guild/:guildId', isAuthenticated, isOwner, async (req, res) => {
+router.get('/guild/:guildId', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   const { guildId } = req.params;
   const config_data = await getAllGuildConfig(guildId);
   const admins = await getGuildAdmins(guildId);
@@ -91,7 +125,7 @@ router.get('/guild/:guildId', isAuthenticated, isOwner, async (req, res) => {
 });
 
 // ── Server invite link (join a connected server) ────────────────────────
-router.get('/guild-invite/:guildId', isAuthenticated, isOwner, async (req, res) => {
+router.get('/guild-invite/:guildId', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   try {
     const r = await botFetch(`${config.botApiUrl}/api/guilds/${req.params.guildId}/invite`, {
       signal: AbortSignal.timeout(7000),
@@ -123,6 +157,13 @@ async function syncMaintenanceToBot(action, channelId, changelog) {
   } catch {}
 }
 
+// Public on purpose, and the only unguarded route in this file.
+//
+// This is what the maintenance page shows every visitor, so its payload (the
+// message, the countdown, the changelog) is public by design. It cannot move
+// out of /dev without breaking `partials/landing-script.ejs`, which polls this
+// exact URL from every public page and is byte-frozen. Every route that
+// *changes* something is guarded below.
 router.get('/maintenance/status', async (req, res) => {
   try {
     const doc = await Maintenance.findOne();
@@ -137,7 +178,7 @@ router.get('/maintenance/status', async (req, res) => {
   } catch { res.json({ enabled: false }); }
 });
 
-router.get('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
+router.get('/maintenance/start', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   try {
     const doc = await getOrCreateMaintenance();
     doc.enabled = true; doc.changelog = { botUpdates: '', siteUpdates: '' }; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
@@ -147,7 +188,7 @@ router.get('/maintenance/start', isAuthenticated, isOwner, async (req, res) => {
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
 
-router.post('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
+router.post('/maintenance/stop', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   try {
     const doc = await getOrCreateMaintenance();
     const botUpdates = (req.body.botUpdates || '').trim();
@@ -164,7 +205,7 @@ router.post('/maintenance/stop', isAuthenticated, isOwner, async (req, res) => {
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
 
-router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
+router.post('/maintenance/save', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   try {
     const rawMinutes = parseInt(req.body.minutes || '0');
     const message = (req.body.message || '').trim();
@@ -181,6 +222,66 @@ router.post('/maintenance/save', isAuthenticated, isOwner, async (req, res) => {
     syncMaintenanceToBot(undefined, doc.channelId);
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
+});
+
+// ─── Who counts as a bot developer ──────────────────────────────────────
+// Adding a developer hands out /dev, so only the owner can do it. A developer
+// who could promote themselves would make the owner gate meaningless.
+//
+// These two redirect rather than answer with JSON, so the form works with
+// scripting turned off and nothing here depends on a toast helper.
+
+function devRedirect(res, param, key) {
+  res.redirect('/dev?' + param + '=' + encodeURIComponent(key));
+}
+
+router.post('/developers', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  if (!req.perms?.isOwner) return devRedirect(res, 'err', 'denied');
+
+  const userId = String(req.body?.userId || '').trim();
+  const note = String(req.body?.note || '').trim().slice(0, 200);
+  const username = String(req.body?.username || '').trim().slice(0, 64);
+
+  if (!DISCORD_ID_RE.test(userId)) return devRedirect(res, 'err', 'bad-id');
+  if (userId === config.discord.ownerId) return devRedirect(res, 'err', 'self');
+
+  try {
+    const existing = await BotDeveloper.findOne({ userId }).collation({ locale: 'en', strength: 2 }).lean();
+    if (existing) return devRedirect(res, 'err', 'exists');
+    await BotDeveloper.create({
+      userId,
+      username: username || undefined,
+      note: note || undefined,
+      addedBy: req.session.user.id,
+    });
+    invalidate(userId);
+    await logActivity(req.session.user.id, null, 'dev.add', userId, `أضاف مطور: ${userId}`, req.ip, req.sessionID);
+    devRedirect(res, 'ok', 'added');
+  } catch (err) {
+    console.error('[dev/developers]', err);
+    devRedirect(res, 'err', 'db');
+  }
+});
+
+router.post('/developers/remove', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  if (!req.perms?.isOwner) return devRedirect(res, 'err', 'denied');
+
+  const userId = String(req.body?.userId || '').trim();
+  if (!DISCORD_ID_RE.test(userId)) return devRedirect(res, 'err', 'bad-id');
+
+  try {
+    const removed = await BotDeveloper.findOneAndDelete({ userId })
+      .collation({ locale: 'en', strength: 2 });
+    if (!removed) return devRedirect(res, 'err', 'missing');
+    // Without this the permission stays live in memory for up to 30 seconds
+    // after the row is gone.
+    invalidate(userId);
+    await logActivity(req.session.user.id, null, 'dev.remove', userId, `أزال مطور: ${userId}`, req.ip, req.sessionID);
+    devRedirect(res, 'ok', 'removed');
+  } catch (err) {
+    console.error('[dev/developers/remove]', err);
+    devRedirect(res, 'err', 'db');
+  }
 });
 
 export default router;
