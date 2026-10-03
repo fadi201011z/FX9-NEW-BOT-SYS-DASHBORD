@@ -586,30 +586,65 @@ button { font-family: inherit; }
 .nx-meter__ring b { position: relative; z-index: 1; font-size: .8125rem; font-weight: 700; color: #fff; }
 .nx-meter__meta { flex: 1; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
 
-.nx-chipset { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Role chips. Measured on the source: 46px tall pills at padding 9px 16px
+   9px 10px, 8px between the emoji, the label and the tick, bordered
+   1px rgba(188,146,253,.4), labels 13px/600 at #e5e7eb, 10px apart in the
+   wrap. Two of the five are picked — the first and the third — carrying
+   rgba(104,31,209,.16) and a tick; the rest sit at rgba(255,255,255,.03).
+   The hint above them is 12.5px/400 at #8890a1 on the source, and the panel
+   is 560px wide, centred in the band card exactly as the source centres its
+   560px panel in an 852px content box. */
+.nx-role__hint { font-size: .78125rem; color: var(--nx-muted); }
+.nx-mock--role { max-width: 560px; margin-inline: auto; }
+.nx-chipset { display: flex; flex-wrap: wrap; gap: 10px; }
 .nx-chip {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 6px 12px; border-radius: 999px; font-size: .75rem; font-weight: 600;
-  background: var(--nx-fill); border: 1px solid var(--nx-line); color: #d7dae0;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px 9px 10px; border-radius: 999px;
+  font-size: .8125rem; font-weight: 600;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(188,146,253,.4);
+  color: #e5e7eb;
 }
+.nx-chip--on { background: rgba(104,31,209,.16); }
+.nx-chip__emo {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; flex-shrink: 0; font-size: 1.05rem;
+}
+.nx-chip > i { color: var(--nx-violet-2); font-size: .75rem; }
 
-/* command list: / ban etc */
-.nx-cmd { display: flex; flex-direction: column; gap: 6px; }
+/* ── Command list: /ban etc ─────────────────────────────────────────────────
+   Measured on the source. The rows there are not pills and the command is not
+   in a badge: a flat strip 466x56 inside a body padded 6px with no gap
+   between rows, radius 8px, no border, and no background of its own except
+   the selected row at rgba(104,31,209,.16). Each row is a 30x30 icon at
+   #d8b4fe followed by a column with the command at 13px/700 over its
+   description at 11.5px/400, the two separated by 1px.
+
+   What was here before was a monospace slash badge on one line with the
+   description beside it, which is why it read as a code sample rather than a
+   command palette. max-width 480px with auto margins because the source
+   centres a 480px panel in a 500px slot inside its 948px band, while this
+   panel was stretched across the whole card. */
+.nx-mock--cmd { max-width: 480px; margin-inline: auto; }
+.nx-mock--cmd .nx-mock__body { padding: 6px; }
+.nx-cmd { display: flex; flex-direction: column; }
 .nx-cmd__row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: 10px;
-  border: 1px solid var(--nx-line-2); background: var(--nx-fill);
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 10px; border-radius: 8px; background: transparent;
   font-size: .8125rem;
 }
-.nx-cmd__slash {
+.nx-cmd__row--on { background: rgba(104,31,209,.16); }
+.nx-cmd__ico {
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: 58px; padding: 2px 9px; border-radius: 6px;
-  background: rgba(255,255,255,.06); color: #fff;
-  font-family: ui-monospace, 'Cascadia Code', Menlo, monospace;
-  font-size: .75rem; font-weight: 600; direction: ltr;
+  width: 30px; height: 30px; flex-shrink: 0; border-radius: 8px;
+  color: var(--nx-violet-2);
 }
-.nx-cmd__row span { color: var(--nx-muted); font-size: .75rem; }
-.nx-cmd__row--on .nx-cmd__slash { background: rgba(87,242,135,.14); color: var(--nx-green); }
+.nx-cmd__col { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.nx-cmd__name { font-size: .8125rem; font-weight: 700; color: #fff; }
+/* direction:ltr so the leading slash survives bidi — inside the RTL page it
+   would otherwise flip to "ban/". text-align:right, not left, so the command
+   still sits against the icon on the same edge as the Arabic line under it. */
+.nx-cmd__name { direction: ltr; text-align: right; }
+.nx-cmd__desc { font-size: .71875rem; line-height: 1.3; color: var(--nx-muted); }
 
 /* embed preview (the blue-bar Discord embed look, in brand purple) */
 .nx-embed {
@@ -643,16 +678,29 @@ button { font-family: inherit; }
 }
 .nx-ttt span.w { color: var(--nx-green); }
 
-/* colour swatches */
-.nx-swatches { display: flex; flex-wrap: wrap; gap: 9px; }
-.nx-sw {
-  width: 38px; height: 38px; border-radius: 10px;
-  border: 2px solid transparent; display: flex; align-items: flex-end; justify-content: center;
+/* Colour panel. Measured on the source: the colours are not a wrapping row of
+   squares. The panel stacks a preview strip over a vertical list, 10px apart,
+   and each list row is a 12px round dot plus the name at 12.5px, 35px tall,
+   with the selected row carrying rgba(104,31,209,.16), its name lifted to
+   #e5e7eb and a tick appearing at #d8b4fe. The list rows are square-cornered —
+   only the list itself clips them — so the selected colour reads as a
+   full-width band rather than a floating pill. The five hexes were already
+   right. */
+.nx-sw__preview, .nx-sw__row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; border-radius: 8px; background: rgba(255,255,255,.03);
 }
-.nx-sw b {
-  font-size: .5625rem; font-weight: 700; color: #fff; padding-bottom: 3px;
-  text-shadow: 0 1px 2px rgba(0,0,0,.5);
-}
+.nx-sw__preview .nx-sw__dot { width: 14px; height: 14px; }
+.nx-sw__preview > span:nth-child(2) { flex: 1; font-size: .8125rem; font-weight: 600; color: #e5e7eb; }
+.nx-sw__preview > i { color: var(--nx-muted); font-size: .8rem; }
+.nx-sw__dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.nx-mock--sw .nx-mock__body { gap: 10px; }
+.nx-sw__list { display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; }
+.nx-sw__row { padding: 8px 12px; gap: 10px; background: transparent; border-radius: 0; }
+.nx-sw__row--on { background: rgba(104,31,209,.16); }
+.nx-sw__row > span:nth-child(2) { flex: 1; font-size: .78125rem; color: var(--nx-muted); }
+.nx-sw__row--on > span:nth-child(2) { color: #e5e7eb; }
+.nx-sw__row > i { color: var(--nx-violet-2); font-size: .75rem; }
 
 /* ─── Analytics band ───────────────────────────────────────────────────────
    The one section that is not built from cards: a copy column carrying a
@@ -1328,15 +1376,45 @@ button { font-family: inherit; }
       </div>
       <p class="nx-card__desc">أدوات لإدارة السيرفر والإشراف عليه، تشمل الحظر والكتم والإشراف التلقائي وغيرها.</p>
       <div class="nx-card__mock">
-        <div class="nx-mock">
+        <div class="nx-mock nx-mock--cmd">
           <div class="nx-mock__hd"><i class="fas fa-gavel"></i><span>الإشراف</span></div>
           <div class="nx-mock__body">
             <div class="nx-cmd">
-              <div class="nx-cmd__row nx-cmd__row--on"><span class="nx-cmd__slash">/ ban</span><span>حظر عضو نهائيًا</span></div>
-              <div class="nx-cmd__row"><span class="nx-cmd__slash">/ kick</span><span>إزالة عضو من السيرفر</span></div>
-              <div class="nx-cmd__row"><span class="nx-cmd__slash">/ timeout</span><span>تقييد عضو مؤقتًا</span></div>
-              <div class="nx-cmd__row"><span class="nx-cmd__slash">/ warn</span><span>إصدار تحذير لعضو</span></div>
-              <div class="nx-cmd__row"><span class="nx-cmd__slash">/ mute</span><span>منع عضو من الإرسال</span></div>
+              <div class="nx-cmd__row nx-cmd__row--on">
+                <span class="nx-cmd__ico"><i class="fas fa-ban"></i></span>
+                <div class="nx-cmd__col">
+                  <span class="nx-cmd__name">/ban</span>
+                  <span class="nx-cmd__desc">حظر عضو نهائيًا</span>
+                </div>
+              </div>
+              <div class="nx-cmd__row">
+                <span class="nx-cmd__ico"><i class="fas fa-user-minus"></i></span>
+                <div class="nx-cmd__col">
+                  <span class="nx-cmd__name">/kick</span>
+                  <span class="nx-cmd__desc">إزالة عضو من السيرفر</span>
+                </div>
+              </div>
+              <div class="nx-cmd__row">
+                <span class="nx-cmd__ico"><i class="fas fa-hourglass-half"></i></span>
+                <div class="nx-cmd__col">
+                  <span class="nx-cmd__name">/timeout</span>
+                  <span class="nx-cmd__desc">تقييد عضو مؤقتًا</span>
+                </div>
+              </div>
+              <div class="nx-cmd__row">
+                <span class="nx-cmd__ico"><i class="fas fa-triangle-exclamation"></i></span>
+                <div class="nx-cmd__col">
+                  <span class="nx-cmd__name">/warn</span>
+                  <span class="nx-cmd__desc">إصدار تحذير لعضو</span>
+                </div>
+              </div>
+              <div class="nx-cmd__row">
+                <span class="nx-cmd__ico"><i class="fas fa-comment-slash"></i></span>
+                <div class="nx-cmd__col">
+                  <span class="nx-cmd__name">/mute</span>
+                  <span class="nx-cmd__desc">منع عضو من الإرسال</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1452,15 +1530,36 @@ button { font-family: inherit; }
           </div>
           <p class="nx-card__desc">يوفّر نظام ألوان نابضًا ليختار المستخدمون لونهم المفضل.</p>
           <div class="nx-card__mock">
-            <div class="nx-mock">
+            <div class="nx-mock nx-mock--sw">
               <div class="nx-mock__hd"><i class="fas fa-palette"></i><span>لون Embed</span></div>
               <div class="nx-mock__body">
-                <div class="nx-swatches">
-                  <span class="nx-sw" style="background:#5865f2"><b>بنفسجي</b></span>
-                  <span class="nx-sw" style="background:#57f287"><b>أخضر</b></span>
-                  <span class="nx-sw" style="background:#fee75c"><b>أصفر</b></span>
-                  <span class="nx-sw" style="background:#eb459e"><b>فوشيا</b></span>
-                  <span class="nx-sw" style="background:#ed4245"><b>أحمر</b></span>
+                <div class="nx-sw__preview">
+                  <span class="nx-sw__dot" style="background:#5865f2"></span>
+                  <span>بنفسجي</span>
+                  <i class="fas fa-check"></i>
+                </div>
+                <div class="nx-sw__list">
+                  <div class="nx-sw__row nx-sw__row--on">
+                    <span class="nx-sw__dot" style="background:#5865f2"></span>
+                    <span>بنفسجي</span>
+                    <i class="fas fa-check"></i>
+                  </div>
+                  <div class="nx-sw__row">
+                    <span class="nx-sw__dot" style="background:#57f287"></span>
+                    <span>أخضر</span>
+                  </div>
+                  <div class="nx-sw__row">
+                    <span class="nx-sw__dot" style="background:#fee75c"></span>
+                    <span>أصفر</span>
+                  </div>
+                  <div class="nx-sw__row">
+                    <span class="nx-sw__dot" style="background:#eb459e"></span>
+                    <span>فوشيا</span>
+                  </div>
+                  <div class="nx-sw__row">
+                    <span class="nx-sw__dot" style="background:#ed4245"></span>
+                    <span>أحمر</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1476,14 +1575,16 @@ button { font-family: inherit; }
       </div>
       <p class="nx-card__desc">امنح الأدوار بتفاعل واحد لتكون الإدارة سريعة وتفاعلية.</p>
       <div class="nx-card__mock">
-        <div class="nx-mock">
+        <div class="nx-mock nx-mock--role">
           <div class="nx-mock__hd"><i class="fas fa-hand-pointer"></i><span>احصل على دور</span></div>
           <div class="nx-mock__body">
-            <div style="font-size:.75rem;color:var(--nx-muted);">تفاعل بإيموجي بالأسفل لاختيار أدوارك</div>
+            <div class="nx-role__hint">تفاعل بإيموجي بالأسفل لاختيار أدوارك</div>
             <div class="nx-chipset">
-              <span class="nx-chip">🎮 لاعب</span><span class="nx-chip">🎨 فنان</span>
-              <span class="nx-chip">🎧 موسيقي</span><span class="nx-chip">📚 قارئ</span>
-              <span class="nx-chip">🏆 تنافسي</span>
+              <span class="nx-chip nx-chip--on"><span class="nx-chip__emo">🎮</span>لاعب<i class="fas fa-check"></i></span>
+              <span class="nx-chip"><span class="nx-chip__emo">🎨</span>فنان</span>
+              <span class="nx-chip nx-chip--on"><span class="nx-chip__emo">🎧</span>موسيقي<i class="fas fa-check"></i></span>
+              <span class="nx-chip"><span class="nx-chip__emo">📚</span>قارئ</span>
+              <span class="nx-chip"><span class="nx-chip__emo">🏆</span>تنافسي</span>
             </div>
           </div>
         </div>
