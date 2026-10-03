@@ -676,7 +676,7 @@ a:hover { color: var(--primary-hover); }
 .guild-item-nobot:hover { background: transparent; }
 .guild-item-noaccess { opacity: 0.4; cursor: not-allowed; }
 .guild-item-noaccess:hover { background: transparent; }
-.no-bot-label { color: var(--warning, #fee75c) !important; font-size: 0.75rem; }
+.no-bot-label { color: var(--warning, #ffd93d) !important; font-size: 0.75rem; }
 .btn-add-bot { text-decoration: none; padding: 4px 10px; border-radius: 6px; background: var(--primary); color: #fff; font-size: 0.75rem; white-space: nowrap; }
 .btn-add-bot:hover { filter: brightness(1.15); }
 
@@ -879,7 +879,7 @@ a:hover { color: var(--primary-hover); }
   font-size: 1.4rem;
 }
 .plan-standard .plan-icon {
-  background: rgba(168, 85, 247, 0.15); color: #818cf8;
+  background: rgba(168, 85, 247, 0.15); color: #a855f7;
   border: 1px solid rgba(168, 85, 247, 0.35);
 }
 .plan-ultimate .plan-icon {
@@ -911,7 +911,7 @@ a:hover { color: var(--primary-hover); }
   cursor: pointer; border: none; transition: all var(--transition);
 }
 .plan-standard .plan-btn {
-  background: rgba(168, 85, 247, 0.15); color: #818cf8;
+  background: rgba(168, 85, 247, 0.15); color: #a855f7;
   border: 1px solid rgba(168, 85, 247, 0.3);
 }
 .plan-standard .plan-btn:hover { background: rgba(168, 85, 247, 0.28); transform: translateY(-1px); }
@@ -1113,7 +1113,7 @@ a:hover { color: var(--primary-hover); }
   display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
 }
 .gate-plans .gate-icon { background: rgba(245, 179, 1, 0.14); color: #f5b301; border: 1px solid rgba(245, 179, 1, 0.35); }
-.gate-code .gate-icon { background: rgba(168, 85, 247, 0.14); color: #818cf8; border: 1px solid rgba(168, 85, 247, 0.35); }
+.gate-code .gate-icon { background: rgba(168, 85, 247, 0.14); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.35); }
 .gate-head h4 { font-size: 1.02rem; font-weight: 800; }
 .gate-head p { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
 .gate-plans-inner { display: flex; flex-direction: column; gap: 12px; }
@@ -1128,7 +1128,7 @@ a:hover { color: var(--primary-hover); }
   width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; font-size: 1rem;
 }
-.gate-plan-row.standard .p-icon { background: rgba(168, 85, 247, 0.14); color: #818cf8; }
+.gate-plan-row.standard .p-icon { background: rgba(168, 85, 247, 0.14); color: #a855f7; }
 .gate-plan-row.ultimate .p-icon { background: rgba(245, 179, 1, 0.16); color: #f5b301; border: 1px solid rgba(245, 179, 1, 0.4); }
 .gate-plan-row .p-info { flex: 1; }
 .gate-plan-row .p-info strong { display: block; font-size: 0.9rem; }
@@ -1166,12 +1166,12 @@ a:hover { color: var(--primary-hover); }
 }
 .gate-code-inner .code-input:focus {
   outline: none;
-  border-color: #818cf8;
+  border-color: #a855f7;
   box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.18);
 }
 .gate-code-inner .code-btn {
   width: 100%; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
-  background: linear-gradient(135deg, #818cf8, #a855f7); color: #fff;
+  background: linear-gradient(135deg, #a855f7, #a855f7); color: #fff;
   font-family: var(--font); font-weight: 800; font-size: 0.9rem;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: all var(--transition);
@@ -2138,9 +2138,9 @@ a:hover { color: var(--primary-hover); }
   gap: 12px;
   padding: 12px 16px;
   border-radius: 10px;
-  background: rgba(254, 231, 92, 0.1);
-  border: 1px solid rgba(254, 231, 92, 0.3);
-  color: #fee75c;
+  background: rgba(255, 217, 61, 0.1);
+  border: 1px solid rgba(255, 217, 61, 0.3);
+  color: var(--warning);
   font-size: 0.9rem;
   margin-bottom: 24px;
 }

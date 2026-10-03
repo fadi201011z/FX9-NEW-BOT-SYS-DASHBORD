@@ -429,7 +429,10 @@ function hideLoading(overlay) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function showConfetti() {
-  const colors = ['#5865f2', '#57f287', '#fee75c', '#ed4245', '#eb459e', '#ffffff'];
+  // The brand's two violets plus its gold, green and red. The leading entry
+  // used to be #5865f2, Discord blurple, so the confetti on a premium purchase
+  // was a different colour from the site it was celebrating.
+  const colors = ['#a855f7', '#d8b4fe', '#ffd93d', '#57f287', '#ed4245', '#ffffff'];
   for (let i = 0; i < 50; i++) {
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';
