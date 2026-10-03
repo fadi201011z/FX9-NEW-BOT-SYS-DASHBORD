@@ -12,10 +12,19 @@ const router = Router();
 
 /* ─── Public commands page ─────────────────────────────────────────────────
    Replica of novax.gg/ar/commands: same heading, same tab row, same search,
-   same one-accordion-per-command list — with this bot's commands in it. */
+   same one-accordion-per-command list — with this bot's commands in it.
+
+   layout:false is load-bearing, not decoration. This view is a whole document
+   with its own head, and express-ejs-layouts would otherwise nest it inside the
+   dashboard chrome — a second <html> inside the first, plus the dashboard
+   sidebar, navbar, /css/style.css and the websocket bundle. It renders, and it
+   looks wrong: the sidebar takes a fixed share of the width, so every box comes
+   out narrower than the source's and the page scrolls sideways. The landing
+   route opts out for the same reason. */
 router.get('/', async (req, res) => {
   const { commands, categories, source } = await getCommandCatalog();
   res.render('commands', {
+    layout: false,
     user: req.session?.user || null,
     page: 'commands',
     commands,
