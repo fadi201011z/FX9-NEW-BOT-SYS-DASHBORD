@@ -548,10 +548,7 @@ button { font-family: inherit; }
    stretched — the source sizes these panels to what they hold. */
 .nx-mock--flow {
   display: flex; flex-direction: column;
-  width: fit-content; max-width: 100%;
-  /* min() rather than a flat 420px: min-width outranks max-width, so a fixed
-     floor would push the panel past the card edge on a narrow screen. */
-  min-width: min(420px, 100%);
+  width: fit-content; min-width: 420px; max-width: 100%;
   padding: 20px; gap: 10px;
 }
 .nx-mock__lbl {
@@ -647,6 +644,12 @@ button { font-family: inherit; }
   .nx-orbit__dot { animation: nxOrbit 40s linear infinite; }
 }
 @media (max-width: 479.98px) {
+  /* The 420px floor on .nx-mock--flow has to go before the card is narrower
+     than it: min-width outranks max-width, so the floor would push the panel
+     past the card edge rather than being clamped. A percentage cannot rescue
+     it either — 100% there resolves against a shrink-to-fit flex item and
+     comes back indeterminate. */
+  .nx-mock--flow { min-width: 0; }
   .nx-trg { grid-template-columns: minmax(0, 1fr); }
 }
 @keyframes nxOrbit {
