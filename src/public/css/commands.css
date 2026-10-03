@@ -96,6 +96,10 @@
   content: ''; position: absolute;
   inset: -5px 0 0 0;
   border: 1px solid #2f3139; border-radius: 11px;
+  /* The ring is a positioned box that fills the search field, so without this
+     it paints over the input and every click lands on the div instead — the
+     field can be focused programmatically but never by clicking it. */
+  pointer-events: none;
 }
 .cm-search__ico {
   display: flex; align-items: center; flex: none;
