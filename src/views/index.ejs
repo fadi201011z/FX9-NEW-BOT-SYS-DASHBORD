@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kratos Dashboard — لوحة تحكم البوت</title>
 <meta name="description" content="لوحة تحكم متكاملة لإدارة سيرفرك على ديسكورد — إشراف، تذاكر، غرف صوتية، حماية، وأدوات.">
-<meta name="theme-color" content="#08080f">
+<meta name="theme-color" content="#090713">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
 <meta property="og:type" content="website">
@@ -16,7 +16,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <style>
@@ -31,27 +31,40 @@
        hero; that file is not reproduced and nothing references it.
      - the footer wave is drawn with CSS radial gradients instead of their
        footer.svg.
-     - copy is Arabic, set in IBM Plex Sans Arabic rather than the source's
-       stack. Latin and numerals still run in IBM Plex Sans: one superfamily,
-        cut for both scripts at once, so the two never disagree on shape.
+     - copy is Arabic, set in Tajawal rather than the source's stack. Tajawal
+       is a single superfamily carrying Arabic, Latin and Western digits in one
+       face, so the two scripts can never disagree on shape. The type scale is
+       the source's, not the brief's: the hero holds 64.8px and the closing CTA
+       56px, where the brief asked for 36-48px.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* sampled off novax.gg */
+  /* Palette. Everything the design brief names is a token here; the values it
+     does not name stay as sampled off novax.gg, because those were measured
+     rather than chosen. --nx-ink is the one deliberate departure: the brief
+     asks for #07050E/#090713 and the source's #08080f is the same near-black
+     purple, so the brief's second option wins. */
   --nx-purple:   #681fd1;
   --nx-purple-l: #8c5aff;
+  --nx-glow:     #a855f7;
   --nx-rim:      rgba(188,146,253,.59);
   --nx-gold:     #ffd93d;
-  --nx-ink:      #08080f;
+  --nx-ink:      #090713;
   --nx-bar:      #12131c;
   --nx-panel:    #0d0d14;
   --nx-panel-2:  #14141d;
   --nx-muted:    #8890a1;
+  /* Body copy and links: the brief's #9CA3AF / #A1A1AA pair, folded to one
+     value since nothing in the page needs them to differ. */
+  --nx-body:     #9ca3af;
   --nx-line:     rgba(255,255,255,.08);
   --nx-line-2:   rgba(255,255,255,.06);
   --nx-fill:     rgba(255,255,255,.03);
   --nx-violet-2: #d8b4fe;
   --nx-green:    #57f287;
+  /* Glass: #120E24 at 80%, per the brief. */
+  --nx-glass:    rgba(18,14,36,.8);
+  --nx-glass-br: rgba(168,85,247,.2);
 
   --nx-card-bg: linear-gradient(rgba(255,255,255,.035), rgba(255,255,255,0) 55%), var(--nx-panel);
   --nx-panel-bg: linear-gradient(rgba(255,255,255,.03), rgba(255,255,255,0) 45%), var(--nx-panel);
@@ -61,7 +74,7 @@
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
-  font-family: 'IBM Plex Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  font-family: 'Tajawal', system-ui, sans-serif;
   background: var(--nx-ink);
   color: #fff;
   line-height: 1.6;
@@ -113,14 +126,22 @@ button { font-family: inherit; }
   margin-inline-start: -4px; margin-inline-end: 8px;
 }
 
+/* The brief asks the primary button for a dark purple gradient under a glowing
+   edge at 14px/500. Height is still the source's measured 48px — min-height,
+   not the font, governs it — so 15px becoming 14px does not move the box. */
 .nx-btn-p {
-  padding: 8px 22px; min-height: 48px; font-size: 15px; font-weight: 500;
-  background: var(--nx-purple); color: #fff;
+  padding: 8px 22px; min-height: 48px; font-size: 14px; font-weight: 500;
+  background: linear-gradient(180deg, #7c26e4, #5a17b8);
+  color: #fff;
   border-color: var(--nx-rim);
-  box-shadow: inset 0 -4px 10px 0 var(--nx-rim), 0 10px 30px rgba(104,31,209,.35);
+  box-shadow:
+    inset 0 -4px 10px 0 var(--nx-rim),
+    0 0 18px rgba(168, 85, 247, .35),
+    0 10px 30px rgba(104, 31, 209, .35);
 }
 .nx-btn-p:hover {
-  background: #5e1cbe; border-color: #8b4dff; transform: translateY(-1px);
+  background: linear-gradient(180deg, #8b3af0, #6820c9);
+  border-color: #8b4dff; transform: translateY(-1px);
   filter: brightness(1.2);
 }
 
@@ -234,7 +255,7 @@ button { font-family: inherit; }
 .nx-lang i { font-size: .8rem; transition: transform .2s; }
 
 /* ─── Hero ────────────────────────────────────────────────────────────────
-   64.8px/700 IBM Plex Sans with a background-clip shine, 18px #8890a1 body at
+   64.8px/700 Tajawal with a background-clip shine, 18px #8890a1 body at
    768px, 11px-radius buttons, two blurred radial orbs, and a wrapper that
    fades up from translateY(-10px). The planet SVG that sits behind this on
    novax is deliberately absent; the orbs replace it. */
@@ -294,24 +315,32 @@ button { font-family: inherit; }
 .nx-hero__row + .nx-hero__row { animation-delay: .1s; }
 @keyframes nxFadeUp { from { opacity: 0; transform: translateY(-10px); } }
 
-/* Size, weight, line-height and the gradient are all off novax's h1: 64.8 /
-   700 / 81px and linear-gradient(to top, #555, #fff 42%, #fff) behind a
-   transparent text fill.
+/* Weight, line-height and the gradient are off novax's h1: 700 / 81px and
+   linear-gradient(to top, #555, #fff 42%, #fff) behind a transparent text fill.
 
-   Tracking is not. novax measures -0.03em here, and that value is tuned for
-   the Latin face they set it in — a grotesque whose letters carry real
-   sidebearings and can be pinched together. Arabic is cursive: the shaper emits joined glyph
-   clusters and letter-spacing is inserted between those clusters, so any
-   non-zero value opens the connecting stroke. -1.98px between Arabic letters
-   is not tight type, it is broken joins. Tracking therefore goes to normal on
-   every Arabic run on this page, and the display tightness is rebuilt from
-   word-spacing, which closes the word gaps without separating the letters.
-   Latin runs keep their measured tracking. */
+   The size is not, and cannot be. Tajawal sets this line 1170px wide at 64.8px
+   where IBM Plex had it at 939px — the face is about a quarter wider on this
+   string — so 64.8px would need 250px of squeeze to stay on one line, or
+   -41.65px between words, which is not tight type, it is welded type. The
+   column is the source's 920px and widening it to suit would break the layout
+   the whole hero is built on. So the size comes down to the largest step that
+   still sets on one line and fills the column: 3.25rem, measured 52px, which
+   lands within 0.06em of the source's own word gap.
+
+   Tracking is not off novax either. novax measures -0.03em here, and that value
+   is tuned for the Latin face they set it in — a grotesque whose letters carry
+   real sidebearings and can be pinched together. Arabic is cursive: the shaper
+   emits joined glyph clusters and letter-spacing is inserted between those
+   clusters, so any non-zero value opens the connecting stroke. -1.98px between
+   Arabic letters is not tight type, it is broken joins. Tracking therefore goes
+   to normal on every Arabic run on this page, and the display tightness is
+   rebuilt from word-spacing, which closes the word gaps without separating the
+   letters. Latin runs keep their measured tracking. */
 .nx-hero h1 {
   margin: 0 0 22px;
-  font-size: clamp(2rem, 1rem + 5vw, 4.05rem);
+  font-size: clamp(2rem, 1rem + 5vw, 3.25rem);
   font-weight: 700; line-height: 1.25;
-  letter-spacing: normal; word-spacing: -.05em;
+  letter-spacing: normal; word-spacing: -.07em;
   background: linear-gradient(to top, #555, #fff 42%, #fff);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -342,7 +371,7 @@ button { font-family: inherit; }
 @media (min-width: 900px) { .nx-shot { padding: 70px 0; } }
 .nx-shot__bleed { position: absolute; inset: -128px; pointer-events: none; }
 .nx-shot__bleed--a { background: linear-gradient(in oklab, rgba(8,8,15,.14) 0, rgba(8,8,15,.08) 50%, rgba(8,8,15,.59) 100%); }
-.nx-shot__bleed--b { background: linear-gradient(to right, rgba(8,8,15,.89) 0, #08080f 50%, rgba(8,8,15,.91) 100%); }
+.nx-shot__bleed--b { background: linear-gradient(to right, rgba(9,7,19,.89) 0, #090713 50%, rgba(9,7,19,.91) 100%); }
 .nx-shot__bleed--c {
   background:
     linear-gradient(to right, rgba(255,255,255,.2) 1px, transparent 1px) 0 0 / 60px 100%,
@@ -355,7 +384,7 @@ button { font-family: inherit; }
 }
 .nx-shot__fade {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to left, #08080f 0, transparent 100%);
+  background: linear-gradient(to left, var(--nx-ink) 0, transparent 100%);
 }
 /* Centred with flex rather than auto margins: the panel is wider than this
    wrapper on a laptop, and flex overflows both edges evenly where auto
@@ -1132,15 +1161,15 @@ button { font-family: inherit; }
 
 .nx-foot__about {
   position: relative;
-  padding: 22px 20px 20px;
-  border-radius: 16px;
-  border: 1px solid rgba(139, 92, 246, .17);
-  background: rgba(18, 13, 36, .62);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  padding: 32px;
+  border-radius: 24px;             /* brief: rounded-3xl */
+  border: 1px solid var(--nx-glass-br);
+  background: var(--nx-glass);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   box-shadow:
-    0 0 26px rgba(124, 58, 237, .26),
-    0 0 64px rgba(59, 130, 246, .14),
+    0 0 26px rgba(168, 85, 247, .22),
+    0 0 64px rgba(168, 85, 247, .12),
     0 22px 50px rgba(0, 0, 0, .5),
     inset 0 1px 0 rgba(255, 255, 255, .045);
 }
@@ -1169,22 +1198,22 @@ button { font-family: inherit; }
   line-height: 1.167; color: #fff;
 }
 .nx-foot__about p {
-  margin: 16px 0 0; font-size: .875rem; line-height: 21px;
-  color: rgba(255,255,255,.62);
+  margin: 16px 0 0; font-size: .875rem; line-height: 1.7;  /* brief: 1.6-1.8 */
+  color: var(--nx-body);
 }
 
 /* Two dividers: one closing the heading, one opening the language row. Both
    fade out at the ends so they read as light leaking sideways rather than as
-   rules, and both carry their own bloom. */
+   rules. The brief's divider is a single purple, so the earlier purple-to-blue
+   ramp is gone, along with its two-stop shadow. */
 .nx-foot__head::after,
 .nx-foot__about .nx-lang::before {
   content: "";
   position: absolute;
   inset-inline: 0;
   height: 1px;
-  background: linear-gradient(90deg,
-    transparent, rgba(139, 92, 246, .85) 20%, rgba(59, 130, 246, .8) 55%, transparent);
-  box-shadow: 0 0 10px rgba(139, 92, 246, .5), 0 0 20px rgba(59, 130, 246, .28);
+  background: linear-gradient(90deg, transparent, var(--nx-glow), transparent);
+  box-shadow: 0 0 15px var(--nx-glow);
   pointer-events: none;
 }
 .nx-foot__head::after { bottom: 0; }
@@ -1211,7 +1240,7 @@ button { font-family: inherit; }
    height loses to the li's strut (16px * 1.6 = 25.6px), so every row came out
    26px tall and the modules read 25px deeper than the source's 131px. The
    source gets the same result by putting a block-level p inside the anchor. */
-.nx-foot__mod a { display: block; font-size: .8rem; line-height: 1.334; color: rgba(255,255,255,.6); transition: color .2s; }
+.nx-foot__mod a { display: block; font-size: .8rem; line-height: 1.334; color: var(--nx-body); transition: color .2s; }
 .nx-foot__mod a:hover { color: #fff; }
 
 /* Language control. A real button, not an anchor to nowhere: the label always
@@ -1222,7 +1251,7 @@ button { font-family: inherit; }
   height: 38px; padding: 0 12px;
   border: 1px solid rgba(139, 92, 246, .18); border-radius: 10px;
   background: rgba(255,255,255,.03);
-  font-size: .8125rem; font-weight: 500; color: #b6bcc8;
+  font-size: .8125rem; font-weight: 500; color: var(--nx-body);
   cursor: pointer;
   transition: border-color .2s, background .2s, color .2s;
 }
