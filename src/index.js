@@ -282,9 +282,25 @@ app.get('/maintenance', async (req, res) => {
 });
 
 // ─── Invite (Under Development) ──────────────────────────────────────────
-app.get('/invite-dev', (req, res) => {
-  res.status(200).render('invite-dev', { layout: false, user: req.session?.user || null, title: 'خاصية قيد التطوير' });
+// Was /invite-dev. The suffix said what the page is doing, not what it is, and
+// it was in the address bar of every "add the bot" link on the site. It is now
+// /invite, and /invite-dev redirects to it permanently rather than 404ing, so
+// the links already shared elsewhere — and any bookmark — still land somewhere.
+//
+// The page is a sibling of /premium: same site furniture, same glass card, the
+// same stylesheet. Still under development, still saying so.
+app.get('/invite', (req, res) => {
+  res.status(200).render('invite', {
+    layout: false,
+    page: 'invite',
+    user: req.session?.user || null,
+    title: 'دعوة البوت — قيد التطوير',
+  });
 });
+
+// 301, not 302: the old address is never coming back, so let caches and search
+// engines settle on the new one.
+app.get('/invite-dev', (req, res) => res.redirect(301, '/invite'));
 
 // ─── Premium (Under Development) ─────────────────────────────────────────
 // The page is still the same message it has always been — under development —

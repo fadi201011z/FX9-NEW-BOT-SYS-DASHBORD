@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>دعوة البوت — Kratos System</title>
+<meta name="description" content="إضافة بوت كراتوس إلى سيرفراتك — قيد التطوير. تابعنا على ديسكورد ليصلك إشعار فور إطلاقها.">
+<meta name="theme-color" content="#090713">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="دعوة البوت — Kratos System">
+<meta property="og:description" content="إضافة بوت كراتوس إلى سيرفراتك — قيد التطوير. تابعنا على ديسكورد ليصلك إشعار فور إطلاقها.">
+<meta property="og:site_name" content="Kratos System">
+<meta property="og:url" content="https://kratos-botdashboard.onrender.com/invite">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- landing.css first, for the header, the buttons, the wave and the footer.
+     under-dev.css is shared with /premium: the two pages differ only in the
+     card's middle block, notes here, a roadmap there. -->
+<link rel="stylesheet" href="/css/landing.css">
+<link rel="stylesheet" href="/css/under-dev.css">
+</head>
+<body>
+
+<%- include('partials/landing-head') %>
+
+<!-- ══ Invite ══════════════════════════════════════════════════════════════
+     Sibling of /premium: same shape, same site furniture, same glass card, and
+     still saying the feature is not ready. What it used to be is worth naming
+     because it is the third time this has happened on this site — its own
+     near-black, its own indigo (#6366f1 / #8b5cf6) that exists nowhere else, a
+     grid, two blurred orbs, a floating 520px card with 18px corners, and an
+     inline style block in the template.
+
+     Two defects went with the styling. It loaded /css/style.css, the dashboard
+     stylesheet, on a page that has no dashboard in it. And it wrapped a Font
+     Awesome icon in another icon element, which is invalid nesting that only
+     worked by accident. -->
+<section class="ud-page">
+  <canvas class="nx-sky" id="nxSky" aria-hidden="true"></canvas>
+
+  <div class="ud-head">
+    <span class="ud-glow" aria-hidden="true"></span>
+    <div class="nx-wrap">
+      <div class="ud-head__inner">
+        <span class="ud-pill"><i class="fas fa-circle" aria-hidden="true"></i> قيد التطوير — Under Development</span>
+        <h1>إضافة البوت <em>قريباً</em></h1>
+        <p>خاصية إضافة البوت إلى سيرفراتك في مرحلة التطوير. نشتغل عليها عشان نوصلك بأفضل تجربة.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="ud-in">
+    <div class="nx-wrap">
+      <div class="ud-card">
+        <div class="ud-icon" aria-hidden="true"><i class="fas fa-code-branch"></i></div>
+        <p class="ud-title">ما وصلتني بعد</p>
+        <p class="ud-sub">الخطوات الثلاث، بالترتيب الي تشتغل عليها <strong>هسة</strong>.</p>
+
+        <div class="ud-road">
+          <div class="ud-road__item ud-road__item--done">
+            <span class="ud-road__ico" aria-hidden="true"><i class="fas fa-check"></i></span>
+            <span>واجهة اختيار السيرفرات</span>
+            <strong class="ud-road__state">تم</strong>
+          </div>
+          <div class="ud-road__item ud-road__item--active">
+            <span class="ud-road__ico" aria-hidden="true"><i class="fas fa-gear"></i></span>
+            <span>نظام الصلاحيات والأذونات</span>
+            <strong class="ud-road__state">قيد العمل</strong>
+          </div>
+          <div class="ud-road__item ud-road__item--todo">
+            <span class="ud-road__ico" aria-hidden="true"><i class="fas fa-clock"></i></span>
+            <span>الإعداد المبدئي والتوجيه</span>
+            <strong class="ud-road__state">قريباً</strong>
+          </div>
+        </div>
+
+        <div class="ud-bar">
+          <div class="ud-bar__track" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span class="ud-bar__text">قيد التطوير — Under Development</span>
+        </div>
+
+        <div class="ud-acts">
+          <a href="https://discord.gg/fadix9" target="_blank" rel="noopener" class="nx-btn nx-btn-d"><i class="fab fa-discord"></i> تواصل معنا عبر الديسكورد</a>
+          <% if (locals.user) { %>
+          <a href="/home" class="nx-btn nx-btn-p"><i class="fas fa-gauge-high nx-sico"></i> لوحة التحكم</a>
+          <% } %>
+          <a href="/" class="nx-btn nx-btn-o"><i class="fas fa-arrow-right nx-ico"></i> العودة للصفحة الرئيسية</a>
+        </div>
+
+        <p class="ud-foot">Kratos System &copy; 2026</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/landing-foot') %>
+
+<%- include('partials/landing-script') %>
+</body>
+</html>

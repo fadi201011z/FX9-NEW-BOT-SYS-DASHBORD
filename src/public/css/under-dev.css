@@ -1,0 +1,193 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Kratos System — the pages that answer "not yet"
+
+   /premium and /invite. Two pages, one shape: a heading over one rotated
+   purple radial, then a single glass card saying the feature is still being
+   built, then the site's buttons, the wave and the footer. Everything they
+   share lives here, and only the parts that genuinely differ get their own
+   block — .ud-notes on the premium card, .ud-road on the invite card.
+
+   This was one file written for one page, then renamed when the second one
+   arrived. Copying 90% of a stylesheet into a second file is how a design
+   system quietly forks; the pages are still two, but there is one set of
+   numbers behind them, so a change to the card lands on both.
+
+   Both pages used to be strangers. Each carried its own near-black, its own
+   off-brand palette — gold on one, indigo on the other — its own grid, orbs
+   and floating cards, and an inline style block inside the template. None of
+   that vocabulary exists anywhere else on the site, so both read as different
+   websites sharing a domain.
+
+   What they use now is the site's own: landing.css for the header, the
+   buttons, the wave and the footer; the starfield canvas and the rotated
+   purple radial the /commands heading uses; --nx-glass for the card and
+   --nx-glass-br for its rim; Tajawal and the 1200px wrapper. The off-brand
+   yellows and indigos went with the rest — the one yellow left in the brand
+   is the crown button and the mark's underline.
+
+   The blinking dot and the moving dots are kept on purpose. "Not yet" that
+   does not move reads as a broken page, and the motion is the message.
+   landing.css kills animation and transition durations outright under
+   prefers-reduced-motion, so both stop there without a rule here.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ud-page { position: relative; overflow-x: clip; padding: 240px 0 0; }
+
+/* The starfield and the radial are the two layers the site opens every page
+   with. The canvas needs nothing here: landing.css already positions .nx-sky
+   absolutely over its parent at z-index 0, which is what this section needs.
+   Only the content has to be lifted above them. */
+.ud-page > .ud-in { position: relative; z-index: 1; }
+
+/* ─── Heading ──────────────────────────────────────────────────────────────
+   The same block /commands uses: one rotated 400px radial hung 200px above the
+   text so the glow starts just under the fixed header. */
+.ud-head { position: relative; text-align: center; }
+.ud-glow {
+  position: absolute; z-index: 0; top: -200px; left: 50%;
+  width: min(1000px, 100%); height: 400px;
+  transform: translateX(-50%) rotate(20deg);
+  background: radial-gradient(rgba(104,31,209,.3), var(--nx-ink) 62%, var(--nx-ink));
+  pointer-events: none;
+}
+.ud-head__inner { position: relative; }
+
+.ud-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 18px; padding: 5px 14px;
+  border: 1px solid var(--nx-glass-br); border-radius: 100px;
+  background: rgba(168,85,247,.08);
+  font-size: .8125rem; font-weight: 500; color: var(--nx-violet-2);
+}
+.ud-pill i { font-size: .5rem; color: var(--nx-glow); animation: udBlink 1.4s ease-in-out infinite; }
+@keyframes udBlink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+.ud-head h1 {
+  font-size: clamp(1.8rem, 1rem + 3.2vw, 2.7rem);
+  font-weight: 700; line-height: 1.8; color: #fff;
+}
+.ud-head h1 em {
+  font-style: normal;
+  background: linear-gradient(90deg, var(--nx-purple-l), var(--nx-glow));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.ud-head__inner > p {
+  margin: 8px 0 0;
+  font-size: 1.125rem; font-weight: 400; line-height: 1.6; color: var(--nx-muted);
+}
+
+/* ─── Card ─────────────────────────────────────────────────────────────────
+   --nx-glass is #120E24 at 80% with a 14px frost and the brand's purple rim,
+   which is what the design brief asks for anywhere on this site. 24px is the
+   brief's large radius; the buttons inside keep their own 8-12px. */
+.ud-card {
+  position: relative; overflow: hidden;
+  width: 100%; max-width: 640px; margin: 56px auto 0;
+  padding: 40px 32px 32px; text-align: center;
+  border: 1px solid var(--nx-glass-br); border-radius: 24px;
+  background: var(--nx-glass);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+/* The hairline the site's cards carry along their top edge. */
+.ud-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--nx-glow), transparent);
+  opacity: .5;
+}
+
+.ud-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 76px; height: 76px; margin: 0 auto 20px;
+  border: 1px solid var(--nx-glass-br); border-radius: 50%;
+  background: rgba(168,85,247,.1);
+  font-size: 1.9rem; color: var(--nx-glow);
+  box-shadow: 0 0 30px rgba(168,85,247,.18);
+}
+
+.ud-title { font-size: 1.25rem; font-weight: 700; line-height: 1.6; color: #fff; }
+.ud-sub { margin: 8px 0 0; font-size: .9375rem; font-weight: 400; color: var(--nx-body); }
+.ud-sub strong { font-weight: 700; color: var(--nx-glow); }
+
+/* The two notices, Arabic first. Rows rather than prose, so the reader can see
+   at a glance that both languages say the same thing. */
+.ud-notes { display: grid; gap: 10px; margin: 28px 0 0; }
+.ud-note {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 16px; text-align: start;
+  border: 1px solid var(--nx-line); border-radius: 14px;
+  background: var(--nx-fill);
+}
+.ud-note__ico {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 9px;
+  background: rgba(168,85,247,.12); color: var(--nx-violet-2);
+}
+.ud-note__ico--en { background: rgba(96,165,250,.12); color: #93c5fd; }
+.ud-note strong { display: block; margin-bottom: 2px; font-size: .8125rem; font-weight: 700; color: #fff; }
+.ud-note span { display: block; font-size: .8125rem; font-weight: 400; line-height: 1.7; color: var(--nx-body); }
+
+/* ─── Roadmap ───────────────────────────────────────────────────────────────
+   The invite card's own block: three rows of work, each with a state. The
+   states are brand colours, not the traffic lights the old page used — green
+   is already in the palette, purple is the brand, and pending is muted grey
+   because "not started" is not a failure. The gear turns: the row that is in
+   progress is the one thing on the page still moving on purpose. */
+.ud-road { display: grid; gap: 8px; margin: 24px 0 0; text-align: start; }
+.ud-road__item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--nx-line); border-radius: 12px;
+  background: var(--nx-fill);
+  font-size: .8125rem; font-weight: 400; line-height: 1.7; color: var(--nx-body);
+}
+.ud-road__ico {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 9px;
+  background: rgba(255,255,255,.04); color: var(--nx-muted);
+  font-size: .75rem;
+}
+.ud-road__item > span { flex: 1; }
+.ud-road__state { font-weight: 700; white-space: nowrap; }
+.ud-road__item--done .ud-road__ico { background: rgba(87,242,135,.1); color: var(--nx-green); }
+.ud-road__item--done .ud-road__state { color: var(--nx-green); }
+.ud-road__item--active .ud-road__ico { background: rgba(168,85,247,.12); color: var(--nx-violet-2); }
+.ud-road__item--active .ud-road__ico i { animation: udSpin 2.4s linear infinite; }
+.ud-road__item--active .ud-road__state { color: var(--nx-violet-2); }
+.ud-road__item--todo .ud-road__state { color: var(--nx-muted); }
+@keyframes udSpin { to { transform: rotate(360deg); } }
+
+/* ─── Progress ──────────────────────────────────────────────────────────────
+   Three dots on a track rather than the old three bouncing balls: it reads as
+   work in progress, and a track can hold a position if this ever ships. */
+.ud-bar {
+  margin: 24px 0 0; padding: 14px 16px;
+  border: 1px dashed var(--nx-glass-br); border-radius: 14px;
+  background: rgba(168,85,247,.06);
+}
+.ud-bar__track { display: flex; justify-content: center; gap: 6px; margin-bottom: 10px; }
+.ud-bar__track span {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--nx-glow);
+  animation: udBounce 1.2s ease-in-out infinite;
+}
+.ud-bar__track span:nth-child(2) { animation-delay: .15s; }
+.ud-bar__track span:nth-child(3) { animation-delay: .3s; }
+@keyframes udBounce { 0%, 100% { transform: translateY(0); opacity: .45; } 50% { transform: translateY(-4px); opacity: 1; } }
+.ud-bar__text { font-size: .8125rem; font-weight: 500; color: #fff; }
+
+/* ─── Actions ───────────────────────────────────────────────────────────────
+   The site's own button treatments, not local ones: -d is the outlined purple
+   rim the closing call to action uses, -o the neutral outline, -p the contained
+   purple. Direction: every one of them carries an arrow, so they point the same
+   way down the page. */
+.ud-acts { display: grid; gap: 10px; margin: 28px 0 0; }
+.ud-acts .nx-btn { width: 100%; justify-content: center; }
+.ud-foot { margin: 20px 0 0; font-size: .75rem; color: rgba(255,255,255,.28); }
+
+@media (max-width: 599.98px) {
+  .ud-page { padding-top: 168px; }
+  .ud-card { margin-top: 40px; padding: 30px 20px 24px; border-radius: 20px; }
+  .ud-note { padding: 12px 14px; }
+  .ud-road__item { padding: 10px 12px; gap: 10px; }
+  .ud-head h1 { font-size: 1.75rem; }
+}
