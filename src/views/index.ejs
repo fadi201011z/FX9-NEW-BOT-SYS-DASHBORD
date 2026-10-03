@@ -338,9 +338,17 @@ button { font-family: inherit; }
    letters. Latin runs keep their measured tracking. */
 .nx-hero h1 {
   margin: 0 0 22px;
-  font-size: clamp(2rem, 1rem + 5vw, 3.25rem);
+  font-size: clamp(2rem, 1rem + 5vw, 4.05rem);
   font-weight: 700; line-height: 1.25;
-  letter-spacing: normal; word-spacing: -.07em;
+  letter-spacing: normal; word-spacing: -.04em;
+  /* Tajawal sets this line 1170px wide at 64.8px where the source's face had it
+     at 939px, so at the source's size it cannot stay on one line inside the
+     source's own 920px column — not at any laptop width. Squeezing the word gaps
+     to force it back means -29.7px between words, which welds the line together.
+     So the size stays the source's 64.8 and the break is balanced instead:
+     without it the line breaks after "من" and orphans "بين النجوم", with it the
+     break falls after "ديسكورد" and keeps "على ديسكورد" whole. */
+  text-wrap: balance;
   background: linear-gradient(to top, #555, #fff 42%, #fff);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
