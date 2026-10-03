@@ -5,7 +5,14 @@
   <div class="nx-wrap nx-cta__top">
     <h2 class="nx-cta__title">جاهز لتجربة رائعة؟<br><span>ابدأ الآن!</span></h2>
     <div class="nx-cta__acts">
-      <a href="/invite" class="nx-btn nx-btn-d">دعوة البوت <i class="fas fa-arrow-left nx-ico"></i></a>
+      <!-- Not a link. The bot cannot be added to a server yet, and the page that
+           says so is the one standing above this button on /invite, so a link
+           here would either send a visitor nowhere or send them back to the page
+           they are already on. A span rather than a disabled button: it was
+           never a control, and a span adds no dead stop to the tab order. The
+           box is unchanged, so restoring the link when the feature ships is a
+           one-word edit. -->
+      <span class="nx-btn nx-btn-d is-off"><i class="fas fa-ban" aria-hidden="true"></i> غير متوفر عليها</span>
     </div>
   </div>
 

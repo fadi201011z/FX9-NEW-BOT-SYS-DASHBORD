@@ -140,6 +140,29 @@ button { font-family: inherit; }
 }
 .nx-btn-d:hover { background: #201f2b; border-color: #8b4dff; }
 
+/* A call to action for something the site does not offer yet. The box is left
+   exactly as .nx-btn-d measured it - 7px 21px, 46px tall, 11px corners, 15px/500
+   - so the closing row keeps its shape and turning this back into a link, when
+   the bot can be added, is a one-word change.
+
+   What goes is the fill, the purple rim and every sign of being pressable.
+   Colour alone was not enough: a muted button that still lifted on hover, still
+   brightened its border and still nudged its icon was telling a visitor it was
+   clickable, and they would click it and nothing would happen. cursor and the
+   two transform resets are load-bearing, not decoration. */
+.nx-btn.is-off,
+.nx-btn.is-off:hover {
+  background: #15151c;
+  color: var(--nx-muted);
+  border-color: var(--nx-line);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+.nx-btn.is-off i { opacity: .65; }
+.nx-btn.is-off:hover i:last-child { transform: none; }
+
 /* Trailing arrow slides on hover, matching the source's endIcon timing. */
 .nx-btn i:last-child { transition: transform .2s cubic-bezier(.23,1,.32,1); }
 .nx-btn:hover i:last-child { transform: translateX(-3px); }
