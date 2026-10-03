@@ -1,0 +1,1009 @@
+{
+ "announce": {
+  "category": "announcement",
+  "syntax": "/announce",
+  "examples": [
+   "/announce"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "avatar": {
+  "category": "members",
+  "syntax": "/avatar [user]",
+  "examples": [
+   "/avatar",
+   "/avatar @عضو"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": false,
+      "choices": null,
+      "desc": "العضو المراد عرض صورته (الافتراضي: أنت)"
+     }
+    ]
+   }
+  ]
+ },
+ "ban": {
+  "category": "moderation",
+  "syntax": "/ban <user> [reason] [delete_days]:0-7",
+  "examples": [
+   "/ban @عضو",
+   "/ban @عضو السبب 7"
+  ],
+  "permission": "حظر الأعضاء",
+  "permissionFlag": "BanMembers",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": true,
+      "choices": null,
+      "desc": "العضو المراد حظره"
+     },
+     {
+      "name": "reason",
+      "type": "نص",
+      "required": false,
+      "choices": null,
+      "desc": "سبب الحظر"
+     },
+     {
+      "name": "delete_days",
+      "type": "رقم",
+      "required": false,
+      "choices": null,
+      "min": 0,
+      "max": 7,
+      "desc": "حذف رسائله (0-7 أيام)"
+     }
+    ]
+   }
+  ]
+ },
+ "botinfo": {
+  "category": "ticket",
+  "syntax": "/botinfo",
+  "examples": [
+   "/botinfo"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "clear": {
+  "category": "moderation",
+  "syntax": "/clear <amount>:1-100 [user] [bots_only]",
+  "examples": [
+   "/clear 50",
+   "/clear 50 @عضو true"
+  ],
+  "permission": "إدارة الرسائل",
+  "permissionFlag": "ManageMessages",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "amount",
+      "type": "رقم",
+      "required": true,
+      "choices": null,
+      "min": 1,
+      "max": 100,
+      "desc": "عدد الرسائل للمسح (1-100)"
+     },
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": false,
+      "choices": null,
+      "desc": "مسح رسائل عضو معين فقط"
+     },
+     {
+      "name": "bots_only",
+      "type": "اختيار",
+      "required": false,
+      "choices": null,
+      "desc": "مسح رسائل البوتات فقط"
+     }
+    ]
+   }
+  ]
+ },
+ "config": {
+  "category": "info",
+  "syntax": "/config",
+  "examples": [
+   "/config"
+  ],
+  "permission": "إدارة السيرفر",
+  "permissionFlag": "ManageGuild",
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "configt": {
+  "category": "ticket",
+  "syntax": "/configt",
+  "examples": [
+   "/configt"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "help": {
+  "category": "info",
+  "syntax": "/help",
+  "examples": [
+   "/help"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "helpt": {
+  "category": "ticket",
+  "syntax": "/helpt",
+  "examples": [
+   "/helpt"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "hide": {
+  "category": "moderation",
+  "syntax": "/hide [channel]",
+  "examples": [
+   "/hide",
+   "/hide #قناة نصية"
+  ],
+  "permission": "إدارة القنوات",
+  "permissionFlag": "ManageChannels",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "channel",
+      "type": "قناة",
+      "required": false,
+      "choices": null,
+      "desc": "القناة المراد إخفاؤها (الافتراضي: الحالية)"
+     }
+    ]
+   }
+  ]
+ },
+ "kick": {
+  "category": "moderation",
+  "syntax": "/kick <user> [reason]",
+  "examples": [
+   "/kick @عضو",
+   "/kick @عضو السبب"
+  ],
+  "permission": "طرد الأعضاء",
+  "permissionFlag": "KickMembers",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": true,
+      "choices": null,
+      "desc": "العضو المراد طرده"
+     },
+     {
+      "name": "reason",
+      "type": "نص",
+      "required": false,
+      "choices": null,
+      "desc": "سبب الطرد"
+     }
+    ]
+   }
+  ]
+ },
+ "lock": {
+  "category": "moderation",
+  "syntax": "/lock [channel] [reason]",
+  "examples": [
+   "/lock",
+   "/lock #قناة نصية السبب"
+  ],
+  "permission": "إدارة القنوات",
+  "permissionFlag": "ManageChannels",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "channel",
+      "type": "قناة",
+      "required": false,
+      "choices": null,
+      "desc": "القناة المراد إغلاقها (الافتراضي: القناة الحالية)"
+     },
+     {
+      "name": "reason",
+      "type": "نص",
+      "required": false,
+      "choices": null,
+      "desc": "سبب الإغلاق"
+     }
+    ]
+   }
+  ]
+ },
+ "maintenance": {
+  "category": "moderation",
+  "syntax": "/maintenance start [duration]:0+\n/maintenance stop\n/maintenance status",
+  "examples": [
+   "/maintenance start",
+   "/maintenance start 30",
+   "/maintenance stop",
+   "/maintenance status"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": "start",
+    "options": [
+     {
+      "name": "duration",
+      "type": "رقم",
+      "required": false,
+      "choices": null,
+      "min": 0,
+      "desc": "المدة بالدقائق (0 أو بدون = غير محددة)"
+     }
+    ]
+   },
+   {
+    "sub": "stop",
+    "options": []
+   },
+   {
+    "sub": "status",
+    "options": []
+   }
+  ]
+ },
+ "nick": {
+  "category": "moderation",
+  "syntax": "/nick <user> [nickname]",
+  "examples": [
+   "/nick @عضو",
+   "/nick @عضو لقب جديد"
+  ],
+  "permission": "إدارة الألقاب",
+  "permissionFlag": "ManageNicknames",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": true,
+      "choices": null,
+      "desc": "العضو المستهدف"
+     },
+     {
+      "name": "nickname",
+      "type": "نص",
+      "required": false,
+      "choices": null,
+      "desc": "اللقب الجديد (اتركه فارغاً لإعادة الضبط)"
+     }
+    ]
+   }
+  ]
+ },
+ "notify": {
+  "category": "notifications",
+  "syntax": "/notify add <platform> <url> <channel> [message]\n/notify remove <id>\n/notify list",
+  "examples": [
+   "/notify add youtube https://example.com/channel #قناة",
+   "/notify add youtube https://example.com/channel #قناة رسالة الإشعار",
+   "/notify remove 1",
+   "/notify list"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": "add",
+    "options": [
+     {
+      "name": "platform",
+      "type": "نص",
+      "required": true,
+      "choices": [
+       "youtube",
+       "kick",
+       "twitter"
+      ],
+      "desc": "المنصة"
+     },
+     {
+      "name": "url",
+      "type": "نص",
+      "required": true,
+      "choices": null,
+      "desc": "رابط القناة"
+     },
+     {
+      "name": "channel",
+      "type": "قناة",
+      "required": true,
+      "choices": null,
+      "desc": "القناة اللي تنزل فيها الإشعارات"
+     },
+     {
+      "name": "message",
+      "type": "نص",
+      "required": false,
+      "choices": null,
+      "desc": "رسالة إضافية (اختياري) تظهر مع الإشعار"
+     }
+    ]
+   },
+   {
+    "sub": "remove",
+    "options": [
+     {
+      "name": "id",
+      "type": "نص",
+      "required": true,
+      "choices": null,
+      "desc": "معرف الإشتراك"
+     }
+    ]
+   },
+   {
+    "sub": "list",
+    "options": []
+   }
+  ]
+ },
+ "panel": {
+  "category": "ticket",
+  "syntax": "/panel",
+  "examples": [
+   "/panel"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "ping": {
+  "category": "info",
+  "syntax": "/ping",
+  "examples": [
+   "/ping"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "rank": {
+  "category": "members",
+  "syntax": "/rank [user]",
+  "examples": [
+   "/rank",
+   "/rank @عضو"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": false,
+      "choices": null,
+      "desc": "العضو المراد فحصه (الافتراضي: أنت)"
+     }
+    ]
+   }
+  ]
+ },
+ "ratings": {
+  "category": "ticket",
+  "syntax": "/ratings",
+  "examples": [
+   "/ratings"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "remind": {
+  "category": "ticket",
+  "syntax": "/remind",
+  "examples": [
+   "/remind"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "role": {
+  "category": "moderation",
+  "syntax": "/role add <user> <role>\n/role remove <user> <role>",
+  "examples": [
+   "/role add @عضو @رتبة",
+   "/role remove @عضو @رتبة"
+  ],
+  "permission": "إدارة الرتب",
+  "permissionFlag": "ManageRoles",
+  "args": [
+   {
+    "sub": "add",
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": true,
+      "choices": null,
+      "desc": "العضو المستهدف"
+     },
+     {
+      "name": "role",
+      "type": "رتبة",
+      "required": true,
+      "choices": null,
+      "desc": "الرتبة المراد إضافتها"
+     }
+    ]
+   },
+   {
+    "sub": "remove",
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": true,
+      "choices": null,
+      "desc": "العضو المستهدف"
+     },
+     {
+      "name": "role",
+      "type": "رتبة",
+      "required": true,
+      "choices": null,
+      "desc": "الرتبة المراد إزالتها"
+     }
+    ]
+   }
+  ]
+ },
+ "rules": {
+  "category": "members",
+  "syntax": "/rules",
+  "examples": [
+   "/rules"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "serverinfo": {
+  "category": "info",
+  "syntax": "/serverinfo",
+  "examples": [
+   "/serverinfo"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "setup": {
+  "category": "setup",
+  "syntax": "/setup",
+  "examples": [
+   "/setup"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "setup-botlogs": {
+  "category": "setup",
+  "syntax": "/setup-botlogs <channel>",
+  "examples": [
+   "/setup-botlogs #قناة نصية"
+  ],
+  "permission": "مدير السيرفر",
+  "permissionFlag": "Administrator",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "channel",
+      "type": "قناة",
+      "required": true,
+      "choices": null,
+      "desc": "القناة التي ستصلها إشعارات البوت"
+     }
+    ]
+   }
+  ]
+ },
+ "setup-logs": {
+  "category": "setup",
+  "syntax": "/setup-logs <channel>",
+  "examples": [
+   "/setup-logs #قناة نصية"
+  ],
+  "permission": "مدير السيرفر",
+  "permissionFlag": "Administrator",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "channel",
+      "type": "قناة",
+      "required": true,
+      "choices": null,
+      "desc": "القناة التي تُسجَّل فيها الأحداث العامة"
+     }
+    ]
+   }
+  ]
+ },
+ "setup-modlogs": {
+  "category": "setup",
+  "syntax": "/setup-modlogs <channel>",
+  "examples": [
+   "/setup-modlogs #قناة نصية"
+  ],
+  "permission": "مدير السيرفر",
+  "permissionFlag": "Administrator",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "channel",
+      "type": "قناة",
+      "required": true,
+      "choices": null,
+      "desc": "القناة التي تُسجَّل فيها أوامر الإشراف"
+     }
+    ]
+   }
+  ]
+ },
+ "setup-stats": {
+  "category": "setup",
+  "syntax": "/setup-stats create\n/setup-stats set <total> <online> <bots>",
+  "examples": [
+   "/setup-stats create",
+   "/setup-stats set #قناة الإجمالي #قناة المتصلين #قناة البوتات"
+  ],
+  "permission": "مدير السيرفر",
+  "permissionFlag": "Administrator",
+  "args": [
+   {
+    "sub": "create",
+    "options": []
+   },
+   {
+    "sub": "set",
+    "options": [
+     {
+      "name": "total",
+      "type": "قناة",
+      "required": true,
+      "choices": null,
+      "desc": "قناة إجمالي الأعضاء"
+     },
+     {
+      "name": "online",
+      "type": "قناة",
+      "required": true,
+      "choices": null,
+      "desc": "قناة الأعضاء المتصلين"
+     },
+     {
+      "name": "bots",
+      "type": "قناة",
+      "required": true,
+      "choices": null,
+      "desc": "قناة البوتات"
+     }
+    ]
+   }
+  ]
+ },
+ "setup-voice": {
+  "category": "voice",
+  "syntax": "/setup-voice",
+  "examples": [
+   "/setup-voice"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "setup-welcome": {
+  "category": "setup",
+  "syntax": "/setup-welcome <channel>",
+  "examples": [
+   "/setup-welcome #قناة نصية"
+  ],
+  "permission": "مدير السيرفر",
+  "permissionFlag": "Administrator",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "channel",
+      "type": "قناة",
+      "required": true,
+      "choices": null,
+      "desc": "القناة التي ستُرسَل فيها رسائل الترحيب"
+     }
+    ]
+   }
+  ]
+ },
+ "slowmode": {
+  "category": "moderation",
+  "syntax": "/slowmode <seconds>:0-21600",
+  "examples": [
+   "/slowmode 60"
+  ],
+  "permission": "إدارة القنوات",
+  "permissionFlag": "ManageChannels",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "seconds",
+      "type": "رقم",
+      "required": true,
+      "choices": null,
+      "min": 0,
+      "max": 21600,
+      "desc": "المدة بالثواني (0 لتعطيل)"
+     }
+    ]
+   }
+  ]
+ },
+ "stats": {
+  "category": "ticket",
+  "syntax": "/stats",
+  "examples": [
+   "/stats"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "sysinfo": {
+  "category": "info",
+  "syntax": "/sysinfo",
+  "examples": [
+   "/sysinfo"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "ticket": {
+  "category": "ticket",
+  "syntax": "/ticket",
+  "examples": [
+   "/ticket"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "ticket-show": {
+  "category": "ticket",
+  "syntax": "/ticket-show",
+  "examples": [
+   "/ticket-show"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "timeout": {
+  "category": "moderation",
+  "syntax": "/timeout <user> <duration> [reason]",
+  "examples": [
+   "/timeout @عضو 10m",
+   "/timeout @عضو 10m السبب"
+  ],
+  "permission": "إيقاف الأعضاء",
+  "permissionFlag": "ModerateMembers",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": true,
+      "choices": null,
+      "desc": "العضو المراد إيقافه"
+     },
+     {
+      "name": "duration",
+      "type": "نص",
+      "required": true,
+      "choices": null,
+      "desc": "المدة (مثال: 10m أو 1h أو 1d)"
+     },
+     {
+      "name": "reason",
+      "type": "نص",
+      "required": false,
+      "choices": null,
+      "desc": "سبب الإيقاف"
+     }
+    ]
+   }
+  ]
+ },
+ "unhide": {
+  "category": "moderation",
+  "syntax": "/unhide [channel]",
+  "examples": [
+   "/unhide",
+   "/unhide #قناة نصية"
+  ],
+  "permission": "إدارة القنوات",
+  "permissionFlag": "ManageChannels",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "channel",
+      "type": "قناة",
+      "required": false,
+      "choices": null,
+      "desc": "القناة المراد إظهارها (الافتراضي: الحالية)"
+     }
+    ]
+   }
+  ]
+ },
+ "unlock": {
+  "category": "moderation",
+  "syntax": "/unlock [channel]",
+  "examples": [
+   "/unlock",
+   "/unlock #قناة نصية"
+  ],
+  "permission": "إدارة القنوات",
+  "permissionFlag": "ManageChannels",
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "channel",
+      "type": "قناة",
+      "required": false,
+      "choices": null,
+      "desc": "القناة المراد فتحها (الافتراضي: الحالية)"
+     }
+    ]
+   }
+  ]
+ },
+ "userinfo": {
+  "category": "info",
+  "syntax": "/userinfo [user]",
+  "examples": [
+   "/userinfo",
+   "/userinfo @عضو"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": false,
+      "choices": null,
+      "desc": "العضو المراد عرض معلوماته (افتراضي: أنت)"
+     }
+    ]
+   }
+  ]
+ },
+ "vping": {
+  "category": "voice",
+  "syntax": "/vping",
+  "examples": [
+   "/vping"
+  ],
+  "permission": null,
+  "permissionFlag": null,
+  "args": [
+   {
+    "sub": null,
+    "options": []
+   }
+  ]
+ },
+ "warn": {
+  "category": "moderation",
+  "syntax": "/warn add <user> <reason>\n/warn list <user>\n/warn clear <user>",
+  "examples": [
+   "/warn add @عضو السبب",
+   "/warn list @عضو",
+   "/warn clear @عضو"
+  ],
+  "permission": "إيقاف الأعضاء",
+  "permissionFlag": "ModerateMembers",
+  "args": [
+   {
+    "sub": "add",
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": true,
+      "choices": null,
+      "desc": "العضو المراد تحذيره"
+     },
+     {
+      "name": "reason",
+      "type": "نص",
+      "required": true,
+      "choices": null,
+      "desc": "سبب التحذير"
+     }
+    ]
+   },
+   {
+    "sub": "list",
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": true,
+      "choices": null,
+      "desc": "العضو المراد فحصه"
+     }
+    ]
+   },
+   {
+    "sub": "clear",
+    "options": [
+     {
+      "name": "user",
+      "type": "عضو",
+      "required": true,
+      "choices": null,
+      "desc": "العضو المراد مسح تحذيراته"
+     }
+    ]
+   }
+  ]
+ }
+}

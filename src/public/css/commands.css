@@ -185,17 +185,35 @@
   transition: height .3s cubic-bezier(.4,0,.2,1);
 }
 .cm-acc.is-open .cm-acc__panel { visibility: visible; }
+/* The panel wraps rather than sitting on one row. The syntax line gets the whole
+   width because a line like /notify add <platform> <url> <channel> [message] has
+   no room beside another field; the short fields share the row after it, which is
+   the arrangement the source uses for its own pair. column-gap is the source's
+   own 40px, and in an RTL row it lands between the fields without a direction
+   override. A field too wide for the row drops to the next line on its own. */
 .cm-acc__panel-in {
-  display: flex; width: 100%;
+  display: flex; flex-wrap: wrap;
+  column-gap: 40px; row-gap: 22px;
   padding: 32px 24px 32px 10px; border-radius: 0 0 11px 11px; background: #0f0f19;
 }
-.cm-acc__ex { flex: 0 0 auto; min-width: 0; }
-.cm-acc__ex + .cm-acc__ex { margin-inline-start: 40px; }
+.cm-acc__ex { flex: 0 0 auto; min-width: 0; max-width: 100%; }
+.cm-acc__ex--wide { flex: 1 0 100%; }
 .cm-acc__ex-label { margin: 0; font-size: .875rem; font-weight: 400; line-height: 1.5; color: #fff; }
 .cm-acc__usage {
   margin: 0; font-size: .75rem; font-weight: 500; line-height: 1.6;
   white-space: pre-line; direction: ltr; text-align: end; color: #9494a3;
+  /* An example line is one unbreakable token until it hits a space, and on a
+     narrow phone the longest of them is wider than the panel. break-word rather
+     than anywhere: anywhere would also change the item's min-content width,
+     which is what lets the row above shrink instead of overflow. */
+  overflow-wrap: break-word;
 }
+/* Each invocation is its own line, so the 1.6 line-height alone leaves them too
+   close to read as separate commands. */
+.cm-acc__usage + .cm-acc__usage { margin-top: 6px; }
+/* Arabic values read from the right in a right-to-left page; the command text
+   above them stays left-to-right so /ban is not reordered. */
+.cm-acc__usage--ar { direction: rtl; text-align: right; }
 
 /* ─── Empty state ──────────────────────────────────────────────────────────
    The source has nothing to show here: with a filter that matches no command it

@@ -87,14 +87,40 @@
           </button>
         </h3>
         <div class="cm-acc__panel" id="cm-p-<%= i %>" role="region" aria-labelledby="cm-s-<%= i %>">
+          <%
+            // The bot's own command definitions supply these — argument names,
+            // their bounds, the permission a command needs — so the panel says
+            // what the command takes rather than repeating the name.
+            var use = cmd.usage || {};
+            var syn = use.syntax || ('/' + cmd.name);
+            var exs = (use.examples && use.examples.length) ? use.examples : [syn];
+            // Nineteen of the bot's commands take no arguments, and for those the
+            // syntax line is the bare name the example above already shows. The
+            // field would only repeat itself, so it is not rendered.
+            var hasSyntax = syn !== ('/' + cmd.name);
+          %>
           <div class="cm-acc__panel-in">
+            <% if (hasSyntax) { %>
+            <div class="cm-acc__ex cm-acc__ex--wide">
+              <p class="cm-acc__ex-label">الصيغة</p>
+              <p class="cm-acc__usage"><%= syn %></p>
+            </div>
+            <% } %>
             <div class="cm-acc__ex">
               <p class="cm-acc__ex-label">أمثلة</p>
-              <p class="cm-acc__usage">/<%= cmd.name %></p>
+              <% exs.forEach(function (line) { %>
+              <p class="cm-acc__usage"><%= line %></p>
+              <% }) %>
             </div>
+            <% if (use.permission) { %>
+            <div class="cm-acc__ex">
+              <p class="cm-acc__ex-label">الصلاحية</p>
+              <p class="cm-acc__usage cm-acc__usage--ar"><%= use.permission %></p>
+            </div>
+            <% } %>
             <div class="cm-acc__ex">
               <p class="cm-acc__ex-label">القسم</p>
-              <p class="cm-acc__usage" style="direction:rtl;text-align:right"><%= cmd.label %></p>
+              <p class="cm-acc__usage cm-acc__usage--ar"><%= cmd.label %></p>
             </div>
           </div>
         </div>

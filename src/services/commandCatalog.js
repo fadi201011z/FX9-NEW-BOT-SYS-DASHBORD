@@ -27,7 +27,6 @@ export const FALLBACK_COMMANDS = [
   {category:"info",name:"config",description:"عرض إعدادات البوت الحالية لهذا السيرفر",file:"config.js"},
   {category:"members",name:"rules",description:"عرض قوانين السيرفر",file:"serverrules.js"},
   {category:"members",name:"rank",description:"عرض ترتيبك في السيرفر حسب تاريخ الانضمام",file:"rank.js"},
-  {category:"members",name:"profile",description:"عرض ملف عضو بشكل احترافي",file:"profile.js"},
   {category:"members",name:"avatar",description:"عرض صورة عضو بأعلى دقة ممكنة",file:"avatar.js"},
   {category:"moderation",name:"warn",description:"نظام التحذيرات — إضافة أو عرض أو مسح تحذيرات الأعضاء",file:"warn.js"},
   {category:"moderation",name:"unlock",description:"فتح قناة مغلقة والسماح للأعضاء بالإرسال فيها",file:"unlock.js"},
@@ -79,6 +78,39 @@ export const CATEGORIES = [
 
 const LABEL = Object.fromEntries(CATEGORIES.map(c => [c.id, c.label]));
 
+/* ─── Usage ─────────────────────────────────────────────────────────────────
+   src/data/commandUsage.json is generated from the bot's own SlashCommandBuilder
+   definitions by scripts/gen-command-usage.mjs, so every argument name, its
+   bound and the Discord permission a command demands is the bot's own wording —
+   nothing here is written by hand and nothing can drift from the bot without
+   re-running that script. Read through fs rather than a JSON import so the
+   module loads identically on whatever Node the host is pinned to. */
+const USAGE = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'commandUsage.json'), 'utf-8'));
+  } catch {
+    return {};
+  }
+})();
+
+/* A command the generated table does not know still renders a usable panel — the
+   bare invocation is all that can honestly be said about it. */
+function usageFor(cmd) {
+  const u = USAGE[cmd.name];
+  const syntax = (u && u.syntax) || `/${cmd.name}`;
+  return {
+    syntax,
+    examples: u && Array.isArray(u.examples) && u.examples.length ? u.examples : [syntax],
+    permission: (u && u.permission) || null,
+  };
+}
+
+/* /maintenance is the bot developer's own switch: it puts the whole bot into
+   maintenance at once and neither a visitor nor a server admin can run it, so it
+   does not belong on the public page. The per-guild admin page still lists it,
+   where an owner may disable it per server like anything else. */
+const NOT_PUBLIC = new Set(['maintenance']);
+
 /* Anything the bot reports under a folder the tabs do not cover still has to
    render, so it is appended under its own name rather than dropped. */
 function withLabels(list) {
@@ -87,7 +119,7 @@ function withLabels(list) {
   for (const id of extra) LABEL[id] = id;
   return {
     categories: [...CATEGORIES, ...extra.map(id => ({ id, label: LABEL[id], icon: 'fa-hashtag' }))],
-    commands: list.map(c => ({ ...c, category: c.category || 'info', label: LABEL[c.category] || c.category })),
+    commands: list.map(c => ({ ...c, category: c.category || 'info', label: LABEL[c.category] || c.category, usage: usageFor(c) })),
   };
 }
 
@@ -153,7 +185,7 @@ function fromDisk() {
 const TTL = 60_000;
 let cache = null;
 
-export async function getCommandCatalog({ fresh = false } = {}) {
+export async function getCommandCatalog({ fresh = false, publicOnly = false } = {}) {
   if (!fresh && cache && cache.expires > Date.now()) return cache.value;
 
   let source = 'bot';
@@ -162,7 +194,11 @@ export async function getCommandCatalog({ fresh = false } = {}) {
   if (!list) { source = 'disk'; list = fromDisk(); }
   if (!list) { source = 'fallback'; list = FALLBACK_COMMANDS; }
 
-  const value = { ...withLabels(sortCommands(list)), source, total: list.length };
+  // Filtered before labelling, so a category that only held a developer command
+  // is not left behind as an empty tab.
+  const shown = publicOnly ? list.filter(c => !NOT_PUBLIC.has(c.name)) : list;
+
+  const value = { ...withLabels(sortCommands(shown)), source, total: shown.length };
   cache = { value, expires: Date.now() + TTL };
   return value;
 }

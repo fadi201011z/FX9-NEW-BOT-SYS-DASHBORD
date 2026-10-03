@@ -22,7 +22,7 @@ const router = Router();
    out narrower than the source's and the page scrolls sideways. The landing
    route opts out for the same reason. */
 router.get('/', async (req, res) => {
-  const { commands, categories, source } = await getCommandCatalog();
+  const { commands, categories, source } = await getCommandCatalog({ publicOnly: true });
   res.render('commands', {
     layout: false,
     user: req.session?.user || null,
