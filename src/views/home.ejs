@@ -17,13 +17,20 @@
        means nothing without a server -- so those eleven pages cannot be linked from
        an account page at all. The grid is therefore a catalogue, the rail's own
        eleven rows, with no card dressed as a button, and the way in is the hero
-       button above.
+       button above. A catalogue that gave each page one sentence, though, was a
+       worse lie than the six dead links: guild/settings.ejs is six sections of real
+       configuration and was announced here as "هوية البوت وقناة السجلات". So each
+       card also carries the headings that page actually renders -- every feature
+       named on home, not four fifths of it left for the eleventh visit.
 
-    2. No address is linked twice under two names. The old strip of shortcuts
-       re-opened /docs, /status and /guilds, which the hero and the rail had
-       already opened, so the page pointed at the same three places in two
-       vocabularies. It is now four addresses, each of which appears nowhere else
-       on this page, and nothing on this page points at the same address twice.
+    2. No address is linked twice under two names, and this page carries one
+       navigation and not two. The old strip of shortcuts re-opened /docs, /status
+       and /guilds, which the hero and the rail had already opened; the four that
+       were left were /dashboard, /commands, /about and /dev, every one of them
+       either in the rail or one hop from it. So the strip is gone rather than
+       trimmed again. The only thing on it that was not a link was the theme
+       switch, and that had nowhere else to live -- home is the last page with a
+       toggle -- so it moved up beside your role instead of being dropped with it.
 
     3. Nothing here claims a number it does not have. The command bars were headed
        "أكثر الأوامر استخداماً" over a "مباشر" tag, but /api/commands/stats counts
@@ -60,19 +67,47 @@
   // why these cards say "يتطلب" and never carry a lock. The first row is the one
   // that needs no level at all -- you are already in the server, or you are not
   // reading this list.
+  // `items` is the page's own table of contents, read off the h3s in the view it
+  // renders. It is here because one card per page used to carry one vague
+  // sentence, and the sentence was the only description a page got -- so
+  // settings.ejs, which is six sections of real configuration, was announced as
+  // "هوية البوت وقناة السجلات" and five sixths of it was invisible from home.
+  // A page with eleven ways in should not need eleven visits to find out.
   const REQ_LABEL = ['دعم', 'مشرف', 'آدمن', 'مدير'];
   const SYSTEMS = [
-    { icon: 'circle-info',       name: 'نظرة عامة',       req: null, tint: 'hd-t-p', desc: 'أول ما تفتحه على السيرفر: خلاصة سريعة، والأنظمة العشرة تحتها.' },
-    { icon: 'ticket',            name: 'التذاكر',         req: 0, tint: 'hd-t-a', desc: 'قنوات دعم مصنّفة، وأزرار فتح وإغلاق بيد العضو والمشرف.' },
-    { icon: 'microphone',        name: 'الرومات المؤقتة', req: 1, tint: 'hd-t-v', desc: 'قنوات صوتية تنشأ عند الطلب وتُحذف بعد آخر مغادرة.' },
-    { icon: 'clock-rotate-left', name: 'سجل النشاط',      req: 1, tint: 'hd-t-g', desc: 'كل إجراء إداري في سيرفرك، مرتّب ومفلتر بالتاريخ.' },
-    { icon: 'bell',              name: 'الإشعارات',       req: 1, tint: 'hd-t-o', desc: 'إعلانات مجدولة تصل قنواتك من غير تدخل منك.' },
-    { icon: 'sliders',           name: 'الإعدادات',       req: 2, tint: 'hd-t-s', desc: 'هوية البوت وقناة السجلات، وما يراه الأعضاء من أوامر.' },
-    { icon: 'terminal',          name: 'الأوامر',          req: 2, tint: 'hd-t-c', desc: 'تفعيل الأوامر وتعيين من ينفّذها ومن يقرأها.' },
-    { icon: 'shield',            name: 'الحماية',          req: 2, tint: 'hd-t-r', desc: 'كتم وحظر ومنع غارات وروابط، كل مفتاح على حدة.' },
-    { icon: 'gem',               name: 'نظام البريميوم',   req: 2, tint: 'hd-t-k', desc: 'مزايا البريميوم وتفعيلها على هذا السيرفر.' },
-    { icon: 'user-gear',         name: 'المدراء',          req: 3, tint: 'hd-t-b', desc: 'من يدير لوحة السيرفر، وبأي صلاحية بالضبط.' },
-    { icon: 'database',          name: 'النسخ الاحتياطي',  req: 3, tint: 'hd-t-a', desc: 'نسخة من الأدوار والقنوات والإعدادات، واستعادتها.' },
+    { icon: 'circle-info', name: 'نظرة عامة', req: null, tint: 'hd-t-p',
+      desc: 'الملخّص الذي تبدأ منه: حالة السيرفر بلا تعديل.',
+      items: ['الإعدادات الحالية', 'آخر النشاطات', 'التنقل السريع'] },
+    { icon: 'ticket', name: 'التذاكر', req: 0, tint: 'hd-t-a',
+      desc: 'دعم الأعضاء بقنوات مصنّفة يفتحها العضو بنفسه.',
+      items: ['التذاكر المفتوحة', 'التذاكر المغلقة', 'بحث بالرقم أو العضو أو القسم'] },
+    { icon: 'microphone', name: 'الرومات المؤقتة', req: 1, tint: 'hd-t-v',
+      desc: 'قنوات صوتية تُفتح عند الطلب وتُغلق من نفسها.',
+      items: ['القنوات النشطة حالياً', 'حذف تلقائي بعد آخر مغادرة'] },
+    { icon: 'clock-rotate-left', name: 'سجل النشاط', req: 1, tint: 'hd-t-g',
+      desc: 'ما الذي صار في سيرفرك، ومن فعله.',
+      items: ['النشاطات', 'سجل التدقيق'] },
+    { icon: 'bell', name: 'الإشعارات', req: 1, tint: 'hd-t-o',
+      desc: 'ما يوصَل إلى قنواتك من إعلانات واشتراكات.',
+      items: ['إضافة إشتراك جديد', 'إرسال إعلان', 'الإشتراكات الحالية'] },
+    { icon: 'sliders', name: 'الإعدادات', req: 2, tint: 'hd-t-s',
+      desc: 'ستة أقسام تغطي هوية السيرفر وما يوثّقه.',
+      items: ['الترحيب بالسيرفر', 'الصور المخصصة', 'قنوات السجلات', 'الإحصائيات الصوتية', 'نظام التذاكر', 'فريق الدعم والعدادات'] },
+    { icon: 'terminal', name: 'الأوامر', req: 2, tint: 'hd-t-c',
+      desc: 'أي أمر يعمل، ومن ينفّذه ومن لا ينفّذه.',
+      items: ['تفعيل الأوامر', 'تعديل وصف الأمر', 'صلاحيات الأمر: رتب مسموحة وممنوعة'] },
+    { icon: 'shield', name: 'الحماية', req: 2, tint: 'hd-t-r',
+      desc: 'ما يوقفه البوت قبل أن يصل إلى سيرفرك.',
+      items: ['خمسة أنظمة: سبام، روابط، منشنات، ناك، غارات مفاجئة', 'الحدود والإعدادات', 'الرومات المحضورة'] },
+    { icon: 'gem', name: 'نظام البريميوم', req: 2, tint: 'hd-t-k',
+      desc: 'الخطة التي يعمل بها السيرفر، وكيف تُفعّل.',
+      items: ['الخطة المفعّلة', 'اشترك في خطة', 'تفعيل بالكود السري'] },
+    { icon: 'user-gear', name: 'المدراء', req: 3, tint: 'hd-t-b',
+      desc: 'من يلمس لوحة السيرفر، وبأي صلاحية.',
+      items: ['الرتب الإدارية في السيرفر', 'الأعضاء المرتبطون بالرتب', 'إضافة مدير يدوي', 'قائمة المدراء الحالية'] },
+    { icon: 'database', name: 'النسخ الاحتياطي', req: 3, tint: 'hd-t-a',
+      desc: 'صورة من السيرفر ترجعك إذا صار شي.',
+      items: ['إنشاء نسخة احتياطية', 'النسخ السابقة'] },
   ];
 %>
 <div class="hd">
@@ -106,7 +141,10 @@
       </div>
     </div>
     <div class="hd-hero-side">
-      <div class="hd-role"><i class="fas fa-id-badge"></i> دورك: <b><%= roleName %></b></div>
+      <div class="hd-hero-bar">
+        <div class="hd-role"><i class="fas fa-id-badge"></i> دورك: <b><%= roleName %></b></div>
+        <button type="button" onclick="toggleTheme()" class="hd-theme" aria-label="تبديل السمة بين الفاتحة والداكنة" title="تبديل السمة"><i class="fas fa-sun hd-ic-sun" aria-hidden="true"></i><i class="fas fa-moon hd-ic-moon" aria-hidden="true"></i></button>
+      </div>
       <div class="hd-mini">
         <div class="hd-mini-ic ic-p"><i class="fas fa-server"></i></div>
         <div class="hd-mini-txt"><b id="hdManaged" data-t="<%= managed.length %>">0</b><span>سيرفر تديره</span></div>
@@ -264,10 +302,17 @@
 
        The twelfth tile used to be there: a shortcut back to the server list, which
        pointed at a page listing the cards already on screen. Removed, and with it
-       the last repeated address on this page. -->
+       the last repeated address on this page.
+
+       Which left the list saying less than the pages it describes. Each card used
+       to carry a single hand-written sentence, and one sentence cannot hold
+       settings.ejs, which is 1407 lines and six sections, nor admins.ejs at five.
+       So the cards now carry `items`: the h3s the target view really renders, read
+       off each file, with the sentence above them narrowed to what the page is FOR.
+       The grid gets taller and the descriptions stop being the bottleneck. -->
   <div class="hd-sec-head hd-sec-sys">
     <h2><i class="fas fa-cubes"></i> داخل لوحتك</h2>
-    <span>أحد عشر صفحة، كلها تُفتح من السيرفر مباشرة</span>
+    <span>أحد عشر صفحة، وتحت كل واحدة ما بداخلها</span>
   </div>
   <section class="hd-grid">
     <% SYSTEMS.forEach(s => { %>
@@ -275,36 +320,12 @@
       <div class="hd-card-ic <%= s.tint %>"><i class="fas fa-<%= s.icon %>" aria-hidden="true"></i></div>
       <h3><%= s.name %></h3>
       <p><%= s.desc %></p>
+      <ul class="hd-sys-list"><% s.items.forEach(it => { %><li><%= it %></li><% }) %></ul>
       <% if (s.req !== null) { %><span class="hd-sys-req">يتطلب: <%= REQ_LABEL[s.req] %></span><% } %>
     </div>
     <% }) %>
   </section>
 
-  <!-- ── اختصارات ──
-       Only what the rail does not already carry. The rail's own site section is
-       /home, /docs, /about and /status; the hero button opens /guilds and the
-       ribbon opens /status. This strip used to list six more rows and three of
-       them re-opened a page that was already on screen under a second name --
-       the same address twice on one page, which is the one thing a navigation
-       must never do.
-
-       So it is now four addresses, each of which exists nowhere else on this
-       page and, for /dashboard and /commands, nowhere in the rail either. The
-       fifth row is the theme switch, which is why the heading says اختصارات and
-       not روابط: a button that repaints the page is not a link to somewhere.
-       /dashboard is gated on perms.can, the same object requireRole('manager')
-       reads on the route. -->
-  <div class="hd-sec-head hd-sec-links">
-    <h2><i class="fas fa-bolt"></i> اختصارات</h2>
-    <span>ما لا يظهر في القائمة الجانبية، هنا</span>
-  </div>
-  <section class="hd-links">
-    <% if (perms.can.dashboard) { %><a href="/dashboard" class="hd-link"><i class="fas fa-gauge-high hd-t-p"></i><span>لوحة التحكم</span><em>كل سيرفراتك في شاشة</em></a><% } %>
-    <a href="/commands" class="hd-link"><i class="fas fa-terminal hd-t-c"></i><span>كل الأوامر</span><em>فهرس الأوامر كاملاً</em></a>
-    <a href="/about" class="hd-link"><i class="fas fa-address-card hd-t-b"></i><span>نبذة عنا</span><em>من نحن ولماذا</em></a>
-    <% if (perms.can.dev) { %><a href="/dev" class="hd-link"><i class="fas fa-code hd-t-a"></i><span>لوحة المطور</span><em>اتصال البوت والبيانات</em></a><% } %>
-    <button type="button" onclick="toggleTheme()" class="hd-link"><i class="fas fa-palette hd-t-p"></i><span>السمة</span><em>فاتح أو داكن</em></button>
-  </section>
 </div>
 
 <style>
@@ -484,7 +505,7 @@
 
 /* ── بطاقات الأنظمة ── */
 .hd-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.hd-card{position:relative;padding:24px 20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:border-color 0.28s;overflow:hidden}
+.hd-card{position:relative;display:flex;flex-direction:column;padding:24px 20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:border-color 0.28s;overflow:hidden}
 .hd-card-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;margin-bottom:15px;background:color-mix(in srgb, var(--hd-tint) 12%, transparent);color:var(--hd-tint)}
 .hd-card h3{font-size:0.92rem;font-weight:700;margin:0 0 5px}
 .hd-card p{font-size:0.73rem;color:var(--text-muted);margin:0;line-height:1.8}
@@ -492,16 +513,31 @@
    they are not links and are not dressed as if they were: no arrow, no lift, no
    underline, no hover. A card that rises when you touch it is a promise that
    something opens. */
-.hd-sys-req{display:inline-flex;align-items:center;margin-top:13px;font-size:0.62rem;font-weight:600;color:var(--text-muted);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:3px 9px;border-radius:100px}
+.hd-sys-list{list-style:none;margin:11px 0 13px;padding:0;display:flex;flex-direction:column;gap:6px}
+.hd-sys-list li{position:relative;padding-inline-start:14px;font-size:0.7rem;line-height:1.65;color:var(--text-muted)}
+/* currentColor rather than the card tint: the list is a table of contents, not a
+   second icon, and eleven cards each with a coloured bullet reads as decoration. */
+.hd-sys-list li::before{content:'';position:absolute;inset-inline-start:1px;top:0.6em;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0.45}
+.hd-sys-req{display:inline-flex;align-items:center;align-self:flex-start;margin-top:auto;padding:3px 9px;font-size:0.62rem;font-weight:600;color:var(--text-muted);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:100px}
 
-/* ── الروابط ── */
-.hd-links{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap}
-.hd-link{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:11px 20px;border-radius:12px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.55);transition:all 0.25s;font-family:'Tajawal', system-ui, sans-serif;cursor:pointer;text-decoration:none}
-.hd-link:hover{transform:translateY(-2px);color:#fff;border-color:rgba(255,255,255,0.12);background:rgba(16,16,36,0.72)}
-.hd-link i{font-size:0.85rem;margin-bottom:2px}
-/* What the row is for, under what it is called. Four rows of bare labels gave no
-   way to tell لوحة التحكم from the rest without clicking. */
-.hd-link em{font-style:normal;font-size:0.62rem;font-weight:500;color:var(--text-muted)}
+/* ── زر السمة ──
+   It used to be the last row of a four-link strip that also carried /dashboard,
+   /commands, /about and /dev -- four addresses the rail or the hero already
+   reached, so the strip was a second navigation carrying a second set of labels
+   for doors that were already on screen. It is gone. The switch itself stays:
+   this page is the only place left that offers one, so it moved up to where your
+   role is written. A control is not a destination, so it gets a square and one
+   glyph instead of a card of its own. */
+.hd-hero-bar{display:flex;align-items:center;gap:8px}
+.hd-theme{width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:#c084fc;font-size:0.85rem;cursor:pointer;transition:all 0.25s;font-family:'Tajawal', system-ui, sans-serif}
+.hd-theme:hover{background:rgba(168,85,247,0.14);border-color:rgba(168,85,247,0.35);color:#d8b4fe}
+/* One button, two glyphs, picked by the same root attribute theme.js writes. The
+   glyph names the theme you would land in, not the one you are reading: sun on a
+   dark page, moon on a light one. CSS alone, so there is nothing for the toggle
+   to update when it flips -- which is what theme.js says about itself too. */
+.hd-ic-moon{display:none}
+[data-theme="light"] .hd-ic-sun{display:none}
+[data-theme="light"] .hd-ic-moon{display:inline-block}
 
 /* ── السمة الفاتحة ──
    The page used to hardcode rgba(255,255,255,.06) on every surface, so it stayed
@@ -515,7 +551,7 @@
 [data-theme="light"] .hd-sys-cell,
 [data-theme="light"] .hd-g-card,
 [data-theme="light"] .hd-card,
-[data-theme="light"] .hd-link,
+[data-theme="light"] .hd-theme,
 [data-theme="light"] .hd-empty,
 [data-theme="light"] .hd-mini,
 [data-theme="light"] .hd-role,
@@ -530,19 +566,15 @@
 [data-theme="light"] .hd-pills span,
 [data-theme="light"] .hd-g-info span,
 [data-theme="light"] .hd-card p,
+[data-theme="light"] .hd-sys-list li,
 [data-theme="light"] .hd-ribbon-sub,
 [data-theme="light"] .hd-nohit,
-[data-theme="light"] .hd-empty p,
-[data-theme="light"] .hd-link{color:var(--text-muted)}
+[data-theme="light"] .hd-empty p{color:var(--text-muted)}
 [data-theme="light"] .hd-sys-req{color:var(--text-muted);background:rgba(124,58,237,0.06);border-color:var(--border)}
 /* The six cells sit inside the panel, and both were given the same token, so in
    light mode the inset disappeared and the panel read as one flat sheet. This is
    the tint that puts the boxes back. */
 [data-theme="light"] .hd-sys-cell{background:rgba(124,58,237,0.045);border-color:var(--border-light)}
-/* The sub-label is meant to be quieter than the label above it. Both were pointed
-   at --text-muted, which made the two lines identical and the strip's second line
-   pointless. One step down from the label, not the same step. */
-[data-theme="light"] .hd-link em{color:rgba(92,84,112,0.85)}
 [data-theme="light"] .hd-hero h1,
 [data-theme="light"] .hd-ribbon-title,
 [data-theme="light"] .hd-sys-v{color:var(--text)}
@@ -552,7 +584,7 @@
 [data-theme="light"] .hd-sys-note b{color:#991b1b}
 [data-theme="light"] .hd-kpi:hover,
 [data-theme="light"] .hd-g-card:hover,
-[data-theme="light"] .hd-link:hover{background:#fff;border-color:var(--border)}
+[data-theme="light"] .hd-theme:hover{background:#fff;border-color:var(--border)}
 [data-theme="light"] .hd-kpi.is-na .hd-kpi-txt b,
 [data-theme="light"] .hd-sys-v.is-na{color:var(--text-muted)}
 [data-theme="light"] .hd-ping-good{color:#047857}
@@ -591,7 +623,11 @@
 [data-theme="light"] .hd-btn-ghost{background:rgba(124,58,237,0.06);border-color:var(--border);color:var(--text)}
 [data-theme="light"] .hd-btn-ghost:hover{background:rgba(124,58,237,0.12);border-color:var(--primary-hover);color:var(--text)}
 [data-theme="light"] .hd-search input{color:var(--text)}
-[data-theme="light"] .hd-link:hover{color:var(--text)}
+/* The switch is an icon, not text, so it needs 3:1, not 4.5 -- but the dark
+   palette's lilac measures 1.7:1 on the light surface, so it takes the same step
+   down as the other accents here. */
+[data-theme="light"] .hd-theme{color:#7c3aed}
+[data-theme="light"] .hd-theme:hover{background:rgba(124,58,237,0.12);border-color:#7c3aed;color:#5b21b6}
 [data-theme="light"] .hd-t-a{--hd-tint:#b45309;color:#b45309}
 [data-theme="light"] .hd-t-v{--hd-tint:#7c3aed;color:#7c3aed}
 [data-theme="light"] .hd-t-g{--hd-tint:#047857;color:#047857}
@@ -624,9 +660,10 @@
 .hd-sec-diag{animation:hdUp 0.5s ease 0.18s both}
 .hd-sys-panel{animation:hdUp 0.5s ease 0.21s both}
 .hd-sec-sys{animation:hdUp 0.5s ease 0.25s both}
-.hd-grid{animation:hdUp 0.5s ease 0.29s both}
-.hd-sec-links{animation:hdUp 0.5s ease 0.33s both}
-.hd-links{animation:hdUp 0.5s ease 0.36s both}
+/* section.hd-grid, not .hd-grid: the name is doing two jobs on this page -- it is
+   the eleven-card catalogue and it is also the faint line grid painted behind
+   everything. The bare selector was sliding the wallpaper into place on load. */
+section.hd-grid{animation:hdUp 0.5s ease 0.29s both}
 
 /* ── التجاوب ── */
 @media(max-width:1080px){
@@ -635,7 +672,7 @@
 @media(max-width:900px){
   .hd-hero{flex-wrap:wrap;gap:22px;padding:24px}
   .hd-hero-side{min-width:100%;flex-direction:row}
-  .hd-role{align-self:flex-start}
+  .hd-hero-bar{align-self:flex-start}
 }
 @media(max-width:760px){
   .hd-kpis{grid-template-columns:repeat(2,1fr)}

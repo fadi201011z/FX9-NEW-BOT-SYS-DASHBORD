@@ -103,6 +103,12 @@
               <a href="/guilds"><i class="fas fa-server"></i> السيرفرات</a>
               <a href="/status"><i class="fas fa-heartbeat"></i> حالة البوت</a>
               <a href="/docs"><i class="fas fa-book"></i> التوثيق</a>
+              <%# The full command index. It used to be reachable only from the
+                  shortcuts strip on /home, which had four rows the navbar and the
+                  rail already carried -- so when that strip went, this page went
+                  with it for anyone signed in. It is the one address in that strip
+                  that belonged nowhere else. %>
+              <a href="/commands"><i class="fas fa-terminal"></i> كل الأوامر</a>
               <%# Hidden outright for anyone who is not a bot developer. A lock here
                   invited people to ask for the role it stands for. %>
               <% if (perms.can.dev) { %>
