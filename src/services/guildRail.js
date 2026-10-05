@@ -45,22 +45,31 @@ export async function botGuildIds() {
 }
 
 /**
- * Every server this person can manage, flagged with whether the bot is in it.
+ * Every server this person administers, flagged with whether the bot is in it.
  *
- * `perms.isOwner` short-circuits the Discord check: the bot's owner manages
- * everything the bot can see, and resolve() gives them that everywhere else, so
- * filtering them out of their own rail would have the rail disagreeing with the
- * guards. Session guild order is kept rather than sorted -- /guilds and /home
- * present the same list in the same order, and a rail that reorders on its own
- * makes the same server sit in three different places.
+ * One filter, and it is the same one `resolve()` ends up applying to a server
+ * path: a Discord administrator (0x8) or a guild manager (0x20) is at least
+ * LEVEL.MANAGER, which is what /guilds/<id> asks for. The rail therefore lists
+ * exactly the servers a row in it would let you open, and never one that would
+ * bounce.
+ *
+ * No exemption for `perms.isOwner`, which is the whole point of the last change.
+ * resolve() does grant the bot's owner LEVEL.OWNER everywhere, so the exemption
+ * was defensible as a guard input -- but the owner of a bot is not an
+ * administrator of every server they happen to be a member of, and a switcher
+ * that answers "everything I am in" for one person and "what I administer" for
+ * everyone else is not a filter, it is two filters wearing one column. It was
+ * also the only thing widening this rail past the guard's own set.
+ *
+ * Session guild order is kept rather than sorted -- /guilds and /home present
+ * the same list in the same order, and a rail that reorders on its own makes the
+ * same server sit in three different places.
  */
-export function railGuilds(user, perms, botIds) {
+export function railGuilds(user, botIds) {
   if (!user) return [];
 
-  const all = user.guilds || [];
-  const list = perms?.isOwner
-    ? all
-    : all.filter(g => levelFromDiscordPermissions(g.permissions) >= LEVEL.MANAGER);
+  const list = (user.guilds || [])
+    .filter(g => levelFromDiscordPermissions(g.permissions) >= LEVEL.MANAGER);
 
   return list.map(g => {
     const id = String(g.id);

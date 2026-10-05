@@ -105,10 +105,12 @@
    all for a guest or for someone with no servers to manage, and a rule keyed on a
    missing element would have to be written twice to say the same thing.
 
-   One variable, four consumers -- the content's margin, the band's first track,
-   the rail's own offset, and the narrow-window reset below. Adding a fifth place
-   that has to move for the server rail means adding it to this list, not another
-   :has() rule that can quietly disagree with these four. */
+   One variable, four consumers -- the navigation rail's offset, the content's
+   margin, the band's first track, and the narrow-window reset below. Adding a
+   fifth place that has to move for the server rail means adding it to this list,
+   not another :has() rule that can quietly disagree with these four. The server
+   rail's own offset is not on the list and never was meant to be: it is at the
+   window's edge, so there is nothing for it to move out of. */
 body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
 
 /* ═══ Top bar ════════════════════════════════════════════════════════════ */
@@ -141,19 +143,20 @@ body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
    happens to be sitting above the page. Only the fill and the blur wait for the
    scroll.
 
-   Three tracks, and the first one is the rail's own width. The brand sits in it,
-   directly over the rail, so the hairline on .nav-left's inline-end edge lands
-   on exactly the x the rail's own hairline is on -- one unbroken line running
-   from the top of the window to the bottom of it, with the brand above the rail
-   and the rail below the brand. That alignment is the whole trick, and it is
-   why the rail lost its header instead of the brand being centred with the
-   controls.
+   Three tracks, and the first one is the chrome's own width: the server rail's
+   plus the navigation rail's. The brand sits in it directly over the navigation
+   rail, so the hairline on .nav-left's inline-end edge lands on exactly the x the
+   navigation rail's own hairline is on -- one unbroken line running from the top of
+   the window to the bottom of it, with the brand above the rail and the rail below
+   the brand. That alignment is the whole trick, and it is why the rail lost its
+   header instead of the brand being centred with the controls.
 
-   That first track widens by --nx-guilds-take to reserve the server rail's column
-   under the bar, and it is deliberately wider than the brand cell: .nav-left keeps
-   its own width and its divider stays at the rail's hairline, so the bar above the
-   server rail is empty bar rather than an empty box with a line in it. One line
-   down the frame, three columns across it.
+   That first track is the server rail's column plus the navigation rail's, and it
+   reads right to left as: window edge, empty bar over the server rail, then the
+   brand cell over the navigation rail. The track is therefore deliberately wider
+   than the brand cell, which is pinned to its end at justify-self: end -- so the
+   bar above the server rail is empty bar rather than an empty box with a line in
+   it. One line down the frame, three columns across it.
 
    The middle track is 1fr and the search is centred inside it, so the field
    floats in the space between the rail column and the controls rather than on
@@ -219,15 +222,21 @@ body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
   height: 100%;
   padding-inline: 7px 18px;
   border-inline-end: 1px solid var(--nx-hair);
-  justify-self: stretch;
-  /* An explicit width, because stretch alone is not enough once the track this
-     sits in is wider than the column. The bar's first track carries
-     --nx-guilds-take on top of the rail's width so the search stays centred over
-     the page rather than over the chrome; stretch would hand .nav-left the whole
-     340px, its divider would land 72px past the rail's hairline, and the one
-     unbroken line down the frame would step sideways exactly once, 64px from the
-     top. A definite width makes stretch fall back to start, which in RTL is the
-     track's right edge -- the same edge the rail is anchored to. */
+  /* end, which in RTL is the track's LEFT edge -- and that is now where this
+     column belongs. The bar's first track is the server rail's width plus the
+     navigation rail's, with the rail's half empty so the band runs unbroken over
+     a rail that has nothing to say in it. Pinning the brand cell to the far edge
+     of that track would have put it back over the server rail, and its divider
+     would land 72px past the navigation rail's own hairline: the one unbroken
+     line down the frame, stepping sideways exactly once, 64px from the top.
+
+     end rather than stretch, because stretch only reads as "fill the track" while
+     the track is exactly as wide as the column. The moment the track is wider --
+     which is the moment the server rail exists -- stretch hands this the whole
+     340px and the divider walks off to the window. Stretch with a definite width
+     falls back to start per spec, which is the same bug from the other
+     direction; end is the placement, said out loud. */
+  justify-self: end;
   width: var(--nx-shell-w);
   min-width: 0;
 }
@@ -610,7 +619,18 @@ body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
 .sidebar {
   position: fixed;
   inset-block-start: var(--nx-topbar-h);
-  inset-inline-start: 0;
+  /* --nx-guilds-take, and this is the rail's other half. The server rail takes the
+     window's right edge (inset-inline-start: 0 on .guild-rail), so the navigation
+     rail has to step in by exactly the server rail's width or the two would be
+     drawn on top of each other -- the server rail's icons over the navigation
+     rail's, for as long as the page stayed open. Zero when there is no server
+     rail, because the variable is only handed out when there is one, so this is
+     the old value and not a special case.
+
+     Paired with the band: .nav-left is pinned to the track's end at the same
+     offset, which is what keeps the divider under the bar on the navigation
+     rail's own hairline. Both read the same variable, so they cannot disagree. */
+  inset-inline-start: var(--nx-guilds-take);
   z-index: 900;
   display: flex;
   flex-direction: column;
@@ -1067,14 +1087,20 @@ body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
 .guild-rail {
   position: fixed;
   inset-block-start: var(--nx-topbar-h);
-  /* --nx-shell-w alone, not the rail's width added to it. This offset is where
-     the navigation rail ends, so the server rail starts there and runs inward
-     over its own --nx-guilds-w; adding the width put the far edge of the rail on
-     the navigation rail's own hairline and left a 72px band of nothing between
-     the two. --nx-guilds-take is the content's margin and the bar's first track
-     -- the two things that have to move out of the rail's way -- and this is not
-     one of them. */
-  inset-inline-start: var(--nx-shell-w);
+  /* 0, not --nx-shell-w: this rail is the OUTERMOST column. In an RTL shell
+     inline-start is the right edge, so 0 pins the server rail to the window and
+     the navigation rail moves inward instead -- see .sidebar, whose
+     inset-inline-start is the width this rail hands out. The rail used to sit
+     between the navigation rail and the page, which meant the thing you reach for
+     most was the furthest from your hand and the window's own edge carried
+     nothing at all.
+
+     Zero rather than a var() on purpose. Every other edge of this rail is a
+     function of the rail's own width or of the navigation rail's, and if the
+     navigation rail folds to --nx-rail-w the server rail still has to stay at the
+     window -- so it needs no counterpart rule to follow it, and there is nothing
+     left for one to get out of step with. */
+  inset-inline-start: 0;
   z-index: 890;
   width: var(--nx-guilds-w);
   height: calc(100vh - var(--nx-topbar-h));
@@ -1273,12 +1299,30 @@ body:has(#sidebar.collapsed) .nav-left {
 body:has(#sidebar.collapsed) .nav-brand-text { display: none; }
 body:has(#sidebar.collapsed) .nav-brand { padding-inline: 0; }
 
-/* The server rail follows the navigation rail in, because it hangs off the same
-   edge of the same frame. Left at --nx-shell-w it would keep its 268px offset
-   while the navigation rail folded to 74, and the two would cross over each
-   other -- the server rail drawn on top of the navigation rail's icons for as
-   long as the rail stayed collapsed, which is until reload. */
-body:has(#sidebar.collapsed) .guild-rail { inset-inline-start: var(--nx-rail-w); }
+/* The band's first track is the chrome's width, so it has to fold with the rail
+   it sits over. It did not, and the brand cell -- pinned to the track's end --
+   landed 194px to the side of a 74px rail: the mark hovering over the page with
+   a 120px hole between it and the column it belongs to. That hole is invisible in
+   a collapsed rail, which is why it only shows when you fold it.
+
+   min-width on purpose rather than letting this rule be beaten at 768px. A
+   body:has() selector outranks the plain .navbar__pill inside the phone media
+   query, so unwrapped this would have handed a phone a two-column grid sized for
+   a desktop rail. The phone's own rule is narrower and comes later, and this
+   block is simply not in the running down there. */
+@media (min-width: 769px) {
+  body:has(#sidebar.collapsed) .navbar__pill {
+    grid-template-columns: calc(var(--nx-rail-w) + var(--nx-guilds-take)) minmax(0, 1fr) auto;
+  }
+}
+
+/* Nothing follows the navigation rail inward any more, and that is the point of
+   moving the server rail to the window. Its offset is 0 -- a constant -- while
+   everything the collapse actually moves is the navigation rail's own width and
+   .sidebar's offset beside it. A rule here would have been a second thing to keep
+   in step with the collapse for no geometric reason: with the rail at the edge,
+   folding the navigation rail cannot reach the server rail, so there is nothing
+   to correct. */
 
 /* .hidden is the third mode main.js documents but never writes. Kept working
    anyway: a rail at zero width would otherwise leave the brand column and its

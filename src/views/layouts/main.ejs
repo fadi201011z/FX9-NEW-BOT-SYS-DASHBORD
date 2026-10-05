@@ -27,10 +27,13 @@
 <body>
   <%- include('../partials/navbar') %>
   <div class="layout">
-    <%- include('../partials/sidebar') %>
-    <%# After the rail, not before: this document is RTL, so the first child of
-        .layout is the rightmost, and the navigation rail has to stay on the edge. -%>
+    <%# This document is RTL, so the first child of .layout is the rightmost.
+        The server rail is on the window's edge and the navigation rail is inboard
+        of it, so this is also the tab order: the switcher, then the menu, then the
+        page. Both are position:fixed, so DOM order decides nothing about paint --
+        only stacking and focus, and it should agree with what the eye reads. -%>
     <%- include('../partials/guild-rail') %>
+    <%- include('../partials/sidebar') %>
     <main class="main-content">
       <%- body %>
     </main>

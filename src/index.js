@@ -142,15 +142,19 @@ app.use(async (req, res, next) => {
 
 // ─── The server rail's rows ───────────────────────────────────────────────
 // Set for every request the layout renders, because the rail is in the layout.
-// Ordered after the permission middleware on purpose: it reads perms.isOwner,
-// and a rail that guessed at ownership would put servers in front of someone who
-// then cannot open them.
+// The row list comes entirely off the session's own guilds and their Discord
+// permission bits -- nothing here reads res.locals.perms any more, and that is the
+// fix rather than an accident: reading isOwner is what made the rail list every
+// server the bot's owner happened to be a member of. resolve() does grant them
+// LEVEL.OWNER everywhere, so it agreed with the guard, but being the owner of a
+// bot is not being an administrator of every server you are in, and a switcher
+// with two different filters in it is not a filter.
 app.use(async (req, res, next) => {
   res.locals.railGuilds = [];
   const user = req.session?.user;
   if (!user) return next();
   try {
-    res.locals.railGuilds = railGuilds(user, res.locals.perms, await botGuildIds());
+    res.locals.railGuilds = railGuilds(user, await botGuildIds());
   } catch {
     // A rail with no rows is the same as having no rail -- it collapses to zero
     // width and the shell closes up. Losing the rail beats not rendering at all.
