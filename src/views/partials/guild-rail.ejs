@@ -1,0 +1,48 @@
+<%# The server rail. Sits beside the navigation rail, inside the same frame: the
+    band's bottom hairline runs across the top of it and the navigation rail's own
+    divider is its right edge, so the two read as one object split by a line rather
+    than as two bars standing next to each other. Because this document is RTL,
+    "beside" means to the left -- there is no room to the right of a rail that is
+    already on the window's right edge.
+
+    A server you can manage but the bot is not in is drawn and not linked. That is
+    the whole point of the rail: it should tell you the server is yours and what is
+    missing, and there is nothing to open yet. So it is an <a> with no href plus
+    role="link" aria-disabled -- a link-shaped thing that says no. A real href would
+    land on a page with nothing in it; a <span> would read as broken text. No href
+    also keeps it out of the tab order by itself, and the tooltip still works,
+    which matters because the tooltip is what explains the refusal.
+
+    No `title` attribute on purpose. The label is drawn by one element on <body>
+    that js/shell.js moves into place -- see .rail-tip -- and style.css puts a
+    second tooltip on everything titled, so the two would stack. aria-label
+    carries the accessible name, data-tip the one string that is not always the
+    same thing as the name.
+
+    Row order is the session's, not alphabetical: /guilds and /home present the
+    same list in the same order, and a rail that reorders on its own puts the same
+    server in three different places. -%>
+<%# var, not const: an include() is compiled into the including template's body,
+    and about.ejs and home.ejs both have their own locals. -%>
+<% var railRows = typeof railGuilds !== 'undefined' && railGuilds ? railGuilds : [] %>
+<% if (railRows.length) { %>
+<nav class="guild-rail" id="guildRail" aria-label="سيرفراتك">
+  <div class="guild-rail-scroll">
+    <% railRows.forEach(function (g) { %>
+    <% var current = !!(locals.guild && String(locals.guild.id) === g.id); %>
+    <a class="guild-rail-item<%= current ? ' is-current' : '' %><%= g.inBot ? '' : ' is-off' %>"
+       <% if (g.inBot) { %>href="/guilds/<%= g.id %>"<% } else { %>role="link" aria-disabled="true"<% } %>
+       aria-label="<%= g.name %>"
+       data-tip="<%= g.inBot ? g.name : g.name + ' — البوت مو موجود بهالسيرفر' %>">
+      <span class="guild-rail-ava<%= g.icon ? '' : ' noimg' %>">
+        <% if (g.icon) { %>
+        <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" loading="lazy"
+             onerror="this.remove();this.parentNode.classList.add('noimg')">
+        <% } %>
+        <span class="guild-rail-letter"><%= g.name.charAt(0) %></span>
+      </span>
+    </a>
+    <% }) %>
+  </div>
+</nav>
+<% } %>

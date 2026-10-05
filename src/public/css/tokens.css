@@ -72,6 +72,20 @@
   --nx-shell-w:   268px;
   --nx-rail-w:    74px;
 
+  /* The server rail's width. 72px is Discord's own number and it is the right one
+     here for a reason that is not fashion: a 44px avatar in a 72px column leaves
+     a 14px gutter on each side, and 14px is exactly what the "you are here" bar
+     needs to sit in without either touching the rail's hairline or spilling into
+     the page. Change this and that bar has to be re-measured.
+
+     --nx-guilds-take is the amount the shell actually gives up to it, and it is
+     0 when there is no rail -- no servers, or a guest, or a window too narrow to
+     carry it. Every piece of the frame that has to move out of the server rail's
+     way reads this instead of --nx-guilds-w, so "the rail is not there" is one
+     number rather than a second copy of the condition in four rules. */
+  --nx-guilds-w:  72px;
+  --nx-guilds-take: 0px;
+
   /* The dashboard's top bar is the full width of the window, flush to the top
      edge, and the rail begins where it ends. It used to be a floating pill
      inset by --nx-bar-inset with a --nx-bar-gap of breathing room under it,

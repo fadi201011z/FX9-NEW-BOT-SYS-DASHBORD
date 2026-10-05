@@ -1,12 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Kratos Dashboard — shell behaviour
 
-   Three jobs, all of them things main.js and theme.js do not know about:
+   Four jobs, all of them things main.js and theme.js do not know about:
 
      1. give the bar its scrolled state once the page has moved;
      2. keep the shell's aria-expanded flags honest as the rail and the two
         menus are opened and closed;
-     3. hide the notification badge when the count is zero.
+     3. hide the notification badge when the count is zero;
+     4. own the one tooltip both rails use.
 
    Everything here is an observer or a passive scroll listener rather than a
    patched function. main.js owns toggleSidebar / toggleUserMenu / toggleNotif
@@ -88,4 +89,96 @@
     new MutationObserver(syncBadge).observe(badge, { childList: true, characterData: true, subtree: true });
     syncBadge();
   }
+
+  /* ── 4. One tooltip, for both rails ───────────────────────────────────────
+     Both rails scroll, and a scroll container clips sideways -- one axis being
+     auto makes the other auto, never visible. That is not a footnote: a tooltip
+     drawn inside .sidebar-nav or .guild-rail-scroll is cut off at the rail's
+     own edge, so the label of whatever you are pointing at never appears at
+     all. The collapsed rail's tooltips were drawn as pseudo-elements inside the
+     nav scroller for exactly that reason and were invisible for exactly that
+     reason; they also pushed themselves toward the window edge rather than the
+     page, because inline-start in an RTL document is the side the rail already
+     occupies. Both faults are gone here rather than patched, because a fixed
+     element on <body> is outside every clip in the shell.
+
+     One element for both rails, positioned from a measured rectangle. Fixed
+     rather than absolute so no ancestor's overflow can reach it; one element
+     rather than one per row because a row has no tooltip until the pointer is on
+     it, and fourteen hidden tooltips would all need the same six declarations.
+
+     The text comes from data-tip, then from aria-label. The second is not a
+     convenience: a navigation row carries its name in a child that is hidden
+     while the rail is collapsed, so aria-label is what it needs for a screen
+     reader anyway. Where a row means one thing to the eye and another to its
+     name -- a server the bot is not in -- data-tip wins, and it is the reason
+     both attributes exist rather than one. */
+
+  var TIP_ROWS = '.nav-link, .sidebar-collapse-btn, .sidebar-logout, .guild-rail-item';
+  var railTip = document.createElement('div');
+  railTip.className = 'rail-tip';
+  railTip.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(railTip);
+
+  var tipOwner = null;
+
+  var hideTip = function () {
+    if (!tipOwner) return;
+    tipOwner = null;
+    railTip.classList.remove('is-on');
+  };
+
+  var showTip = function (el) {
+    /* A navigation row says its own name out loud while the rail is expanded,
+       so a tip there would be the label twice. The collapse handle is exempt: it
+       says the same thing on both sides of the state it controls, and neither
+       state prints it on the button. */
+    var side = document.getElementById('sidebar');
+    if (el.closest('#sidebar') && !(side && side.classList.contains('collapsed'))
+        && !el.classList.contains('sidebar-collapse-btn')) return hideTip();
+
+    var text = el.getAttribute('data-tip') || el.getAttribute('aria-label') || '';
+    if (!text) return hideTip();
+    if (el === tipOwner) return;
+
+    railTip.textContent = text;
+    railTip.classList.add('is-on');
+    tipOwner = el;
+
+    /* Measured with the text in and is-on applied: opacity and transform are not
+       layout, so the width read back is this string's width and not the previous
+       one's.
+
+       The gap is measured from the RAIL's edge and not the row's. It reads like
+       the same number either way, and on the navigation rail it is -- a row fills
+       its rail. On the server rail it is not: the row is 44px in a 72px column, so
+       it sits 14.5px in from the rail's edge and a 12px gap measured from the row
+       leaves the label overlapping the gutter, over the rail's own hairline and
+       the "you are here" bar. Anchored to the rail, the label always starts just
+       outside the frame. The row still supplies the vertical centre, which is the
+       one thing the rail cannot know. */
+    var r = el.getBoundingClientRect();
+    var rail = el.closest('.guild-rail, .sidebar');
+    var anchor = rail ? rail.getBoundingClientRect() : r;
+    railTip.style.left = Math.round(anchor.left - 12 - railTip.offsetWidth) + 'px';
+    railTip.style.top = Math.round(r.top + r.height / 2) + 'px';
+  };
+
+  var tipFrom = function (e) {
+    return e.target && e.target.closest ? e.target.closest(TIP_ROWS) : null;
+  };
+
+  document.addEventListener('pointerover', function (e) { showTip(tipFrom(e)); });
+  document.addEventListener('focusin', function (e) {
+    var el = tipFrom(e);
+    if (el) showTip(el); else hideTip();
+  });
+  document.addEventListener('focusout', hideTip);
+  /* A press that navigates should not leave a label pointing at nothing, and a
+     rail that scrolls under a stationary tip would leave it pointing at the wrong
+     row. Capture on scroll so the rails' own scrollers count too. */
+  document.addEventListener('pointerdown', hideTip, true);
+  addEventListener('scroll', hideTip, { passive: true, capture: true });
+  addEventListener('resize', hideTip, { passive: true });
+  addEventListener('blur', hideTip);
 })();

@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initCountAnimations();
   initKeyboardShortcuts();
   initFadeAnimations();
-  initTooltips();
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -349,18 +348,16 @@ function initFadeAnimations() {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  Tooltip Initialization for collapsed sidebar
-// ═══════════════════════════════════════════════════════════════════════════
-
-function initTooltips() {
-  document.querySelectorAll('.nav-link').forEach(link => {
-    const text = link.querySelector('span')?.textContent;
-    if (text && !link.getAttribute('title')) {
-      link.setAttribute('title', text);
-    }
-  });
-}
+// ──────────────────────────────────────────────���────────────────────────────
+//  initTooltips() used to live here, copying each nav row's label onto its title
+//  attribute. There is no label copy any more: the rows print data-tip in the
+//  markup, and js/shell.js draws the one tooltip both rails use. That function
+//  could only have worked because the label was on the element as text, which is
+//  why it read querySelector('span') -- and that is exactly what stops working
+//  the moment the rail is collapsed, since the label is then display:none and
+//  textContent is still there but the copy it guarded was no longer what anyone
+//  saw.  Deleted rather than repointed: nothing calls it and nothing should.
+// ───────────────────────────────────────────────────────────────────────────
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  Modal System

@@ -33,6 +33,7 @@ import notificationRoutes from './routes/notifications.js';
 
 import homeRoutes from './routes/home.js';
 import { botFetch, botPost } from './services/botApi.js';
+import { botGuildIds, railGuilds } from './services/guildRail.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -135,6 +136,24 @@ app.use(async (req, res, next) => {
     try {
       res.locals.premiumStatus = await getGuildPremium(guildId);
     } catch {}
+  }
+  next();
+});
+
+// ─── The server rail's rows ───────────────────────────────────────────────
+// Set for every request the layout renders, because the rail is in the layout.
+// Ordered after the permission middleware on purpose: it reads perms.isOwner,
+// and a rail that guessed at ownership would put servers in front of someone who
+// then cannot open them.
+app.use(async (req, res, next) => {
+  res.locals.railGuilds = [];
+  const user = req.session?.user;
+  if (!user) return next();
+  try {
+    res.locals.railGuilds = railGuilds(user, res.locals.perms, await botGuildIds());
+  } catch {
+    // A rail with no rows is the same as having no rail -- it collapses to zero
+    // width and the shell closes up. Losing the rail beats not rendering at all.
   }
   next();
 });

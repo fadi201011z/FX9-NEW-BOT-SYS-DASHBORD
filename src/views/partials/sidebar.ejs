@@ -18,14 +18,14 @@
   </div>
 
   <% if (locals.guild) { %>
-  <div class="sidebar-role" title="منصبك في هذا السيرفر">
+  <div class="sidebar-role" data-tip="منصبك في هذا السيرفر">
     <i class="fas fa-id-badge" aria-hidden="true"></i>
     <span class="sidebar-role-label"><%= perms.roleLabel %></span>
     <% if (perms.isDeveloper) { %><span class="sidebar-role-dev">مطور</span><% } %>
   </div>
   <% } %>
 
-  <button class="sidebar-collapse-btn" type="button" onclick="toggleSidebarMode()" title="طي القائمة" aria-label="طي القائمة أو توسيعها">
+  <button class="sidebar-collapse-btn" type="button" onclick="toggleSidebarMode()" data-tip="طي القائمة" aria-label="طي القائمة أو توسيعها">
     <i class="fas fa-chevron-right" id="collapseIcon" aria-hidden="true"></i>
   </button>
 
@@ -45,19 +45,19 @@
         is full of them and the absence here would otherwise look like a mistake. -%>
     <div class="nav-section">
       <span class="nav-section-title"><i class="fas fa-compass" aria-hidden="true"></i> <span>الرئيسية</span></span>
-      <a href="/home" class="nav-link <%= currentPage === 'home' ? 'active' : '' %>" title="الصفحة الرئيسية"<% if (currentPage === 'home') { %> aria-current="page"<% } %>>
+      <a href="/home" class="nav-link <%= currentPage === 'home' ? 'active' : '' %>" data-tip="الصفحة الرئيسية" aria-label="الصفحة الرئيسية"<% if (currentPage === 'home') { %> aria-current="page"<% } %>>
         <i class="fas fa-home" aria-hidden="true"></i>
         <span>الصفحة الرئيسية</span>
       </a>
-      <a href="/docs" class="nav-link <%= currentPage === 'docs' ? 'active' : '' %>" title="الدليل الشامل"<% if (currentPage === 'docs') { %> aria-current="page"<% } %>>
+      <a href="/docs" class="nav-link <%= currentPage === 'docs' ? 'active' : '' %>" data-tip="الدليل الشامل" aria-label="الدليل الشامل"<% if (currentPage === 'docs') { %> aria-current="page"<% } %>>
         <i class="fas fa-book" aria-hidden="true"></i>
         <span>الدليل الشامل</span>
       </a>
-      <a href="/about" class="nav-link <%= currentPage === 'about' ? 'active' : '' %>" title="نبذة عنا"<% if (currentPage === 'about') { %> aria-current="page"<% } %>>
+      <a href="/about" class="nav-link <%= currentPage === 'about' ? 'active' : '' %>" data-tip="نبذة عنا" aria-label="نبذة عنا"<% if (currentPage === 'about') { %> aria-current="page"<% } %>>
         <i class="fas fa-address-card" aria-hidden="true"></i>
         <span>نبذة عنا</span>
       </a>
-      <a href="/status" class="nav-link <%= currentPage === 'status' ? 'active' : '' %>" title="حالة البوت"<% if (currentPage === 'status') { %> aria-current="page"<% } %>>
+      <a href="/status" class="nav-link <%= currentPage === 'status' ? 'active' : '' %>" data-tip="حالة البوت" aria-label="حالة البوت"<% if (currentPage === 'status') { %> aria-current="page"<% } %>>
         <i class="fas fa-heartbeat" aria-hidden="true"></i>
         <span>حالة البوت</span>
       </a>
@@ -66,46 +66,46 @@
     <% if (locals.guild) { %>
     <div class="nav-section">
       <span class="nav-section-title"><i class="fas fa-server" aria-hidden="true"></i> <span><%= guild.name %></span></span>
-      <a href="/guilds/<%= guild.id %>" class="nav-link <%= currentPage === 'guild-overview' ? 'active' : '' %>" title="نظرة عامة"<% if (currentPage === 'guild-overview') { %> aria-current="page"<% } %>>
+      <a href="/guilds/<%= guild.id %>" class="nav-link <%= currentPage === 'guild-overview' ? 'active' : '' %>" data-tip="نظرة عامة" aria-label="نظرة عامة"<% if (currentPage === 'guild-overview') { %> aria-current="page"<% } %>>
         <i class="fas fa-circle-info" aria-hidden="true"></i>
         <span>نظرة عامة</span>
       </a>
-      <a href="/settings/<%= guild.id %>" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %> <%= perms.can.settings ? '' : 'locked' %>" data-req="2" title="الإعدادات"<% if (currentPage === 'settings') { %> aria-current="page"<% } %>>
+      <a href="/settings/<%= guild.id %>" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %> <%= perms.can.settings ? '' : 'locked' %>" data-req="2" data-tip="الإعدادات" aria-label="الإعدادات"<% if (currentPage === 'settings') { %> aria-current="page"<% } %>>
         <i class="fas fa-sliders" aria-hidden="true"></i>
         <span>الإعدادات</span>
         <% if (!perms.can.settings) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/commands/<%= guild.id %>" class="nav-link <%= currentPage === 'commands' ? 'active' : '' %> <%= perms.can.commands ? '' : 'locked' %>" data-req="2" title="الأوامر"<% if (currentPage === 'commands') { %> aria-current="page"<% } %>>
+      <a href="/commands/<%= guild.id %>" class="nav-link <%= currentPage === 'commands' ? 'active' : '' %> <%= perms.can.commands ? '' : 'locked' %>" data-req="2" data-tip="الأوامر" aria-label="الأوامر"<% if (currentPage === 'commands') { %> aria-current="page"<% } %>>
         <i class="fas fa-terminal" aria-hidden="true"></i>
         <span>الأوامر</span>
         <% if (!perms.can.commands) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/tickets/<%= guild.id %>" class="nav-link <%= currentPage === 'tickets' ? 'active' : '' %> <%= perms.can.tickets ? '' : 'locked' %>" data-req="0" title="التذاكر"<% if (currentPage === 'tickets') { %> aria-current="page"<% } %>>
+      <a href="/tickets/<%= guild.id %>" class="nav-link <%= currentPage === 'tickets' ? 'active' : '' %> <%= perms.can.tickets ? '' : 'locked' %>" data-req="0" data-tip="التذاكر" aria-label="التذاكر"<% if (currentPage === 'tickets') { %> aria-current="page"<% } %>>
         <i class="fas fa-ticket" aria-hidden="true"></i>
         <span>التذاكر</span>
         <% if (!perms.can.tickets) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/voice/<%= guild.id %>" class="nav-link <%= currentPage === 'voice' ? 'active' : '' %> <%= perms.can.voice ? '' : 'locked' %>" data-req="1" title="الرومات المؤقتة"<% if (currentPage === 'voice') { %> aria-current="page"<% } %>>
+      <a href="/voice/<%= guild.id %>" class="nav-link <%= currentPage === 'voice' ? 'active' : '' %> <%= perms.can.voice ? '' : 'locked' %>" data-req="1" data-tip="الرومات المؤقتة" aria-label="الرومات المؤقتة"<% if (currentPage === 'voice') { %> aria-current="page"<% } %>>
         <i class="fas fa-microphone" aria-hidden="true"></i>
         <span>الرومات المؤقتة</span>
         <% if (!perms.can.voice) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/logs/<%= guild.id %>" class="nav-link <%= currentPage === 'logs' ? 'active' : '' %> <%= perms.can.logs ? '' : 'locked' %>" data-req="1" title="سجل النشاط"<% if (currentPage === 'logs') { %> aria-current="page"<% } %>>
+      <a href="/logs/<%= guild.id %>" class="nav-link <%= currentPage === 'logs' ? 'active' : '' %> <%= perms.can.logs ? '' : 'locked' %>" data-req="1" data-tip="سجل النشاط" aria-label="سجل النشاط"<% if (currentPage === 'logs') { %> aria-current="page"<% } %>>
         <i class="fas fa-clock-rotate-left" aria-hidden="true"></i>
         <span>سجل النشاط</span>
         <% if (!perms.can.logs) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/notifications/<%= guild.id %>" class="nav-link <%= currentPage === 'notifications' ? 'active' : '' %> <%= perms.can.notifications ? '' : 'locked' %>" data-req="1" title="الإشعارات"<% if (currentPage === 'notifications') { %> aria-current="page"<% } %>>
+      <a href="/notifications/<%= guild.id %>" class="nav-link <%= currentPage === 'notifications' ? 'active' : '' %> <%= perms.can.notifications ? '' : 'locked' %>" data-req="1" data-tip="الإشعارات" aria-label="الإشعارات"<% if (currentPage === 'notifications') { %> aria-current="page"<% } %>>
         <i class="fas fa-bell" aria-hidden="true"></i>
         <span>الإشعارات</span>
         <% if (!perms.can.notifications) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/protection/<%= guild.id %>" class="nav-link <%= currentPage === 'protection' ? 'active' : '' %> <%= perms.can.protection ? '' : 'locked' %>" data-req="2" title="الحماية"<% if (currentPage === 'protection') { %> aria-current="page"<% } %>>
+      <a href="/protection/<%= guild.id %>" class="nav-link <%= currentPage === 'protection' ? 'active' : '' %> <%= perms.can.protection ? '' : 'locked' %>" data-req="2" data-tip="الحماية" aria-label="الحماية"<% if (currentPage === 'protection') { %> aria-current="page"<% } %>>
         <i class="fas fa-shield" aria-hidden="true"></i>
         <span>الحماية</span>
         <% if (!perms.can.protection) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/premium/<%= guild.id %>" class="nav-link <%= currentPage === 'premium' ? 'active' : '' %> <%= perms.can.premium ? '' : 'locked' %>" data-req="2" title="نظام البريميوم" id="premiumSideLink"<% if (currentPage === 'premium') { %> aria-current="page"<% } %>>
+      <a href="/premium/<%= guild.id %>" class="nav-link <%= currentPage === 'premium' ? 'active' : '' %> <%= perms.can.premium ? '' : 'locked' %>" data-req="2" data-tip="نظام البريميوم" aria-label="نظام البريميوم" id="premiumSideLink"<% if (currentPage === 'premium') { %> aria-current="page"<% } %>>
         <i class="fas fa-gem" aria-hidden="true"></i>
         <span>نظام البريميوم</span>
         <% if (locals.premiumStatus && locals.premiumStatus.active) { %>
@@ -115,12 +115,12 @@
         <% } %>
         <% if (!perms.can.premium) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/admins/<%= guild.id %>" class="nav-link <%= currentPage === 'admins' ? 'active' : '' %> <%= perms.can.admins ? '' : 'locked' %>" data-req="3" title="المدراء"<% if (currentPage === 'admins') { %> aria-current="page"<% } %>>
+      <a href="/admins/<%= guild.id %>" class="nav-link <%= currentPage === 'admins' ? 'active' : '' %> <%= perms.can.admins ? '' : 'locked' %>" data-req="3" data-tip="المدراء" aria-label="المدراء"<% if (currentPage === 'admins') { %> aria-current="page"<% } %>>
         <i class="fas fa-user-gear" aria-hidden="true"></i>
         <span>المدراء</span>
         <% if (!perms.can.admins) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/backup/<%= guild.id %>" class="nav-link <%= currentPage === 'backup' ? 'active' : '' %> <%= perms.can.backup ? '' : 'locked' %>" data-req="3" title="النسخ الاحتياطي"<% if (currentPage === 'backup') { %> aria-current="page"<% } %>>
+      <a href="/backup/<%= guild.id %>" class="nav-link <%= currentPage === 'backup' ? 'active' : '' %> <%= perms.can.backup ? '' : 'locked' %>" data-req="3" data-tip="النسخ الاحتياطي" aria-label="النسخ الاحتياطي"<% if (currentPage === 'backup') { %> aria-current="page"<% } %>>
         <i class="fas fa-database" aria-hidden="true"></i>
         <span>النسخ الاحتياطي</span>
         <% if (!perms.can.backup) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
@@ -136,7 +136,7 @@
     <% if (perms.can.dev) { %>
     <div class="nav-section">
       <span class="nav-section-title"><i class="fas fa-ellipsis-h" aria-hidden="true"></i> <span>أخرى</span></span>
-      <a href="/dev" class="nav-link <%= currentPage === 'dev' ? 'active' : '' %>" title="لوحة المطور"<% if (currentPage === 'dev') { %> aria-current="page"<% } %>>
+      <a href="/dev" class="nav-link <%= currentPage === 'dev' ? 'active' : '' %>" data-tip="لوحة المطور" aria-label="لوحة المطور"<% if (currentPage === 'dev') { %> aria-current="page"<% } %>>
         <i class="fas fa-code" aria-hidden="true"></i>
         <span>لوحة المطور</span>
       </a>
@@ -152,7 +152,7 @@
       <span class="status-dot online"></span>
       <span>البوت متصل</span>
     </div>
-    <a href="/auth/logout" class="sidebar-logout" title="تسجيل الخروج" aria-label="تسجيل الخروج">
+    <a href="/auth/logout" class="sidebar-logout" data-tip="تسجيل الخروج">
       <i class="fas fa-arrow-right-from-bracket" aria-hidden="true"></i>
       <span>تسجيل الخروج</span>
     </a>

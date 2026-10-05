@@ -91,14 +91,25 @@
 .main-content {
   flex: 1;
   min-width: 0;
-  margin-inline-start: var(--nx-shell-w);
+  margin-inline-start: calc(var(--nx-shell-w) + var(--nx-guilds-take));
   padding: 24px;
   min-height: calc(100vh - var(--nx-topbar-h));
   min-height: calc(100dvh - var(--nx-topbar-h));
   transition: margin-inline-start .34s var(--nx-ease);
 }
-.sidebar.collapsed ~ .main-content { margin-inline-start: var(--nx-rail-w); }
+.sidebar.collapsed ~ .main-content { margin-inline-start: calc(var(--nx-rail-w) + var(--nx-guilds-take)); }
 .sidebar.hidden ~ .main-content { margin-inline-start: 0; }
+
+/* The server rail takes width from the shell only when it is actually on screen.
+   :has() on the row rather than on the rail, because the rail is not rendered at
+   all for a guest or for someone with no servers to manage, and a rule keyed on a
+   missing element would have to be written twice to say the same thing.
+
+   One variable, four consumers -- the content's margin, the band's first track,
+   the rail's own offset, and the narrow-window reset below. Adding a fifth place
+   that has to move for the server rail means adding it to this list, not another
+   :has() rule that can quietly disagree with these four. */
+body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
 
 /* ═══ Top bar ════════════════════════════════════════════════════════════ */
 
@@ -138,6 +149,12 @@
    why the rail lost its header instead of the brand being centred with the
    controls.
 
+   That first track widens by --nx-guilds-take to reserve the server rail's column
+   under the bar, and it is deliberately wider than the brand cell: .nav-left keeps
+   its own width and its divider stays at the rail's hairline, so the bar above the
+   server rail is empty bar rather than an empty box with a line in it. One line
+   down the frame, three columns across it.
+
    The middle track is 1fr and the search is centred inside it, so the field
    floats in the space between the rail column and the controls rather than on
    the viewport's centre line. Centring it on the viewport would sit it 134px to
@@ -145,7 +162,7 @@
    towards the sidebar. */
 .navbar__pill {
   display: grid;
-  grid-template-columns: var(--nx-shell-w) minmax(0, 1fr) auto;
+  grid-template-columns: calc(var(--nx-shell-w) + var(--nx-guilds-take)) minmax(0, 1fr) auto;
   align-items: center;
   gap: 0;
   width: 100%;
@@ -203,6 +220,15 @@
   padding-inline: 7px 18px;
   border-inline-end: 1px solid var(--nx-hair);
   justify-self: stretch;
+  /* An explicit width, because stretch alone is not enough once the track this
+     sits in is wider than the column. The bar's first track carries
+     --nx-guilds-take on top of the rail's width so the search stays centred over
+     the page rather than over the chrome; stretch would hand .nav-left the whole
+     340px, its divider would land 72px past the rail's hairline, and the one
+     unbroken line down the frame would step sideways exactly once, 64px from the
+     top. A definite width makes stretch fall back to start, which in RTL is the
+     track's right edge -- the same edge the rail is anchored to. */
+  width: var(--nx-shell-w);
   min-width: 0;
 }
 /* 24px at the outer edge, to sit on the same gutter as .main-content's padding.
@@ -1024,6 +1050,190 @@
 .sidebar-logout:hover > i { transform: translateX(-2px); }
 .sidebar-logout:active { background: rgba(237,66,69,.22); }
 
+/* ═══ Server rail ════════════════════════════════════════════════════════
+   Beside the navigation rail, not inside it and not instead of it. One frame,
+   three columns, two lines: the band's bottom hairline is the server rail's top
+   edge, and the navigation rail's divider is the server rail's right edge, so
+   the same line that runs down beside the brand runs all the way to the foot of
+   the navigation rail with nothing crossing it.
+
+   It hangs off the band's bottom exactly as the navigation rail does, for the
+   same reason: a gap between the bar and a rail is a band of bare page between
+   two separate objects, and this shell is one object.
+
+   z-index 890, under the navigation rail's 900 and over the page. It never needs
+   to be above either -- it is a column, not an overlay, and the one time it
+   could have been in front of something (its tooltips) is inside its own box. */
+.guild-rail {
+  position: fixed;
+  inset-block-start: var(--nx-topbar-h);
+  /* --nx-shell-w alone, not the rail's width added to it. This offset is where
+     the navigation rail ends, so the server rail starts there and runs inward
+     over its own --nx-guilds-w; adding the width put the far edge of the rail on
+     the navigation rail's own hairline and left a 72px band of nothing between
+     the two. --nx-guilds-take is the content's margin and the bar's first track
+     -- the two things that have to move out of the rail's way -- and this is not
+     one of them. */
+  inset-inline-start: var(--nx-shell-w);
+  z-index: 890;
+  width: var(--nx-guilds-w);
+  height: calc(100vh - var(--nx-topbar-h));
+  height: calc(100dvh - var(--nx-topbar-h));
+  border-inline-end: 1px solid var(--nx-hair);
+  background: var(--nx-rail);
+  transition: inset-inline-start .34s var(--nx-ease);
+}
+.guild-rail-scroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 12px 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.guild-rail-scroll::-webkit-scrollbar { display: none; }
+
+/* The row. 44px in a 72px column leaves 14px of gutter on each side, and that
+   gutter is load-bearing rather than decorative: it is where the "you are here"
+   bar sits, so the two numbers cannot be changed apart without re-measuring it. */
+.guild-rail-item {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  padding: 3px;
+  border: 1px solid var(--nx-hair);
+  border-radius: var(--nx-radius-md);
+  background: var(--nx-panel);
+  color: var(--nx-muted);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color .2s var(--nx-ease-out),
+    border-color .2s var(--nx-ease-out),
+    box-shadow .2s var(--nx-ease-out),
+    transform .2s var(--nx-ease);
+}
+.guild-rail-item:hover {
+  background: var(--nx-panel-2);
+  border-color: rgba(168,85,247,.4);
+  box-shadow: 0 8px 22px rgba(0,0,0,.4);
+  transform: translateY(-2px);
+}
+/* Same press as the collapse handle, for the same reason: 90ms down on an ease-in
+   so it lands under the finger, the slower ease-out on the way back so it feels
+   sprung rather than cut off. A 44px tile can carry a real scale -- this is not
+   the 18px pill that needed .82 to be felt at all. */
+.guild-rail-item:active {
+  transform: scale(.9);
+  transition-duration: .09s;
+  transition-timing-function: cubic-bezier(.32,0,.67,0);
+}
+.guild-rail-ava {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(150deg, rgba(168,85,247,.22), rgba(139,92,246,.22));
+}
+.guild-rail-ava img { width: 100%; height: 100%; object-fit: cover; }
+.guild-rail-letter { display: none; font-size: 1.05rem; font-weight: 800; color: var(--nx-violet-2); }
+.guild-rail-ava.noimg .guild-rail-letter { display: block; }
+
+/* Where you are. The bar sits in the gutter at inset-inline-end, which is the
+   side facing the page -- the same side the collapse handle hangs off the other
+   rail's hairline, so both marks read as one language.
+
+   The offset is spelled as the rail's own arithmetic instead of a number that
+   happens to work, because the two halves are measured from different edges and
+   getting it wrong by 3px looks like nothing until you notice the bar floats just
+   short of the line it was drawn to continue. Reading left to right: the item's
+   own 1px border, then half of what is left of the rail after that border and
+   the 44px row -- 1 + (72 - 1 - 44) / 2 = 14.5. So the bar's outer edge lands
+   flush against the inside of the rail's hairline, and it stays there if the row
+   or the rail is ever resized. At a flat -11 it floated 3.5px short. */
+.guild-rail-item::before {
+  content: '';
+  position: absolute;
+  inset-inline-end: calc(-1 * (1px + (var(--nx-guilds-w) - 1px - 44px) / 2));
+  top: 50%;
+  width: 3px;
+  height: 22px;
+  margin-top: -11px;
+  border-radius: 3px;
+  background: var(--nx-glow);
+  opacity: 0;
+  transform: scaleY(.3);
+  transition: opacity .2s var(--nx-ease-out), transform .28s var(--nx-ease);
+}
+.guild-rail-item.is-current {
+  background: var(--nx-panel-2);
+  border-color: rgba(168,85,247,.5);
+  box-shadow: 0 0 0 1px rgba(168,85,247,.18), 0 0 18px rgba(104,31,209,.28);
+}
+.guild-rail-item.is-current::before { opacity: 1; transform: scaleY(1); }
+
+/* A server you manage that the bot is not in. Drawn, not linked, and it still
+   takes a hover -- not because it does anything, but because the hover is the
+   tooltip, and the tooltip is the only thing on this row that explains why it is
+   shut. The refusal itself is the missing href, which also keeps it out of the
+   tab order; the hover rule below cancels the lift so a shut row never looks like
+   it is waiting for you to press it.
+
+   Greyscale plus dim rather than opacity on the whole tile, because the tile's
+   border is the frame and fading the frame would put a hole in the line. */
+.guild-rail-item.is-off {
+  cursor: not-allowed;
+  border-style: dashed;
+  background: transparent;
+}
+.guild-rail-item.is-off .guild-rail-ava { opacity: .38; filter: grayscale(1); }
+.guild-rail-item.is-off:hover {
+  transform: none;
+  background: transparent;
+  border-color: var(--nx-hair);
+  box-shadow: none;
+}
+/* Both at once is reachable -- the bot API can answer "unknown" while the page
+   under the pointer is a server the bot has since been kicked from -- and it has
+   to read as shut, not as current. The two states disagree, and a violet bar
+   saying "you are here" on a tile you cannot press is the shell lying. The bar is
+   cancelled rather than the current fill, because being in a server without the
+   bot is already visible from the page itself and needs no second signal. */
+.guild-rail-item.is-off::before { opacity: 0; transform: scaleY(.3); }
+/* The plus is the affordance: this is what you would press, once the bot is in.
+   A text '+' rather than a Font Awesome code point, because this stylesheet
+   should not depend on a codepoint in someone else's font. */
+.guild-rail-item.is-off::after {
+  content: '+';
+  position: absolute;
+  inset-block-end: -5px;
+  inset-inline-end: -5px;
+  width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  font-size: .64rem;
+  font-weight: 800;
+  line-height: 1;
+  border-radius: 50%;
+  background: var(--nx-panel-2);
+  border: 1px solid var(--nx-hair);
+  color: var(--nx-muted);
+}
+
+/* The name plate is .rail-tip on <body>, not a child of the row: this rail is a
+   scroll container and anything drawn in here gets cut off at the rail's own
+   edge. See js/shell.js for the whole of it. */
+
 /* ─── Collapsed rail ────────────────────────────────────────────────────────
    Everything textual collapses; the icons stay put. The old rule also expanded
    the rail on hover, which meant the rail changed width whenever the pointer
@@ -1063,6 +1273,13 @@ body:has(#sidebar.collapsed) .nav-left {
 body:has(#sidebar.collapsed) .nav-brand-text { display: none; }
 body:has(#sidebar.collapsed) .nav-brand { padding-inline: 0; }
 
+/* The server rail follows the navigation rail in, because it hangs off the same
+   edge of the same frame. Left at --nx-shell-w it would keep its 268px offset
+   while the navigation rail folded to 74, and the two would cross over each
+   other -- the server rail drawn on top of the navigation rail's icons for as
+   long as the rail stayed collapsed, which is until reload. */
+body:has(#sidebar.collapsed) .guild-rail { inset-inline-start: var(--nx-rail-w); }
+
 /* .hidden is the third mode main.js documents but never writes. Kept working
    anyway: a rail at zero width would otherwise leave the brand column and its
    divider standing with nothing under them. */
@@ -1087,41 +1304,62 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
 
 /* Tooltip. style.css draws one for every [title] on the page, which is right
    for a row of buttons and wrong for a nav row whose label is right there --
-   so the inherited one is cancelled inside the rail and this replaces it, only
-   while collapsed. */
+   so the inherited one is cancelled inside the rail. What replaces it is not a
+   pseudo-element: see .rail-tip below, which has to be a real element on <body>
+   because both rails are scroll containers and a scroll container clips
+   sideways. The one titled thing left in the rail is the role pill, which is
+   not a row and does want the inherited treatment. */
 .sidebar [title]:hover::after { content: none; }
 
-.sidebar.collapsed .nav-link::after,
-.sidebar.collapsed .sidebar-collapse-btn::after,
-.sidebar.collapsed .sidebar-logout::after {
-  content: attr(title);
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: calc(100% + 14px);
-  transform: translateY(-50%) scale(.94);
-  transform-origin: right center;
+/* ─── The rail tooltip ──────────────────────────────────────────────────────
+   One element, built by js/shell.js and placed from a measured rectangle. The
+   parts that matter:
+
+   position:fixed -- not absolute, because it has to sit outside the clip of every
+     rail scroller in the shell, and the only box that is outside all of them is
+   the viewport's.
+
+   left and top are written by the script and translate(-50%) centres it on the
+   row's own middle, so a label of any height lines up without the stylesheet
+   having to know how tall a label is.
+
+   translate(8px, -50%) at rest: the label starts 8px nearer the rail and slides
+   out to the page. In an RTL document the page is to the left, so the offset is
+   positive x -- the same direction the old pseudo-elements got backwards.
+
+   nowrap plus a cap and an ellipsis: a 60-character server name must not become
+   a 400px box over the content it is describing.
+
+   --bg-card and --border rather than --nx-glass and --nx-glass-br, and this is
+   the second time that distinction has cost a tooltip: --nx-glass is rgba(18,
+   14,36,.8) and no light theme re-points it, so a tip painted with it is a dark
+   box carrying --text, which is #1c1533 in the light theme -- dark on dark. The
+   --bg-* aliases are the ones style.css re-points per theme, and they are what
+   the inherited [title] tooltip already uses. */
+.rail-tip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1300;
+  max-width: 260px;
   padding: 6px 11px;
-  border-radius: var(--nx-radius-sm);
-  border: 1px solid var(--nx-glass-br);
-  background: var(--nx-glass);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  box-shadow: var(--nx-shadow-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow);
   color: var(--text);
   font-size: .74rem;
   font-weight: 500;
+  line-height: 1.5;
   white-space: nowrap;
-  z-index: 40;
-  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
   opacity: 0;
-  transition: opacity .18s var(--nx-ease-out), transform .22s var(--nx-ease);
+  transform: translate(8px, -50%);
+  pointer-events: none;
+  transition: opacity .16s var(--nx-ease-out), transform .22s var(--nx-ease);
 }
-.sidebar.collapsed .nav-link:hover::after,
-.sidebar.collapsed .sidebar-collapse-btn:hover::after,
-.sidebar.collapsed .sidebar-logout:hover::after {
-  opacity: 1;
-  transform: translateY(-50%) scale(1);
-}
+.rail-tip.is-on { opacity: 1; transform: translate(0, -50%); }
 
 /* ═══ Arrival ═════════════════════════════════════════════════════════════
    The rail slides in from the edge it lives on and its rows fade up behind it.
@@ -1169,6 +1407,29 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
     background-image:
       linear-gradient(100deg, transparent, rgba(255,255,255,.17), transparent),
       linear-gradient(var(--nx-nav-on), var(--nx-nav-on));
+    background-size: 45% 100%, 100% 100%;
+    background-repeat: no-repeat;
+    background-position: -150% 0, 0 0;
+    animation: shellSweep .9s var(--nx-ease) .35s both;
+  }
+
+  /* The server rail arrives from its own edge, one row behind another, and the
+     current one gets the same single sweep the active nav row gets. The delay
+     ladder is a hand-written nth-child because the row count is whatever the
+     person manages -- there is no count to write a formula against, and a ladder
+     that stops at the last row is no different from one that stops early. */
+  .guild-rail { animation: shellRailIn .5s var(--nx-ease) both; }
+  .guild-rail-item { animation: shellRiseIn .4s var(--nx-ease) both; }
+  .guild-rail-item:nth-child(1)  { animation-delay: .06s; }
+  .guild-rail-item:nth-child(2)  { animation-delay: .1s; }
+  .guild-rail-item:nth-child(3)  { animation-delay: .14s; }
+  .guild-rail-item:nth-child(4)  { animation-delay: .18s; }
+  .guild-rail-item:nth-child(5)  { animation-delay: .22s; }
+  .guild-rail-item:nth-child(n+6) { animation-delay: .26s; }
+  .guild-rail-item.is-current {
+    background-image:
+      linear-gradient(100deg, transparent, rgba(255,255,255,.2), transparent),
+      linear-gradient(var(--nx-panel-2), var(--nx-panel-2));
     background-size: 45% 100%, 100% 100%;
     background-repeat: no-repeat;
     background-position: -150% 0, 0 0;
@@ -1244,6 +1505,42 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
   border-color: rgba(237,66,69,.45);
   color: #ad2733;
 }
+
+/* The server rail is --nx-rail like the navigation rail, so its surface follows
+   for free; what has to be restated is everything drawn on it. --nx-panel and
+   --nx-panel-2 are near-black and no light theme re-points them, so a dark tile
+   would sit on a white column as a black square -- and the default avatar tile is
+   a violet wash that needs a floor under it or the letter has nothing to sit on. */
+[data-theme="light"] .guild-rail { border-color: rgba(124,58,237,.14); }
+[data-theme="light"] .guild-rail-item {
+  background: #fff;
+  border-color: rgba(124,58,237,.12);
+}
+[data-theme="light"] .guild-rail-item:hover {
+  background: rgba(124,58,237,.07);
+  border-color: rgba(124,58,237,.34);
+  box-shadow: 0 8px 22px rgba(60,40,120,.14);
+}
+[data-theme="light"] .guild-rail-item.is-current {
+  background: rgba(124,58,237,.09);
+  border-color: rgba(124,58,237,.45);
+  box-shadow: 0 0 0 1px rgba(124,58,237,.12);
+}
+[data-theme="light"] .guild-rail-ava { background: linear-gradient(150deg, rgba(124,58,237,.16), rgba(109,40,217,.16)); }
+[data-theme="light"] .guild-rail-letter { color: #5b21b6; }
+/* A shut row on white needs a dashed border that is actually visible: the dark
+   theme's --nx-hair is a white on white, so it gets the violet line like every
+   other divider in the frame. */
+/* Transparent, like the dark theme's: the shut row is meant to read as a slot
+   the bot has not been given yet, not as a tile. Left at the white the open rows
+   get, it became a filled box on a #f6f4fc column and the two states differed in
+   two ways at once, neither of them the one that carries the meaning. */
+[data-theme="light"] .guild-rail-item.is-off { background: transparent; border-color: rgba(124,58,237,.2); }
+[data-theme="light"] .guild-rail-item.is-off::after {
+  background: #fff;
+  border-color: rgba(124,58,237,.2);
+  color: #6b6382;
+}
 /* The handle needs all three of its states restated, not just the resting one.
    --nx-panel-2 is a near-black that no light theme re-points, so the dark
    hover would put a black pill on a white page -- and --nx-muted is a grey that
@@ -1275,6 +1572,23 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
    Below 768px the rail is a drawer again: it slides over the content, the
    hamburger appears, and the collapse handle is meaningless because there is
    nothing to collapse to. */
+
+@media (max-width: 900px) {
+  /* The server rail is the first thing to go, and the arithmetic is the reason
+     rather than a habit: 268 + 72 of chrome leaves 560px of page at 900px wide,
+     which is the floor below which the content starts being the cramped part.
+     A switcher is a convenience; a readable page is not.
+
+     Both halves have to be undone. display:none alone would leave the shell
+     72px narrower than it should be for the whole rail, and the content would
+     sit 72px further right than the frame it is inside -- the :has() rule that
+     hands out --nx-guilds-take is keyed on the rows, not on their visibility, so
+     hiding them does not take the width back. Servers are still reachable from
+     /guilds and from the home page's grid, which is where they were reachable
+     from before this rail existed. */
+  .guild-rail { display: none; }
+  body:has(.guild-rail-item) { --nx-guilds-take: 0px; }
+}
 
 @media (max-width: 768px) {
   /* The band stops being a frame on a phone. The rail is an overlay drawer here,

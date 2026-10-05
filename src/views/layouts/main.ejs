@@ -28,6 +28,9 @@
   <%- include('../partials/navbar') %>
   <div class="layout">
     <%- include('../partials/sidebar') %>
+    <%# After the rail, not before: this document is RTL, so the first child of
+        .layout is the rightmost, and the navigation rail has to stay on the edge. -%>
+    <%- include('../partials/guild-rail') %>
     <main class="main-content">
       <%- body %>
     </main>
