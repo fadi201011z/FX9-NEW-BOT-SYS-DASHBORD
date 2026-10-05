@@ -13,13 +13,25 @@
 
    What is carried across from the landing page, and why:
 
-     the floating pill   landing.css draws its header as an invisible full-bleed
-                         wrapper with a 66px pill floating inside it at 24px and
-                         16px, radius 9999px, transparent at the top of the page
-                         and frosted once it has moved. The dashboard reuses the
-                         same object for the same reason: the bar floats over
-                         scrolling content, so a full-bleed bar would be a solid
-                         strip and a pill reads as furniture.
+     the frame itself    one object in two halves, and the division between them
+                         is drawn rather than implied. The bar is the full width
+                         of the window, flush to the top edge; the rail hangs off
+                         its bottom on the inline-start side. One hairline runs
+                         the width of the window under the bar, and a second runs
+                         from the top of the window to the bottom of it down the
+                         rail's inner edge, passing through the bar's brand column
+                         -- which is why the brand sits in that column and the
+                         rail has no header of its own. Brand above the line, rail
+                         below it. The lines meet at one corner, and that corner
+                         is the only place in the shell where the surface turns.
+
+                         It was a floating pill over a separate rail, and the two
+                         never joined: an 8px band of bare page sat between the
+                         pill's underside and the rail's top, and across the
+                         stretch where they overlapped that band read as a seam.
+                         Moving the rail to 0 closed the seam and then ran its
+                         hairline behind a bar it was not continuous with. Edge to
+                         edge removes the gap because there is no gap to have.
 
      the rail's colour   the landing hero draws the product's own dashboard in
                          CSS (.nx-dash__side), and its active row is violet at
@@ -35,10 +47,12 @@
                          light theme had the same fault in the same place and is
                          re-pointed the same way.
 
-     the bar's fill      see-through in both states. The bar floats over
-                         scrolling content, so frosting it opaque at the moment
-                         you scroll hides the thing you scrolled to. Blur and a
-                         hairline carry the separation instead of a fill.
+     the bar's fill      transparent at rest, a quarter fill and a blur once there
+                         is content behind it. Still see-through: the bar floats
+                         over scrolling content, and frosting it opaque at the
+                         moment you scroll hides the thing you scrolled to. The
+                         hairline is not part of that -- it is permanent, because
+                         it is the frame's structure rather than a scroll state.
 
      two easings        cubic-bezier(.23,1,.32,1) for anything that arrives or
                          moves, cubic-bezier(.4,0,.2,1) for colour and opacity.
@@ -54,9 +68,13 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ─── Page frame ───────────────────────────────────────────────────────────
-   .layout clears the floating pill by its full footprint, not by the pill's
-   own height: --nx-topbar-h is inset + height + gap, so the row of content
-   starts below the gap and never rides up under the rounded corners. */
+   .layout clears the bar by exactly its height. That used to be
+   --nx-topbar-h = inset + height + gap, so the content row started below a gap
+   that belonged to a floating pill and rode up under nothing; the bar is edge to
+   edge now, the gap it needed went with it, and --nx-topbar-h is just the
+   height. The one number is still right to keep, because the bar and the rail
+   have to agree on where the frame ends or the divider under the bar and the
+   hairline down the rail stop meeting. */
 .layout {
   display: flex;
   margin-top: var(--nx-topbar-h);
@@ -84,96 +102,129 @@
 
 /* ═══ Top bar ════════════════════════════════════════════════════════════ */
 
+/* The frame, merged. The bar is the full width of the window, flush to the top
+   edge, and the rail hangs off its bottom -- one surface, divided by a hairline,
+   rather than a pill floating above a rail with a band of page showing between
+   them. .navbar and .navbar__pill are both full-bleed now and neither carries a
+   radius or an inset; the pill's own name stays because main.js and shell.js
+   key off #navbarPill and renaming it would mean touching both for nothing.
+
+   padding: 0, not the bar inset. That inset was what floated the bar; the
+   horizontal padding the groups need is on .nav-left and .nav-right instead, so
+   the bar can be edge to edge while the controls still sit inside the page's
+   24px gutter. */
 .navbar {
   position: fixed;
   inset-block-start: 0;
   inset-inline: 0;
   z-index: 1000;
   display: flex;
-  justify-content: center;
-  padding: var(--nx-bar-inset) var(--nx-bar-inset) 0;
-  pointer-events: none; /* the pill takes its own clicks back below */
+  padding: 0;
+  pointer-events: none; /* the band takes its own clicks back below */
 }
 
-/* The pill. Sized to its contents and centred, not stretched across the
-   viewport: a bar that touches both edges stops reading as a floating object
-   and becomes a strip, which is the one thing this shape exists to avoid. It was
-   width:100% and looked like a page banner.
+/* The band. Full width, no radius, and its bottom hairline is the line that
+   divides it from everything under it. That hairline is permanent, not part of
+   the .is-stuck state: it is the frame's structure, and it is what makes the
+   bar and the rail read as one object split by a line rather than as a bar that
+   happens to be sitting above the page. Only the fill and the blur wait for the
+   scroll.
 
-   min-width puts a floor under that without reintroducing the banner -- 700px at
-   a 1120px viewport is a bar with room in it, where 568px fit-content left the
-   three groups huddled in the middle. min() rather than a fixed value so it
-   degrades to the full width on a phone instead of overflowing.
+   Three tracks, and the first one is the rail's own width. The brand sits in it,
+   directly over the rail, so the hairline on .nav-left's inline-end edge lands
+   on exactly the x the rail's own hairline is on -- one unbroken line running
+   from the top of the window to the bottom of it, with the brand above the rail
+   and the rail below the brand. That alignment is the whole trick, and it is
+   why the rail lost its header instead of the brand being centred with the
+   controls.
 
-   Three tracks, 1fr auto 1fr, so the search is centred on the pill rather than
-   on the leftover space. With flex and space-between it was off by half the
-   difference between the two ends -- the brand group is about 130px and the
-   controls about 190px, so the field sat 30px left of true centre, which reads
-   as a mistake even though nothing is actually misaligned. Two equal outer
-   tracks put the search on the middle regardless of what is in the ends, and
-   the ends then align to the pill's edges on their own. */
+   The middle track is 1fr and the search is centred inside it, so the field
+   floats in the space between the rail column and the controls rather than on
+   the viewport's centre line. Centring it on the viewport would sit it 134px to
+   the rail's side of the content area's middle, which reads as a field pulled
+   towards the sidebar. */
 .navbar__pill {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: var(--nx-shell-w) minmax(0, 1fr) auto;
   align-items: center;
-  gap: 1rem;
-  width: fit-content;
-  min-width: min(700px, 100%);
-  max-width: 100%;
+  gap: 0;
+  width: 100%;
   height: var(--nx-bar-h);
-  padding-inline: 20px;
-  border-radius: 9999px;
+  border-block-end: 1px solid var(--nx-hair);
   pointer-events: auto;
-  background: rgba(9,7,19,.42);
-  border: 1px solid transparent;
+  background: transparent;
   -webkit-backdrop-filter: blur(0);
   backdrop-filter: blur(0);
   transition:
     background-color .3s var(--nx-ease-out),
     -webkit-backdrop-filter .3s var(--nx-ease-out),
     backdrop-filter .3s var(--nx-ease-out),
-    border-color .3s var(--nx-ease-out),
     box-shadow .3s var(--nx-ease-out);
 }
 
-/* Scrolled. It stays see-through: the fill drops to a quarter and the blur
+/* Scrolled. It stays see-through: the fill stays at a quarter and the blur
    carries the separation instead, so content is still legible sliding underneath
-   instead of disappearing behind a slab. What .is-stuck buys is an edge and a
-   shadow -- proof that the bar is floating above the page rather than printed
-   on it -- not a background. The earlier .74 frost did the opposite: it turned
-   the bar into an opaque strip the moment you scrolled, which is when you most
-   want to see what you scrolled to. */
+   instead of disappearing behind a slab. Note there is no border change here --
+   the line was already there. What .is-stuck buys is depth: proof that the bar
+   is floating above the page rather than printed on it. */
 .navbar.is-stuck .navbar__pill {
-  background: rgba(9,7,19,.22);
-  border-color: var(--nx-glass-br);
+  background: rgba(9,7,19,.30);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  box-shadow: var(--nx-shadow-sm), inset 0 1px 0 rgba(255,255,255,.05);
+  box-shadow: var(--nx-shadow-sm);
 }
 
-/* justify-self, not justify-content: the pill is a grid now, so each group pins
-   itself to its own track and the tracks decide the spacing. */
+/* justify-self, not justify-content: the band is a grid, so each group pins itself
+   to its own track and the tracks decide the spacing.
+
+   .nav-left is the rail's column: the brand sits directly above the rail, and the
+   hairline on its inline-end edge falls on the same x as the rail's own
+   border-inline-end, so the two join into one unbroken line. That is why the
+   rail dropped its own header -- the brand is not repeated below the line, it
+   sits above it.
+
+   padding-inline here rather than on .navbar__pill: the bar is edge to edge now,
+   so the only thing that should stop short of the window is the content inside
+   it, not the band.
+
+   The 7px is not a preference, it is the number that lines the brand mark up
+   with the rail's own icons below the divider. .nav-brand carries 9px of its own
+   padding, so the mark's box starts 16px from the rail's outer edge and its
+   centre lands at 31px -- which is exactly where .nav-link's icon centres, and
+   exactly half of the 62px those icons occupy. At the 18px this used to carry,
+   the mark's centre sat at 42px and the two columns of glyphs beside each other
+   did not line up, which is the kind of thing nobody can name and everybody
+   notices. */
 .nav-left {
   display: flex;
   align-items: center;
   gap: 10px;
+  height: 100%;
+  padding-inline: 7px 18px;
+  border-inline-end: 1px solid var(--nx-hair);
+  justify-self: stretch;
   min-width: 0;
-  justify-self: start;
 }
+/* 24px at the outer edge, to sit on the same gutter as .main-content's padding.
+   18px on the rail side is where the divider is and stays where it is. */
 .nav-right {
   display: flex;
   align-items: center;
   gap: 6px;
+  height: 100%;
+  padding-inline: 18px 24px;
   justify-self: end;
 }
-/* No flex: 1, and nothing to distribute -- the pill's middle track is auto, so
-   this group is exactly as wide as the search field. flex:1 here is what made
-   the bar full width in the first place: a middle group that absorbs every spare
-   pixel leaves no width for the pill to be sized by. The field is clamped below
-   so the auto track has something bounded to resolve against. */
+/* No flex: 1, and nothing to distribute -- the band's middle track is 1fr and this
+   group is centred inside it, so it is exactly as wide as the search field.
+   flex: 1 here is what made the bar swallow the whole viewport back when it was
+   a shrink-to-fit pill: a middle group that absorbs every spare pixel leaves no
+   width for anything else to be sized by. The field is clamped below so the
+   track has something bounded to resolve against. */
 .nav-center {
   display: flex;
   min-width: 0;
+  padding-inline: 18px;
   justify-self: center;
 }
 
@@ -426,10 +477,12 @@
   border-radius: 50%;
   box-shadow: 0 0 0 1px rgba(255,255,255,.12);
 }
-/* Capped. The pill is fit-content now, so nothing inside it truncates on its
-   own: a user with a 40-character globalName would push the bar past the
-   viewport's edge and the whole shell would scroll sideways. max-width:100% on
-   the pill only bounds the pill, not what is inside it. */
+/* Capped, and it has to stay capped. The band's third grid track is `auto`, so
+   it is sized by what is in it: a user with a 40-character globalName would
+   widen that track until the middle track -- which is 1fr and holds the search --
+   had nothing left, and the bar's layout would depend on how long somebody's
+   Discord name happens to be. The cap is what makes the search's position the
+   same on every account. */
 .user-name {
   max-width: 132px;
   overflow: hidden;
@@ -509,40 +562,35 @@
    the whole shell, so the hairline between rail and content moves to
    inline-end with it.
 
-   The rail starts at 0, not below the bar. It used to sit at
-   inset-block-start: var(--nx-topbar-h), which left an 8px band of bare page
-   between the pill's underside and the rail's top -- and across the stretch
-   where the two overlap horizontally that band reads as a seam, so the rail
-   looked like a panel dropped into the page rather than part of its frame. It
-   is now one surface from the top edge of the window to the bottom, and the
-   hairline down its side is a single unbroken line.
+   The rail starts at the band's bottom edge, not below it and not at 0. It was
+   pinned at inset-block-start: var(--nx-topbar-h) while the bar was a floating
+   pill inset by its own margin, which left an 8px band of bare page between the
+   pill's underside and the rail's top -- and across the stretch where the two
+   overlapped horizontally that band read as a seam, so the rail looked like a
+   panel dropped into the page rather than part of its frame. Then it was moved
+   to 0 and given padding-block-start to slide under the pill, which closed the
+   seam but left the rail's own hairline running behind a bar it should have been
+   continuous with. The band is edge to edge and the rail hangs off it, so the
+   one number on both sides of the join is --nx-topbar-h: the hairline under the
+   bar and the rail's top edge are the same line, and the hairline down the rail's
+   inner edge and the bar's .nav-left divider are the same line.
 
-   What --nx-topbar-h moved to is padding-block-start. The bar's footprint
-   still has to be cleared or the rail's own header would sit under the pill,
-   but a floating bar sitting ON a full-height frame is the intended reading,
-   where a frame stopping 8px short of the bar is not. .layout keeps the same
-   margin, so the content row is unaffected.
-
-   height is the full viewport, not viewport minus the bar, for the same reason:
-   the bar floats over the rail rather than displacing it. box-sizing is
-   border-box everywhere here, so the padding comes out of the height and the
-   footer still lands on the bottom edge -- the nav gets the space that is left,
-   which is what it did before. */
+   height is the viewport minus that join rather than the whole viewport, because
+   the band owns the top 64px and the rail must not draw under it. dvh rather than
+   vh for the usual reason: vh is the tallest viewport the browser will ever
+   report, so on a phone with a URL bar the rail is drawn taller than the screen
+   and its footer -- the logout row -- ends up below the fold. The vh declaration
+   stays first as the fallback. */
 .sidebar {
   position: fixed;
-  inset-block-start: 0;
+  inset-block-start: var(--nx-topbar-h);
   inset-inline-start: 0;
   z-index: 900;
   display: flex;
   flex-direction: column;
   width: var(--nx-shell-w);
-  /* dvh, not vh. vh is the tallest viewport the browser will ever report, so on
-     a phone with a URL bar the rail is drawn taller than the screen and its
-     footer -- the logout row -- ends up below the fold, out of reach. The vh
-     declaration stays first as the fallback. */
-  height: 100vh;
-  height: 100dvh;
-  padding-block-start: var(--nx-topbar-h);
+  height: calc(100vh - var(--nx-topbar-h));
+  height: calc(100dvh - var(--nx-topbar-h));
   overflow: hidden;
   border-inline-end: 1px solid var(--nx-hair);
   background: var(--nx-rail);
@@ -566,16 +614,19 @@
 .sidebar.collapsed { width: var(--nx-rail-w); }
 .sidebar.hidden { transform: translateX(100%); width: 0; border: none; }
 
-/* ─── Rail header ─────────────────────────────────────────────────────────
-   The mark again, with the product name beside it. Two marks on screen at once
-   (bar and rail) is one too many, so the rail keeps the name and drops the
-   word "Dashboard": the bar already says what this is. */
+/* Drawer header, desktop only off. The brand is in the bar now, directly above
+   the rail, with the line between them -- so on a desktop the rail's own header
+   was a second Kratos 88px below the first, which is the duplication the merge
+   was meant to remove. It comes back below 768px, and not as dead weight: the
+   bar hides .nav-brand-text on a phone, so the drawer is the only place the
+   product name appears at that width, and it is where the close button lives
+   now that there is no desktop header to hang one off. */
 .sidebar-header {
   position: relative;
-  display: flex;
+  display: none; /* the responsive block turns this back on at 768px */
   align-items: center;
   gap: 10px;
-  padding: 16px 16px 14px;
+  padding: 14px 16px;
   font-size: .95rem;
   font-weight: 700;
   border-block-end: 1px solid var(--nx-hair);
@@ -597,8 +648,8 @@
 .sidebar-close:hover { background: rgba(255,107,107,.12); color: #ff6b6b; }
 
 /* Collapse handle. It sits on the rail's content-facing edge -- inline-end here
-   -- so it never collides with the floating pill above it, and it reads as a tab
-   on the frame rather than a button floating in the column.
+   -- so it never collides with the bar above it, and it reads as a tab on the
+   frame rather than a button floating in the column.
 
    The tab hangs outward from that edge, so it is rounded on its inline-end
    corners (top-left and bottom-left in RTL) and square where it meets the rail.
@@ -606,16 +657,15 @@
    two: the tab was rounded where it joined the rail and square at the edge you
    are meant to see.
 
-   inset-block-start is measured from the rail's padding box, not its content
-   box, so the 18px here means 18px below the top of the window rather than 18px
-   below the rail's header. The --nx-topbar-h in front of it is what keeps the
-   tab clear of the floating pill: the tab is absolutely positioned inside the
-   rail, so it ignores the rail's own padding-block-start and would otherwise sit
-   at y=18 -- inside the pill's 16..80 band, half-buried behind a bar that is
-   meant to float above the entire frame. */
+   inset-block-start is a plain 18px below the rail's top edge again. It had to
+   be calc(var(--nx-topbar-h) + 18px) while the rail ran up behind a floating
+   pill, because the tab is absolutely positioned inside the rail and measures
+   from the rail's padding box -- so at 18px it sat inside the pill's 16..80
+   band. The rail now begins where the band ends, so the bar is nowhere near this
+   edge and the compensation is gone. */
 .sidebar-collapse-btn {
   position: absolute;
-  inset-block-start: calc(var(--nx-topbar-h) + 18px);
+  inset-block-start: 18px;
   inset-inline-end: -1px;
   z-index: 10;
   width: 22px;
@@ -638,13 +688,16 @@
 .sidebar.collapsed .sidebar-collapse-btn i { transform: rotate(180deg); }
 
 /* ─── Your standing in this server ────────────────────────────────────────
-   Kept, restyled: the rail's own surface with the violet rim the cards use. */
+   Kept, restyled: the rail's own surface with the violet rim the cards use.
+   This is the rail's first row now -- with the header moved up into the bar
+   there is nothing above it, so its top margin is what sets the gap under the
+   frame's dividing line. */
 .sidebar-role {
   position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 14px 4px;
+  margin: 14px 14px 4px;
   padding: 9px 12px;
   border-radius: var(--nx-radius);
   border: 1px solid var(--nx-glass-br);
@@ -906,6 +959,39 @@
   display: none;
 }
 
+/* The bar's brand column is the rail's column, so it folds when the rail does.
+   Left at --nx-shell-w it stayed a 268px box holding a 30px mark, and its
+   divider sat 194px away from the rail's hairline -- two lines where the design
+   has one, which is the seam this shell is trying not to have.
+
+   :has() reads the rail's own class rather than a second copy of the state on
+   <body>. main.js writes 'collapsed' in three places -- the toggle, the restore
+   on load, and the resize handler -- and a mirrored body class would have to be
+   kept in step with all three and would be wrong the moment one of them was
+   missed. Every other collapsed rule here is a descendant of the rail and can
+   use a plain selector; the bar is not a descendant, so this is the one place
+   :has() earns its keep. */
+body:has(#sidebar.collapsed) .nav-left {
+  width: var(--nx-rail-w);
+  /* Centred, not start-aligned. The 7px that lines the mark up with the rail's
+     icons is meaningless at 74px wide -- it left the mark 4px off the column's
+     centre, which is 4px more than a collapsed rail should ever be off by. */
+  padding-inline: 0;
+  justify-content: center;
+}
+body:has(#sidebar.collapsed) .nav-brand-text { display: none; }
+body:has(#sidebar.collapsed) .nav-brand { padding-inline: 0; }
+
+/* .hidden is the third mode main.js documents but never writes. Kept working
+   anyway: a rail at zero width would otherwise leave the brand column and its
+   divider standing with nothing under them. */
+body:has(#sidebar.hidden) .nav-left {
+  width: 0;
+  padding-inline: 0;
+  border-inline-end: none;
+}
+body:has(#sidebar.hidden) .nav-brand { display: none; }
+
 .sidebar.collapsed .sidebar-header { padding-inline: 0; justify-content: center; }
 .sidebar.collapsed .nav-section-title,
 .sidebar.collapsed .nav-link { justify-content: center; padding-inline: 0; }
@@ -1027,14 +1113,19 @@
   --nx-rail: #f6f4fc;
 }
 
-/* Faint at rest and fainter when stuck, same as the dark theme: a white sheet
-   at .94 frosts the page out from behind it, which is the same slab problem the
-   dark theme had, only without the dark to hide it. */
-[data-theme="light"] .navbar__pill { background: rgba(255,255,255,.62); }
+/* Nothing to unfill at rest: the band's default background is transparent, and a
+   white sheet over a white page is the same slab the dark theme had, only without
+   the dark to hide it. So the light theme only adds the scrolled depth. The
+   dividers do need restating, because --nx-hair is a white on white -- it is the
+   one value in the frame with no light-theme reading of its own. */
 [data-theme="light"] .navbar.is-stuck .navbar__pill {
-  background: rgba(255,255,255,.46);
-  border-color: rgba(124,58,237,.18);
-  box-shadow: 0 8px 28px rgba(60,40,120,.1), inset 0 1px 0 rgba(255,255,255,.9);
+  background: rgba(255,255,255,.62);
+  box-shadow: 0 8px 28px rgba(60,40,120,.1);
+}
+[data-theme="light"] .navbar__pill,
+[data-theme="light"] .nav-left {
+  border-block-end-color: rgba(124,58,237,.14);
+  border-inline-end-color: rgba(124,58,237,.14);
 }
 [data-theme="light"] .sidebar {
   border-color: rgba(124,58,237,.14);
@@ -1080,17 +1171,32 @@
    nothing to collapse to. */
 
 @media (max-width: 768px) {
-  .navbar { padding-inline: 12px; }
+  /* The band stops being a frame on a phone. The rail is an overlay drawer here,
+     not a column beside the content, so there is nothing for the brand to sit
+     above: a 268px brand column with a hairline down it would just be a wide box
+     holding a hamburger and a 30px mark, with a line beside it that leads to
+     nothing. Two tracks, no divider, the controls at the far end. */
+  .navbar__pill { grid-template-columns: auto minmax(0, 1fr); }
+  .nav-left {
+    width: auto;
+    padding-inline: 12px;
+    border-inline-end: none;
+  }
+  .nav-right { padding-inline: 12px; }
   .sidebar-toggle { display: grid; }
   .nav-center { display: none; }
   .nav-brand-text { display: none; }
 
+  /* The rail's own header is back, because the brand in the bar is only a mark at
+     this width and the drawer needs somewhere to put its close button. */
+  .sidebar-header { display: flex; }
+
   /* Both of these go over the bar, not under it. The overlay is 899 and the rail
-     900, and the navbar is 1000 because on a desktop the pill is meant to float
-     over the frame. In a drawer that stacking order is backwards: opening the
-     drawer left the search field painted on top of it and still accepting
-     typing, while the page it searches sat dimmed behind an overlay it no
-     longer owned. A drawer takes the screen, so it takes the z-order with it. */
+     900, and the navbar is 1000 because the band owns the top of the frame. In
+     a drawer that stacking order is backwards: opening the drawer left the search
+     field painted on top of it and still accepting typing, while the page it
+     searches sat dimmed behind an overlay it no longer owned. A drawer takes the
+     screen, so it takes the z-order with it. */
   .sidebar-overlay { z-index: 1090; }
 
   .sidebar {
@@ -1098,12 +1204,6 @@
     inset-block-start: 0;
     width: min(var(--nx-shell-w), 84vw) !important;
     height: 100dvh;
-    /* The desktop rail carries --nx-topbar-h as padding so the floating pill can
-       sit over it. A drawer cannot: it covers the pill, not the other way round,
-       so it clears nothing and its close button belongs at the very top of the
-       screen. Left inherited, it would push the drawer's header 88px down for no
-       reason and put the close button somewhere the thumb is not. */
-    padding-block-start: 0;
     transform: translateX(100%);
     border-inline-end: none;
     box-shadow: none;

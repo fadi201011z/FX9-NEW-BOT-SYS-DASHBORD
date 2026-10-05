@@ -3,7 +3,7 @@
 
    Three jobs, all of them things main.js and theme.js do not know about:
 
-     1. frost the floating pill once the page has moved;
+     1. give the bar its scrolled state once the page has moved;
      2. keep the shell's aria-expanded flags honest as the rail and the two
         menus are opened and closed;
      3. hide the notification badge when the count is zero.
@@ -22,10 +22,12 @@
 (function () {
   'use strict';
 
-  /* ── 1. The pill's two states ──────────────────────────────────────────────
-     Transparent until the page has moved 8px, then frosted. Eight rather than
-     zero because a sub-pixel scroll or a rubber-band overscroll on touch
-     would otherwise flicker the whole bar. */
+  /* ── 1. The bar's two states ──────────────────────────────────────────────
+     Transparent until the page has moved 8px, then a faint fill, a blur and a
+     shadow. Eight rather than zero because a sub-pixel scroll or a rubber-band
+     overscroll on touch would otherwise flicker the whole bar. The hairline
+     under the bar is not part of this -- it is always there, because it is the
+     frame's dividing line and not a scroll state. */
 
   var navbar = document.getElementById('navbar');
   if (navbar) {

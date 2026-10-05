@@ -72,15 +72,17 @@
   --nx-shell-w:   268px;
   --nx-rail-w:    74px;
 
-  /* The dashboard's top bar is a floating pill, not a full-bleed bar: the same
-     object the landing page uses, inset from the viewport edge and frosted only
-     once there is content behind it. These three numbers are its geometry and
-     --nx-topbar-h is the row they add up to, which is what the shell offsets by
-     (see .layout and .sidebar in css/shell.css). */
+  /* The dashboard's top bar is the full width of the window, flush to the top
+     edge, and the rail begins where it ends. It used to be a floating pill
+     inset by --nx-bar-inset with a --nx-bar-gap of breathing room under it,
+     which is why --nx-topbar-h was inset + height + gap and why the rail had to
+     start 8px below the bar -- that gap was a band of bare page between two
+     separate objects. One frame has no gap in it: the bar is edge to edge and
+     the rail's top edge is the bar's bottom edge, so --nx-topbar-h is just the
+     bar's height. It is still a token rather than a number, because .layout,
+     .sidebar and the collapse handle all measure against it. */
   --nx-bar-h:     64px;
-  --nx-bar-inset: 16px;
-  --nx-bar-gap:    8px;
-  --nx-topbar-h:   calc(var(--nx-bar-inset) + var(--nx-bar-h) + var(--nx-bar-gap));
+  --nx-topbar-h:  var(--nx-bar-h);
 
   /* ── Motion ──────────────────────────────────────────────────────────────
      Two curves, both lifted off landing.css rather than invented here. The
@@ -91,7 +93,7 @@
   --nx-ease:       cubic-bezier(.23, 1, .32, 1);
   --nx-ease-out:   cubic-bezier(.4, 0, .2, 1);
 
-  /* ── The rail and the pill ───────────────────────────────────────────────
+  /* ── The rail, and the lines that divide the frame ──────────────────────
      Sampled off the dashboard drawing in the landing hero (.nx-dash__side and
      .nx-dash__bar), which is the only place the real shell is shown inside the
      design. Its sidebar is #08090f -- and that value was wrong here. It is a
