@@ -75,10 +75,16 @@
   /* The server rail's width, and it is the OUTERMOST column -- on the window's
      right edge, with the navigation rail inboard of it. 72px is Discord's own
      number and it is the right one here for a reason that is not fashion: a 44px
-     avatar in a 72px column leaves a 14px gutter on each side, and 14px is exactly
+     row in a 72px column leaves a 14px gutter on each side, and 14px is exactly
      what the "you are here" bar needs to sit in without either touching the rail's
-     hairline or spilling into the page. Change this and that bar has to be
-     re-measured.
+     hairline or spilling into the page.
+
+     Two numbers and not one, because the rail folds in two steps. --nx-guilds-w is
+     the column, --nx-guilds-row is the tile inside it, and the bar's offset is
+     arithmetic over the pair -- the gutter is whatever is left over. A single
+     number would force the tile to be rescaled by hand every time the column
+     changed, and the first time somebody changed only the column, the bar would
+     have drifted onto the rail's hairline with nothing in the code to stop it.
 
      --nx-guilds-take is the amount the shell actually gives up to it, and it is
      0 when there is no rail -- no servers, or a guest, or a window too narrow to
@@ -86,9 +92,26 @@
      its own offset is 0 whatever the rest of the frame does. Everything that has
      to step out of its way reads this instead of --nx-guilds-w, so "the rail is
      not there" is one number rather than a second copy of the condition in four
-     rules. */
+     rules.
+
+     Both are registered with @property below so they can be transitioned, and
+     that is what keeps the fold honest: one number animates on <body> and the
+     rail's width, the navigation rail's offset, the content's margin, the band's
+     track and the "you are here" bar all inherit the interpolated value on the
+     same frame. Unregistered, the pair would snap while the navigation rail slid
+     and the two would come apart for the length of the animation -- a gap you
+     could put a cursor through. Where @property is unsupported nothing is broken,
+     the fold is simply instant. */
   --nx-guilds-w:  72px;
+  --nx-guilds-row: 44px;
   --nx-guilds-take: 0px;
+
+  /* What a folded server rail is: 48px column, 32px tile, 8px gutter. Discord's
+     own pair of numbers for the same gesture. The bar's offset arithmetic follows
+     to -(1 + (48 - 1 - 32) / 2) = -8.5px by itself, which is why it is written
+     as arithmetic and not as a value that happened to look right at 72. */
+  --nx-guilds-w-fold:  48px;
+  --nx-guilds-row-fold: 32px;
 
   /* The dashboard's top bar is the full width of the window, flush to the top
      edge, and the rail begins where it ends. It used to be a floating pill
@@ -127,4 +150,29 @@
   --nx-nav-wash:   rgba(168,85,247,.10);
   --nx-nav-on:     rgba(104,31,209,.30);
   --nx-focus:      rgba(168,85,247,.55);
+}
+
+/* Registered so the server rail's two numbers interpolate rather than snap, which
+   is what lets one transition on <body> carry the whole fold: the rail's width,
+   the navigation rail's offset, the content's margin, the band's track and the
+   "you are here" bar all read the same interpolated value on the same frame.
+
+   syntax pins them to lengths, so a typo -- a colour, or a unitless zero -- is
+   dropped at parse time instead of quietly invalidating every rule that reads it.
+   initial-value is the unfolded pair, so anything that resolves before :root still
+   gets the designed rail rather than an inherited zero. Order here is cosmetic;
+   these are at-rule registrations, valid anywhere in the sheet.
+
+   Where @property is not supported the transition on these is ignored and the fold
+   is simply instant. The frame still lands correctly, because a snapped value and
+   an animated one end at the same place -- only the 340ms between them is lost. */
+@property --nx-guilds-w {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 72px;
+}
+@property --nx-guilds-row {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 44px;
 }

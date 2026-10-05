@@ -110,8 +110,19 @@
    fifth place that has to move for the server rail means adding it to this list,
    not another :has() rule that can quietly disagree with these four. The server
    rail's own offset is not on the list and never was meant to be: it is at the
-   window's edge, so there is nothing for it to move out of. */
-body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
+   window's edge, so there is nothing for it to move out of.
+
+   The transition belongs here rather than on the fold rule below because a
+   transition has to be present in the state being left, not only in the state
+   being entered. Keying it on the rows also means it is installed only when
+   there is a rail that can fold: no rail, nothing to animate, nothing declared
+   that a page without servers pays for. */
+body:has(.guild-rail-item) {
+  --nx-guilds-take: var(--nx-guilds-w);
+  transition:
+    --nx-guilds-w .34s var(--nx-ease),
+    --nx-guilds-row .34s var(--nx-ease);
+}
 
 /* ═══ Top bar ════════════════════════════════════════════════════════════ */
 
@@ -1122,15 +1133,18 @@ body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
 }
 .guild-rail-scroll::-webkit-scrollbar { display: none; }
 
-/* The row. 44px in a 72px column leaves 14px of gutter on each side, and that
-   gutter is load-bearing rather than decorative: it is where the "you are here"
-   bar sits, so the two numbers cannot be changed apart without re-measuring it. */
+/* The row. --nx-guilds-row, not a number: 44px in a 72px column leaves 14px of
+   gutter on each side, and that gutter is load-bearing rather than decorative --
+   it is where the "you are here" bar sits. Both halves come from tokens so the
+   pair can be re-pointed together when the rail folds and the gutter is
+   recomputed instead of assumed; a literal here would have been the one number
+   the bar's arithmetic below could not see. */
 .guild-rail-item {
   position: relative;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--nx-guilds-row);
+  height: var(--nx-guilds-row);
   flex: none;
   padding: 3px;
   border: 1px solid var(--nx-hair);
@@ -1164,7 +1178,14 @@ body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
 .guild-rail-ava {
   width: 100%;
   height: 100%;
-  border-radius: 12px;
+  /* A third of the content box, off the row token rather than a length. The box is
+     the row minus its 1px border and 3px padding -- 36px unfolded, 24px folded --
+     and 12px is a third of 36. Written as a length it would have survived the fold
+     as a 12px radius on a 24px square, which is a circle, not the squircle the
+     unfolded rail draws. The 8px is the row's own border and padding, which are
+     literals on .guild-rail-item; changing those is the one edit that would need
+     this number re-measured, and it is a single place to look. */
+  border-radius: calc((var(--nx-guilds-row) - 8px) / 3);
   overflow: hidden;
   display: grid;
   place-items: center;
@@ -1183,13 +1204,15 @@ body:has(.guild-rail-item) { --nx-guilds-take: var(--nx-guilds-w); }
    getting it wrong by 3px looks like nothing until you notice the bar floats just
    short of the line it was drawn to continue. Reading left to right: the item's
    own 1px border, then half of what is left of the rail after that border and
-   the 44px row -- 1 + (72 - 1 - 44) / 2 = 14.5. So the bar's outer edge lands
-   flush against the inside of the rail's hairline, and it stays there if the row
-   or the rail is ever resized. At a flat -11 it floated 3.5px short. */
+   the row -- 1 + (72 - 1 - 44) / 2 = 14.5 unfolded, 1 + (48 - 1 - 32) / 2 = 8.5
+   folded. So the bar's outer edge lands flush against the inside of the rail's
+   hairline, and it stays there if the row or the rail is ever resized -- which is
+   now a thing that happens, when the rail folds. At a flat -11 it floated 3.5px
+   short. */
 .guild-rail-item::before {
   content: '';
   position: absolute;
-  inset-inline-end: calc(-1 * (1px + (var(--nx-guilds-w) - 1px - 44px) / 2));
+  inset-inline-end: calc(-1 * (1px + (var(--nx-guilds-w) - 1px - var(--nx-guilds-row)) / 2));
   top: 50%;
   width: 3px;
   height: 22px;
@@ -1315,6 +1338,35 @@ body:has(#sidebar.collapsed) .nav-brand { padding-inline: 0; }
     grid-template-columns: calc(var(--nx-rail-w) + var(--nx-guilds-take)) minmax(0, 1fr) auto;
   }
 }
+
+/* The server rail folds with the menu. One rule, two numbers re-pointed, and
+   everything that has to move is already reading one of them.
+
+   This is the same trick the navigation rail uses -- one gesture, both rails --
+   and it is why the rail is a column of avatars in the first place. A 44px tile
+   next to a 74px menu leaves 52px of icons and 140px of labels, which reads as
+   two rails at different zoom levels rather than one shell in a narrow state.
+
+   Re-pointing --nx-guilds-w rather than giving the rail a second width
+   declaration is what keeps the rest of the frame in step for free: the
+   navigation rail's inset-inline-start and the content's margin both read
+   --nx-guilds-take, which reads this, so they slide inward by the same 24px the
+   column gives up. A second `width` here would have left the navigation rail
+   sitting 24px off the rail's edge for as long as the page stayed open, and no
+   amount of checking the rail's own box would have shown it.
+
+   Not guarded by min-width. Below 900px the rail is display:none and take is
+   forced to 0px by the narrow-window rule, so re-pointing the numbers there
+   moves nothing; the guard would only be a place for the two to drift apart. */
+body:has(#sidebar.collapsed) {
+  --nx-guilds-w: var(--nx-guilds-w-fold);
+  --nx-guilds-row: var(--nx-guilds-row-fold);
+}
+/* The letter for a server with no icon is sized off the tile, so a folded rail
+   does not print a 1.05rem capital in a 24px box. 0.75rem is what that reads at
+   36px and 24px respectively -- small enough to fit, large enough to identify
+   the server by, which is the whole job of a rail with no avatars in it. */
+body:has(#sidebar.collapsed) .guild-rail-letter { font-size: .78rem; }
 
 /* Nothing follows the navigation rail inward any more, and that is the point of
    moving the server rail to the window. Its offset is 0 -- a constant -- while
