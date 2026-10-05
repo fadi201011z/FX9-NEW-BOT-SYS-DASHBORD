@@ -97,7 +97,8 @@
     <div class="dv-g-card" data-name="<%= g.name %>">
       <div class="dv-g-ava <%= g.icon ? '' : 'noimg' %>">
         <% if (g.icon) { %>
-        <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" onerror="this.remove();this.parentNode.classList.add('noimg')">
+        <%# The parent is read BEFORE the node is detached -- remove() nulls parentNode. -%>
+        <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" onerror="var p=this.parentNode;this.remove();p.classList.add('noimg')">
         <% } %>
         <span class="dv-g-letter"><%= (g.name || '?').charAt(0) %></span>
       </div>

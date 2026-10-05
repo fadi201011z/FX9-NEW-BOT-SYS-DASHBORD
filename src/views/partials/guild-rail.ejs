@@ -61,8 +61,10 @@
        data-tip="<%= g.inBot ? g.name : g.name + ' — البوت مو موجود بهالسيرفر' %>">
       <span class="guild-rail-ava<%= g.icon ? '' : ' noimg' %>">
         <% if (g.icon) { %>
+        <%# The parent is read BEFORE the node is detached -- remove() nulls parentNode,
+            so the class was never added and the letter underneath never appeared. -%>
         <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" loading="lazy"
-             onerror="this.remove();this.parentNode.classList.add('noimg')">
+             onerror="var p=this.parentNode;this.remove();p.classList.add('noimg')">
         <% } %>
         <span class="guild-rail-letter"><%= g.name.charAt(0) %></span>
       </span>

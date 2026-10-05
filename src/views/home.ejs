@@ -1,9 +1,79 @@
 <% layout = 'layouts/main' %>
 <% currentPage = 'home' %>
+<%#
+    The account's front door: who you are, whether the bot is answering, which
+    servers you can open, and what the product actually is.
+
+    Three rules shaped every decision below, and each of them came out of a link or
+    a number that was already on this page and was not true.
+
+    1. Every destination here is a real address, and it is a destination only if it
+       needs no server. The systems used to be six cards called التذاكر / الحماية /
+       الغرف الصوتية / الأوامر: two went to /guilds, the other three to
+       /docs#protection, /docs#voice and /docs#commands -- fragments that do not
+       exist, because docs.ejs has no element ids at all. So four of the six led
+       nowhere and the fifth duplicated the sixth. The other half of it: there is
+       no /tickets on this site, it is /tickets/:guildId, because a ticket page
+       means nothing without a server -- so those eleven pages cannot be linked from
+       an account page at all. The grid is therefore a catalogue, the rail's own
+       eleven rows, with no card dressed as a button, and the way in is the hero
+       button above.
+
+    2. No address is linked twice under two names. The old strip of shortcuts
+       re-opened /docs, /status and /guilds, which the hero and the rail had
+       already opened, so the page pointed at the same three places in two
+       vocabularies. It is now four addresses, each of which appears nowhere else
+       on this page, and nothing on this page points at the same address twice.
+
+    3. Nothing here claims a number it does not have. The command bars were headed
+       "أكثر الأوامر استخداماً" over a "مباشر" tag, but /api/commands/stats counts
+       command FILES in services/syncService.js, and COMMANDS_DIR points at
+       ../NEW SYS BOT/src/commands -- outside this repository. On a dashboard-only
+       deploy it is permanently empty, and when it is not, the figure is commands
+       registered, never commands used. Same for members: /api/status reports null
+       unless the bot answered, and the null was rendered as 0. Every figure below
+       is measured or it is a dash.
+-%>
 <%
   const guilds = user?.guilds || [];
-  const roleNames = { owner: 'مالك', manager: 'مدير', admin: 'أدمن', moderator: 'مشرف', support: 'دعم', member: 'عضو' };
-  const roleName = roleNames[user?.dashboardRole] || 'عضو';
+  const managed = managedGuilds || [];
+
+  // index.js resolves one permission object per request and puts it in res.locals,
+  // so the rail, the guards and this page all read the same role. This page used to
+  // keep its own name table off user.dashboardRole and spelled one role "أدمن"
+  // where the menu spells it "آدمن" -- two vocabularies for one word.
+  const roleName = perms.roleLabel;
+
+  // The bit that decides what the home page is allowed to show at all. The route
+  // has already filtered managedGuilds down to servers where you hold one of
+  // 0x8 (ADMINISTRATOR) or 0x20 (MANAGE_GUILD); the card says which one, because
+  // "you can manage this server" and "this server put you in charge of
+  // everything" are not the same sentence, and only the session can tell us.
+  const isFullAdmin = g => (Number(g.permissions) & 0x8) === 0x8;
+
+  // The eleven rows a server's rail carries, in the rail's order and the rail's
+  // wording. Declared as data so the catalogue and the menu cannot drift: the
+  // name, the glyph and the minimum level are the same three facts in both, and
+  // `req` is the level index from services/capabilities.js -- support,
+  // moderator, admin, manager. A requirement is a fact about the SYSTEM, not about
+  // you: the same person may reach it in one server and not in another, which is
+  // why these cards say "يتطلب" and never carry a lock. The first row is the one
+  // that needs no level at all -- you are already in the server, or you are not
+  // reading this list.
+  const REQ_LABEL = ['دعم', 'مشرف', 'آدمن', 'مدير'];
+  const SYSTEMS = [
+    { icon: 'circle-info',       name: 'نظرة عامة',       req: null, tint: 'hd-t-p', desc: 'أول ما تفتحه على السيرفر: خلاصة سريعة، والأنظمة العشرة تحتها.' },
+    { icon: 'ticket',            name: 'التذاكر',         req: 0, tint: 'hd-t-a', desc: 'قنوات دعم مصنّفة، وأزرار فتح وإغلاق بيد العضو والمشرف.' },
+    { icon: 'microphone',        name: 'الرومات المؤقتة', req: 1, tint: 'hd-t-v', desc: 'قنوات صوتية تنشأ عند الطلب وتُحذف بعد آخر مغادرة.' },
+    { icon: 'clock-rotate-left', name: 'سجل النشاط',      req: 1, tint: 'hd-t-g', desc: 'كل إجراء إداري في سيرفرك، مرتّب ومفلتر بالتاريخ.' },
+    { icon: 'bell',              name: 'الإشعارات',       req: 1, tint: 'hd-t-o', desc: 'إعلانات مجدولة تصل قنواتك من غير تدخل منك.' },
+    { icon: 'sliders',           name: 'الإعدادات',       req: 2, tint: 'hd-t-s', desc: 'هوية البوت وقناة السجلات، وما يراه الأعضاء من أوامر.' },
+    { icon: 'terminal',          name: 'الأوامر',          req: 2, tint: 'hd-t-c', desc: 'تفعيل الأوامر وتعيين من ينفّذها ومن يقرأها.' },
+    { icon: 'shield',            name: 'الحماية',          req: 2, tint: 'hd-t-r', desc: 'كتم وحظر ومنع غارات وروابط، كل مفتاح على حدة.' },
+    { icon: 'gem',               name: 'نظام البريميوم',   req: 2, tint: 'hd-t-k', desc: 'مزايا البريميوم وتفعيلها على هذا السيرفر.' },
+    { icon: 'user-gear',         name: 'المدراء',          req: 3, tint: 'hd-t-b', desc: 'من يدير لوحة السيرفر، وبأي صلاحية بالضبط.' },
+    { icon: 'database',          name: 'النسخ الاحتياطي',  req: 3, tint: 'hd-t-a', desc: 'نسخة من الأدوار والقنوات والإعدادات، واستعادتها.' },
+  ];
 %>
 <div class="hd">
   <div class="hd-bg">
@@ -16,196 +86,224 @@
   <section class="hd-hero">
     <div class="hd-avatar">
       <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=128" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-      <span class="hd-status"></span>
     </div>
     <div class="hd-hero-main">
-      <div class="hd-eyebrow"><i class="fas fa-bolt"></i> لوحة التحكم — KRS <span class="hd-ver">v5.0</span></div>
-      <h1><span id="hdHello">مرحباً</span>، <span class="hd-name"><%= user.globalName || user.username %></span></h1>
-      <p>من هنا تدير كل شيء: أنظمة الحماية، التذاكر، الغرف الصوتية، والأوامر — كلها في مكان واحد.</p>
+      <div class="hd-eyebrow"><i class="fas fa-bolt"></i> كراتوس<span class="hd-ver" id="hdVer" hidden></span></div>
+      <h1><span id="hdHello">أهلاً</span>، <span class="hd-name"><%= user.globalName || user.username %></span></h1>
+      <%# One sentence, and it changes with what this account can actually open.
+          The old line promised "أنظمة الحماية، التذاكر، الغرف الصوتية، والأوامر"
+          to everybody, including the accounts that have none of them. -%>
+      <p><% if (managed.length === 0) { %>لا يوجد سيرفر تديره هنا بعد. افتح صفحة الدعوة، أو تابع الديسكورد ليصلك كل جديد عن كراتوس.<% } else { %>من هنا تفتح إعدادات أي سيرفر تديره: <b>الحماية والتذاكر والرومات المؤقتة والأوامر</b>، كلها خلف لوحة واحدة.<% } %></p>
       <div class="hd-pills">
-        <span><i class="fas fa-shield-halved" style="color:#f87171"></i> حماية متقدمة</span>
-        <span><i class="fas fa-ticket-alt" style="color:#fbbf24"></i> تذاكر ذكية</span>
-        <span><i class="fas fa-microphone" style="color:#d8b4fe"></i> غرف صوتية</span>
-        <span><i class="fas fa-terminal" style="color:#8c5aff"></i> أوامر قوية</span>
+        <span><i class="fas fa-ticket hd-t-a"></i> التذاكر</span>
+        <span><i class="fas fa-microphone hd-t-v"></i> الرومات المؤقتة</span>
+        <span><i class="fas fa-clock-rotate-left hd-t-g"></i> سجل النشاط</span>
+        <span><i class="fas fa-shield hd-t-r"></i> الحماية</span>
       </div>
       <div class="hd-cta">
         <a href="/guilds" class="hd-btn hd-btn-primary"><i class="fas fa-server"></i> إدارة السيرفرات</a>
-        <a href="/status" class="hd-btn hd-btn-ghost"><i class="fas fa-heartbeat"></i> حالة البوت</a>
+        <a href="/docs" class="hd-btn hd-btn-ghost"><i class="fas fa-book"></i> الدليل الشامل</a>
       </div>
     </div>
     <div class="hd-hero-side">
-      <div class="hd-role"><i class="fas fa-user-shield"></i> دورك: <b><%= roleName %></b></div>
+      <div class="hd-role"><i class="fas fa-id-badge"></i> دورك: <b><%= roleName %></b></div>
       <div class="hd-mini">
         <div class="hd-mini-ic ic-p"><i class="fas fa-server"></i></div>
-        <div class="hd-mini-txt"><b id="hdManaged" data-t="<%= managedGuilds.length %>">0</b><span>سيرفر تديره</span></div>
+        <div class="hd-mini-txt"><b id="hdManaged" data-t="<%= managed.length %>">0</b><span>سيرفر تديره</span></div>
       </div>
       <div class="hd-mini">
         <div class="hd-mini-ic ic-g"><i class="fas fa-layer-group"></i></div>
-        <div class="hd-mini-txt"><b id="hdTotal" data-t="<%= guilds.length %>">0</b><span>إجمالي سيرفراتك</span></div>
+        <div class="hd-mini-txt"><b id="hdTotal" data-t="<%= guilds.length %>">0</b><span>سيرفراتك على ديسكورد</span></div>
       </div>
     </div>
   </section>
 
-  <!-- ── نظرة عامة حية ── -->
+  <!-- ── شريط الحالة ──
+       The bot being up or down is the one question an account page has to answer
+       before anything else, and the answer belongs next to the greeting rather
+       than two sections down. The dot used to sit on the avatar in hardcoded
+       green, which was a claim about the user's Discord presence that nothing on
+       this page was fetching; it is gone, and this ribbon says what it can prove. -->
+  <section class="hd-ribbon" id="hdRibbon" data-state="wait" aria-live="polite">
+    <span class="hd-ribbon-dot" aria-hidden="true"></span>
+    <b class="hd-ribbon-title" id="hdState">جارٍ فحص الاتصال…</b>
+    <span class="hd-ribbon-sub" id="hdStateSub"></span>
+    <a href="/status" class="hd-ribbon-go">التفاصيل <i class="fas fa-arrow-left"></i></a>
+  </section>
+
+  <!-- ── أرقام الشبكة ──
+       Caption first, because these four are the bot's, not yours: without it a
+       reader sees "عضو 52" under a heading on their own account page and reads
+       it as their server's size. -->
+  <div class="hd-sec-head hd-sec-kpi">
+    <h2><i class="fas fa-chart-simple"></i> أرقام الشبكة</h2>
+    <span>لكل سيرفرات كراتوس مجتمعة، لا لسيرفرك وحده</span>
+  </div>
   <section class="hd-kpis">
-    <div class="hd-kpi">
-      <div class="hd-kpi-ic ic-c"><i class="fas fa-terminal"></i></div>
-      <div class="hd-kpi-txt"><b id="hdCmd">—</b><span>أمر منفَّذ</span></div>
-    </div>
-    <div class="hd-kpi">
+    <div class="hd-kpi" id="hdKpiGuilds">
       <div class="hd-kpi-ic ic-p"><i class="fas fa-server"></i></div>
-      <div class="hd-kpi-txt"><b id="hdGuilds">—</b><span>سيرفر نشط</span></div>
+      <div class="hd-kpi-txt"><b id="hdGuilds">—</b><span>سيرفر على كراتوس</span></div>
     </div>
-    <div class="hd-kpi">
+    <div class="hd-kpi" id="hdKpiMembers">
       <div class="hd-kpi-ic ic-g"><i class="fas fa-users"></i></div>
-      <div class="hd-kpi-txt"><b id="hdMembers">—</b><span>عضو</span></div>
+      <div class="hd-kpi-txt"><b id="hdMembers">—</b><span>عضو في سيرفراته</span></div>
     </div>
-    <div class="hd-kpi">
+    <div class="hd-kpi" id="hdKpiCmd">
+      <div class="hd-kpi-ic ic-c"><i class="fas fa-terminal"></i></div>
+      <div class="hd-kpi-txt"><b id="hdCmd">—</b><span>أمر مسجّل في البوت</span></div>
+    </div>
+    <div class="hd-kpi" id="hdKpiRsp">
       <div class="hd-kpi-ic ic-a"><i class="fas fa-gauge-high"></i></div>
-      <div class="hd-kpi-txt"><b id="hdPing">—</b><span>سرعة البنج</span></div>
+      <div class="hd-kpi-txt"><b id="hdRsp">—</b><span>زمن استجابة اللوحة</span></div>
     </div>
   </section>
 
   <!-- ── سيرفراتك ── -->
   <div class="hd-sec-head hd-sec-row">
-    <h2><i class="fas fa-server"></i> سيرفراتك <span class="hd-count"><%= managedGuilds.length %></span></h2>
-    <span>اختر سيرفراً لإدارته</span>
-    <% if (managedGuilds.length > 1) { %>
-    <div class="hd-search"><i class="fas fa-search"></i><input id="hdSearch" type="text" placeholder="بحث عن سيرفر..."></div>
+    <h2><i class="fas fa-server"></i> سيرفراتك <span class="hd-count"><%= managed.length %></span></h2>
+    <span>اختر سيرفاً لفتح لوحته</span>
+    <% if (managed.length > 1) { %>
+    <div class="hd-search"><i class="fas fa-search"></i><input id="hdSearch" type="text" placeholder="بحث عن سيرفر..." aria-label="ابحث عن سيرفر بالاسم" autocomplete="off"></div>
     <% } %>
   </div>
-  <% if (managedGuilds.length === 0) { %>
+  <% if (managed.length === 0) { %>
   <section class="hd-empty">
     <div class="hd-empty-ic"><i class="fas fa-rocket"></i></div>
-    <h4>لا تدير أي سيرفر بعد</h4>
-    <p>أضف البوت إلى سيرفرك وابدأ بتفعيل الأنظمة خلال دقيقة واحدة.</p>
-    <a href="/invite" class="hd-btn hd-btn-primary"><i class="fas fa-code-branch"></i> أضف البوت</a>
+    <h4>لا يوجد سيرفر تديره هنا بعد</h4>
+    <p>هذه الصفحة تسرد السيرفرات التي عندك فيها صلاحية إدارة <b>و</b> التي دخلها كراتوس. إن كان البوت في سيرفرك ولم يظهر، فصلاحيتك عليه أقل من إدارة.</p>
+    <a href="/invite" class="hd-btn hd-btn-primary"><i class="fas fa-code-branch"></i> صفحة الدعوة</a>
+    <a href="https://discord.gg/ENQut4HHKb" class="hd-btn hd-btn-ghost" target="_blank" rel="noopener"><i class="fab fa-discord"></i> ديسكورد</a>
   </section>
   <% } else { %>
   <section class="hd-g-wrap">
     <div class="hd-g-scroll">
-      <% managedGuilds.forEach(g => { %>
+      <% managed.forEach(g => { %>
       <a href="/guilds/<%= g.id %>" class="hd-g-card" data-name="<%= g.name %>">
         <div class="hd-g-ava <%= g.icon ? '' : 'noimg' %>">
           <% if (g.icon) { %>
-          <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" onerror="this.remove();this.parentNode.classList.add('noimg')">
+          <%# The parent is read BEFORE the node is detached. "this.remove(); this.parentNode.classList..." 
+              cannot work: remove() sets parentNode to null, so the second half always throws, and the
+              letter underneath never appears. Same shape in dev/guilds.ejs and guild-rail.ejs. -%>
+          <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" onerror="var p=this.parentNode;this.remove();p.classList.add('noimg')">
           <% } %>
           <span class="hd-g-letter"><%= g.name.charAt(0) %></span>
         </div>
         <div class="hd-g-info">
           <b><%= g.name %></b>
-          <span>إدارة السيرفر <i class="fas fa-arrow-left"></i></span>
+          <span><em class="hd-g-badge"><%= isFullAdmin(g) ? 'صلاحية كاملة' : 'إدارة السيرفر' %></em><i class="fas fa-arrow-left" aria-hidden="true"></i></span>
         </div>
       </a>
       <% }) %>
     </div>
+    <%# The search box and this note are one thing. With a single server on screen
+        there is nothing to narrow down, so the box is not drawn -- which means
+        nothing can ever reveal this note, and rendering it anyway would put dead
+        markup in the page that no code path can reach. -%>
+    <% if (managed.length > 1) { %>
+    <div class="hd-nohit" id="hdNoHit" hidden><i class="fas fa-inbox" aria-hidden="true"></i> لا سيرفر بهذا الاسم</div>
+    <% } %>
   </section>
   <% } %>
 
-  <!-- ── تحليلات + خطوات ── -->
-  <div class="hd-row2">
-    <div class="hd-panel">
-      <div class="hd-panel-head"><i class="fas fa-chart-simple"></i> أكثر الأوامر استخداماً <span class="hd-live-tag"><i class="fas fa-circle"></i> مباشر</span></div>
-      <div id="hdCatBars" class="hd-bars">
-        <div class="hd-bars-note"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+  <!-- ── حالة النظام ──
+       This panel took the place of the command bars that used to sit here, and
+       the reason is in services/syncService.js: /api/commands/stats counts command
+       files inside COMMANDS_DIR, which is ../NEW SYS BOT/src/commands -- outside
+       this repository. On a dashboard-only deploy that directory does not exist,
+       the endpoint answers with total: 0, and the panel rendered "لا توجد بيانات
+       حالياً" under a heading that called it مباشر. Half the row was a hole, on
+       the one page a person opens first.
+
+       What replaced it is read from /api/status and is therefore always there:
+       the dashboard's own process, measured. And when the bot API misses, the
+       panel says which of the five possible causes it was -- the mapping is the
+       one written out in routes/status.js, because "غير متصل" alone has never
+       once told anyone what to fix. -->
+  <div class="hd-sec-head hd-sec-diag">
+    <h2><i class="fas fa-heart-pulse"></i> حالة النظام</h2>
+    <span>قياسات اللوحة نفسها، لحظة بلحظة</span>
+  </div>
+  <section class="hd-sys-panel">
+    <div class="hd-sys-grid">
+      <div class="hd-sys-cell">
+        <div class="hd-sys-k">اتصال البوت</div>
+        <div class="hd-sys-v" id="hdSysLink">—</div>
+      </div>
+      <div class="hd-sys-cell">
+        <div class="hd-sys-k">استجابة اللوحة</div>
+        <div class="hd-sys-v" id="hdSysRsp">—</div>
+      </div>
+      <div class="hd-sys-cell">
+        <div class="hd-sys-k">مدة التشغيل</div>
+        <div class="hd-sys-v" id="hdSysUp">—</div>
+      </div>
+      <div class="hd-sys-cell">
+        <div class="hd-sys-k">الذاكرة</div>
+        <div class="hd-sys-v" id="hdSysMem">—</div>
+      </div>
+      <div class="hd-sys-cell">
+        <div class="hd-sys-k">إصدار Node</div>
+        <div class="hd-sys-v" id="hdSysNode">—</div>
+      </div>
+      <div class="hd-sys-cell">
+        <div class="hd-sys-k">المنصة</div>
+        <div class="hd-sys-v" id="hdSysPlat">—</div>
       </div>
     </div>
-    <div class="hd-panel">
-      <div class="hd-panel-head"><i class="fas fa-compass"></i> ابدأ في 3 خطوات</div>
-      <ol class="hd-steps">
-        <li>
-          <span class="hd-step-n">1</span>
-          <div class="hd-step-body">
-            <b>أضف البوت</b>
-            <p>دعوة البوت إلى سيرفرك بنقرة واحدة.</p>
-          </div>
-        </li>
-        <li>
-          <span class="hd-step-n">2</span>
-          <div class="hd-step-body">
-            <b>اختر سيرفرك</b>
-            <p>من قائمة «سيرفراتك» أعلاه ادخل إلى إعداداته.</p>
-          </div>
-        </li>
-        <li>
-          <span class="hd-step-n">3</span>
-          <div class="hd-step-body">
-            <b>فعّل الأنظمة</b>
-            <p>الحماية، التذاكر، الصوت — كل شيء جاهز للعمل.</p>
-          </div>
-        </li>
-      </ol>
-      <a href="/docs" class="hd-steps-cta"><i class="fas fa-book"></i> تصفح التوثيق الكامل</a>
-    </div>
-  </div>
-
-  <!-- ── الأنظمة ── -->
-  <div class="hd-sec-head">
-    <h2><i class="fas fa-cubes"></i> الأنظمة</h2>
-    <span>ابدأ بإدارة سيرفرك</span>
-  </div>
-  <section class="hd-grid">
-    <% if (roleLevel >= 3) { %>
-    <a href="/dashboard" class="hd-card" style="--hc:#a855f7">
-      <div class="hd-card-ic" style="background:rgba(168,85,247,0.1);color:#a855f7"><i class="fas fa-th-large"></i></div>
-      <h3>لوحة التحكم</h3>
-      <p>نظرة عامة وإحصائيات شاملة لأداء سيرفرك.</p>
-      <span class="hd-card-go"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% } %>
-    <a href="/guilds" class="hd-card" style="--hc:#34d399">
-      <div class="hd-card-ic" style="background:rgba(52,211,153,0.1);color:#34d399"><i class="fas fa-server"></i></div>
-      <h3>السيرفرات</h3>
-      <p>تصفح سيرفراتك وإدارة إعدادات كل سيرفر بسهولة.</p>
-      <span class="hd-card-go"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <a href="/guilds" class="hd-card" style="--hc:#fbbf24">
-      <div class="hd-card-ic" style="background:rgba(251,191,36,0.1);color:#fbbf24"><i class="fas fa-ticket-alt"></i></div>
-      <h3>التذاكر</h3>
-      <p>نظام دعم فني متكامل لخدمة أعضاء سيرفرك.</p>
-      <span class="hd-card-go"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% if (roleLevel >= 2) { %>
-    <a href="/docs#protection" class="hd-card" style="--hc:#f87171">
-      <div class="hd-card-ic" style="background:rgba(248,113,113,0.1);color:#f87171"><i class="fas fa-shield-halved"></i></div>
-      <h3>الحماية</h3>
-      <p>أنظمة أمان ذكية وحظر تلقائي للسيرفر.</p>
-      <span class="hd-card-go"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% } %>
-    <% if (roleLevel >= 1) { %>
-    <a href="/docs#voice" class="hd-card" style="--hc:#d8b4fe">
-      <div class="hd-card-ic" style="background:rgba(167,139,250,0.1);color:#d8b4fe"><i class="fas fa-microphone"></i></div>
-      <h3>الغرف الصوتية</h3>
-      <p>غرف صوتية مؤقتة تنشأ وتُدار تلقائياً.</p>
-      <span class="hd-card-go"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% } %>
-    <% if (roleLevel >= 2) { %>
-    <a href="/docs#commands" class="hd-card" style="--hc:#8c5aff">
-      <div class="hd-card-ic" style="background:rgba(140,90,255,0.1);color:#8c5aff"><i class="fas fa-terminal"></i></div>
-      <h3>الأوامر</h3>
-      <p>أوامر قوية مع نظام صلاحيات وتحكم كامل.</p>
-      <span class="hd-card-go"><i class="fas fa-arrow-left"></i></span>
-    </a>
-    <% } %>
+    <p class="hd-sys-note" id="hdSysNote" hidden></p>
   </section>
 
-  <!-- ── روابط ── -->
-  <div class="hd-sec-head">
-    <h2><i class="fas fa-link"></i> روابط سريعة</h2>
+  <!-- ── داخل لوحتك ──
+       The eleven pages a server's rail carries, in the rail's own words, because
+       they are the rail's own pages: same names, same glyphs, same minimum level.
+       None of these cards is a link, and that is the point. The pages need a
+       chosen server -- /tickets is really /tickets/:guildId -- so from an account
+       page they cannot be opened directly, and a grid that looks like a menu and is
+       not would be eleven broken buttons. The way in is the hero button and the
+       servers above it; this list says what you get once you are inside.
+
+       The twelfth tile used to be there: a shortcut back to the server list, which
+       pointed at a page listing the cards already on screen. Removed, and with it
+       the last repeated address on this page. -->
+  <div class="hd-sec-head hd-sec-sys">
+    <h2><i class="fas fa-cubes"></i> داخل لوحتك</h2>
+    <span>أحد عشر صفحة، كلها تُفتح من السيرفر مباشرة</span>
+  </div>
+  <section class="hd-grid">
+    <% SYSTEMS.forEach(s => { %>
+    <div class="hd-card">
+      <div class="hd-card-ic <%= s.tint %>"><i class="fas fa-<%= s.icon %>" aria-hidden="true"></i></div>
+      <h3><%= s.name %></h3>
+      <p><%= s.desc %></p>
+      <% if (s.req !== null) { %><span class="hd-sys-req">يتطلب: <%= REQ_LABEL[s.req] %></span><% } %>
+    </div>
+    <% }) %>
+  </section>
+
+  <!-- ── اختصارات ──
+       Only what the rail does not already carry. The rail's own site section is
+       /home, /docs, /about and /status; the hero button opens /guilds and the
+       ribbon opens /status. This strip used to list six more rows and three of
+       them re-opened a page that was already on screen under a second name --
+       the same address twice on one page, which is the one thing a navigation
+       must never do.
+
+       So it is now four addresses, each of which exists nowhere else on this
+       page and, for /dashboard and /commands, nowhere in the rail either. The
+       fifth row is the theme switch, which is why the heading says اختصارات and
+       not روابط: a button that repaints the page is not a link to somewhere.
+       /dashboard is gated on perms.can, the same object requireRole('manager')
+       reads on the route. -->
+  <div class="hd-sec-head hd-sec-links">
+    <h2><i class="fas fa-bolt"></i> اختصارات</h2>
+    <span>ما لا يظهر في القائمة الجانبية، هنا</span>
   </div>
   <section class="hd-links">
-    <a href="/status" class="hd-link"><i class="fas fa-heartbeat" style="color:#a855f7"></i><span>حالة البوت</span></a>
-    <% if (roleLevel >= 4) { %><a href="/dev" class="hd-link"><i class="fas fa-code" style="color:#d8b4fe"></i><span>المطور</span></a><% } %>
-    <a href="/docs" class="hd-link"><i class="fas fa-book" style="color:#34d399"></i><span>التوثيق</span></a>
-    <%# /about was linked from the sidebar's site section and from nowhere else in
-        the shell. That section is now gone on every server page -- the rail's home
-        row is the way out of a server instead -- so /about would have been the one
-        page the rail could no longer reach at all. It is here, which is the page
-        that row lands on. -%>
-    <a href="/about" class="hd-link"><i class="fas fa-address-card" style="color:#60a5fa"></i><span>نبذة عنا</span></a>
-    <button onclick="toggleTheme()" class="hd-link"><i class="fas fa-palette" style="color:#fbbf24"></i><span>السمة</span></button>
+    <% if (perms.can.dashboard) { %><a href="/dashboard" class="hd-link"><i class="fas fa-gauge-high hd-t-p"></i><span>لوحة التحكم</span><em>كل سيرفراتك في شاشة</em></a><% } %>
+    <a href="/commands" class="hd-link"><i class="fas fa-terminal hd-t-c"></i><span>كل الأوامر</span><em>فهرس الأوامر كاملاً</em></a>
+    <a href="/about" class="hd-link"><i class="fas fa-address-card hd-t-b"></i><span>نبذة عنا</span><em>من نحن ولماذا</em></a>
+    <% if (perms.can.dev) { %><a href="/dev" class="hd-link"><i class="fas fa-code hd-t-a"></i><span>لوحة المطور</span><em>اتصال البوت والبيانات</em></a><% } %>
+    <button type="button" onclick="toggleTheme()" class="hd-link"><i class="fas fa-palette hd-t-p"></i><span>السمة</span><em>فاتح أو داكن</em></button>
   </section>
 </div>
 
@@ -222,25 +320,62 @@
 .hd-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#a855f7 40%,#7c3aed 60%,transparent)}
 .hd-avatar{position:relative;width:88px;height:88px;flex-shrink:0}
 .hd-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid rgba(168,85,247,0.35);box-shadow:0 0 0 7px rgba(168,85,247,0.08),0 14px 34px rgba(0,0,0,0.35)}
-.hd-status{position:absolute;bottom:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#57f287;border:4px solid #090713}
 .hd-hero-main{flex:1;min-width:0}
 .hd-eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:0.68rem;font-weight:600;color:#a855f7;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.14);padding:4px 13px;border-radius:100px;margin-bottom:12px}
-.hd-eyebrow i{font-size:0.6rem}
-.hd-ver{display:inline-block;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);padding:1px 8px;border-radius:100px;font-size:0.6rem}
+/* The labels around them are a deliberately compact scale, so the pill and ribbon
+   glyphs stay at 0.65-0.66rem to keep their pairing. These two were at 0.6rem,
+   which measured 9.6px -- below that a Font Awesome glyph stops being an icon and
+   becomes a smudge, and one of them is the arrow that says "this opens". */
+.hd-eyebrow i{font-size:0.7rem}
+/* The version comes from /api/bot/info rather than being typed into the markup:
+   it used to be a hardcoded "v5.0" next to a brand name the rest of the site
+   spells Kratos or كراتوس, so the one chip that looked like a fact was the least
+   factual thing on the page. Hidden until the endpoint answers, because an empty
+   pill reads as a broken one. */
+/* The two text tiers below are the shell's own tokens, not alphas picked here.
+   This page had five shades of translucent white for text and the quietest four
+   measured 2.1-2.7:1 on their own surfaces -- unreadable, not subtle. The rest of
+   the dashboard has always used --text-muted for exactly this job, so pointing
+   at it makes home match its own shell. --text is the loud tier, --text-muted the
+   quiet one; two tiers, both legible. Backgrounds and borders keep their alphas:
+   those are not text and WCAG does not measure them. */
+.hd-ver{display:none;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:var(--text-muted);padding:1px 8px;border-radius:100px;font-size:0.6rem}
+.hd-ver:not([hidden]){display:inline-block}
 .hd-hero h1{font-size:1.6rem;font-weight:800;margin:0 0 7px;line-height:1.25}
 .hd-name{background:linear-gradient(135deg,#a855f7,#d8b4fe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hd-hero p{font-size:0.86rem;color:rgba(255,255,255,0.35);margin:0 0 16px;line-height:1.9}
+.hd-hero p{font-size:0.86rem;color:var(--text-muted);margin:0 0 16px;line-height:1.9}
+.hd-hero p b{color:var(--text);font-weight:600}
 .hd-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .hd-pills span{display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;font-weight:600;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:4px 12px;border-radius:100px}
+/* Tint classes: colour only, for a glyph sitting straight on a surface. They exist
+   as classes rather than inline styles because an inline colour cannot be overridden
+   by a theme block without !important, and every value here is a dark-palette one --
+   on white they measure 1.5-2.5:1 and stop reading as tinted at all. The hue also
+   goes into --hd-tint so a chip can wash itself from the same value, which is what
+   the eleven systems cards used to do with three inline declarations apiece. */
 .hd-pills i{font-size:0.65rem}
+.hd-t-p{--hd-tint:#a855f7;color:#a855f7}
+.hd-t-v{--hd-tint:#d8b4fe;color:#d8b4fe}
+.hd-t-a{--hd-tint:#fbbf24;color:#fbbf24}
+.hd-t-g{--hd-tint:#34d399;color:#34d399}
+.hd-t-r{--hd-tint:#f87171;color:#f87171}
+.hd-t-b{--hd-tint:#60a5fa;color:#60a5fa}
+.hd-t-c{--hd-tint:#8c5aff;color:#8c5aff}
+.hd-t-o{--hd-tint:#fb923c;color:#fb923c}
+.hd-t-s{--hd-tint:#38bdf8;color:#38bdf8}
+.hd-t-k{--hd-tint:#f472b6;color:#f472b6}
 .hd-cta{display:flex;gap:10px;flex-wrap:wrap}
 .hd-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:11px;font-family:'Tajawal', system-ui, sans-serif;font-size:0.82rem;font-weight:600;transition:all 0.25s}
-.hd-btn-primary{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;box-shadow:0 6px 22px rgba(168,85,247,0.35)}
-.hd-btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(168,85,247,0.45);color:#fff}
+/* The gradient's pale end is the whole problem: white ink on the site's --primary
+   #a855f7 measures 3.96:1, which is under AA for text this size, and a gradient
+   inherits its worst stop. Both ends here sit past 4.5:1 while staying in the same
+   family as --primary-hover, which already carries white text all over the shell. */
+.hd-btn-primary{background:linear-gradient(135deg,#8250f4,#6d28d9);color:#fff;box-shadow:0 6px 22px rgba(124,58,237,0.35)}
+.hd-btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(124,58,237,0.45);color:#fff}
 .hd-btn-ghost{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.08)}
 .hd-btn-ghost:hover{background:rgba(255,255,255,0.07);color:#fff;border-color:rgba(255,255,255,0.15)}
 .hd-hero-side{display:flex;flex-direction:column;gap:10px;min-width:200px}
-.hd-role{display:inline-flex;align-items:center;gap:8px;font-size:0.72rem;color:rgba(255,255,255,0.4);padding:8px 14px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
+.hd-role{display:inline-flex;align-items:center;gap:8px;font-size:0.72rem;color:var(--text-muted);padding:8px 14px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
 .hd-role i{color:#d8b4fe}
 .hd-role b{color:#d8b4fe;font-weight:700}
 .hd-mini{display:flex;align-items:center;gap:13px;padding:13px 16px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);transition:border-color 0.25s}
@@ -251,7 +386,35 @@
 .ic-a{background:rgba(251,191,36,0.12);color:#fbbf24}
 .ic-c{background:rgba(140,90,255,0.12);color:#8c5aff}
 .hd-mini-txt b{display:block;font-size:1.15rem;font-weight:800;line-height:1.25}
-.hd-mini-txt span{font-size:0.66rem;color:rgba(255,255,255,0.3)}
+.hd-mini-txt span{font-size:0.66rem;color:var(--text-muted)}
+
+/* ── شريط الحالة ── */
+.hd-ribbon{position:relative;z-index:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:11px 16px;border-radius:12px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06)}
+.hd-ribbon-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:#fbbf24;box-shadow:0 0 0 4px rgba(251,191,36,0.12);animation:hddot 1.6s ease-in-out infinite}
+.hd-ribbon[data-state="on"] .hd-ribbon-dot{background:#57f287;box-shadow:0 0 0 4px rgba(87,242,135,0.12)}
+.hd-ribbon[data-state="off"] .hd-ribbon-dot{background:#f87171;box-shadow:0 0 0 4px rgba(248,113,113,0.12);animation:none}
+.hd-ribbon-title{font-size:0.8rem;font-weight:700}
+.hd-ribbon-sub{font-size:0.72rem;color:var(--text-muted)}
+.hd-ribbon-go{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;font-size:0.74rem;font-weight:600;color:#a855f7;white-space:nowrap}
+.hd-ribbon-go i{font-size:0.66rem;transition:transform 0.25s}
+.hd-ribbon-go:hover{color:#d8b4fe}
+.hd-ribbon-go:hover i{transform:translateX(-3px)}
+
+/* ── عناوين الأقسام ── */
+.hd-sec-head{position:relative;z-index:1;display:flex;align-items:center;gap:12px;margin:36px 0 16px}
+.hd-sec-head h2{font-size:1.05rem;font-weight:800;margin:0;display:flex;align-items:center;gap:9px}
+.hd-sec-head h2 i{color:#a855f7;font-size:0.95rem}
+.hd-sec-head span{font-size:0.72rem;color:var(--text-muted)}
+.hd-sec-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(168,85,247,0.15),transparent)}
+.hd-sec-row{flex-wrap:wrap}
+/* #c084fc, not the #a855f7 used on the icons around it: this one is a number in a
+   0.7rem pill, and the brand purple measures 2.2:1 there. Icons clear 3:1 as
+   non-text; a figure is text and has to clear 4.5. */
+.hd-count{display:inline-flex;min-width:22px;height:22px;padding:0 8px;align-items:center;justify-content:center;border-radius:100px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.2);color:#c084fc;font-size:0.7rem;font-weight:700}
+.hd-search{margin-inline-start:auto;position:relative;display:flex;align-items:center}
+.hd-search i{position:absolute;inset-inline-start:12px;font-size:0.75rem;color:var(--text-muted);pointer-events:none}
+.hd-search input{width:200px;padding:9px 34px 9px 12px;border-radius:10px;background:rgba(12,12,26,0.55);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);font-family:'Tajawal', system-ui, sans-serif;font-size:0.78rem;outline:none;transition:all 0.25s}
+.hd-search input:focus{border-color:rgba(168,85,247,0.4);box-shadow:0 0 0 3px rgba(168,85,247,0.08)}
 
 /* ── نظرة عامة حية ── */
 .hd-kpis{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
@@ -259,21 +422,18 @@
 .hd-kpi:hover{transform:translateY(-2px);border-color:rgba(168,85,247,0.22);background:rgba(16,16,36,0.7)}
 .hd-kpi-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
 .hd-kpi-txt b{display:block;font-size:1.35rem;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums}
-.hd-kpi-txt span{font-size:0.68rem;color:rgba(255,255,255,0.3)}
-.hd-ping-good{color:#57f287}.hd-ping-mid{color:#fbbf24}.hd-ping-bad{color:#f87171}
-
-/* ── عناوين الأقسام ── */
-.hd-sec-head{position:relative;z-index:1;display:flex;align-items:center;gap:12px;margin:36px 0 16px}
-.hd-sec-head h2{font-size:1.05rem;font-weight:800;margin:0;display:flex;align-items:center;gap:9px}
-.hd-sec-head h2 i{color:#a855f7;font-size:0.95rem}
-.hd-sec-head span{font-size:0.72rem;color:rgba(255,255,255,0.25)}
-.hd-sec-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(168,85,247,0.15),transparent)}
-.hd-sec-row{flex-wrap:wrap}
-.hd-count{display:inline-flex;min-width:22px;height:22px;padding:0 8px;align-items:center;justify-content:center;border-radius:100px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.2);color:#a855f7;font-size:0.7rem;font-weight:700}
-.hd-search{margin-inline-start:auto;position:relative;display:flex;align-items:center}
-.hd-search i{position:absolute;right:12px;font-size:0.75rem;color:rgba(255,255,255,0.25);pointer-events:none}
-.hd-search input{width:200px;padding:9px 34px 9px 12px;border-radius:10px;background:rgba(12,12,26,0.55);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);font-family:'Tajawal', system-ui, sans-serif;font-size:0.78rem;outline:none;transition:all 0.25s}
-.hd-search input:focus{border-color:rgba(168,85,247,0.4);box-shadow:0 0 0 3px rgba(168,85,247,0.08)}
+.hd-kpi-txt span{font-size:0.68rem;color:var(--text-muted)}
+/* A figure nobody could measure reads as a dash in a quieter hand, not as a zero
+   in a bold one. Zero is a number; this one is an absence. */
+.hd-kpi.is-na .hd-kpi-txt b{color:var(--text-muted)}
+/* The response figure is the one number on this page with a good and a bad
+   answer, so it is graded rather than printed bare. The thresholds are this
+   host's own round-trip to its own /api/status on a cold Render free instance:
+   under 150ms you cannot feel it, over 600ms you can, and a cold start routinely
+   lands above a second and recovers on the next call. */
+.hd-ping-good{color:#57f287}
+.hd-ping-mid{color:#fbbf24}
+.hd-ping-bad{color:#f87171}
 
 /* ── سيرفراتك ── */
 .hd-g-wrap{position:relative;z-index:1}
@@ -286,73 +446,191 @@
 .hd-g-letter{display:none;font-size:1.1rem;font-weight:800;color:#d8b4fe}
 .hd-g-ava.noimg .hd-g-letter{display:block}
 .hd-g-info{min-width:0}
-.hd-g-info b{display:block;font-size:0.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
-.hd-g-info span{display:inline-flex;align-items:center;gap:6px;font-size:0.66rem;color:rgba(255,255,255,0.28)}
-.hd-g-info span i{font-size:0.6rem;color:#a855f7;transition:transform 0.25s}
+.hd-g-info b{display:block;font-size:0.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.hd-g-info span{display:inline-flex;align-items:center;gap:7px;font-size:0.66rem;color:var(--text-muted)}
+.hd-g-info span i{font-size:0.7rem;color:#a855f7;transition:transform 0.25s}
 .hd-g-card:hover .hd-g-info span{color:#a855f7}
 .hd-g-card:hover .hd-g-info span i{transform:translateX(-3px)}
+/* Which of the two Discord bits put this server on the page. The route only kept
+   servers where you hold one of them, so this is a fact, not a permission. */
+.hd-g-badge{font-style:normal;font-size:0.6rem;font-weight:700;color:#d8b4fe;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.18);padding:1px 8px;border-radius:100px;transition:color 0.25s}
+.hd-g-card:hover .hd-g-badge{color:#e9d5ff}
 .hd-empty{position:relative;z-index:1;text-align:center;padding:38px 20px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px dashed rgba(255,255,255,0.1)}
 .hd-empty-ic{width:56px;height:56px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;background:rgba(168,85,247,0.1);color:#a855f7}
 .hd-empty h4{font-size:0.95rem;font-weight:800;margin:0 0 6px}
-.hd-empty p{font-size:0.78rem;color:rgba(255,255,255,0.3);margin:0 0 18px}
+.hd-empty p{font-size:0.78rem;color:var(--text-muted);margin:0 auto 18px;max-width:52ch;line-height:1.8}
+.hd-empty p b{color:var(--text)}
+.hd-empty .hd-btn{margin:0 5px}
 
-/* ── تحليلات + خطوات ── */
-.hd-row2{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
-.hd-panel{padding:20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06)}
-.hd-panel-head{display:flex;align-items:center;gap:9px;font-size:0.85rem;font-weight:700;margin-bottom:16px}
-.hd-panel-head i{color:#a855f7;font-size:0.9rem}
-.hd-live-tag{display:inline-flex;align-items:center;gap:5px;margin-inline-start:auto;font-size:0.62rem;font-weight:600;color:#57f287;padding:3px 10px;border-radius:100px;background:rgba(87,242,135,0.08);border:1px solid rgba(87,242,135,0.15)}
-.hd-live-tag i{font-size:0.4rem;animation:hddot 2s ease-in-out infinite}
-@keyframes hddot{0%,100%{opacity:1}50%{opacity:0.25}}
-.hd-bars{display:flex;flex-direction:column;gap:12px}
-.hd-bars-note{display:flex;align-items:center;justify-content:center;gap:8px;font-size:0.75rem;color:rgba(255,255,255,0.3);padding:22px 0}
-.hd-bar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
-.hd-bar-lb{display:inline-flex;align-items:center;gap:7px;font-size:0.74rem;font-weight:600;color:rgba(255,255,255,0.55)}
-.hd-bar-lb i{width:15px;text-align:center;font-size:0.7rem}
-.hd-bar-top b{font-size:0.78rem;font-weight:800;font-variant-numeric:tabular-nums}
-.hd-bar-track{height:7px;border-radius:100px;background:rgba(255,255,255,0.05);overflow:hidden}
-.hd-bar-fill{height:100%;border-radius:100px;transition:width 0.9s cubic-bezier(.16,1,.3,1)}
-.hd-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
-.hd-steps li{display:flex;gap:13px;align-items:flex-start}
-.hd-step-n{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;background:linear-gradient(135deg,rgba(168,85,247,0.16),rgba(139,92,246,0.16));border:1px solid rgba(168,85,247,0.25);color:#d8b4fe}
-.hd-step-body b{display:block;font-size:0.82rem;font-weight:700;margin-bottom:2px}
-.hd-step-body p{font-size:0.72rem;color:rgba(255,255,255,0.28);margin:0;line-height:1.7}
-.hd-steps-cta{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;padding:10px;border-radius:10px;font-size:0.76rem;font-weight:600;color:#a855f7;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.12);transition:all 0.25s}
-.hd-steps-cta:hover{background:rgba(168,85,247,0.12);color:#d8b4fe}
+/* ── حالة النظام ── */
+.hd-sys-panel{position:relative;z-index:1;padding:20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06)}
+.hd-sys-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.hd-sys-cell{padding:13px 15px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)}
+.hd-sys-k{font-size:0.62rem;font-weight:600;color:var(--text-muted)}
+.hd-sys-v{margin-top:5px;font-size:0.86rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd-sys-v.is-on{color:#57f287}
+.hd-sys-v.is-off{color:#f87171}
+.hd-sys-v.is-na{color:var(--text-muted)}
+/* The one line that turns "غير متصل" into something actionable. routes/status.js
+   already worked out that each way this can fail has exactly one fix and wrote it
+   in a comment; this is where it is said out loud. */
+.hd-sys-note{margin:14px 0 0;padding:11px 15px;border-radius:12px;font-size:0.76rem;line-height:1.8;color:#fca5a5;background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.18)}
+.hd-sys-note b{color:#fecaca;font-weight:700}
+/* A search that matches nothing used to leave a blank strip with no word about
+   why. [hidden] has to be restated because a display value here outranks the
+   user-agent rule that hides it. */
+.hd-nohit{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:2px;padding:16px 0;font-size:0.75rem;color:var(--text-muted)}
+.hd-nohit[hidden]{display:none}
 
 /* ── بطاقات الأنظمة ── */
 .hd-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.hd-card{position:relative;padding:24px 20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:all 0.28s;overflow:hidden;display:block}
-.hd-card::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--hc,#a855f7),transparent);opacity:0;transition:opacity 0.3s}
-.hd-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,0.1);background:rgba(16,16,36,0.72);box-shadow:0 18px 48px rgba(0,0,0,0.35),0 0 0 1px rgba(168,85,247,0.06)}
-.hd-card:hover::after{opacity:1}
-.hd-card-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;margin-bottom:15px;transition:all 0.3s}
-.hd-card:hover .hd-card-ic{transform:translateY(-2px) scale(1.05)}
+.hd-card{position:relative;padding:24px 20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:border-color 0.28s;overflow:hidden}
+.hd-card-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;margin-bottom:15px;background:color-mix(in srgb, var(--hd-tint) 12%, transparent);color:var(--hd-tint)}
 .hd-card h3{font-size:0.92rem;font-weight:700;margin:0 0 5px}
-.hd-card p{font-size:0.73rem;color:rgba(255,255,255,0.28);margin:0;line-height:1.8}
-.hd-card-go{position:absolute;top:20px;left:20px;font-size:0.8rem;color:var(--hc,#a855f7);opacity:0;transform:translateX(4px);transition:all 0.3s}
-.hd-card:hover .hd-card-go{opacity:1;transform:translateX(0)}
+.hd-card p{font-size:0.73rem;color:var(--text-muted);margin:0;line-height:1.8}
+/* These eleven are descriptions of pages that open inside a chosen server, so
+   they are not links and are not dressed as if they were: no arrow, no lift, no
+   underline, no hover. A card that rises when you touch it is a promise that
+   something opens. */
+.hd-sys-req{display:inline-flex;align-items:center;margin-top:13px;font-size:0.62rem;font-weight:600;color:var(--text-muted);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:3px 9px;border-radius:100px}
 
 /* ── الروابط ── */
 .hd-links{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap}
-.hd-link{display:inline-flex;align-items:center;gap:9px;padding:11px 20px;border-radius:12px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.55);transition:all 0.25s;font-family:'Tajawal', system-ui, sans-serif;cursor:pointer}
+.hd-link{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:11px 20px;border-radius:12px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.55);transition:all 0.25s;font-family:'Tajawal', system-ui, sans-serif;cursor:pointer;text-decoration:none}
 .hd-link:hover{transform:translateY(-2px);color:#fff;border-color:rgba(255,255,255,0.12);background:rgba(16,16,36,0.72)}
-.hd-link i{width:18px;text-align:center}
+.hd-link i{font-size:0.85rem;margin-bottom:2px}
+/* What the row is for, under what it is called. Four rows of bare labels gave no
+   way to tell لوحة التحكم from the rest without clicking. */
+.hd-link em{font-style:normal;font-size:0.62rem;font-weight:500;color:var(--text-muted)}
 
-/* ── حركة الظهور ── */
+/* ── السمة الفاتحة ──
+   The page used to hardcode rgba(255,255,255,.06) on every surface, so it stayed
+   dark whatever data-theme said -- and home is the only place left that offers the
+   toggle, so light mode was reachable and half-drawn. Re-pointed at the same
+   tokens style.css flips, rather than at a second palette written here. */
+[data-theme="light"] .hd-hero,
+[data-theme="light"] .hd-ribbon,
+[data-theme="light"] .hd-kpi,
+[data-theme="light"] .hd-sys-panel,
+[data-theme="light"] .hd-sys-cell,
+[data-theme="light"] .hd-g-card,
+[data-theme="light"] .hd-card,
+[data-theme="light"] .hd-link,
+[data-theme="light"] .hd-empty,
+[data-theme="light"] .hd-mini,
+[data-theme="light"] .hd-role,
+[data-theme="light"] .hd-pills span,
+[data-theme="light"] .hd-search input{background:var(--bg-glass);border-color:var(--border)}
+[data-theme="light"] .hd-hero p,
+[data-theme="light"] .hd-sec-head span,
+[data-theme="light"] .hd-mini-txt span,
+[data-theme="light"] .hd-kpi-txt span,
+[data-theme="light"] .hd-sys-k,
+[data-theme="light"] .hd-role,
+[data-theme="light"] .hd-pills span,
+[data-theme="light"] .hd-g-info span,
+[data-theme="light"] .hd-card p,
+[data-theme="light"] .hd-ribbon-sub,
+[data-theme="light"] .hd-nohit,
+[data-theme="light"] .hd-empty p,
+[data-theme="light"] .hd-link{color:var(--text-muted)}
+[data-theme="light"] .hd-sys-req{color:var(--text-muted);background:rgba(124,58,237,0.06);border-color:var(--border)}
+/* The six cells sit inside the panel, and both were given the same token, so in
+   light mode the inset disappeared and the panel read as one flat sheet. This is
+   the tint that puts the boxes back. */
+[data-theme="light"] .hd-sys-cell{background:rgba(124,58,237,0.045);border-color:var(--border-light)}
+/* The sub-label is meant to be quieter than the label above it. Both were pointed
+   at --text-muted, which made the two lines identical and the strip's second line
+   pointless. One step down from the label, not the same step. */
+[data-theme="light"] .hd-link em{color:rgba(92,84,112,0.85)}
+[data-theme="light"] .hd-hero h1,
+[data-theme="light"] .hd-ribbon-title,
+[data-theme="light"] .hd-sys-v{color:var(--text)}
+[data-theme="light"] .hd-sys-v.is-on{color:#047857}
+[data-theme="light"] .hd-sys-v.is-off{color:#b91c1c}
+[data-theme="light"] .hd-sys-note{background:rgba(220,38,38,0.06);border-color:rgba(220,38,38,0.2);color:#b91c1c}
+[data-theme="light"] .hd-sys-note b{color:#991b1b}
+[data-theme="light"] .hd-kpi:hover,
+[data-theme="light"] .hd-g-card:hover,
+[data-theme="light"] .hd-link:hover{background:#fff;border-color:var(--border)}
+[data-theme="light"] .hd-kpi.is-na .hd-kpi-txt b,
+[data-theme="light"] .hd-sys-v.is-na{color:var(--text-muted)}
+[data-theme="light"] .hd-ping-good{color:#047857}
+[data-theme="light"] .hd-ping-mid{color:#b45309}
+[data-theme="light"] .hd-ping-bad{color:#dc2626}
+
+/* ── the accents that only exist in the dark palette ──
+
+   Everything above re-points a surface or a tier at a token. These are the
+   colours the page names outright -- #a855f7 and #d8b4fe -- and they are dark-palette
+   values: on #f6f4fc the brand purple measures 3.6:1 and the lilac 1.7:1, which is
+   not a tint, it is gone. Each one below is the site's own --primary-hover, already
+   in the stylesheet, rather than a purple invented for this page. */
+[data-theme="light"] .hd-eyebrow,
+[data-theme="light"] .hd-ribbon-go,
+[data-theme="light"] .hd-count,
+[data-theme="light"] .hd-g-info b{color:#7c3aed}
+[data-theme="light"] .hd-ribbon-go:hover{color:#5b21b6}
+[data-theme="light"] .hd-g-card:hover .hd-g-info span{color:#7c3aed}
+/* The badge sits on a purple wash, so it takes the darker step. */
+[data-theme="light"] .hd-role b,
+[data-theme="light"] .hd-role i,
+[data-theme="light"] .hd-g-letter{color:#6d28d9}
+[data-theme="light"] .hd-g-badge{color:#6d28d9}
+[data-theme="light"] .hd-g-card:hover .hd-g-badge{color:#5b21b6}
+/* The name is filled with a gradient, so its colour is never in the computed style
+   and no text-contrast tool can see it. The gradient ran to #d8b4fe, so the second
+   half of the user's own name would have been the invisible half. */
+/* The clip has to be restated with the gradient: the background shorthand resets
+   background-clip, which would leave transparent text on a clipped box -- a name
+   that renders as nothing at all. */
+[data-theme="light"] .hd-name{background:linear-gradient(135deg,#7c3aed,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* Two controls that keep white ink in light mode, which is why they were invisible:
+   the ghost button and whatever is typed in the search box. */
+[data-theme="light"] .hd-btn-ghost{background:rgba(124,58,237,0.06);border-color:var(--border);color:var(--text)}
+[data-theme="light"] .hd-btn-ghost:hover{background:rgba(124,58,237,0.12);border-color:var(--primary-hover);color:var(--text)}
+[data-theme="light"] .hd-search input{color:var(--text)}
+[data-theme="light"] .hd-link:hover{color:var(--text)}
+[data-theme="light"] .hd-t-a{--hd-tint:#b45309;color:#b45309}
+[data-theme="light"] .hd-t-v{--hd-tint:#7c3aed;color:#7c3aed}
+[data-theme="light"] .hd-t-g{--hd-tint:#047857;color:#047857}
+[data-theme="light"] .hd-t-r{--hd-tint:#b91c1c;color:#b91c1c}
+[data-theme="light"] .hd-t-b{--hd-tint:#1d4ed8;color:#1d4ed8}
+[data-theme="light"] .hd-t-c{--hd-tint:#6d28d9;color:#6d28d9}
+[data-theme="light"] .hd-t-p{--hd-tint:#7c3aed;color:#7c3aed}
+[data-theme="light"] .hd-t-o{--hd-tint:#c2410c;color:#c2410c}
+[data-theme="light"] .hd-t-s{--hd-tint:#0369a1;color:#0369a1}
+[data-theme="light"] .hd-t-k{--hd-tint:#be185d;color:#be185d}
+[data-theme="light"] .ic-p{color:#7c3aed}
+[data-theme="light"] .ic-c{color:#6d28d9}
+[data-theme="light"] .ic-g{color:#047857}
+[data-theme="light"] .ic-a{color:#b45309}
+
+/* ── حركة الظهور ──
+   One delay per block, in the order the blocks appear, declared rather than
+   inferred: the old rule was ".hd-sec-head:not(.hd-sec-row)" at .22s, which only
+   worked while there was one header outside the servers row. Three headers now,
+   each with its own rung, so a new section cannot inherit another one's delay by
+   accident. */
 @keyframes hdUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes hddot{0%,100%{opacity:1}50%{opacity:0.25}}
 .hd-hero{animation:hdUp 0.5s ease both}
-.hd-kpis{animation:hdUp 0.5s ease 0.06s both}
+.hd-ribbon{animation:hdUp 0.5s ease 0.03s both}
+.hd-sec-kpi{animation:hdUp 0.5s ease 0.05s both}
+.hd-kpis{animation:hdUp 0.5s ease 0.07s both}
 .hd-sec-row{animation:hdUp 0.5s ease 0.1s both}
 .hd-g-wrap,.hd-empty{animation:hdUp 0.5s ease 0.14s both}
-.hd-row2{animation:hdUp 0.5s ease 0.18s both}
-.hd-sec-head:not(.hd-sec-row){animation:hdUp 0.5s ease 0.22s both}
-.hd-grid{animation:hdUp 0.5s ease 0.26s both}
-.hd-links{animation:hdUp 0.5s ease 0.3s both}
+.hd-sec-diag{animation:hdUp 0.5s ease 0.18s both}
+.hd-sys-panel{animation:hdUp 0.5s ease 0.21s both}
+.hd-sec-sys{animation:hdUp 0.5s ease 0.25s both}
+.hd-grid{animation:hdUp 0.5s ease 0.29s both}
+.hd-sec-links{animation:hdUp 0.5s ease 0.33s both}
+.hd-links{animation:hdUp 0.5s ease 0.36s both}
 
 /* ── التجاوب ── */
-@media(max-width:980px){
-  .hd-row2{grid-template-columns:1fr}
+@media(max-width:1080px){
+  .hd-sys-grid{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:900px){
   .hd-hero{flex-wrap:wrap;gap:22px;padding:24px}
@@ -362,115 +640,206 @@
 @media(max-width:760px){
   .hd-kpis{grid-template-columns:repeat(2,1fr)}
   .hd-grid{grid-template-columns:repeat(2,1fr)}
+  .hd-sys-grid{grid-template-columns:repeat(2,1fr)}
   .hd-hero-side{flex-direction:column}
   .hd-hero h1{font-size:1.3rem}
   .hd-search{margin-inline-start:0;width:100%}
   .hd-search input{width:100%}
   .hd-sec-row>span{display:none}
+  .hd-ribbon-go{margin-inline-start:0;width:100%}
 }
 @media(max-width:520px){
   .hd-grid{grid-template-columns:1fr}
+  .hd-sys-grid{grid-template-columns:1fr}
   .hd-hero{padding:20px}
+  .hd-kpi-txt b{font-size:1.15rem}
 }
 </style>
 <script>
 (function(){
-  // ترحيب حسب الوقت
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ترحيب حسب الوقت. The old four-way split said "مساء النور" from 17:00 to
+     midnight, which is not a greeting anyone uses, and called 12:00–17:00 evening
+     while calling 17:00–24:00 something else. */
   (function(){
     var h = new Date().getHours();
-    var g = (h >= 5 && h < 12) ? 'صباح الخير' : (h >= 12 && h < 17) ? 'مساء الخير' : (h >= 17 && h < 24) ? 'مساء النور' : 'تصبح على خير';
-    var el = document.getElementById('hdHello');
+    var g = (h >= 4 && h < 12) ? 'صباح الخير'
+          : (h >= 12 && h < 16) ? 'نهارك سعيد'
+          : (h >= 16) ? 'مساء الخير'
+          : 'تصبح على خير';
+    var el = $('hdHello');
     if (el) el.textContent = g;
   })();
 
+  // A figure nobody could measure is a dash, and a dash is not a zero.
+  var DASH = '—';
+  function fmt(v){ return Number(v).toLocaleString('en-US'); }
   function countUp(el, target, dur){
-    if(!el) return;
-    target = Number(target)||0;
-    dur = dur||1100;
+    if (!el) return;
+    var n = Number(target);
+    if (!isFinite(n)) { el.textContent = DASH; return; }
+    dur = dur || 1100;
     var t0 = performance.now();
-    function fmt(v){ return v.toLocaleString('en-US'); }
+    var drew = false;
     function tick(t){
+      drew = true;
       var p = Math.min(1, (t - t0) / dur);
       var e = 1 - Math.pow(1 - p, 3);
-      el.textContent = fmt(target * e);
+      el.textContent = fmt(n * e);
       if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = fmt(n);
     }
     requestAnimationFrame(tick);
+    // A tab that is not in front gets no animation frames at all -- the browser
+    // hands it none, so countUp would write nothing and the figure would sit on
+    // its dash for as long as the tab stayed in the background. The number was
+    // measured; a hidden tab is not a reason to report it as unknown. The timeout
+    // still fires (clamped, but it fires) and puts the real value there.
+    setTimeout(function(){ if (!drew) el.textContent = fmt(n); }, 500);
+  }
+  // Marks the card, not just the digit: a dash next to a bold 1.35rem number
+  // reads as a failure to load, which is exactly what it is.
+  function dash(id, cardId){
+    var el = $(id);
+    if (el) el.textContent = DASH;
+    var card = $(cardId);
+    if (card) card.classList.add('is-na');
   }
 
-  // فئات الأوامر معروفة/معرّبة
-  var CATS = {
-    announcement: { label:'الإعلانات', icon:'bullhorn', color:'#f87171' },
-    info:         { label:'المعلومات', icon:'circle-info', color:'#8c5aff' },
-    members:      { label:'الأعضاء', icon:'users', color:'#34d399' },
-    moderation:   { label:'الإشراف والحماية', icon:'shield-halved', color:'#d8b4fe' },
-    notifications:{ label:'الإشعارات', icon:'bell', color:'#fbbf24' },
-    setup:        { label:'الإعدادات', icon:'sliders', color:'#a855f7' },
-    ticket:       { label:'التذاكر', icon:'ticket-alt', color:'#fb923c' },
-    voice:        { label:'الصوتيات', icon:'microphone', color:'#f472b6' }
-  };
+  // من ملف المستخدم نفسه، بدون نداء: سيرفران ليسا إنجازاً يستحق عدّاداً.
+  var managed = $('hdManaged'), total = $('hdTotal');
+  if (managed) managed.textContent = fmt(managed.dataset.t);
+  if (total) total.textContent = fmt(total.dataset.t);
 
-  function renderCats(pc){
-    var box = document.getElementById('hdCatBars');
-    if(!box) return;
-    var entries = Object.keys(pc || {}).map(function(k){ return { k:k, v:Number(pc[k])||0 }; })
-      .filter(function(e){ return e.v > 0; })
-      .sort(function(a,b){ return b.v - a.v; })
-      .slice(0,6);
-    if(!entries.length){
-      box.innerHTML = '<div class="hd-bars-note"><i class="fas fa-inbox"></i> لا توجد بيانات حالياً</div>';
+  /* سبب الانقطاع، بالعربية. Each value is the only thing routes/status.js can
+     report, and each one has exactly one fix -- the mapping is written out there,
+     and it is the whole reason this panel replaced a chart of nothing. */
+  var CAUSE = {
+    'HTTP 404': 'البوت يعمل على نسخة أقدم، أو لم يُطلق حدث التشغيل بعد.',
+    'HTTP 401': 'المفتاح السري يختلف بين اللوحة والبوت.',
+    'HTTP 503': 'المفتاح السري غير مضبوط عند البوت أصلاً.',
+    'timeout':   'البوت ما زال يقلع، أو رابطه في اللوحة غير صحيح.',
+    'network':   'رابط البوت في اللوحة غير صحيح أو غير موصول.'
+  };
+  var PLATFORM = { win32: 'Windows', linux: 'Linux', darwin: 'macOS' };
+
+  function setVal(id, text, cls){
+    var el = $(id);
+    if (!el) return;
+    el.textContent = text;
+    if (cls) el.className = 'hd-sys-v ' + cls;
+  }
+
+  function fmtUptime(s){
+    s = Math.max(0, Math.floor(Number(s) || 0));
+    var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    if (d) return d + (d === 1 ? ' يوم ' : ' أيام ') + h + ' س';
+    if (h) return h + ' س ' + m + ' د';
+    return m + ' د';
+  }
+
+  /* ست قراءات من نداء واحد. إمّا تُقاس، أو تُقال مرة واحدة بدل ست شرطات. */
+  function fillPanel(d){
+    var note = $('hdSysNote');
+    var ids = ['hdSysLink','hdSysRsp','hdSysUp','hdSysMem','hdSysNode','hdSysPlat'];
+    if (!d) {
+      ids.forEach(function(id){ setVal(id, DASH, 'is-na'); });
+      if (note) { note.textContent = 'تعذّر قراءة حالة النظام من الخادم، فرقام الشبكة أعلاه لن تتحدث أيضاً.'; note.hidden = false; }
       return;
     }
-    var max = entries[0].v || 1;
-    box.innerHTML = '';
-    entries.forEach(function(e){
-      var meta = CATS[e.k] || { label: e.k, icon: 'terminal', color: '#a855f7' };
-      var row = document.createElement('div');
-      row.className = 'hd-bar';
-      row.innerHTML =
-        '<div class="hd-bar-top"><span class="hd-bar-lb"><i class="fas fa-' + meta.icon + '" style="color:' + meta.color + '"></i> ' + meta.label + '</span><b>' + e.v + '</b></div>' +
-        '<div class="hd-bar-track"><div class="hd-bar-fill" style="width:0;background:' + meta.color + '"></div></div>';
-      box.appendChild(row);
-      (function(fill, w){
-        requestAnimationFrame(function(){ requestAnimationFrame(function(){ fill.style.width = w + '%'; }); });
-      })(row.querySelector('.hd-bar-fill'), Math.round(e.v / max * 100));
-    });
+
+    var rt = isFinite(Number(d.responseTime)), mem = d.memory && isFinite(Number(d.memory.rss));
+    setVal('hdSysLink', d.botOnline ? 'متصل' : 'غير متصل', d.botOnline ? 'is-on' : 'is-off');
+    setVal('hdSysRsp', rt ? Math.round(Number(d.responseTime)) + 'ms' : DASH, rt ? '' : 'is-na');
+    setVal('hdSysUp', isFinite(Number(d.uptime)) ? fmtUptime(d.uptime) : DASH, isFinite(Number(d.uptime)) ? '' : 'is-na');
+    setVal('hdSysMem', mem ? Math.round(Number(d.memory.rss) / 1048576) + ' م.ب' : DASH, mem ? '' : 'is-na');
+    setVal('hdSysNode', d.nodeVersion ? String(d.nodeVersion).replace(/^v/, '') : DASH, d.nodeVersion ? '' : 'is-na');
+    setVal('hdSysPlat', PLATFORM[d.platform] || d.platform || DASH, d.platform ? '' : 'is-na');
+
+    if (note) {
+      if (d.botOnline) { note.hidden = true; note.textContent = ''; }
+      else {
+        var cause = CAUSE[d.botApiError] || 'لم يُرجع طلب الحالة أي جواب مفهوم.';
+        // A 401 means the bot side does have the secret, so a dashboard with none
+        // is the half that is broken. routes/status.js works this out; it is worth
+        // being told which half to go and fix.
+        if (d.secretConfigured === false) cause += ' والمفتاح السري غير مضبوط في اللوحة.';
+        note.textContent = 'البوت لا يستجيب، فبيانات الشبكة لن تتحدث — السبب: ' + cause;
+        note.hidden = false;
+      }
+    }
   }
 
-  // إحصائيات معروفة من الخادم
-  countUp(document.getElementById('hdManaged'), document.getElementById('hdManaged').dataset.t, 900);
-  countUp(document.getElementById('hdTotal'), document.getElementById('hdTotal').dataset.t, 900);
+  function get(url){
+    return fetch(url).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+  }
 
-  // إحصائيات حية من البوت
-  Promise.all([
-    fetch('/api/commands/stats').then(function(r){ return r.ok ? r.json() : null }).catch(function(){ return null }),
-    fetch('/api/status').then(function(r){ return r.ok ? r.json() : null }).catch(function(){ return null }),
-  ]).then(function(a){
-    var s = a[0], d = a[1];
-    var cmd = s && s.total ? Number(s.total) : 0;
-    if (cmd) countUp(document.getElementById('hdCmd'), cmd, 1200);
-    if (s && s.perCategory) renderCats(s.perCategory);
-    else renderCats(null);
-    if (d) {
-      countUp(document.getElementById('hdGuilds'), Number(d.guildCount) || 0, 1200);
-      countUp(document.getElementById('hdMembers'), Number(d.members) || 0, 1200);
-      var pg = document.getElementById('hdPing');
-      if (pg) {
-        var ping = Number(d.ping) || 0;
-        pg.textContent = ping ? ping + 'ms' : '—';
-        if (ping) pg.className = ping < 200 ? 'hd-ping-good' : (ping < 450 ? 'hd-ping-mid' : 'hd-ping-bad');
+  Promise.all([ get('/api/commands/stats'), get('/api/status'), get('/api/bot/info') ])
+  .then(function(a){
+    var s = a[0], d = a[1], info = a[2];
+
+    // الإصدار: من Endpoint واحد، بدل رقم مكتوب في الوسم
+    var ver = $('hdVer');
+    if (ver && info && info.version) { ver.textContent = 'v' + info.version; ver.hidden = false; }
+
+    // الأرقام: كل واحد منها إمّا مقيس أو شرطة
+    if (s && Number(s.total) > 0) countUp($('hdCmd'), s.total, 1200);
+    else dash('hdCmd', 'hdKpiCmd');
+    if (d && Number(d.guildCount) > 0) countUp($('hdGuilds'), d.guildCount, 1200);
+    else dash('hdGuilds', 'hdKpiGuilds');
+    if (d && d.members !== null && d.members !== undefined && Number(d.members) > 0) countUp($('hdMembers'), d.members, 1200);
+    else dash('hdMembers', 'hdKpiMembers');
+    if (d && isFinite(Number(d.responseTime))) {
+      var rt = Math.round(Number(d.responseTime));
+      var rsp = $('hdRsp');
+      if (rsp) {
+        rsp.textContent = rt + 'ms';
+        // The only figure here with a good and a bad answer, so it is graded. A
+        // cold Render free instance lands over a second and recovers on the next
+        // call; reading that as red is honest, reading it as "broken" is not.
+        rsp.className = rt < 150 ? 'hd-ping-good' : (rt < 600 ? 'hd-ping-mid' : 'hd-ping-bad');
+      }
+    }
+    else dash('hdRsp', 'hdKpiRsp');
+
+    fillPanel(d);
+
+    // شريط الحالة: الجواب الوحيد الذي يجب أن يعرفه من فتح الصفحة
+    var ribbon = $('hdRibbon'), state = $('hdState'), sub = $('hdStateSub');
+    if (ribbon && state) {
+      if (d && d.botOnline) {
+        ribbon.dataset.state = 'on';
+        state.textContent = 'كراتوس متصل';
+        var bits = [];
+        if (Number(d.ping) > 0) bits.push('بنج البوت ' + Math.round(Number(d.ping)) + 'ms');
+        if (isFinite(Number(d.responseTime))) bits.push('استجابة اللوحة ' + Math.round(Number(d.responseTime)) + 'ms');
+        if (bits.length && sub) sub.textContent = bits.join(' · ');
+      } else {
+        // لا بوت = لا أرقام حيّة. Saying so beats showing a confident 0.
+        ribbon.dataset.state = 'off';
+        state.textContent = 'كراتوس غير متصل';
+        if (sub) sub.textContent = 'الأرقام الحية متوقفة — بياناتك في اللوحة سليمة';
       }
     }
   });
 
   // البحث في سيرفراتك
-  var inp = document.getElementById('hdSearch');
+  var inp = $('hdSearch');
   if (inp) {
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.hd-g-card'));
+    var noHit = $('hdNoHit');
     inp.addEventListener('input', function(){
       var q = inp.value.trim().toLowerCase();
-      document.querySelectorAll('.hd-g-card').forEach(function(c){
-        c.style.display = (c.dataset.name || '').toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+      var shown = 0;
+      cards.forEach(function(c){
+        var hit = (c.dataset.name || '').toLowerCase().indexOf(q) >= 0;
+        c.style.display = hit ? '' : 'none';
+        if (hit) shown++;
       });
+      // A search that matches nothing used to leave a blank strip with no word
+      // about why. The note sits under the strip so it does not shift it.
+      if (noHit) noHit.hidden = shown > 0;
     });
   }
 })();
