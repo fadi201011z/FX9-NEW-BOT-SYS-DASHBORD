@@ -94,13 +94,17 @@
   /* ── The rail and the pill ───────────────────────────────────────────────
      Sampled off the dashboard drawing in the landing hero (.nx-dash__side and
      .nx-dash__bar), which is the only place the real shell is shown inside the
-     design. --nx-rail is that sidebar's #08090f, one step below --nx-panel, so
-     the rail reads as the far side of the window and the cards on top of it
-     read as nearer. */
-  --nx-rail:       #08090f;
+     design. Its sidebar is #08090f -- and that value was wrong here. It is a
+     colder black than the page's #090713, and at normal brightness the two
+     read as a seam running the full height of the window, which is the one
+     thing a navigation rail must not do: it looked like a different panel
+     bolted onto the page rather than part of the same surface. So the rail is
+     the page surface exactly and --nx-hair is the only thing separating them.
+     The light theme had the same fault, #fbfaff on a #f6f4fc page, and got the
+     same fix; that one lives in shell.css, which owns the light overrides. */
+  --nx-rail:       var(--nx-ink);
   --nx-hair:       rgba(255,255,255,.06);
   --nx-nav-wash:   rgba(168,85,247,.10);
   --nx-nav-on:     rgba(104,31,209,.30);
-  --nx-pill:       rgba(18,14,36,.74);
   --nx-focus:      rgba(168,85,247,.55);
 }

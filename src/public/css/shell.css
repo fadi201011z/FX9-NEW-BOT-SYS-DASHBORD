@@ -22,11 +22,23 @@
                          strip and a pill reads as furniture.
 
      the rail's colour   the landing hero draws the product's own dashboard in
-                         CSS (.nx-dash__side), and its sidebar is #08090f with a
-                         1px rgba(255,255,255,.06) edge and rgba(104,31,209,.2)
-                         behind the active row. Those three values are sampled,
-                         not chosen, so the marketing shot and the real thing are
-                         the same product.
+                         CSS (.nx-dash__side), and its active row is violet at
+                         rgba(104,31,209,.2) behind a 1px rgba(255,255,255,.06)
+                         edge -- those two are sampled rather than chosen, so the
+                         marketing shot and the real thing agree. Its sidebar
+                         colour, #08090f, was sampled as well and then had to be
+                         dropped: it is a colder black than the page's #090713,
+                         and at normal brightness the two read as a seam running
+                         the full height of the window -- a different panel
+                         bolted onto the page. The rail is the page surface now
+                         and the hairline is the only thing between them. The
+                         light theme had the same fault in the same place and is
+                         re-pointed the same way.
+
+     the bar's fill      see-through in both states. The bar floats over
+                         scrolling content, so frosting it opaque at the moment
+                         you scroll hides the thing you scrolled to. Blur and a
+                         hairline carry the separation instead of a fill.
 
      two easings        cubic-bezier(.23,1,.32,1) for anything that arrives or
                          moves, cubic-bezier(.4,0,.2,1) for colour and opacity.
@@ -49,6 +61,7 @@
   display: flex;
   margin-top: var(--nx-topbar-h);
   min-height: calc(100vh - var(--nx-topbar-h));
+  min-height: calc(100dvh - var(--nx-topbar-h));
 }
 
 /* inline-start, not inline-end. This document is RTL, so inline-start is the
@@ -63,6 +76,7 @@
   margin-inline-start: var(--nx-shell-w);
   padding: 24px;
   min-height: calc(100vh - var(--nx-topbar-h));
+  min-height: calc(100dvh - var(--nx-topbar-h));
   transition: margin-inline-start .34s var(--nx-ease);
 }
 .sidebar.collapsed ~ .main-content { margin-inline-start: var(--nx-rail-w); }
@@ -84,25 +98,33 @@
 /* The pill. Sized to its contents and centred, not stretched across the
    viewport: a bar that touches both edges stops reading as a floating object
    and becomes a strip, which is the one thing this shape exists to avoid. It was
-   width:100% and looked like a page banner. max-width is the only thing that
-   still constrains it, because .navbar is full-bleed with the inset padding.
+   width:100% and looked like a page banner.
 
-   At rest it is a thin wash with no edge, so a page that has not scrolled does
-   not start with a rule across the top of it; .is-stuck gives it the landing
-   page's frost and a shadow. The blur is set at 0 rather than omitted, because
-   a transition from `none` has nothing to interpolate from and would snap on
-   the first scroll. */
+   min-width puts a floor under that without reintroducing the banner -- 700px at
+   a 1120px viewport is a bar with room in it, where 568px fit-content left the
+   three groups huddled in the middle. min() rather than a fixed value so it
+   degrades to the full width on a phone instead of overflowing.
+
+   Three tracks, 1fr auto 1fr, so the search is centred on the pill rather than
+   on the leftover space. With flex and space-between it was off by half the
+   difference between the two ends -- the brand group is about 130px and the
+   controls about 190px, so the field sat 30px left of true centre, which reads
+   as a mistake even though nothing is actually misaligned. Two equal outer
+   tracks put the search on the middle regardless of what is in the ends, and
+   the ends then align to the pill's edges on their own. */
 .navbar__pill {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 1rem;
   width: fit-content;
+  min-width: min(700px, 100%);
   max-width: 100%;
   height: var(--nx-bar-h);
-  padding-inline: 14px;
+  padding-inline: 20px;
   border-radius: 9999px;
   pointer-events: auto;
-  background: rgba(9,7,19,.55);
+  background: rgba(9,7,19,.42);
   border: 1px solid transparent;
   -webkit-backdrop-filter: blur(0);
   backdrop-filter: blur(0);
@@ -113,34 +135,46 @@
     border-color .3s var(--nx-ease-out),
     box-shadow .3s var(--nx-ease-out);
 }
+
+/* Scrolled. It stays see-through: the fill drops to a quarter and the blur
+   carries the separation instead, so content is still legible sliding underneath
+   instead of disappearing behind a slab. What .is-stuck buys is an edge and a
+   shadow -- proof that the bar is floating above the page rather than printed
+   on it -- not a background. The earlier .74 frost did the opposite: it turned
+   the bar into an opaque strip the moment you scrolled, which is when you most
+   want to see what you scrolled to. */
 .navbar.is-stuck .navbar__pill {
-  background: var(--nx-pill);
+  background: rgba(9,7,19,.22);
   border-color: var(--nx-glass-br);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   box-shadow: var(--nx-shadow-sm), inset 0 1px 0 rgba(255,255,255,.05);
 }
 
+/* justify-self, not justify-content: the pill is a grid now, so each group pins
+   itself to its own track and the tracks decide the spacing. */
 .nav-left {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
+  justify-self: start;
 }
 .nav-right {
   display: flex;
   align-items: center;
   gap: 6px;
+  justify-self: end;
 }
-/* No flex:1. The pill is fit-content now, so the middle group has to take the
-   search field's own width instead of absorbing every spare pixel -- otherwise
-   the field stretches to the input's intrinsic size and the bar goes back to
-   being as wide as the viewport. The field itself is clamped below. */
+/* No flex: 1, and nothing to distribute -- the pill's middle track is auto, so
+   this group is exactly as wide as the search field. flex:1 here is what made
+   the bar full width in the first place: a middle group that absorbs every spare
+   pixel leaves no width for the pill to be sized by. The field is clamped below
+   so the auto track has something bounded to resolve against. */
 .nav-center {
-  flex: none;
   display: flex;
-  justify-content: center;
   min-width: 0;
+  justify-self: center;
 }
 
 /* Brand. The same mark the landing page uses, at 30px, over a gradient tile
@@ -482,7 +516,14 @@
   display: flex;
   flex-direction: column;
   width: var(--nx-shell-w);
+  /* dvh, not vh. vh is the tallest viewport the browser will ever report, so on
+     a phone with a URL bar the rail is drawn taller than the screen and its
+     footer -- the logout row -- ends up below the fold, out of reach. The vh
+     declaration stays first as the fallback. The rail's bottom then lands
+     exactly on the edge the content area starts from, so the seam is one
+     number on both sides of it. */
   height: calc(100vh - var(--nx-topbar-h));
+  height: calc(100dvh - var(--nx-topbar-h));
   overflow: hidden;
   border-inline-end: 1px solid var(--nx-hair);
   background: var(--nx-rail);
@@ -611,12 +652,19 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 10px 10px 16px;
-  scrollbar-width: thin;
+  /* No scrollbar at all, rather than a thin one. `thin` still reserves a
+     gutter -- 10px in this Chrome -- and that gutter is a lit strip running
+     down the rail's content-facing edge, which is exactly the edge that should
+     be a single hairline and nothing else. Scrollbar-gutter: stable is
+     deliberately not used either: reserving the space when there is nothing to
+     scroll leaves the same strip on pages whose nav happens to fit. The wheel,
+     the keyboard and the scrollbar-less drag gesture all still work; what is
+     given up is only the pointer affordance, and the rail's footer sitting still
+     at the bottom of the viewport is the cue that the list continues above it. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-.sidebar-nav::-webkit-scrollbar { width: 4px; }
-.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(168,85,247,.28); border-radius: 4px; }
-.sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,.5); }
+.sidebar-nav::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 .nav-section { margin-bottom: 14px; }
 
@@ -940,23 +988,28 @@
    and the active fill -- rather than re-declaring the whole rule set. The active
    fill is done as a token because the arrival sweep paints that same fill as one
    of its two background layers: re-declaring the fill with a `background`
-   shorthand here would wipe the sweep out and only in the light theme. The pill
-   loses its translucency instead of frosting a white sheet over a white page. */
+   shorthand here would wipe the sweep out and only in the light theme.
+
+   The rail's own surface is the third value that had to be re-pointed: it was
+   #fbfaff, which against a #f6f4fc page is the same seam the dark theme had,
+   just harder to see. --nx-rail is a token precisely so this is one line. */
 
 [data-theme="light"] {
   --nx-nav-on: rgba(124,58,237,.14);
   --nx-nav-wash: rgba(124,58,237,.08);
-  --nx-pill: rgba(255,255,255,.94);
+  --nx-rail: #f6f4fc;
 }
 
-[data-theme="light"] .navbar__pill { background: rgba(255,255,255,.86); }
+/* Faint at rest and fainter when stuck, same as the dark theme: a white sheet
+   at .94 frosts the page out from behind it, which is the same slab problem the
+   dark theme had, only without the dark to hide it. */
+[data-theme="light"] .navbar__pill { background: rgba(255,255,255,.62); }
 [data-theme="light"] .navbar.is-stuck .navbar__pill {
-  background: rgba(255,255,255,.94);
+  background: rgba(255,255,255,.46);
   border-color: rgba(124,58,237,.18);
   box-shadow: 0 8px 28px rgba(60,40,120,.1), inset 0 1px 0 rgba(255,255,255,.9);
 }
 [data-theme="light"] .sidebar {
-  background: #fbfaff;
   border-color: rgba(124,58,237,.14);
 }
 [data-theme="light"] .sidebar::before {
@@ -1012,7 +1065,13 @@
     transform: translateX(100%);
     border-inline-end: none;
     box-shadow: none;
-    background: var(--nx-ink);
+    /* var(--nx-rail), not var(--nx-ink) spelled out. This rule and the base
+       .sidebar rule are the same specificity, and this one is later in the
+       file, so it wins -- which is what makes --nx-rail worth having. Written
+       as --nx-ink it happened to match in the dark theme and quietly produced
+       a near-black drawer on a white phone, because the light theme re-points
+       --nx-rail and a hard-coded --nx-ink does not follow it. */
+    background: var(--nx-rail);
     animation: none;
   }
   .sidebar.open {
