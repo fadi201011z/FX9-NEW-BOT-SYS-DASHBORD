@@ -75,20 +75,29 @@
   inset-block-start: 0;
   inset-inline: 0;
   z-index: 1000;
+  display: flex;
+  justify-content: center;
   padding: var(--nx-bar-inset) var(--nx-bar-inset) 0;
   pointer-events: none; /* the pill takes its own clicks back below */
 }
 
-/* The pill. At rest it is a thin wash with no edge, so a page that has not
-   scrolled does not start with a rule across the top of it; .is-stuck gives it
-   the landing page's frost and a shadow. The blur is set at 0 rather than
-   omitted, because a transition from `none` has nothing to interpolate from
-   and would snap on the first scroll. */
+/* The pill. Sized to its contents and centred, not stretched across the
+   viewport: a bar that touches both edges stops reading as a floating object
+   and becomes a strip, which is the one thing this shape exists to avoid. It was
+   width:100% and looked like a page banner. max-width is the only thing that
+   still constrains it, because .navbar is full-bleed with the inset padding.
+
+   At rest it is a thin wash with no edge, so a page that has not scrolled does
+   not start with a rule across the top of it; .is-stuck gives it the landing
+   page's frost and a shadow. The blur is set at 0 rather than omitted, because
+   a transition from `none` has nothing to interpolate from and would snap on
+   the first scroll. */
 .navbar__pill {
   display: flex;
   align-items: center;
   gap: 1rem;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   height: var(--nx-bar-h);
   padding-inline: 14px;
   border-radius: 9999px;
@@ -123,8 +132,12 @@
   align-items: center;
   gap: 6px;
 }
+/* No flex:1. The pill is fit-content now, so the middle group has to take the
+   search field's own width instead of absorbing every spare pixel -- otherwise
+   the field stretches to the input's intrinsic size and the bar goes back to
+   being as wide as the viewport. The field itself is clamped below. */
 .nav-center {
-  flex: 1;
+  flex: none;
   display: flex;
   justify-content: center;
   min-width: 0;
@@ -227,8 +240,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
-  max-width: 380px;
+  /* An explicit width, not 100%. Its containing block is a shrink-to-fit flex
+     item now, where a percentage resolves against an indefinite width and falls
+     back to the input's intrinsic size -- which is why a centred field inside a
+     fit-content pill needs a clamp of its own. */
+  width: clamp(170px, 19vw, 280px);
   height: 38px;
   padding: 0 14px;
   border-radius: 9999px;
@@ -307,6 +323,7 @@
 .notifications-dropdown { position: relative; }
 
 .notif-menu {
+  display: none;
   position: absolute;
   inset-block-start: calc(100% + 10px);
   inset-inline-end: 0;
@@ -317,6 +334,11 @@
   overflow: hidden;
   transform-origin: top left;
 }
+/* The display: none on each panel's own rule is load-bearing. It is not implied
+   by .glass, and nothing else in the cascade hides them: this rewrite kept the
+   .show rule and dropped the hiding, and both panels then sat open over the
+   page on every load, because main.js only ever adds and removes that one
+   class. Whatever hides a panel has to live beside the rule that positions it. */
 .notif-menu.show,
 .user-menu-dropdown.show { display: block; animation: shellMenuIn .2s var(--nx-ease) both; }
 
@@ -370,7 +392,18 @@
   border-radius: 50%;
   box-shadow: 0 0 0 1px rgba(255,255,255,.12);
 }
-.user-name { font-size: .82rem; font-weight: 600; }
+/* Capped. The pill is fit-content now, so nothing inside it truncates on its
+   own: a user with a 40-character globalName would push the bar past the
+   viewport's edge and the whole shell would scroll sideways. max-width:100% on
+   the pill only bounds the pill, not what is inside it. */
+.user-name {
+  max-width: 132px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .82rem;
+  font-weight: 600;
+}
 .user-btn > i {
   font-size: .62rem;
   color: var(--nx-muted);
@@ -379,6 +412,7 @@
 .user-menu.show .user-btn > i { transform: rotate(180deg); }
 
 .user-menu-dropdown {
+  display: none;
   position: absolute;
   inset-block-start: calc(100% + 10px);
   inset-inline-end: 0;
@@ -705,51 +739,81 @@
    Two stacked rows rather than the old single flex row, which put the status
    text, a logout label and a second collapse handle on one line: at the rail's
    width they collided, and the handle did the same job as the handle at the top
-   of the rail. */
+   of the rail.
+
+   Both rows are now the same control -- one height, one radius, one hairline,
+   one leading mark and one label -- so they read as a matched pair instead of a
+   status line with a loose link hanging under it. They are declared together
+   rather than separately because they only look like a pair if they are kept in
+   step; split across two rules the next edit breaks them apart again. */
 .sidebar-footer {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px 12px;
+  gap: 8px;
+  padding: 12px 12px 14px;
   border-block-start: 1px solid var(--nx-hair);
   white-space: nowrap;
 }
 
-.bot-status {
+.bot-status,
+.sidebar-logout {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 34px;
+  gap: 9px;
+  height: 36px;
   padding: 0 12px;
   border-radius: 9999px;
   border: 1px solid var(--nx-line);
   background: var(--nx-fill);
-  font-size: .76rem;
   color: var(--nx-muted);
+  font-size: .76rem;
   overflow: hidden;
+  transition:
+    background-color .2s var(--nx-ease-out),
+    border-color .2s var(--nx-ease-out),
+    color .2s var(--nx-ease-out);
 }
-.bot-status .status-dot { flex: none; width: 7px; height: 7px; }
+
+/* The status row is a readout, not a control: it gets no hover, and it says so,
+   so nobody adds one later. */
+.bot-status { cursor: default; }
+.bot-status .status-dot { flex: none; width: 8px; height: 8px; }
 .bot-status > span:last-child { overflow: hidden; text-overflow: ellipsis; }
 
 /* The dot breathes while the bot is up. Paired with the 5s reconnect timer in
    websocket.js: the dot finishes well over a cycle before the socket gives up,
-   which is when it turns red. */
+   which is when it turns red. style.css owns .status-dot's colour for the three
+   states; this is the rail's size on top of it. */
 .bot-status .status-dot.online { animation: shellPulse 2.4s var(--nx-ease-out) infinite; }
 
+/* Logout. Danger is carried by a quiet red wash and a red hairline rather than
+   by red text alone: red text on the rail is the same red as the locked rows
+   and the badge, and a full-width line of it in the corner of every page reads
+   as an error. Fills on hover the way the nav rows do, with the glyph sliding
+   out to show it is a real target. */
 .sidebar-logout {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 9999px;
   color: var(--nx-danger);
   text-decoration: none;
-  font-size: .78rem;
-  transition: background-color .2s var(--nx-ease-out), color .2s var(--nx-ease-out);
+  background: rgba(237,66,69,.06);
+  border-color: rgba(237,66,69,.2);
+  cursor: pointer;
 }
-.sidebar-logout:hover { background: rgba(237,66,69,.14); color: #ff7a7d; }
+.sidebar-logout > i {
+  flex: none;
+  width: 15px;
+  text-align: center;
+  font-size: .8rem;
+  transition: transform .22s var(--nx-ease);
+}
+.sidebar-logout > span { overflow: hidden; text-overflow: ellipsis; }
+.sidebar-logout:hover {
+  background: rgba(237,66,69,.15);
+  border-color: rgba(237,66,69,.42);
+  color: #ff8a8d;
+}
+.sidebar-logout:hover > i { transform: translateX(-2px); }
+.sidebar-logout:active { background: rgba(237,66,69,.22); }
 
 /* ─── Collapsed rail ────────────────────────────────────────────────────────
    Everything textual collapses; the icons stay put. The old rule also expanded
@@ -909,6 +973,25 @@
 [data-theme="light"] .sidebar-header,
 [data-theme="light"] .nav-section-title,
 [data-theme="light"] .nav-link { border-color: rgba(124,58,237,.12); }
+/* The rail footer's own divider is the rule above. The two rows inside it need
+   their own edges and washes, and nothing else reaches them: they sit on a
+   surface whose background is set here, and a blanket border-color on a parent
+   never touches a child's border. */
+[data-theme="light"] .bot-status {
+  background: rgba(124,58,237,.05);
+  border-color: rgba(124,58,237,.14);
+  color: #5c5470;
+}
+[data-theme="light"] .sidebar-logout {
+  background: rgba(237,66,69,.07);
+  border-color: rgba(237,66,69,.24);
+  color: #cf3340;
+}
+[data-theme="light"] .sidebar-logout:hover {
+  background: rgba(237,66,69,.15);
+  border-color: rgba(237,66,69,.45);
+  color: #ad2733;
+}
 [data-theme="light"] .sidebar-collapse-btn { background: #fff; border-color: rgba(124,58,237,.14); }
 
 /* ═══ Responsive ═══════════════════════════════════════════════════════════
