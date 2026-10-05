@@ -1,0 +1,11 @@
+<% currentPage = 'dev-maintenance' %>
+<%# Not /maintenance either, and for the opposite reason: that address is the page
+    every visitor is shown while the site is down -- 503, no layout, no rail -- so a
+    developer pressing "وضع الصيانة" and landing on it would be reading their own
+    maintenance screen as if it were the control for it. The start/stop/save
+    endpoints under /dev/maintenance/* are already built and are left exactly where
+    they are; what this page will hold when it is filled in is their form. -%>
+<div class="page-header">
+  <h1><i class="fas fa-screwdriver-wrench"></i> وضع الصيانة</h1>
+  <p>تشغيل وضع الصيانة، مدته، ورسالته</p>
+</div>

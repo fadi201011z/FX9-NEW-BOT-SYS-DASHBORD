@@ -109,6 +109,39 @@ router.get('/', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   });
 });
 
+// ── The developer section's five pages ───────────────────────────────────
+// Each carries its own currentPage, so the rail lights exactly one row of the
+// section, and each stands behind the same two middlewares as /dev itself: the
+// section is drawn from perms.can.dev, so a row nobody may press must not be
+// reachable by typing its address either.
+//
+// One table and one loop because all five are structurally identical today -- a
+// heading and nothing under it. The day one of them needs data of its own it
+// leaves this table and becomes an ordinary route beside this comment, and the
+// table keeps the other four. Which page is which is therefore written down once,
+// and the five addresses, the five currentPages and the five titles cannot drift
+// apart the way five hand-written routes would.
+//
+// All five are namespaced under /dev on purpose, and two of them collide with
+// words the site already uses. /status is the public "حالة البوت" that a
+// logged-out visitor reads, and /guilds is the account's own server list: give
+// either of them a flat address here and one page would answer to two names, two
+// rows of the rail would light together on it, and the public page would inherit
+// the developer's permissions.
+const DEV_PAGES = [
+  { path: 'guilds', view: 'dev/guilds', page: 'dev-guilds', title: 'السرفرات المتصلة' },
+  { path: 'bot', view: 'dev/bot', page: 'dev-bot', title: 'إدارة البوت' },
+  { path: 'status', view: 'dev/status', page: 'dev-status', title: 'حالة البوت' },
+  { path: 'features', view: 'dev/features', page: 'dev-features', title: 'حالة الخصائص' },
+  { path: 'maintenance', view: 'dev/maintenance', page: 'dev-maintenance', title: 'وضع الصيانة' },
+];
+
+for (const page of DEV_PAGES) {
+  router.get('/' + page.path, isAuthenticated, isOwnerOrDeveloper, (req, res) => {
+    res.render(page.view, { user: req.session.user, title: page.title });
+  });
+}
+
 router.get('/guild/:guildId', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   const { guildId } = req.params;
   const config_data = await getAllGuildConfig(guildId);

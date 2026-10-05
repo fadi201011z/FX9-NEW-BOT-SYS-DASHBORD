@@ -152,17 +152,47 @@
     </div>
     <% } %>
 
-    <%# Rendered only when there is something in it. التوثيق moved up into the
-        section above because it is one of the four pages, which left this one
-        holding a single developer-only row -- so for everyone else it was a
-        heading with nothing under it, and an empty heading reads as a broken
-        section rather than as one that is not there. -%>
+    <%# The developer section. One capability gates the whole of it and every route
+        behind it stands behind the same two middlewares, so a row cannot be
+        reached by typing its address by someone who cannot see the row.
+
+        It replaces a section called "أخرى" that held a single row, لوحة المطور --
+        a heading with one link under it. That page is still there at /dev and
+        still works, still with its guilds table and its maintenance buttons; it
+        is out of the rail because the user menu, the dashboard card and the home
+        page's quick links all point at it directly (navbar.ejs, dashboard.ejs,
+        home.ejs), so no entry point is lost with the row. It was the seed of these
+        five: /dev already held the guilds table, the bot's invite link, the
+        developer list and the maintenance controls, all on one page.
+
+        Five addresses and five currentPages, all under /dev, all declared in
+        routes/dev.js beside the comment that says why none of them may be flat.
+        Five different glyphs even where two pages share a name: the public
+        "حالة البوت" in the section above wears fa-heartbeat, and a developer
+        looking at both sections is looking at two different pages under one
+        label, so they must not look like the same row either. -%>
     <% if (perms.can.dev) { %>
     <div class="nav-section">
-      <span class="nav-section-title"><i class="fas fa-ellipsis-h" aria-hidden="true"></i> <span>أخرى</span></span>
-      <a href="/dev" class="nav-link <%= currentPage === 'dev' ? 'active' : '' %>" data-tip="لوحة المطور" aria-label="لوحة المطور"<% if (currentPage === 'dev') { %> aria-current="page"<% } %>>
-        <i class="fas fa-code" aria-hidden="true"></i>
-        <span>لوحة المطور</span>
+      <span class="nav-section-title"><i class="fas fa-code" aria-hidden="true"></i> <span>المطورين</span></span>
+      <a href="/dev/guilds" class="nav-link <%= currentPage === 'dev-guilds' ? 'active' : '' %>" data-tip="السيرفرات المتصلة" aria-label="السيرفرات المتصلة"<% if (currentPage === 'dev-guilds') { %> aria-current="page"<% } %>>
+        <i class="fas fa-network-wired" aria-hidden="true"></i>
+        <span>السيرفرات المتصلة</span>
+      </a>
+      <a href="/dev/bot" class="nav-link <%= currentPage === 'dev-bot' ? 'active' : '' %>" data-tip="إدارة البوت" aria-label="إدارة البوت"<% if (currentPage === 'dev-bot') { %> aria-current="page"<% } %>>
+        <i class="fas fa-robot" aria-hidden="true"></i>
+        <span>إدارة البوت</span>
+      </a>
+      <a href="/dev/status" class="nav-link <%= currentPage === 'dev-status' ? 'active' : '' %>" data-tip="حالة البوت" aria-label="حالة البوت"<% if (currentPage === 'dev-status') { %> aria-current="page"<% } %>>
+        <i class="fas fa-gauge-high" aria-hidden="true"></i>
+        <span>حالة البوت</span>
+      </a>
+      <a href="/dev/features" class="nav-link <%= currentPage === 'dev-features' ? 'active' : '' %>" data-tip="حالة الخصائص" aria-label="حالة الخصائص"<% if (currentPage === 'dev-features') { %> aria-current="page"<% } %>>
+        <i class="fas fa-list-check" aria-hidden="true"></i>
+        <span>حالة الخصائص</span>
+      </a>
+      <a href="/dev/maintenance" class="nav-link <%= currentPage === 'dev-maintenance' ? 'active' : '' %>" data-tip="وضع الصيانة" aria-label="وضع الصيانة"<% if (currentPage === 'dev-maintenance') { %> aria-current="page"<% } %>>
+        <i class="fas fa-screwdriver-wrench" aria-hidden="true"></i>
+        <span>وضع الصيانة</span>
       </a>
     </div>
     <% } %>
