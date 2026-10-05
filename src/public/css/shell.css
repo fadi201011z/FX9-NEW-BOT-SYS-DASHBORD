@@ -1344,9 +1344,9 @@ body:has(.guild-rail-item) {
 }
 
 /* The bar's brand column is the rail's column, so it folds when the rail does.
-   Left at --nx-shell-w it stayed a 268px box holding a 30px mark, and its
-   divider sat 194px away from the rail's hairline -- two lines where the design
-   has one, which is the seam this shell is trying not to have.
+   Left at --nx-shell-w it stayed a box the width of the whole rail holding a 30px
+   mark, and its divider sat most of the way across it -- two lines where the
+   design has one, which is the seam this shell is trying not to have.
 
    :has() reads the rail's own class rather than a second copy of the state on
    <body>. main.js writes 'collapsed' in three places -- the toggle, the restore
@@ -1559,8 +1559,7 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
     animation: shellSweep .9s var(--nx-ease) .35s both;
   }
 
-  /* The server rail arrives from its own edge, one row behind another, and the
-     current one gets the same single sweep the active nav row gets. The delay
+  /* The server rail arrives from its own edge, one row behind another. The delay
      ladder is a hand-written nth-child because the row count is whatever the
      person manages -- there is no count to write a formula against, and a ladder
      that stops at the last row is no different from one that stops early. */
@@ -1572,16 +1571,45 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
   .guild-rail-item:nth-child(4)  { animation-delay: .18s; }
   .guild-rail-item:nth-child(5)  { animation-delay: .22s; }
   .guild-rail-item:nth-child(n+6) { animation-delay: .26s; }
-  .guild-rail-item.is-current {
-    background-image:
-      linear-gradient(100deg, transparent, rgba(255,255,255,.2), transparent),
-      linear-gradient(var(--nx-panel-2), var(--nx-panel-2));
-    background-size: 45% 100%, 100% 100%;
-    background-repeat: no-repeat;
-    background-position: -150% 0, 0 0;
-    animation: shellSweep .9s var(--nx-ease) .35s both;
-  }
 }
+
+/* The current server row does NOT get a sweep, and that is measured rather than
+   taste. The sweep is a second background layer on the row, and the row's only
+   child -- .guild-rail-ava -- is in flow with a background of its own, so it is
+   painted ON TOP of the row's background layers. The avatar is 36px inside a 44px
+   tile, so the only place the 19.8px sheen band (45% of the row) can reach is the
+   4px frame around it: a bright stripe racing round the edge of a picture that
+   never moves. On a flat nav row, where the layer is the whole surface, the same
+   declaration reads as a sweep. Here it read as a flash.
+
+   Nothing is lost by dropping it. .guild-rail-item.is-current outside this media
+   query already carries four static signals for "you are here" -- the panel fill,
+   the violet hairline, the glow, and the 3px bar in the gutter -- and none of them
+   need to move to say it. What is left is better: the current row now takes its
+   ordinary rung of the ladder and rises in with the rest, so the run of arrivals
+   has no hole in it where the current row used to skip the rise. */
+
+/* Once per tab, not once per load. main.ejs reloads a server page by itself every
+   45 seconds -- its auto-refresh list is mostly server pages -- so every arrival
+   above used to arrive again every 45 seconds, for as long as the page was left
+   open, on exactly the page someone leaves open longest. The comment on the sweep
+   claimed it "never repeats", which was true of navigation and false of that.
+
+   html.no-arrival is written by an inline script in the layout's <head>, before
+   the first paint, so the shell introduces itself once per tab and then holds
+   still. One class and six selectors, rather than a :not() in front of every rule
+   above: six arrivals today, and the next one added later would have to be
+   remembered here or it would be the one that repeats.
+
+   animation:none leaves each element's declared state alone. The active nav row's
+   two background layers are declared with background-position parked at -150%, so
+   its sheen stays off-screen instead of appearing frozen across the label. */
+html.no-arrival .navbar__pill,
+html.no-arrival .sidebar,
+html.no-arrival .sidebar-nav .nav-section,
+html.no-arrival .guild-rail,
+html.no-arrival .guild-rail-item,
+html.no-arrival .nav-link.active { animation: none; }
 
 /* ═══ Light theme ══════════════════════════════════════════════════════════
    The shell's own colours are violet on near-black and read as noise on a white
@@ -1728,8 +1756,9 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
 
 @media (max-width: 900px) {
   /* The server rail is the first thing to go, and the arithmetic is the reason
-     rather than a habit: 268 + 72 of chrome leaves 560px of page at 900px wide,
-     which is the floor below which the content starts being the cramped part.
+     rather than a habit: --nx-shell-w + the rail's 72px is the chrome, and at
+     900px wide that leaves 592px of page, which is the floor below which the
+     content starts being the cramped part.
      A switcher is a convenience; a readable page is not.
 
      Both halves have to be undone. display:none alone would leave the shell
@@ -1746,9 +1775,9 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
 @media (max-width: 768px) {
   /* The band stops being a frame on a phone. The rail is an overlay drawer here,
      not a column beside the content, so there is nothing for the brand to sit
-     above: a 268px brand column with a hairline down it would just be a wide box
-     holding a hamburger and a 30px mark, with a line beside it that leads to
-     nothing. Two tracks, no divider, the controls at the far end. */
+     above: a brand column as wide as the rail with a hairline down it would just be
+     a wide box holding a hamburger and a 30px mark, with a line beside it that
+     leads to nothing. Two tracks, no divider, the controls at the far end. */
   .navbar__pill { grid-template-columns: auto minmax(0, 1fr); }
   .nav-left {
     width: auto;

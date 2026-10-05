@@ -23,6 +23,32 @@
       menus, and wins on load order rather than on specificity. See its header. -%>
   <link rel="stylesheet" href="/css/shell.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <%# The shell introduces itself once per tab. See the note on html.no-arrival in
+      css/shell.css for why the arrival has to be limited at all; this is why the
+      limit lives here and not in a script file.
+
+      Inline, in <head>, and before the first paint, because the class has to be
+      on <html> by the time anything is drawn. js/shell.js sits at the end of
+      <body>, so a class written there would arrive after the browser had already
+      been free to paint -- which on the second load of a tab means the first
+      frames of the arrival get drawn and then cut off, a flash of precisely the
+      thing this is meant to stop. A stylesheet rule cannot do this job for the
+      same reason: no rule can ask a question only JavaScript can answer.
+
+      sessionStorage and not a cookie, for the two reasons that are visible: it
+      is per tab, so a second tab gets its own introduction rather than inheriting
+      a stranger's, and it dies with the tab instead of outliving it. The catch is
+      not defensive noise -- storage disabled throws here, and the cost of that is
+      only today's behaviour, the arrival on every load. -%>
+  <script>
+    try {
+      if (sessionStorage.getItem('nx-arrival')) {
+        document.documentElement.classList.add('no-arrival');
+      } else {
+        sessionStorage.setItem('nx-arrival', '1');
+      }
+    } catch (e) { /* storage disabled: the shell arrives on every load, as before */ }
+  </script>
 </head>
 <body>
   <%- include('../partials/navbar') %>

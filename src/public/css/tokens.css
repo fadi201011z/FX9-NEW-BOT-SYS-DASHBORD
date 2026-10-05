@@ -69,7 +69,17 @@
   --nx-shadow-sm: 0 8px 28px rgba(0,0,0,.24);
   --nx-glow-shadow: 0 10px 34px rgba(168,85,247,.30);
 
-  --nx-shell-w:   268px;
+  /* The navigation rail's two widths. 236 is measured, not chosen: nothing in the
+     rail needs more room than its own widest row, and 268 was 46px wider than the
+     tightest width that row fits in. The binding row is "نظام بريميوم", the only
+     label that also carries something at its far end -- the "بلس" pill -- and it
+     clips by 1px at 220 and by 4px at 216, so 222 is the last width that fits
+     everything and 236 keeps 14px of slack above that for whatever label comes
+     next. One token and not six numbers because all of its readers -- the rail,
+     the content's offset, the bar's track, the brand cell and the narrow-screen
+     clamp -- have to move together or the shell grows a seam down one of its
+     joins. */
+  --nx-shell-w:   236px;
   --nx-rail-w:    74px;
 
   /* The server rail's width, and it is the OUTERMOST column -- on the window's
