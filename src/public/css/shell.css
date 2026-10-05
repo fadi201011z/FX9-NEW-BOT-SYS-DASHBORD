@@ -507,10 +507,30 @@
    right edge -- the side it has always been on (style.css pinned it with a
    physical `right: 0`). Written as inline-end it lands on the left and mirrors
    the whole shell, so the hairline between rail and content moves to
-   inline-end with it. */
+   inline-end with it.
+
+   The rail starts at 0, not below the bar. It used to sit at
+   inset-block-start: var(--nx-topbar-h), which left an 8px band of bare page
+   between the pill's underside and the rail's top -- and across the stretch
+   where the two overlap horizontally that band reads as a seam, so the rail
+   looked like a panel dropped into the page rather than part of its frame. It
+   is now one surface from the top edge of the window to the bottom, and the
+   hairline down its side is a single unbroken line.
+
+   What --nx-topbar-h moved to is padding-block-start. The bar's footprint
+   still has to be cleared or the rail's own header would sit under the pill,
+   but a floating bar sitting ON a full-height frame is the intended reading,
+   where a frame stopping 8px short of the bar is not. .layout keeps the same
+   margin, so the content row is unaffected.
+
+   height is the full viewport, not viewport minus the bar, for the same reason:
+   the bar floats over the rail rather than displacing it. box-sizing is
+   border-box everywhere here, so the padding comes out of the height and the
+   footer still lands on the bottom edge -- the nav gets the space that is left,
+   which is what it did before. */
 .sidebar {
   position: fixed;
-  inset-block-start: var(--nx-topbar-h);
+  inset-block-start: 0;
   inset-inline-start: 0;
   z-index: 900;
   display: flex;
@@ -519,11 +539,10 @@
   /* dvh, not vh. vh is the tallest viewport the browser will ever report, so on
      a phone with a URL bar the rail is drawn taller than the screen and its
      footer -- the logout row -- ends up below the fold, out of reach. The vh
-     declaration stays first as the fallback. The rail's bottom then lands
-     exactly on the edge the content area starts from, so the seam is one
-     number on both sides of it. */
-  height: calc(100vh - var(--nx-topbar-h));
-  height: calc(100dvh - var(--nx-topbar-h));
+     declaration stays first as the fallback. */
+  height: 100vh;
+  height: 100dvh;
+  padding-block-start: var(--nx-topbar-h);
   overflow: hidden;
   border-inline-end: 1px solid var(--nx-hair);
   background: var(--nx-rail);
@@ -585,10 +604,18 @@
    corners (top-left and bottom-left in RTL) and square where it meets the rail.
    A physical `border-radius: 0 10px 10px 0` was here first and rounded the wrong
    two: the tab was rounded where it joined the rail and square at the edge you
-   are meant to see. */
+   are meant to see.
+
+   inset-block-start is measured from the rail's padding box, not its content
+   box, so the 18px here means 18px below the top of the window rather than 18px
+   below the rail's header. The --nx-topbar-h in front of it is what keeps the
+   tab clear of the floating pill: the tab is absolutely positioned inside the
+   rail, so it ignores the rail's own padding-block-start and would otherwise sit
+   at y=18 -- inside the pill's 16..80 band, half-buried behind a bar that is
+   meant to float above the entire frame. */
 .sidebar-collapse-btn {
   position: absolute;
-  inset-block-start: 18px;
+  inset-block-start: calc(var(--nx-topbar-h) + 18px);
   inset-inline-end: -1px;
   z-index: 10;
   width: 22px;
@@ -1058,19 +1085,28 @@
   .nav-center { display: none; }
   .nav-brand-text { display: none; }
 
+  /* Both of these go over the bar, not under it. The overlay is 899 and the rail
+     900, and the navbar is 1000 because on a desktop the pill is meant to float
+     over the frame. In a drawer that stacking order is backwards: opening the
+     drawer left the search field painted on top of it and still accepting
+     typing, while the page it searches sat dimmed behind an overlay it no
+     longer owned. A drawer takes the screen, so it takes the z-order with it. */
+  .sidebar-overlay { z-index: 1090; }
+
   .sidebar {
+    z-index: 1100;
     inset-block-start: 0;
     width: min(var(--nx-shell-w), 84vw) !important;
     height: 100dvh;
+    /* The desktop rail carries --nx-topbar-h as padding so the floating pill can
+       sit over it. A drawer cannot: it covers the pill, not the other way round,
+       so it clears nothing and its close button belongs at the very top of the
+       screen. Left inherited, it would push the drawer's header 88px down for no
+       reason and put the close button somewhere the thumb is not. */
+    padding-block-start: 0;
     transform: translateX(100%);
     border-inline-end: none;
     box-shadow: none;
-    /* var(--nx-rail), not var(--nx-ink) spelled out. This rule and the base
-       .sidebar rule are the same specificity, and this one is later in the
-       file, so it wins -- which is what makes --nx-rail worth having. Written
-       as --nx-ink it happened to match in the dark theme and quietly produced
-       a near-black drawer on a white phone, because the light theme re-points
-       --nx-rail and a hard-coded --nx-ink does not follow it. */
     background: var(--nx-rail);
     animation: none;
   }
