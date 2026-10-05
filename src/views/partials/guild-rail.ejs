@@ -21,13 +21,38 @@
 
     Row order is the session's, not alphabetical: /guilds and /home present the
     same list in the same order, and a rail that reorders on its own puts the same
-    server in three different places. -%>
+    server in three different places.
+
+    The first row is not a server. It is the way back out, drawn above them and
+    always present, because the rail is the only column that survives entering a
+    server: everything in the menu is that server, so a server with no exit in it
+    is a dead end you have to guess your way out of. Being first rather than last
+    is what says which of the two groups it belongs to, and a hairline under it
+    says the rest of the way.
+
+    It carries the is-current state on /home for the same reason every row in this
+    rail does: one column, one question -- where am I -- and an entry that is on
+    the page you are already reading should say so rather than sit there looking
+    unpressed. -%>
 <%# var, not const: an include() is compiled into the including template's body,
     and about.ejs and home.ejs both have their own locals. -%>
+<% currentPage = typeof currentPage !== 'undefined' ? currentPage : '' %>
 <% var railRows = typeof railGuilds !== 'undefined' && railGuilds ? railGuilds : [] %>
 <% if (railRows.length) { %>
-<nav class="guild-rail" id="guildRail" aria-label="سيرفراتك">
+<nav class="guild-rail" id="guildRail" aria-label="الرئيسية والسيرفرات">
   <div class="guild-rail-scroll">
+    <%# .guild-rail-item so the tile, the "you are here" bar, the press and the
+        tooltip are the ones every other row in this rail already has, rather than
+        a second set of them here that can drift. First child, so it is also the
+        first row of the arrival ladder -- which is the order it reads in. -%>
+    <a class="guild-rail-item guild-rail-home<%= currentPage === 'home' ? ' is-current' : '' %>"
+       href="/home"
+       aria-label="الرئيسية"<% if (currentPage === 'home') { %> aria-current="page"<% } %>
+       data-tip="الرئيسية">
+      <span class="guild-rail-ava">
+        <i class="fas fa-house" aria-hidden="true"></i>
+      </span>
+    </a>
     <% railRows.forEach(function (g) { %>
     <% var current = !!(locals.guild && String(locals.guild.id) === g.id); %>
     <a class="guild-rail-item<%= current ? ' is-current' : '' %><%= g.inBot ? '' : ' is-off' %>"

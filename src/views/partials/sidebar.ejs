@@ -42,7 +42,22 @@
 
         Nothing here is permission-gated, so no data-req and no lock icon. That was
         never true of these four and it is worth saying, because the section below
-        is full of them and the absence here would otherwise look like a mistake. -%>
+        is full of them and the absence here would otherwise look like a mistake.
+
+        The whole section is absent inside a server. The rail's first row is /home
+        and it is there on every page, so on a guild page the way back to all four
+        is one press in a column that does not change -- and a second copy of the
+        same four links, a scroll under the server's own twelve, would say the site
+        and the server are two places you stand side by side. They are not: the
+        server is the part of the site you are inside.
+
+        What that costs is one hop, and it is worth being exact about which: on a
+        guild page, /docs and /status are no longer one press away -- both are
+        linked from /home, which is where the rail's home row goes. /about was
+        reachable from this rail and from nowhere else in the shell, so /home links
+        it too now. Nothing is stranded; all three are a press and a half instead
+        of a press. -%>
+    <% if (!locals.guild) { %>
     <div class="nav-section">
       <span class="nav-section-title"><i class="fas fa-compass" aria-hidden="true"></i> <span>الرئيسية</span></span>
       <a href="/home" class="nav-link <%= currentPage === 'home' ? 'active' : '' %>" data-tip="الصفحة الرئيسية" aria-label="الصفحة الرئيسية"<% if (currentPage === 'home') { %> aria-current="page"<% } %>>
@@ -62,31 +77,18 @@
         <span>حالة البوت</span>
       </a>
     </div>
+    <% } %>
 
     <% if (locals.guild) { %>
     <div class="nav-section">
-      <%# Leaving the server is a move between contexts, not a page inside this
-          one, so it sits above this section's title rather than among its twelve
-          rows: "what you can do to this server" is not where "go somewhere else"
-          belongs. Inside the section and not beside it on purpose -- the button's
-          lifetime is the section's lifetime, so the two cannot drift apart when
-          the condition around them changes.
-
-          That is the whole of the "press it and the section stops showing":
-          pressing it leaves the server, the server's block leaves with you, and
-          the way back is gone because there is nothing left to come back from.
-          No state to keep, nothing to hide on the way out, and on /home -- where
-          /home itself is already the row you would be going to -- a button to
-          /home would be a link to the page you are on.
-
-          The house is deliberately the same glyph /home uses one section up: it
-          is the same destination, and saying so with a different icon would cost
-          a user more than it buys. What keeps it from reading as a duplicated row
-          is how it is drawn in shell.css -- it is a card, not a row. -%>
-      <a href="/home" class="nav-home" data-tip="العودة للرئيسية" aria-label="العودة للرئيسية">
-        <i class="fas fa-house" aria-hidden="true"></i>
-        <span>العودة للرئيسية</span>
-      </a>
+      <%# The only section on a server page, and that is the point of it: inside a
+          guild the site section above is gone, so this column is nothing but this
+          server, top to bottom. The way out is not here -- it is the first row of
+          the server rail, which is on every page and does not change when you
+          enter a guild. It was a card here once, above this title, and it was
+          both a second way out and a control whose lifetime had to be kept in step
+          with this block's by hand. One column and one rule is fewer moving parts,
+          and one less thing that can be in two places at once. -%>
       <span class="nav-section-title"><i class="fas fa-server" aria-hidden="true"></i> <span><%= guild.name %></span></span>
       <a href="/guilds/<%= guild.id %>" class="nav-link <%= currentPage === 'guild-overview' ? 'active' : '' %>" data-tip="نظرة عامة" aria-label="نظرة عامة"<% if (currentPage === 'guild-overview') { %> aria-current="page"<% } %>>
         <i class="fas fa-circle-info" aria-hidden="true"></i>

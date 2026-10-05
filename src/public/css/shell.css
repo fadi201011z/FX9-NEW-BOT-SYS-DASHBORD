@@ -342,7 +342,7 @@ body:has(.guild-rail-item) {
 .icon-btn:active { transform: translateY(0); }
 .icon-btn:focus-visible,
 .nav-link:focus-visible,
-.nav-home:focus-visible,
+.guild-rail-item:focus-visible,
 .sidebar-collapse-btn:focus-visible,
 .sidebar-logout:focus-visible,
 .nav-search input:focus-visible {
@@ -1002,66 +1002,14 @@ body:has(.guild-rail-item) {
   opacity: .9;
 }
 
-/* ─── Out of the server ──────────────────────────────────────────────────────
-   A card, and the outline is the entire distinction. Same radius, same 20px icon
-   box, same 11px gap, same .84rem as a .nav-link, and the same padding to within
-   the border's own width, so the card and the twelve rows under it sit on one
-   rhythm -- including their boxes, not just their text. That is why the padding
-   reads 8px/10px where a row reads 9px/11px, and neither 1px is a rounding: with
-   box-sizing: border-box the padding is measured from the inner edge of the
-   border, so a 1px border spends 2px of height the row does not have and pushes
-   the icon 1px further from the rail's edge. At 9px/11px the card measured 41.5px
-   tall against the row's 39.5px, with its icon a full pixel off the line the other
-   twelve sit on. 8px/10px buys the border its two pixels back and lands the icon
-   on that line exactly. Nothing to see at a glance, and everything to a rail whose
-   only job is that the eye slides down it without counting.
-
-   At rest it has no fill: only a hairline, which is what says "this is a
-   boundary, not a destination you are standing on". A fill would have been
-   --nx-nav-on, which is the active row's fill, and this control can never be
-   active -- it only exists while you are somewhere else.
-
-   No translate on hover, unlike every row beside it. A row slides 3px and takes
-   its wash with it, which is the whole trick. A bordered card sliding would move
-   its own border off the alignment it exists to hold, and the rail's two edges
-   would stop lining up for as long as the pointer rested on it. Hover answers
-   with the border and the fill instead -- same amount of answer, without the part
-   that cannot be done to an outline. */
-
-.nav-home {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 8px 10px;
-  margin-block-end: 9px;
-  border: 1px solid var(--nx-hair);
-  border-radius: var(--nx-radius);
-  background: transparent;
-  color: var(--nx-muted);
-  font-size: .84rem;
-  font-weight: 600;
-  white-space: nowrap;
-  transition:
-    color .2s var(--nx-ease-out),
-    background-color .2s var(--nx-ease-out),
-    border-color .2s var(--nx-ease-out);
-}
-.nav-home > i:first-child {
-  width: 20px;
-  flex: none;
-  text-align: center;
-  font-size: .95rem;
-  color: var(--nx-violet-2);
-  transition: color .2s var(--nx-ease-out), transform .22s var(--nx-ease);
-}
-.nav-home > span { overflow: hidden; text-overflow: ellipsis; }
-.nav-home:hover {
-  border-color: var(--nx-focus);
-  background: var(--nx-nav-wash);
-  color: var(--text);
-}
-.nav-home:hover > i:first-child { color: var(--nx-violet-2); transform: scale(1.12); }
+/* There is no "out of the server" card in this rail any more, and that is not an
+   oversight to be corrected by adding one back. It lived here once, above the
+   server's own section, and the section it belonged to was the only thing in the
+   menu that was not about the server -- so pressing it left, and what it left
+   behind was a duplicate of the rail's home row. The way out is .guild-rail-home
+   now, which has to be there and not here: the rail is the one column that
+   survives entering a server, so a menu-only way out would vanish exactly when it
+   was needed. Two ways out in two columns is one too many. */
 
 /* ─── Rail footer ────────────────────────────────────────────────────────
    Two stacked rows rather than the old single flex row, which put the status
@@ -1341,6 +1289,40 @@ body:has(.guild-rail-item) {
   color: var(--nx-muted);
 }
 
+/* ─── The way out ───────────────────────────────────────────────────────────
+   The row above the servers, and the reason the menu can drop its own site
+   section inside a guild: this is the rail's one row that leads somewhere the
+   servers do not, so leaving is a thing you press rather than a thing you
+   infer from a back button.
+
+   The icon is half the tile's content box, off --nx-guilds-row like the radius
+   above it and for the same reason -- a literal here would have printed an 18px
+   house in a 24px box when the rail folds. --nx-violet-2 is the violet the letter
+   for an imageless server takes, so that tile and this one are the same kind of
+   object: a mark standing in for a picture.
+
+   The hairline is a ::after rather than an element between the rows on purpose.
+   It is a gap, and a gap belongs to the row that ends it; an element in the
+   scroll container would have taken a :nth-child of its own and pushed every
+   server down one rung of the arrival ladder with nothing standing in the hole.
+   inset-block-end is measured from the padding box, which ends 1px above the
+   tile's own bottom edge, so -6px puts the line in the middle of the 8px gap --
+   4px under this row, 3px over the next -- and it lands there folded too,
+   because the fold changes the tile and not the gap. */
+.guild-rail-home .guild-rail-ava > i {
+  font-size: calc((var(--nx-guilds-row) - 8px) / 2);
+  line-height: 1;
+  color: var(--nx-violet-2);
+}
+.guild-rail-home::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -6px;
+  height: 1px;
+  background: var(--nx-hair);
+}
+
 /* The name plate is .rail-tip on <body>, not a child of the row: this rail is a
    scroll container and anything drawn in here gets cut off at the rail's own
    edge. See js/shell.js for the whole of it. */
@@ -1354,7 +1336,6 @@ body:has(.guild-rail-item) {
 .sidebar.collapsed .sidebar-header > span,
 .sidebar.collapsed .nav-section-title > span,
 .sidebar.collapsed .nav-link > span,
-.sidebar.collapsed .nav-home > span,
 .sidebar.collapsed .nav-link .nav-lock,
 .sidebar.collapsed .sidebar-role-label,
 .sidebar.collapsed .sidebar-role-dev,
@@ -1451,8 +1432,7 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
 
 .sidebar.collapsed .sidebar-header { padding-inline: 0; justify-content: center; }
 .sidebar.collapsed .nav-section-title,
-.sidebar.collapsed .nav-link,
-.sidebar.collapsed .nav-home { justify-content: center; padding-inline: 0; }
+.sidebar.collapsed .nav-link { justify-content: center; padding-inline: 0; }
 /* No nudge in the rail: at 74px there is no room to move a row toward without
    it visibly walking out of the centre. */
 .sidebar.collapsed .nav-link:hover { transform: none; }
@@ -1524,14 +1504,13 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
 /* ═══ Arrival ═════════════════════════════════════════════════════════════
    The rail slides in from the edge it lives on and its rows fade up behind it.
    Sections are staggered by hand because there are three of them and a
-   :nth-child ladder would have to be kept in step with the markup anyway.
-   .nav-home is deliberately inside a .nav-section rather than beside one, and
-   that is also what keeps it out of this ladder: a card between two sections
-   would have been a fourth child of .sidebar-nav and would have pushed all
-   three delays down one, with the indices reading as an accident. Inside, it
-   rises in with the server block it belongs to, which is the right moment for
-   it anyway -- it appears and disappears with that block, so it should arrive
-   with it and not with the page.
+   :nth-child ladder would have to be kept in step with the markup anyway. The
+   rail's rows use :nth-child instead, and it is counted over the rows only --
+   which is why the home row is written as the scroll container's first child
+   with no separator element between it and the servers. A <span> for the
+   hairline would have been the second child and would have taken the .1s rung,
+   pushing every server down one with nothing standing in the hole. So it is the
+   first rung instead, and that is the order the rail reads in anyway.
    One short sweep runs across the active row on arrival so the eye is told
    where it is, and never repeats -- re-running it on every page load would
    make a page the user visits forty times a day feel like a splash screen. */
@@ -1647,24 +1626,6 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
 [data-theme="light"] .nav-link:hover,
 [data-theme="light"] .nav-link.active { color: #1c1533; }
 [data-theme="light"] .nav-link > i:first-child { color: #8b5cf6; }
-/* The card's three colours, and only these three. Two of them are consistency,
-   not legibility, and it is worth being exact about which is which:
-
-   --nx-hair is the one token in the frame the light theme cannot use (white on
-   white), so the resting edge has to be restated here or the card is the only
-   borderless thing in a rail of bordered ones. --nx-nav-wash is already
-   re-pointed in the token block above and is used as-is.
-
-   The text pair is not a contrast fix. --nx-muted is not re-pointed for light at
-   all -- the rows get theirs from a rule, not a token -- so left alone the card
-   would have been the one control on the rail reading #8890a1 at 6.5:1 while the
-   twelve rows under it read #5c5470, which is legible in both cases and wrong in
-   one. Same for the icon: --nx-violet-2 on a light rail is 1.8:1 and unreadable,
-   so it has to be restated whatever the text does, and it takes the same #8b5cf6
-   every other icon in the rail takes rather than a violet of its own. */
-[data-theme="light"] .nav-home { color: #5c5470; border-color: rgba(124,58,237,.2); }
-[data-theme="light"] .nav-home:hover { color: #1c1533; border-color: rgba(124,58,237,.55); }
-[data-theme="light"] .nav-home > i:first-child { color: #8b5cf6; }
 [data-theme="light"] .nav-section-title { color: #6b6382; }
 [data-theme="light"] .nav-search { background: rgba(124,58,237,.05); }
 [data-theme="light"] .sidebar-footer,
@@ -1713,6 +1674,13 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
 }
 [data-theme="light"] .guild-rail-ava { background: linear-gradient(150deg, rgba(124,58,237,.16), rgba(109,40,217,.16)); }
 [data-theme="light"] .guild-rail-letter { color: #5b21b6; }
+[data-theme="light"] .guild-rail-home .guild-rail-ava > i { color: #5b21b6; }
+/* --nx-hair is a white and no light theme re-points it, so the hairline under
+   the home row would be white on a near-white column: present in the box model
+   and invisible on screen. It is the one line in this rail with no dark-theme
+   counterpart to fall back on, so it takes the violet every other divider in
+   the frame takes. */
+[data-theme="light"] .guild-rail-home::after { background: rgba(124,58,237,.16); }
 /* A shut row on white needs a dashed border that is actually visible: the dark
    theme's --nx-hair is a white on white, so it gets the violet line like every
    other divider in the frame. */

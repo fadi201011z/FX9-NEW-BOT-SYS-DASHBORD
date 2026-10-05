@@ -199,6 +199,12 @@
     <a href="/status" class="hd-link"><i class="fas fa-heartbeat" style="color:#a855f7"></i><span>حالة البوت</span></a>
     <% if (roleLevel >= 4) { %><a href="/dev" class="hd-link"><i class="fas fa-code" style="color:#d8b4fe"></i><span>المطور</span></a><% } %>
     <a href="/docs" class="hd-link"><i class="fas fa-book" style="color:#34d399"></i><span>التوثيق</span></a>
+    <%# /about was linked from the sidebar's site section and from nowhere else in
+        the shell. That section is now gone on every server page -- the rail's home
+        row is the way out of a server instead -- so /about would have been the one
+        page the rail could no longer reach at all. It is here, which is the page
+        that row lands on. -%>
+    <a href="/about" class="hd-link"><i class="fas fa-address-card" style="color:#60a5fa"></i><span>نبذة عنا</span></a>
     <button onclick="toggleTheme()" class="hd-link"><i class="fas fa-palette" style="color:#fbbf24"></i><span>السمة</span></button>
   </section>
 </div>
