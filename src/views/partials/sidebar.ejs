@@ -65,6 +65,28 @@
 
     <% if (locals.guild) { %>
     <div class="nav-section">
+      <%# Leaving the server is a move between contexts, not a page inside this
+          one, so it sits above this section's title rather than among its twelve
+          rows: "what you can do to this server" is not where "go somewhere else"
+          belongs. Inside the section and not beside it on purpose -- the button's
+          lifetime is the section's lifetime, so the two cannot drift apart when
+          the condition around them changes.
+
+          That is the whole of the "press it and the section stops showing":
+          pressing it leaves the server, the server's block leaves with you, and
+          the way back is gone because there is nothing left to come back from.
+          No state to keep, nothing to hide on the way out, and on /home -- where
+          /home itself is already the row you would be going to -- a button to
+          /home would be a link to the page you are on.
+
+          The house is deliberately the same glyph /home uses one section up: it
+          is the same destination, and saying so with a different icon would cost
+          a user more than it buys. What keeps it from reading as a duplicated row
+          is how it is drawn in shell.css -- it is a card, not a row. -%>
+      <a href="/home" class="nav-home" data-tip="العودة للرئيسية" aria-label="العودة للرئيسية">
+        <i class="fas fa-house" aria-hidden="true"></i>
+        <span>العودة للرئيسية</span>
+      </a>
       <span class="nav-section-title"><i class="fas fa-server" aria-hidden="true"></i> <span><%= guild.name %></span></span>
       <a href="/guilds/<%= guild.id %>" class="nav-link <%= currentPage === 'guild-overview' ? 'active' : '' %>" data-tip="نظرة عامة" aria-label="نظرة عامة"<% if (currentPage === 'guild-overview') { %> aria-current="page"<% } %>>
         <i class="fas fa-circle-info" aria-hidden="true"></i>

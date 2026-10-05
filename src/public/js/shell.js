@@ -114,7 +114,7 @@
      name -- a server the bot is not in -- data-tip wins, and it is the reason
      both attributes exist rather than one. */
 
-  var TIP_ROWS = '.nav-link, .sidebar-collapse-btn, .sidebar-logout, .guild-rail-item';
+  var TIP_ROWS = '.nav-link, .nav-home, .sidebar-collapse-btn, .sidebar-logout, .guild-rail-item';
   var railTip = document.createElement('div');
   railTip.className = 'rail-tip';
   railTip.setAttribute('aria-hidden', 'true');

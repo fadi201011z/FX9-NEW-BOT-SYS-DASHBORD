@@ -342,6 +342,7 @@ body:has(.guild-rail-item) {
 .icon-btn:active { transform: translateY(0); }
 .icon-btn:focus-visible,
 .nav-link:focus-visible,
+.nav-home:focus-visible,
 .sidebar-collapse-btn:focus-visible,
 .sidebar-logout:focus-visible,
 .nav-search input:focus-visible {
@@ -1001,6 +1002,67 @@ body:has(.guild-rail-item) {
   opacity: .9;
 }
 
+/* ─── Out of the server ──────────────────────────────────────────────────────
+   A card, and the outline is the entire distinction. Same radius, same 20px icon
+   box, same 11px gap, same .84rem as a .nav-link, and the same padding to within
+   the border's own width, so the card and the twelve rows under it sit on one
+   rhythm -- including their boxes, not just their text. That is why the padding
+   reads 8px/10px where a row reads 9px/11px, and neither 1px is a rounding: with
+   box-sizing: border-box the padding is measured from the inner edge of the
+   border, so a 1px border spends 2px of height the row does not have and pushes
+   the icon 1px further from the rail's edge. At 9px/11px the card measured 41.5px
+   tall against the row's 39.5px, with its icon a full pixel off the line the other
+   twelve sit on. 8px/10px buys the border its two pixels back and lands the icon
+   on that line exactly. Nothing to see at a glance, and everything to a rail whose
+   only job is that the eye slides down it without counting.
+
+   At rest it has no fill: only a hairline, which is what says "this is a
+   boundary, not a destination you are standing on". A fill would have been
+   --nx-nav-on, which is the active row's fill, and this control can never be
+   active -- it only exists while you are somewhere else.
+
+   No translate on hover, unlike every row beside it. A row slides 3px and takes
+   its wash with it, which is the whole trick. A bordered card sliding would move
+   its own border off the alignment it exists to hold, and the rail's two edges
+   would stop lining up for as long as the pointer rested on it. Hover answers
+   with the border and the fill instead -- same amount of answer, without the part
+   that cannot be done to an outline. */
+
+.nav-home {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 10px;
+  margin-block-end: 9px;
+  border: 1px solid var(--nx-hair);
+  border-radius: var(--nx-radius);
+  background: transparent;
+  color: var(--nx-muted);
+  font-size: .84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    color .2s var(--nx-ease-out),
+    background-color .2s var(--nx-ease-out),
+    border-color .2s var(--nx-ease-out);
+}
+.nav-home > i:first-child {
+  width: 20px;
+  flex: none;
+  text-align: center;
+  font-size: .95rem;
+  color: var(--nx-violet-2);
+  transition: color .2s var(--nx-ease-out), transform .22s var(--nx-ease);
+}
+.nav-home > span { overflow: hidden; text-overflow: ellipsis; }
+.nav-home:hover {
+  border-color: var(--nx-focus);
+  background: var(--nx-nav-wash);
+  color: var(--text);
+}
+.nav-home:hover > i:first-child { color: var(--nx-violet-2); transform: scale(1.12); }
+
 /* ─── Rail footer ────────────────────────────────────────────────────────
    Two stacked rows rather than the old single flex row, which put the status
    text, a logout label and a second collapse handle on one line: at the rail's
@@ -1292,6 +1354,7 @@ body:has(.guild-rail-item) {
 .sidebar.collapsed .sidebar-header > span,
 .sidebar.collapsed .nav-section-title > span,
 .sidebar.collapsed .nav-link > span,
+.sidebar.collapsed .nav-home > span,
 .sidebar.collapsed .nav-link .nav-lock,
 .sidebar.collapsed .sidebar-role-label,
 .sidebar.collapsed .sidebar-role-dev,
@@ -1388,7 +1451,8 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
 
 .sidebar.collapsed .sidebar-header { padding-inline: 0; justify-content: center; }
 .sidebar.collapsed .nav-section-title,
-.sidebar.collapsed .nav-link { justify-content: center; padding-inline: 0; }
+.sidebar.collapsed .nav-link,
+.sidebar.collapsed .nav-home { justify-content: center; padding-inline: 0; }
 /* No nudge in the rail: at 74px there is no room to move a row toward without
    it visibly walking out of the centre. */
 .sidebar.collapsed .nav-link:hover { transform: none; }
@@ -1461,6 +1525,13 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
    The rail slides in from the edge it lives on and its rows fade up behind it.
    Sections are staggered by hand because there are three of them and a
    :nth-child ladder would have to be kept in step with the markup anyway.
+   .nav-home is deliberately inside a .nav-section rather than beside one, and
+   that is also what keeps it out of this ladder: a card between two sections
+   would have been a fourth child of .sidebar-nav and would have pushed all
+   three delays down one, with the indices reading as an accident. Inside, it
+   rises in with the server block it belongs to, which is the right moment for
+   it anyway -- it appears and disappears with that block, so it should arrive
+   with it and not with the page.
    One short sweep runs across the active row on arrival so the eye is told
    where it is, and never repeats -- re-running it on every page load would
    make a page the user visits forty times a day feel like a splash screen. */
@@ -1576,6 +1647,24 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
 [data-theme="light"] .nav-link:hover,
 [data-theme="light"] .nav-link.active { color: #1c1533; }
 [data-theme="light"] .nav-link > i:first-child { color: #8b5cf6; }
+/* The card's three colours, and only these three. Two of them are consistency,
+   not legibility, and it is worth being exact about which is which:
+
+   --nx-hair is the one token in the frame the light theme cannot use (white on
+   white), so the resting edge has to be restated here or the card is the only
+   borderless thing in a rail of bordered ones. --nx-nav-wash is already
+   re-pointed in the token block above and is used as-is.
+
+   The text pair is not a contrast fix. --nx-muted is not re-pointed for light at
+   all -- the rows get theirs from a rule, not a token -- so left alone the card
+   would have been the one control on the rail reading #8890a1 at 6.5:1 while the
+   twelve rows under it read #5c5470, which is legible in both cases and wrong in
+   one. Same for the icon: --nx-violet-2 on a light rail is 1.8:1 and unreadable,
+   so it has to be restated whatever the text does, and it takes the same #8b5cf6
+   every other icon in the rail takes rather than a violet of its own. */
+[data-theme="light"] .nav-home { color: #5c5470; border-color: rgba(124,58,237,.2); }
+[data-theme="light"] .nav-home:hover { color: #1c1533; border-color: rgba(124,58,237,.55); }
+[data-theme="light"] .nav-home > i:first-child { color: #8b5cf6; }
 [data-theme="light"] .nav-section-title { color: #6b6382; }
 [data-theme="light"] .nav-search { background: rgba(124,58,237,.05); }
 [data-theme="light"] .sidebar-footer,
