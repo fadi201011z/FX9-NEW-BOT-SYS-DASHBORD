@@ -53,12 +53,12 @@
 
     <div class="nav-right">
       <% if (user) { %>
-        <%# No aria-pressed here: theme.js owns this control and only swaps the
-            icon, so any pressed state written into the markup would be stale
-            from the second theme change onwards. aria-label only. --%>
-        <button class="icon-btn theme-toggle" type="button" onclick="toggleTheme()" aria-label="تبديل المظهر">
-          <i class="fas fa-moon" id="themeIcon"></i>
-        </button>
+        <%# No theme toggle here. It lived in this bar and it was the only control
+            in the shell with no bearing on the work in front of you, and beside
+            the bell and the account it read as a switch that mattered. The theme
+            is still stored and still applied -- theme.js reads krs-theme on load
+            and home.ejs still carries the toggle -- so nothing is lost, the
+            dashboard just is not where you change it. --%>
 
         <div class="notifications-dropdown">
           <button class="icon-btn notif-btn" type="button" onclick="toggleNotif()"

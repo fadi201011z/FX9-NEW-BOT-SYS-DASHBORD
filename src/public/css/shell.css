@@ -264,9 +264,9 @@
 .nav-brand-text small { font-size: .68rem; color: var(--nx-muted); }
 
 /* ─── Icon buttons ────────────────────────────────────────────────────────
-   One treatment for the hamburger, the theme toggle, the bell and the account
-   trigger: a 38px square that fills on hover and lifts its glyph a pixel. The
-   old version had four of these at three different sizes. */
+   One treatment for the hamburger, the bell and the account trigger: a 38px
+   square that fills on hover and lifts its glyph a pixel. The old version had
+   four of these at three different sizes. */
 .icon-btn {
   position: relative;
   display: grid;
