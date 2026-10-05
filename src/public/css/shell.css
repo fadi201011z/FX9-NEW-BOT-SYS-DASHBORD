@@ -591,7 +591,17 @@
   width: var(--nx-shell-w);
   height: calc(100vh - var(--nx-topbar-h));
   height: calc(100dvh - var(--nx-topbar-h));
-  overflow: hidden;
+  /* No overflow:hidden here, and that is load-bearing rather than tidy. The rail
+     used to clip, and the collapse handle -- which hangs 18px out over the page
+     by design -- was clipped with it: invisible on screen, but still laid out,
+     still measurable and still selectable, so getBoundingClientRect reported a
+     perfectly healthy 18x52 button sitting where nothing was painted. It read as
+     missing, and every geometric check passed on it. Nothing else needs the
+     rail to clip: .sidebar-nav is the scroll container and clips its own
+     overflow, the text rows that need a hard edge already carry their own
+     overflow:hidden plus ellipsis, and the rail's only pseudo-element is inset:0.
+     Verified by flipping overflow to visible and walking every descendant: the
+     handle was the sole thing escaping on the inline-end side. */
   border-inline-end: 1px solid var(--nx-hair);
   background: var(--nx-rail);
   transition: width .34s var(--nx-ease), transform .34s var(--nx-ease);
