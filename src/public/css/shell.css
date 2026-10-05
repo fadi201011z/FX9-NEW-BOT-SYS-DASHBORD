@@ -1,0 +1,969 @@
+@import url('/css/tokens.css');
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Kratos Dashboard — application shell
+
+   The bar across the top, the rail down the side, and the menus that drop out
+   of them. Nothing here paints page content: cards, tables and forms belong to
+   style.css. This file exists because the shell was previously two hundred
+   lines of style.css written against a flatter palette, and because the one
+   thing the shell has to agree with is the landing page it opens from -- a user
+   who clicks "لوحة التحكم" in the header on / must not arrive somewhere that
+   looks like a different product.
+
+   What is carried across from the landing page, and why:
+
+     the floating pill   landing.css draws its header as an invisible full-bleed
+                         wrapper with a 66px pill floating inside it at 24px and
+                         16px, radius 9999px, transparent at the top of the page
+                         and frosted once it has moved. The dashboard reuses the
+                         same object for the same reason: the bar floats over
+                         scrolling content, so a full-bleed bar would be a solid
+                         strip and a pill reads as furniture.
+
+     the rail's colour   the landing hero draws the product's own dashboard in
+                         CSS (.nx-dash__side), and its sidebar is #08090f with a
+                         1px rgba(255,255,255,.06) edge and rgba(104,31,209,.2)
+                         behind the active row. Those three values are sampled,
+                         not chosen, so the marketing shot and the real thing are
+                         the same product.
+
+     two easings        cubic-bezier(.23,1,.32,1) for anything that arrives or
+                         moves, cubic-bezier(.4,0,.2,1) for colour and opacity.
+
+   One owner per rule. The superseded navbar/sidebar/layout blocks were removed
+   from style.css rather than left behind to be argued with, so there is a single
+   place where the shell is defined.
+
+   Load order matters: style.css first, this second. It wins on order, not on
+   specificity, which is why the light theme is handled by re-resolving --text
+   and --text-muted inside the [data-theme="light"] block at the bottom instead
+   of by re-declaring every colour here.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Page frame ───────────────────────────────────────────────────────────
+   .layout clears the floating pill by its full footprint, not by the pill's
+   own height: --nx-topbar-h is inset + height + gap, so the row of content
+   starts below the gap and never rides up under the rounded corners. */
+.layout {
+  display: flex;
+  margin-top: var(--nx-topbar-h);
+  min-height: calc(100vh - var(--nx-topbar-h));
+}
+
+/* inline-start, not inline-end. This document is RTL, so inline-start is the
+   right edge -- which is where the rail belongs, and where it was before
+   (style.css pinned it with a physical `right: 0`). Written as inline-end the
+   rail lands on the left and the whole shell mirrors, which is not what a
+   right-hand navigation column is. The content's margin is inline-start for the
+   same reason: it must clear the rail, which sits on that side. */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  margin-inline-start: var(--nx-shell-w);
+  padding: 24px;
+  min-height: calc(100vh - var(--nx-topbar-h));
+  transition: margin-inline-start .34s var(--nx-ease);
+}
+.sidebar.collapsed ~ .main-content { margin-inline-start: var(--nx-rail-w); }
+.sidebar.hidden ~ .main-content { margin-inline-start: 0; }
+
+/* ═══ Top bar ════════════════════════════════════════════════════════════ */
+
+.navbar {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 1000;
+  padding: var(--nx-bar-inset) var(--nx-bar-inset) 0;
+  pointer-events: none; /* the pill takes its own clicks back below */
+}
+
+/* The pill. At rest it is a thin wash with no edge, so a page that has not
+   scrolled does not start with a rule across the top of it; .is-stuck gives it
+   the landing page's frost and a shadow. The blur is set at 0 rather than
+   omitted, because a transition from `none` has nothing to interpolate from
+   and would snap on the first scroll. */
+.navbar__pill {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  height: var(--nx-bar-h);
+  padding-inline: 14px;
+  border-radius: 9999px;
+  pointer-events: auto;
+  background: rgba(9,7,19,.55);
+  border: 1px solid transparent;
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  transition:
+    background-color .3s var(--nx-ease-out),
+    -webkit-backdrop-filter .3s var(--nx-ease-out),
+    backdrop-filter .3s var(--nx-ease-out),
+    border-color .3s var(--nx-ease-out),
+    box-shadow .3s var(--nx-ease-out);
+}
+.navbar.is-stuck .navbar__pill {
+  background: var(--nx-pill);
+  border-color: var(--nx-glass-br);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--nx-shadow-sm), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* Brand. The same mark the landing page uses, at 30px, over a gradient tile
+   with the landing page's own glow -- not the generic bolt glyph, which is the
+   one piece of the old dashboard that read as "some admin panel". */
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 9px;
+  border-radius: var(--nx-radius);
+  color: #fff;
+  transition: background-color .2s var(--nx-ease-out);
+}
+.nav-brand:hover { background: rgba(255,255,255,.06); color: #fff; }
+
+.nav-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 8px;
+  background: linear-gradient(150deg, var(--nx-purple-l), var(--nx-purple));
+  box-shadow: 0 0 18px rgba(104,31,209,.5);
+  transition: transform .3s var(--nx-ease), box-shadow .3s var(--nx-ease);
+}
+.nav-brand-mark svg { width: 22px; height: 22px; display: block; }
+.nav-brand:hover .nav-brand-mark {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 0 24px rgba(168,85,247,.7);
+}
+
+.nav-brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+.nav-brand-text b { font-size: .9rem; font-weight: 700; letter-spacing: -.01em; }
+.nav-brand-text small { font-size: .68rem; color: var(--nx-muted); }
+
+/* ─── Icon buttons ────────────────────────────────────────────────────────
+   One treatment for the hamburger, the theme toggle, the bell and the account
+   trigger: a 38px square that fills on hover and lifts its glyph a pixel. The
+   old version had four of these at three different sizes. */
+.icon-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--nx-radius);
+  background: transparent;
+  color: var(--nx-muted);
+  font-size: 1.02rem;
+  cursor: pointer;
+  transition:
+    color .2s var(--nx-ease-out),
+    background-color .2s var(--nx-ease-out),
+    border-color .2s var(--nx-ease-out),
+    transform .2s var(--nx-ease);
+}
+.icon-btn:hover {
+  color: var(--text);
+  background: rgba(168,85,247,.12);
+  border-color: rgba(168,85,247,.24);
+  transform: translateY(-1px);
+}
+.icon-btn:active { transform: translateY(0); }
+.icon-btn:focus-visible,
+.nav-link:focus-visible,
+.sidebar-collapse-btn:focus-visible,
+.sidebar-logout:focus-visible,
+.nav-search input:focus-visible {
+  outline: 2px solid var(--nx-focus);
+  outline-offset: 2px;
+}
+
+.sidebar-toggle { display: none; }
+
+/* ─── Search ───────────────────────────────────────────────────────────────
+   Named separately from .search-box because guild/settings.ejs re-declares
+   .search-box inside an inline <style> for its role picker; styling the header
+   one through a class of its own leaves that picker alone instead of reaching
+   into it by accident. */
+
+/* What the search box highlights. It lives here rather than in style.css
+   because the feature is the shell's -- the field is in the bar -- even though
+   it also paints rows further down the page (.guild-item, .action-item,
+   .quick-nav-item). Hover still wins on those, which is right: hovering a hit
+   should look like hover. */
+.search-hit {
+  background: var(--nx-nav-wash);
+  box-shadow: inset 0 0 0 1px rgba(168,85,247,.34);
+  color: var(--text);
+}
+.nav-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 380px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid var(--nx-line);
+  background: var(--nx-fill);
+  transition: border-color .2s var(--nx-ease-out), background-color .2s var(--nx-ease-out),
+              box-shadow .2s var(--nx-ease-out);
+}
+.nav-search:hover { border-color: rgba(168,85,247,.3); }
+.nav-search:focus-within {
+  border-color: rgba(168,85,247,.55);
+  background: rgba(168,85,247,.07);
+  box-shadow: 0 0 0 3px rgba(168,85,247,.12);
+}
+.nav-search > i { color: var(--nx-muted); font-size: .82rem; transition: color .2s var(--nx-ease-out); }
+.nav-search:focus-within > i { color: var(--nx-glow); }
+.nav-search input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: .82rem;
+}
+.nav-search input::placeholder { color: var(--nx-muted); }
+.nav-search kbd {
+  flex: none;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--nx-line);
+  background: rgba(255,255,255,.04);
+  color: var(--nx-muted);
+  font-family: var(--font);
+  font-size: .68rem;
+  line-height: 1.6;
+  transition: opacity .2s var(--nx-ease-out);
+}
+.nav-search:focus-within kbd { opacity: 0; }
+
+/* ═══ Notifications ═══════════════════════════════════════════════════════ */
+
+.notif-badge {
+  position: absolute;
+  inset-block-start: 4px;
+  inset-inline-end: 4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--nx-danger);
+  color: #fff;
+  font-size: .62rem;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+  box-shadow: 0 0 0 2px rgba(9,7,19,.9);
+}
+/* Only shout when there is something to shout about. The old dot was a hard 0
+   in red on every page load, which reads as an error rather than a count. */
+.notif-badge[data-empty="1"] { display: none; }
+
+/* Both menus hang out of .nav-right, which on this RTL bar sits at the page's
+   inline-end -- the left. So they are anchored by their inline-end edge (their
+   left edge) to their trigger's, and open back towards the middle of the page.
+   Anchoring them to the other side pushes a 340px menu off the left of the
+   viewport, which is what happened when this was first written the other way
+   round. transform-origin follows, so the panel grows out of its trigger
+   instead of out of a far corner. max-width is the backstop for a phone. */
+/* The wrapper has to be the containing block for the panel. It was not, so the
+   panel's `inset-inline-end: 0` resolved against .navbar and the menu opened
+   from the far end of the bar instead of from under the bell -- invisible as
+   long as the bar is wider than the menu, wrong on every screen narrower than
+   340px plus the bar's padding. */
+.notifications-dropdown { position: relative; }
+
+.notif-menu {
+  position: absolute;
+  inset-block-start: calc(100% + 10px);
+  inset-inline-end: 0;
+  min-width: 340px;
+  max-width: calc(100vw - 32px);
+  border-radius: var(--nx-radius-lg);
+  z-index: 100;
+  overflow: hidden;
+  transform-origin: top left;
+}
+.notif-menu.show,
+.user-menu-dropdown.show { display: block; animation: shellMenuIn .2s var(--nx-ease) both; }
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 16px;
+  border-block-end: 1px solid var(--nx-hair);
+}
+.notif-header h4 { font-size: .88rem; font-weight: 700; }
+.notif-header span { font-size: .72rem; color: var(--nx-muted); }
+.notif-list { max-height: 320px; overflow-y: auto; }
+.notif-item {
+  padding: 12px 16px;
+  border-block-end: 1px solid var(--nx-hair);
+  cursor: pointer;
+  transition: background-color .18s var(--nx-ease-out);
+}
+.notif-item:hover { background: var(--nx-nav-wash); }
+.notif-item strong { display: block; font-size: .82rem; font-weight: 600; }
+.notif-item span { font-size: .74rem; color: var(--nx-muted); }
+.notif-empty { padding: 28px; text-align: center; color: var(--nx-muted); font-size: .82rem; }
+
+/* ═══ Account menu ════════════════════════════════════════════════════════ */
+
+.user-menu { position: relative; }
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 10px 0 8px;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background-color .2s var(--nx-ease-out), border-color .2s var(--nx-ease-out);
+}
+.user-btn:hover {
+  background: rgba(168,85,247,.12);
+  border-color: rgba(168,85,247,.24);
+  color: var(--text);
+}
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.12);
+}
+.user-name { font-size: .82rem; font-weight: 600; }
+.user-btn > i {
+  font-size: .62rem;
+  color: var(--nx-muted);
+  transition: transform .2s var(--nx-ease);
+}
+.user-menu.show .user-btn > i { transform: rotate(180deg); }
+
+.user-menu-dropdown {
+  position: absolute;
+  inset-block-start: calc(100% + 10px);
+  inset-inline-end: 0;
+  min-width: 250px;
+  max-width: calc(100vw - 32px);
+  border-radius: var(--nx-radius-lg);
+  z-index: 100;
+  overflow: hidden;
+  transform-origin: top left;
+}
+
+.user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-block-end: 1px solid var(--nx-hair);
+}
+.user-menu-header img { width: 38px; height: 38px; border-radius: 50%; }
+.user-menu-header strong { display: block; font-size: .88rem; }
+.user-menu-header span { font-size: .72rem; color: var(--nx-muted); }
+
+.user-menu-body { padding: 6px; }
+.user-menu-body a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--nx-radius);
+  color: var(--text);
+  font-size: .84rem;
+  transition: background-color .18s var(--nx-ease-out), color .18s var(--nx-ease-out);
+}
+.user-menu-body a i { width: 18px; text-align: center; font-size: .88rem; color: var(--nx-muted); transition: color .18s var(--nx-ease-out); }
+.user-menu-body a:hover { background: var(--nx-nav-wash); color: var(--text); }
+.user-menu-body a:hover i { color: var(--nx-glow); }
+.user-menu-body a.danger { color: var(--nx-danger); }
+.user-menu-body a.danger i { color: var(--nx-danger); }
+.user-menu-body a.danger:hover { background: rgba(237,66,69,.12); }
+.user-menu-body hr { border: none; border-block-start: 1px solid var(--nx-hair); margin: 6px 4px; }
+
+/* ═══ Rail ════════════════════════════════════════════════════════════════ */
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 899;
+  background: rgba(5,3,12,.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  display: none;
+  opacity: 0;
+  transition: opacity .28s var(--nx-ease-out);
+}
+.sidebar-overlay.show { display: block; opacity: 1; }
+
+/* The rail is pinned to its inline-start side, which in this RTL document is the
+   right edge -- the side it has always been on (style.css pinned it with a
+   physical `right: 0`). Written as inline-end it lands on the left and mirrors
+   the whole shell, so the hairline between rail and content moves to
+   inline-end with it. */
+.sidebar {
+  position: fixed;
+  inset-block-start: var(--nx-topbar-h);
+  inset-inline-start: 0;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  width: var(--nx-shell-w);
+  height: calc(100vh - var(--nx-topbar-h));
+  overflow: hidden;
+  border-inline-end: 1px solid var(--nx-hair);
+  background: var(--nx-rail);
+  transition: width .34s var(--nx-ease), transform .34s var(--nx-ease);
+}
+
+/* The rail is a full-height surface, so it gets the landing page's own hairline
+   plus a very soft violet wash from its top corner: enough that the rail reads
+   as lit from the brand rather than as a flat black strip, small enough to stay
+   behind the text. */
+.sidebar::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 220px;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 100% 0%, rgba(104,31,209,.20), transparent 70%);
+}
+
+.sidebar.collapsed { width: var(--nx-rail-w); }
+.sidebar.hidden { transform: translateX(100%); width: 0; border: none; }
+
+/* ─── Rail header ─────────────────────────────────────────────────────────
+   The mark again, with the product name beside it. Two marks on screen at once
+   (bar and rail) is one too many, so the rail keeps the name and drops the
+   word "Dashboard": the bar already says what this is. */
+.sidebar-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  font-size: .95rem;
+  font-weight: 700;
+  border-block-end: 1px solid var(--nx-hair);
+  white-space: nowrap;
+}
+.sidebar-header i { color: var(--nx-glow); font-size: 1.1rem; }
+.sidebar-header > span { transition: opacity .2s var(--nx-ease-out); }
+.sidebar-close {
+  display: none;
+  margin-inline-start: auto;
+  background: none;
+  border: none;
+  color: var(--nx-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: var(--nx-radius-sm);
+}
+.sidebar-close:hover { background: rgba(255,107,107,.12); color: #ff6b6b; }
+
+/* Collapse handle. It sits on the rail's content-facing edge -- inline-end here
+   -- so it never collides with the floating pill above it, and it reads as a tab
+   on the frame rather than a button floating in the column.
+
+   The tab hangs outward from that edge, so it is rounded on its inline-end
+   corners (top-left and bottom-left in RTL) and square where it meets the rail.
+   A physical `border-radius: 0 10px 10px 0` was here first and rounded the wrong
+   two: the tab was rounded where it joined the rail and square at the edge you
+   are meant to see. */
+.sidebar-collapse-btn {
+  position: absolute;
+  inset-block-start: 18px;
+  inset-inline-end: -1px;
+  z-index: 10;
+  width: 22px;
+  height: 34px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--nx-hair);
+  border-inline-end: none;
+  border-start-end-radius: 10px;
+  border-end-end-radius: 10px;
+  background: var(--nx-panel);
+  color: var(--nx-muted);
+  font-size: .62rem;
+  cursor: pointer;
+  transition: background-color .2s var(--nx-ease-out), color .2s var(--nx-ease-out);
+}
+.sidebar-collapse-btn:hover { background: var(--nx-purple); color: #fff; }
+.sidebar-collapse-btn i { transition: transform .34s var(--nx-ease); }
+.sidebar.collapsed .sidebar-collapse-btn i { transform: rotate(180deg); }
+
+/* ─── Your standing in this server ────────────────────────────────────────
+   Kept, restyled: the rail's own surface with the violet rim the cards use. */
+.sidebar-role {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 14px 4px;
+  padding: 9px 12px;
+  border-radius: var(--nx-radius);
+  border: 1px solid var(--nx-glass-br);
+  background: var(--nx-fill);
+  font-size: .8rem;
+  color: var(--nx-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.sidebar-role > i { color: var(--nx-glow); font-size: .85rem; }
+.sidebar-role-label { font-weight: 500; color: var(--text); }
+
+.sidebar-role-dev {
+  margin-inline-start: auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--nx-violet-2);
+  background: rgba(168,85,247,.16);
+  border: 1px solid rgba(168,85,247,.34);
+}
+
+/* ─── Nav ──────────────────────────────────────────────────────────────────
+   overflow-y lives on the scroll container, not on the rail. The old rule put
+   it on .sidebar:hover, which meant the rail could not be scrolled with a
+   trackpad or a keyboard -- only by hovering it and then using the wheel. */
+
+.sidebar-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 10px 16px;
+  scrollbar-width: thin;
+}
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(168,85,247,.28); border-radius: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,.5); }
+
+.nav-section { margin-bottom: 14px; }
+
+.nav-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-block-end: 4px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--nx-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.nav-section-title i {
+  width: 18px;
+  flex: none;
+  text-align: center;
+  font-size: .62rem;
+  color: var(--nx-purple-l);
+  opacity: .85;
+}
+.nav-section-title > span { overflow: hidden; text-overflow: ellipsis; }
+
+/* The row. Logical properties throughout: this file is written for the RTL
+   document it ships in, and `inset-inline-start` / `margin-inline-*` keep the
+   leading edge correct without a second mirrored copy. */
+.nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 11px;
+  margin-block-end: 2px;
+  border-radius: var(--nx-radius);
+  color: var(--nx-muted);
+  font-size: .84rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    color .2s var(--nx-ease-out),
+    background-color .2s var(--nx-ease-out),
+    transform .22s var(--nx-ease);
+}
+.nav-link > i:first-child {
+  width: 20px;
+  flex: none;
+  text-align: center;
+  font-size: .95rem;
+  transition: color .2s var(--nx-ease-out), transform .26s var(--nx-ease);
+}
+.nav-link > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity .2s var(--nx-ease-out);
+}
+
+/* Leading-edge indicator. It grows from the middle rather than sliding, so the
+   active row is identifiable in a list of twenty without reading the label.
+
+   At inset-inline-start:0 it sits on the row's own leading edge, inside the
+   row's 11px padding. Pushed further out to reach the rail's edge -- which is
+   what -10px tried to do -- it lands outside .sidebar, and .sidebar is
+   overflow:hidden, so the bar was being clipped away to nothing. */
+.nav-link::before {
+  content: '';
+  position: absolute;
+  inset-block: 50% auto;
+  inset-inline-start: 0;
+  width: 3px;
+  height: 20px;
+  margin-block-start: -10px;
+  border-start-start-radius: 3px;
+  border-end-start-radius: 3px;
+  background: var(--nx-glow);
+  box-shadow: 0 0 12px rgba(168,85,247,.85);
+  opacity: 0;
+  transform: scaleY(.25);
+  transition: opacity .24s var(--nx-ease-out), transform .3s var(--nx-ease);
+}
+
+.nav-link:hover {
+  color: var(--text);
+  background: var(--nx-nav-wash);
+  transform: translateX(-3px);
+}
+.nav-link:hover > i:first-child { color: var(--nx-violet-2); transform: scale(1.12); }
+
+.nav-link.active {
+  color: #fff;
+  background: var(--nx-nav-on);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.nav-link.active::before { opacity: 1; transform: scaleY(1); }
+.nav-link.active > i:first-child { color: var(--nx-violet-2); }
+
+/* Locked rows. Dimmed and not-allowed, and the hover tells you why instead of
+   the old rule which only turned the text red. */
+.nav-link.locked { opacity: .5; cursor: not-allowed; }
+.nav-link.locked:hover {
+  color: #ff8a8a;
+  background: rgba(237,66,69,.1);
+  transform: none;
+}
+.nav-link.locked:hover > i:first-child { color: #ff8a8a; transform: none; }
+
+.nav-link .nav-lock {
+  margin-inline-start: auto;
+  width: auto;
+  flex: none;
+  font-size: .68rem;
+  color: #ff6b6b;
+  opacity: .9;
+}
+
+/* ─── Rail footer ────────────────────────────────────────────────────────
+   Two stacked rows rather than the old single flex row, which put the status
+   text, a logout label and a second collapse handle on one line: at the rail's
+   width they collided, and the handle did the same job as the handle at the top
+   of the rail. */
+.sidebar-footer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px 12px;
+  border-block-start: 1px solid var(--nx-hair);
+  white-space: nowrap;
+}
+
+.bot-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--nx-line);
+  background: var(--nx-fill);
+  font-size: .76rem;
+  color: var(--nx-muted);
+  overflow: hidden;
+}
+.bot-status .status-dot { flex: none; width: 7px; height: 7px; }
+.bot-status > span:last-child { overflow: hidden; text-overflow: ellipsis; }
+
+/* The dot breathes while the bot is up. Paired with the 5s reconnect timer in
+   websocket.js: the dot finishes well over a cycle before the socket gives up,
+   which is when it turns red. */
+.bot-status .status-dot.online { animation: shellPulse 2.4s var(--nx-ease-out) infinite; }
+
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  color: var(--nx-danger);
+  text-decoration: none;
+  font-size: .78rem;
+  transition: background-color .2s var(--nx-ease-out), color .2s var(--nx-ease-out);
+}
+.sidebar-logout:hover { background: rgba(237,66,69,.14); color: #ff7a7d; }
+
+/* ─── Collapsed rail ────────────────────────────────────────────────────────
+   Everything textual collapses; the icons stay put. The old rule also expanded
+   the rail on hover, which meant the rail changed width whenever the pointer
+   crossed it -- and a row moved out from under the cursor while you were
+   reaching for it. Collapsed now means collapsed, and the name comes back in a
+   tooltip. */
+.sidebar.collapsed .sidebar-header > span,
+.sidebar.collapsed .nav-section-title > span,
+.sidebar.collapsed .nav-link > span,
+.sidebar.collapsed .nav-link .nav-lock,
+.sidebar.collapsed .sidebar-role-label,
+.sidebar.collapsed .sidebar-role-dev,
+.sidebar.collapsed .bot-status > span:last-child {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-header { padding-inline: 0; justify-content: center; }
+.sidebar.collapsed .nav-section-title,
+.sidebar.collapsed .nav-link { justify-content: center; padding-inline: 0; }
+/* No nudge in the rail: at 74px there is no room to move a row toward without
+   it visibly walking out of the centre. */
+.sidebar.collapsed .nav-link:hover { transform: none; }
+.sidebar.collapsed .sidebar-role { justify-content: center; margin-inline: 12px; padding-inline: 0; }
+.sidebar.collapsed .bot-status,
+.sidebar.collapsed .sidebar-logout { justify-content: center; padding-inline: 0; }
+.sidebar.collapsed .sidebar-logout span { display: none; }
+.sidebar.collapsed .premium-side-dot { display: none; }
+
+/* Tooltip. style.css draws one for every [title] on the page, which is right
+   for a row of buttons and wrong for a nav row whose label is right there --
+   so the inherited one is cancelled inside the rail and this replaces it, only
+   while collapsed. */
+.sidebar [title]:hover::after { content: none; }
+
+.sidebar.collapsed .nav-link::after,
+.sidebar.collapsed .sidebar-collapse-btn::after,
+.sidebar.collapsed .sidebar-logout::after {
+  content: attr(title);
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: calc(100% + 14px);
+  transform: translateY(-50%) scale(.94);
+  transform-origin: right center;
+  padding: 6px 11px;
+  border-radius: var(--nx-radius-sm);
+  border: 1px solid var(--nx-glass-br);
+  background: var(--nx-glass);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--nx-shadow-sm);
+  color: var(--text);
+  font-size: .74rem;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .18s var(--nx-ease-out), transform .22s var(--nx-ease);
+}
+.sidebar.collapsed .nav-link:hover::after,
+.sidebar.collapsed .sidebar-collapse-btn:hover::after,
+.sidebar.collapsed .sidebar-logout:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+/* ═══ Arrival ═════════════════════════════════════════════════════════════
+   The rail slides in from the edge it lives on and its rows fade up behind it.
+   Sections are staggered by hand because there are three of them and a
+   :nth-child ladder would have to be kept in step with the markup anyway.
+   One short sweep runs across the active row on arrival so the eye is told
+   where it is, and never repeats -- re-running it on every page load would
+   make a page the user visits forty times a day feel like a splash screen. */
+
+@keyframes shellRailIn {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes shellRiseIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes shellSweep {
+  from { background-position: -150% 0, 0 0; }
+  to   { background-position: 150% 0, 0 0; }
+}
+@keyframes shellPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(87,242,135,.5); }
+  70%      { box-shadow: 0 0 0 6px rgba(87,242,135,0); }
+}
+@keyframes shellMenuIn {
+  from { opacity: 0; transform: translateY(-8px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .navbar__pill { animation: shellRiseIn .5s var(--nx-ease) both; }
+  .sidebar { animation: shellRailIn .5s var(--nx-ease) both; }
+  .sidebar-nav .nav-section { animation: shellRiseIn .45s var(--nx-ease) both; }
+  .sidebar-nav .nav-section:nth-child(1) { animation-delay: .08s; }
+  .sidebar-nav .nav-section:nth-child(2) { animation-delay: .15s; }
+  .sidebar-nav .nav-section:nth-child(3) { animation-delay: .22s; }
+
+  /* The one-shot sweep across the active row is painted as a second background
+     layer rather than as a pseudo-element, because clipping it needs
+     overflow:hidden on the row and that would cut off the ::before indicator at
+     the row's leading edge. Two background layers animate on the compositor and
+     clip themselves to the border-radius for free. */
+  .nav-link.active {
+    background-image:
+      linear-gradient(100deg, transparent, rgba(255,255,255,.17), transparent),
+      linear-gradient(var(--nx-nav-on), var(--nx-nav-on));
+    background-size: 45% 100%, 100% 100%;
+    background-repeat: no-repeat;
+    background-position: -150% 0, 0 0;
+    animation: shellSweep .9s var(--nx-ease) .35s both;
+  }
+}
+
+/* ═══ Light theme ══════════════════════════════════════════════════════════
+   The shell's own colours are violet on near-black and read as noise on a white
+   page, so the light theme re-points the three that matter -- text, muted text
+   and the active fill -- rather than re-declaring the whole rule set. The active
+   fill is done as a token because the arrival sweep paints that same fill as one
+   of its two background layers: re-declaring the fill with a `background`
+   shorthand here would wipe the sweep out and only in the light theme. The pill
+   loses its translucency instead of frosting a white sheet over a white page. */
+
+[data-theme="light"] {
+  --nx-nav-on: rgba(124,58,237,.14);
+  --nx-nav-wash: rgba(124,58,237,.08);
+  --nx-pill: rgba(255,255,255,.94);
+}
+
+[data-theme="light"] .navbar__pill { background: rgba(255,255,255,.86); }
+[data-theme="light"] .navbar.is-stuck .navbar__pill {
+  background: rgba(255,255,255,.94);
+  border-color: rgba(124,58,237,.18);
+  box-shadow: 0 8px 28px rgba(60,40,120,.1), inset 0 1px 0 rgba(255,255,255,.9);
+}
+[data-theme="light"] .sidebar {
+  background: #fbfaff;
+  border-color: rgba(124,58,237,.14);
+}
+[data-theme="light"] .sidebar::before {
+  background: radial-gradient(120% 100% at 100% 0%, rgba(124,58,237,.10), transparent 70%);
+}
+[data-theme="light"] .nav-link:hover { background: rgba(124,58,237,.08); }
+[data-theme="light"] .nav-link { color: #5c5470; }
+[data-theme="light"] .nav-link:hover,
+[data-theme="light"] .nav-link.active { color: #1c1533; }
+[data-theme="light"] .nav-link > i:first-child { color: #8b5cf6; }
+[data-theme="light"] .nav-section-title { color: #6b6382; }
+[data-theme="light"] .nav-search { background: rgba(124,58,237,.05); }
+[data-theme="light"] .sidebar-footer,
+[data-theme="light"] .sidebar-header,
+[data-theme="light"] .nav-section-title,
+[data-theme="light"] .nav-link { border-color: rgba(124,58,237,.12); }
+[data-theme="light"] .sidebar-collapse-btn { background: #fff; border-color: rgba(124,58,237,.14); }
+
+/* ═══ Responsive ═══════════════════════════════════════════════════════════
+   Below 768px the rail is a drawer again: it slides over the content, the
+   hamburger appears, and the collapse handle is meaningless because there is
+   nothing to collapse to. */
+
+@media (max-width: 768px) {
+  .navbar { padding-inline: 12px; }
+  .sidebar-toggle { display: grid; }
+  .nav-center { display: none; }
+  .nav-brand-text { display: none; }
+
+  .sidebar {
+    inset-block-start: 0;
+    width: min(var(--nx-shell-w), 84vw) !important;
+    height: 100dvh;
+    transform: translateX(100%);
+    border-inline-end: none;
+    box-shadow: none;
+    background: var(--nx-ink);
+    animation: none;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: -8px 0 40px rgba(0,0,0,.5);
+  }
+  .sidebar.collapsed { width: min(var(--nx-shell-w), 84vw) !important; }
+  .sidebar-close { display: grid; place-items: center; }
+  .sidebar-collapse-btn { display: none; }
+
+  /* On a phone the rail is always full width, so the collapsed rules are undone
+     rather than overridden one by one. */
+  .sidebar.collapsed .sidebar-header > span,
+  .sidebar.collapsed .nav-section-title > span,
+  .sidebar.collapsed .nav-link > span,
+  .sidebar.collapsed .sidebar-role-label,
+  .sidebar.collapsed .sidebar-role-dev,
+  .sidebar.collapsed .bot-status > span:last-child { display: inline; }
+  .sidebar.collapsed .sidebar-header { justify-content: flex-start; padding: 16px; }
+  .sidebar.collapsed .nav-section-title { justify-content: flex-start; padding: 6px 10px; }
+  .sidebar.collapsed .nav-link { justify-content: flex-start; padding: 9px 11px; }
+  .sidebar.collapsed .nav-link::after,
+  .sidebar.collapsed .sidebar-collapse-btn::after,
+  .sidebar.collapsed .sidebar-logout::after { content: none; }
+  .sidebar.collapsed .sidebar-role { justify-content: flex-start; margin-inline: 14px; padding-inline: 12px; }
+  .sidebar.collapsed .bot-status,
+  .sidebar.collapsed .sidebar-logout { justify-content: flex-start; padding-inline: 12px; }
+  .sidebar.collapsed .sidebar-logout span { display: inline; }
+
+  .main-content { margin-inline-start: 0 !important; padding: 16px; }
+}
+
+@media (max-width: 480px) {
+  .user-name { display: none; }
+  .notif-menu { min-width: calc(100vw - 24px); }
+  .user-menu-dropdown { min-width: calc(100vw - 24px); }
+}

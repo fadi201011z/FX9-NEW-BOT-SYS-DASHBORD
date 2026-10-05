@@ -39,6 +39,12 @@
   --nx-fill:     rgba(255,255,255,.03);
   --nx-violet-2: #d8b4fe;
   --nx-green:    #57f287;
+  /* The one colour the landing palette does not have. Those pages have nothing
+     destructive on them, so there was no red to sample; the dashboard does --
+     logout, locked rows, the notification count -- and it had been carrying its
+     own #ed4245 inline. Lifted here so a red in the shell and a red in a card
+     are the same red. */
+  --nx-danger:   #ed4245;
   /* Glass: #120E24 at 80%, per the brief. */
   --nx-glass:    rgba(18,14,36,.8);
   --nx-glass-br: rgba(168,85,247,.2);
@@ -63,6 +69,38 @@
   --nx-shadow-sm: 0 8px 28px rgba(0,0,0,.24);
   --nx-glow-shadow: 0 10px 34px rgba(168,85,247,.30);
 
-  --nx-shell-w:   262px;
-  --nx-topbar-h:  64px;
+  --nx-shell-w:   268px;
+  --nx-rail-w:    74px;
+
+  /* The dashboard's top bar is a floating pill, not a full-bleed bar: the same
+     object the landing page uses, inset from the viewport edge and frosted only
+     once there is content behind it. These three numbers are its geometry and
+     --nx-topbar-h is the row they add up to, which is what the shell offsets by
+     (see .layout and .sidebar in css/shell.css). */
+  --nx-bar-h:     64px;
+  --nx-bar-inset: 16px;
+  --nx-bar-gap:    8px;
+  --nx-topbar-h:   calc(var(--nx-bar-inset) + var(--nx-bar-h) + var(--nx-bar-gap));
+
+  /* ── Motion ──────────────────────────────────────────────────────────────
+     Two curves, both lifted off landing.css rather than invented here. The
+     sharp one (.23,1,.32,1) is the site's overshoot curve and drives anything
+     that enters or moves; the soft one (.4,0,.2,1) drives colour and opacity.
+     Splitting them means a hover wash never overshoots while a nav row still
+     arrives with weight. */
+  --nx-ease:       cubic-bezier(.23, 1, .32, 1);
+  --nx-ease-out:   cubic-bezier(.4, 0, .2, 1);
+
+  /* ── The rail and the pill ───────────────────────────────────────────────
+     Sampled off the dashboard drawing in the landing hero (.nx-dash__side and
+     .nx-dash__bar), which is the only place the real shell is shown inside the
+     design. --nx-rail is that sidebar's #08090f, one step below --nx-panel, so
+     the rail reads as the far side of the window and the cards on top of it
+     read as nearer. */
+  --nx-rail:       #08090f;
+  --nx-hair:       rgba(255,255,255,.06);
+  --nx-nav-wash:   rgba(168,85,247,.10);
+  --nx-nav-on:     rgba(104,31,209,.30);
+  --nx-pill:       rgba(18,14,36,.74);
+  --nx-focus:      rgba(168,85,247,.55);
 }

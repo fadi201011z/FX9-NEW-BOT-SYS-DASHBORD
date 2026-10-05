@@ -53,14 +53,12 @@ function initSidebar() {
     if (saved === 'collapsed') sidebar.classList.add('collapsed');
   }
 
-  // Hamburger toggle
-  const toggle = document.querySelector('.sidebar-toggle');
-  toggle?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (window.innerWidth <= 768) {
-      sidebar.classList.toggle('open');
-    }
-  });
+  /* No click listener on .sidebar-toggle here. The button carries
+     onclick="toggleSidebar()" in partials/navbar.ejs, and this block used to
+     add a second one that toggled .open as well -- so below 768px the two
+     handlers cancelled each other out and the hamburger did nothing. Left as a
+     note rather than deleted silently, because the button still exists and the
+     next person will want to know where its behaviour lives. */
 
   // Close on outside click (mobile)
   document.addEventListener('click', (e) => {
@@ -177,12 +175,14 @@ function initGlobalSearch() {
       const links = document.querySelectorAll('.nav-link, .quick-nav-item, .guild-item, .action-item');
       let found = false;
       for (const link of links) {
-        if (link.textContent.toLowerCase().includes(q)) {
-          link.style.background = 'rgba(88, 101, 242, 0.1)';
-          found = true;
-        } else {
-          link.style.background = '';
-        }
+        /* A class, not link.style.background. The inline version wrote
+           rgba(88,101,242,.1) -- Discord blurple, the one colour the shared
+           palette had already retired -- and the `background` shorthand resets
+           every background layer behind it, so typing in the search box wiped
+           the active row's fill on the way past. */
+        const hit = link.textContent.toLowerCase().includes(q);
+        link.classList.toggle('search-hit', hit);
+        if (hit) found = true;
       }
       if (!found && q.length >= 2) showToast('🔍 لم يتم العثور على نتائج');
     }, 300);

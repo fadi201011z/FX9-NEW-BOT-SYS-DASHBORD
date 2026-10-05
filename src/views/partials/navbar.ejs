@@ -1,79 +1,124 @@
-<nav class="navbar glass">
-  <div class="nav-left">
-    <button class="sidebar-toggle" onclick="toggleSidebar()">
-      <i class="fas fa-bars"></i>
-    </button>
-    <a href="/" class="nav-brand">
-      <i class="fas fa-bolt"></i>
-      <span>Kratos Dashboard</span>
-    </a>
-  </div>
+<%# ── Avatar ────────────────────────────────────────────────────────────────
+    Built here rather than inline at both use sites. The old markup concatenated
+    the CDN path straight onto user.avatar, so an account with no avatar produced
+    /avatars/<id>/null.png -- a broken image in two places on every page, caught
+    by an onerror that then asked for the same avatar again. avatar is optional
+    on a Discord user, so this is the normal case for some accounts and not an
+    edge case at all.
 
-  <div class="nav-center">
-    <div class="search-box">
-      <i class="fas fa-search"></i>
-      <input type="text" placeholder="بحث في لوحة التحكم..." id="globalSearch">
+    var (not const, not let) because express-ejs-layouts compiles include()
+    inline into the including template's own function body: a const declared
+    here would collide with the same const on a second include of this partial,
+    and the page would 500. --%>
+<% var avatarUrl = user && user.avatar
+      ? 'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=80'
+      : 'https://cdn.discordapp.com/embed/avatars/' + (Number(user && user.discriminator) % 5) + '.png'; %>
+
+<nav class="navbar" id="navbar">
+  <div class="navbar__pill" id="navbarPill">
+    <div class="nav-left">
+      <button class="icon-btn sidebar-toggle" id="sidebarToggle" type="button"
+              onclick="toggleSidebar()" aria-label="فتح القائمة" aria-controls="sidebar" aria-expanded="false">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <a href="/" class="nav-brand" aria-label="Kratos System — الصفحة الرئيسية">
+        <span class="nav-brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64" role="img">
+            <path d="M20 22 L32 32 L20 42" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M33 42 L45 42" fill="none" stroke="#f5e625" stroke-width="6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="nav-brand-text">
+          <b>Kratos</b>
+          <small>نظام البوت</small>
+        </span>
+      </a>
     </div>
-  </div>
 
-  <div class="nav-right">
-    <% if (user) { %>
-      <div class="theme-toggle" onclick="toggleTheme()">
-        <i class="fas fa-moon" id="themeIcon"></i>
+    <div class="nav-center">
+      <%# Only .nav-search. This used to also carry .search-box, and on
+          /settings that name is redeclared in the page's own inline <style> for
+          the role picker. A <style> in the body comes after every linked sheet,
+          so it won the tie on equal specificity and handed the header the
+          picker's `flex: 1; min-width: 200px` -- the bar only held together
+          because the pill happened to be wide enough. --%>
+      <div class="nav-search">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="search" placeholder="ابحث في لوحة التحكم..." id="globalSearch"
+               aria-label="بحث في لوحة التحكم" autocomplete="off">
+        <kbd>Ctrl K</kbd>
       </div>
-      <div class="notifications-dropdown">
-        <button class="notif-btn" onclick="toggleNotif()">
-          <i class="fas fa-bell"></i>
-          <span class="notif-badge" id="notifBadge">0</span>
+    </div>
+
+    <div class="nav-right">
+      <% if (user) { %>
+        <%# No aria-pressed here: theme.js owns this control and only swaps the
+            icon, so any pressed state written into the markup would be stale
+            from the second theme change onwards. aria-label only. --%>
+        <button class="icon-btn theme-toggle" type="button" onclick="toggleTheme()" aria-label="تبديل المظهر">
+          <i class="fas fa-moon" id="themeIcon"></i>
         </button>
-        <div class="notif-menu glass" id="notifMenu">
-          <div class="notif-header">
-            <h4>الإشعارات</h4>
-            <span id="notifCount">0 جديدة</span>
-          </div>
-          <div class="notif-list" id="notifList">
-            <div class="notif-empty">لا توجد إشعارات</div>
-          </div>
-        </div>
-      </div>
-      <div class="user-menu">
-        <button class="user-btn" onclick="toggleUserMenu()">
-          <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="" class="user-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-          <span class="user-name"><%= user.globalName || user.username %></span>
-          <i class="fas fa-chevron-down"></i>
-        </button>
-        <div class="user-menu-dropdown glass" id="userMenu">
-          <div class="user-menu-header">
-            <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-            <div>
-              <strong><%= user.globalName || user.username %></strong>
-              <%# perms.roleLabel comes from ROLE_LABELS in capabilities.js -- the one
-                  place a role is named. The map this used to inline had admin and
-                  moderator the wrong way round, so the badge called an admin a
-                  developer and a moderator an admin. %>
-              <span><%= perms.isOwner ? '👑 ' + perms.roleLabel : perms.roleLabel %></span>
+
+        <div class="notifications-dropdown">
+          <button class="icon-btn notif-btn" type="button" onclick="toggleNotif()"
+                  aria-label="الإشعارات" aria-haspopup="true" aria-expanded="false" aria-controls="notifMenu">
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            <span class="notif-badge" id="notifBadge" data-empty="1">0</span>
+          </button>
+
+          <div class="notif-menu glass" id="notifMenu">
+            <div class="notif-header">
+              <h4>الإشعارات</h4>
+              <span id="notifCount">0 جديدة</span>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty">لا توجد إشعارات</div>
             </div>
           </div>
-          <div class="user-menu-body">
-            <a href="/dashboard" class="<%= perms.can.dashboard ? '' : 'locked' %>" data-req="3"><i class="fas fa-th-large"></i> لوحة التحكم<% if (!perms.can.dashboard) { %> <i class="fas fa-lock nav-lock"></i><% } %></a>
-            <a href="/guilds"><i class="fas fa-server"></i> السيرفرات</a>
-            <a href="/status"><i class="fas fa-heartbeat"></i> حالة البوت</a>
-            <a href="/docs"><i class="fas fa-book"></i> التوثيق</a>
-            <%# Hidden outright for anyone who is not a bot developer. A lock here
-                invited people to ask for the role it stands for. %>
-            <% if (perms.can.dev) { %>
-              <a href="/dev"><i class="fas fa-code"></i> لوحة المطور</a>
-            <% } %>
-            <hr>
-            <a href="/auth/logout" class="danger"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
+        </div>
+
+        <div class="user-menu">
+          <button class="user-btn" type="button" onclick="toggleUserMenu()"
+                  aria-label="حسابك" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu">
+            <img src="<%= avatarUrl %>" alt="" class="user-avatar" width="28" height="28">
+            <span class="user-name"><%= user.globalName || user.username %></span>
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+
+          <div class="user-menu-dropdown glass" id="userMenu">
+            <div class="user-menu-header">
+              <img src="<%= avatarUrl %>" alt="" width="38" height="38">
+              <div>
+                <strong><%= user.globalName || user.username %></strong>
+                <%# perms.roleLabel comes from ROLE_LABELS in capabilities.js -- the one
+                    place a role is named. The map this used to inline had admin and
+                    moderator the wrong way round, so the badge called an admin a
+                    developer and a moderator an admin. %>
+                <span><%= perms.isOwner ? '👑 ' + perms.roleLabel : perms.roleLabel %></span>
+              </div>
+            </div>
+            <div class="user-menu-body">
+              <a href="/dashboard" class="<%= perms.can.dashboard ? '' : 'locked' %>" data-req="3"><i class="fas fa-th-large"></i> لوحة التحكم<% if (!perms.can.dashboard) { %> <i class="fas fa-lock nav-lock"></i><% } %></a>
+              <a href="/guilds"><i class="fas fa-server"></i> السيرفرات</a>
+              <a href="/status"><i class="fas fa-heartbeat"></i> حالة البوت</a>
+              <a href="/docs"><i class="fas fa-book"></i> التوثيق</a>
+              <%# Hidden outright for anyone who is not a bot developer. A lock here
+                  invited people to ask for the role it stands for. %>
+              <% if (perms.can.dev) { %>
+                <a href="/dev"><i class="fas fa-code"></i> لوحة المطور</a>
+              <% } %>
+              <hr>
+              <a href="/auth/logout" class="danger"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
+            </div>
           </div>
         </div>
-      </div>
-    <% } else { %>
-      <a href="/auth/discord" class="btn-discord">
-        <i class="fab fa-discord"></i>
-        Login with Discord
-      </a>
-    <% } %>
+      <% } else { %>
+        <a href="/auth/discord" class="btn-discord">
+          <i class="fab fa-discord"></i>
+          دخول
+        </a>
+      <% } %>
+    </div>
   </div>
 </nav>

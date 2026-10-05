@@ -31,7 +31,7 @@
   --primary-glow: rgba(168,85,247,.30);
   --success: var(--nx-green);
   --warning: #ffd93d;
-  --danger: #ed4245;
+  --danger: var(--nx-danger);
   --info: var(--nx-glow);
   --sidebar-width: var(--nx-shell-w);
   --navbar-height: var(--nx-topbar-h);
@@ -81,6 +81,18 @@ a:hover { color: var(--primary-hover); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE SHELL LIVES SOMEWHERE ELSE
+
+   The top bar, the rail and the menus that drop out of them are defined in
+   css/shell.css, which is loaded after this file. Their rules used to be here
+   -- roughly 370 lines written against a flatter palette and a full-bleed bar
+   -- and they were removed rather than left to be argued with, so there is one
+   owner per rule and no silent winner decided by load order inside this file.
+
+   What is left here is page content: cards, tables, forms, modals, toasts.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 /* ═══ Glassmorphism ═══ */
 .glass {
   background: var(--bg-glass);
@@ -88,378 +100,6 @@ a:hover { color: var(--primary-hover); }
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-}
-
-/* ═══ Navbar ═══ */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--navbar-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  z-index: 1000;
-}
-
-.nav-left { display: flex; align-items: center; gap: 16px; }
-.nav-right { display: flex; align-items: center; gap: 12px; }
-
-.sidebar-toggle {
-  background: none; border: none; color: var(--text); font-size: 1.2rem;
-  cursor: pointer; padding: 8px; border-radius: var(--radius-sm);
-  display: none;
-}
-.sidebar-toggle:hover { background: var(--bg-glass-hover); }
-
-.nav-brand {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 1.2rem; font-weight: 700; color: var(--text);
-}
-.nav-brand i { color: var(--primary); font-size: 1.4rem; }
-
-.search-box {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--bg-glass-hover); border: 1px solid var(--border);
-  border-radius: 24px; padding: 8px 16px; width: 320px;
-}
-.search-box i { color: var(--text-muted); }
-.search-box input {
-  background: none; border: none; color: var(--text); width: 100%;
-  font-family: var(--font); font-size: 0.875rem;
-}
-.search-box input::placeholder { color: var(--text-muted); }
-.search-box input:focus { outline: none; }
-
-.theme-toggle {
-  cursor: pointer; padding: 8px; border-radius: var(--radius-sm);
-  color: var(--text-muted); font-size: 1.1rem;
-}
-.theme-toggle:hover { background: var(--bg-glass-hover); color: var(--text); }
-
-/* ═══ User Menu ═══ */
-.user-btn {
-  display: flex; align-items: center; gap: 8px;
-  background: none; border: none; color: var(--text); cursor: pointer;
-  padding: 6px 12px; border-radius: 24px; font-family: var(--font);
-}
-.user-btn:hover { background: var(--bg-glass-hover); }
-.user-avatar { width: 32px; height: 32px; border-radius: 50%; }
-.user-name { font-size: 0.875rem; font-weight: 600; }
-
-.user-menu, .notif-menu {
-  position: absolute; top: calc(100% + 8px); left: 0;
-  min-width: 240px; border-radius: var(--radius); z-index: 100;
-  display: none; overflow: hidden;
-}
-.user-menu.show, .notif-menu.show { display: block; }
-
-.user-menu-dropdown, .notif-menu {
-  position: absolute; top: calc(100% + 8px); left: 0;
-  min-width: 240px; background: var(--bg-glass);
-  backdrop-filter: blur(20px); border: 1px solid var(--border);
-  border-radius: var(--radius); z-index: 100; display: none;
-}
-.user-menu-dropdown.show, .notif-menu.show { display: block; }
-
-.user-menu-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 16px; border-bottom: 1px solid var(--border);
-}
-.user-menu-header img { width: 40px; height: 40px; border-radius: 50%; }
-.user-menu-header strong { display: block; font-size: 0.9rem; }
-.user-menu-header span { font-size: 0.75rem; color: var(--text-muted); }
-
-.user-menu-body a {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; color: var(--text); font-size: 0.875rem;
-  transition: background var(--transition);
-}
-.user-menu-body a:hover { background: var(--bg-glass-hover); }
-.user-menu-body a.danger { color: var(--danger); }
-.user-menu-body hr { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
-
-.user-menu { left: auto; right: 0; }
-.notif-menu { left: auto; right: 0; min-width: 320px; }
-
-.notif-btn {
-  position: relative; background: none; border: none;
-  color: var(--text-muted); cursor: pointer; padding: 8px; font-size: 1.1rem;
-  border-radius: var(--radius-sm);
-}
-.notif-btn:hover { background: var(--bg-glass-hover); color: var(--text); }
-.notif-badge {
-  position: absolute; top: 2px; right: 2px;
-  background: var(--danger); color: white; font-size: 0.6rem;
-  padding: 2px 5px; border-radius: 10px; font-weight: 700;
-  min-width: 16px; text-align: center;
-}
-.notif-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 16px; border-bottom: 1px solid var(--border);
-}
-.notif-header h4 { font-size: 0.9rem; }
-.notif-header span { font-size: 0.75rem; color: var(--text-muted); }
-.notif-list { max-height: 300px; overflow-y: auto; }
-.notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border-light); cursor: pointer; }
-.notif-item:hover { background: var(--bg-glass-hover); }
-.notif-empty { padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
-
-/* ═══ Layout ═══ */
-.layout {
-  display: flex;
-  margin-top: var(--navbar-height);
-  min-height: calc(100vh - var(--navbar-height));
-}
-
-/* ═══ Sidebar — Collapsible ═══ */
-:root {
-  --sidebar-width: 260px;
-  --sidebar-collapsed: 68px;
-}
-
-/* Sidebar overlay for mobile */
-.sidebar-overlay {
-  position: fixed; inset: 0; z-index: 899;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(2px);
-  display: none;
-  opacity: 0;
-  transition: opacity var(--transition);
-}
-.sidebar.open ~ .sidebar-overlay,
-.sidebar-overlay.show {
-  display: block;
-  opacity: 1;
-}
-
-.sidebar {
-  position: fixed;
-  top: var(--navbar-height);
-  right: 0;
-  width: var(--sidebar-width);
-  height: calc(100vh - var(--navbar-height));
-  overflow: hidden;
-  border-left: 1px solid var(--border);
-  border-radius: 0;
-  z-index: 900;
-  transition: width var(--transition), transform var(--transition);
-  display: flex;
-  flex-direction: column;
-}
-.sidebar:hover { overflow-y: auto; }
-
-/* Collapsed mode — icons only */
-.sidebar.collapsed {
-  width: var(--sidebar-collapsed);
-}
-.sidebar.collapsed:hover {
-  width: var(--sidebar-width);
-}
-.sidebar.collapsed .sidebar-header span,
-.sidebar.collapsed .nav-section-title span,
-.sidebar.collapsed .nav-link span,
-.sidebar.collapsed .sidebar-footer .status-text,
-.sidebar.collapsed .sidebar-footer .bot-status span:last-child {
-  opacity: 0; width: 0; overflow: hidden; display: none;
-}
-.sidebar.collapsed .nav-section-title i {
-  margin: 0; font-size: 0.9rem;
-}
-.sidebar.collapsed .nav-link i {
-  font-size: 1.15rem;
-}
-.sidebar.collapsed .nav-link {
-  justify-content: center; padding: 10px 0;
-}
-.sidebar.collapsed .nav-section-title {
-  text-align: center; padding: 8px 0;
-}
-.sidebar.collapsed .sidebar-footer {
-  display: flex; justify-content: center; padding: 12px 0;
-}
-.sidebar.collapsed .bot-status { justify-content: center; }
-.sidebar.collapsed .sidebar-collapse-btn i {
-  transform: rotate(180deg);
-}
-.sidebar.collapsed .sidebar-header {
-  justify-content: center; padding: 16px 0;
-}
-
-/* Hidden mode */
-.sidebar.hidden {
-  transform: translateX(100%);
-  width: 0;
-  border: none;
-  padding: 0;
-  overflow: hidden;
-}
-
-/* Sidebar collapse button */
-.sidebar-collapse-btn {
-  position: absolute;
-  top: 12px;
-  left: -12px;
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition: all var(--transition);
-  font-size: 0.7rem;
-}
-.sidebar-collapse-btn:hover {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-.sidebar.collapsed .sidebar-collapse-btn {
-  left: 50%;
-  transform: translateX(-50%) rotate(180deg);
-}
-.sidebar.collapsed .sidebar-collapse-btn i {
-  transform: rotate(0);
-}
-
-/* Sidebar header */
-.sidebar-header {
-  display: flex;
-  align-items: center; gap: 10px;
-  padding: 20px 16px;
-  font-size: 1.1rem; font-weight: 700;
-  border-bottom: 1px solid var(--border);
-  transition: padding var(--transition);
-  position: relative;
-}
-.sidebar-header i { color: var(--primary); font-size: 1.3rem; }
-.sidebar-header span { transition: opacity var(--transition); white-space: nowrap; }
-.sidebar-close {
-  display: none; margin-right: auto;
-  background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem;
-}
-
-/* Nav */
-.sidebar-nav {
-  flex: 1;
-  padding: 8px 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-.sidebar-nav::-webkit-scrollbar { width: 3px; }
-
-.nav-section { margin-bottom: 4px; }
-.nav-section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  transition: padding var(--transition);
-}
-.nav-section-title i { font-size: 0.6rem; width: 20px; text-align: center; }
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 20px;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all var(--transition);
-  border-right: 3px solid transparent;
-  white-space: nowrap;
-  position: relative;
-}
-.nav-link i { width: 20px; text-align: center; font-size: 1rem; transition: font-size var(--transition); }
-.nav-link span { transition: opacity var(--transition); }
-.nav-link:hover {
-  color: var(--text);
-  background: var(--bg-glass-hover);
-}
-.nav-link.active {
-  color: var(--primary);
-  background: rgba(168, 85, 247, 0.1);
-  border-right-color: var(--primary);
-}
-.nav-link.locked {
-  opacity: 0.45;
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
-.nav-link.locked:hover {
-  color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.08);
-}
-.nav-link .nav-lock {
-  margin-right: auto;
-  font-size: 0.72rem;
-  width: auto;
-  color: #ff6b6b;
-  opacity: 0.9;
-}
-.user-menu-dropdown a.locked {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.user-menu-dropdown a.locked:hover { color: #ff6b6b; background: rgba(255,107,107,0.08); }
-
-/* Sidebar footer */
-.sidebar-footer {
-  padding: 16px 20px;
-  border-top: 1px solid var(--border);
-  transition: padding var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.sidebar-logout {
-  display: flex; align-items: center; gap: 8px;
-  color: #ed4245; text-decoration: none; font-size: 0.8rem;
-  padding: 6px 8px; border-radius: 6px; transition: background var(--transition);
-}
-.sidebar-logout:hover { background: rgba(237,66,69,.15); }
-.sidebar.collapsed .sidebar-logout span { display: none; }
-.sidebar-resize-handle {
-  cursor: pointer; color: var(--text-muted); font-size: 0.8rem; padding: 4px;
-  border-radius: 4px; transition: all var(--transition);
-}
-.sidebar-resize-handle:hover { color: var(--text); background: var(--bg-glass-hover); }
-
-.bot-status {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 0.8rem; color: var(--text-muted);
-  transition: opacity var(--transition);
-}
-
-/* Main content adapts */
-.main-content {
-  flex: 1;
-  margin-right: var(--sidebar-width);
-  padding: 24px;
-  min-height: calc(100vh - var(--navbar-height));
-  transition: margin-right var(--transition);
-}
-.sidebar.collapsed ~ .main-content {
-  margin-right: var(--sidebar-collapsed);
-}
-.sidebar.hidden ~ .main-content {
-  margin-right: 0;
 }
 
 /* ═══ Status Dot ═══ */
@@ -1846,12 +1486,6 @@ a:hover { color: var(--primary-hover); }
   pointer-events: none;
   backdrop-filter: blur(10px);
 }
-.sidebar.collapsed [title]:hover::after {
-  bottom: auto;
-  top: 50%;
-  left: calc(100% + 12px);
-  transform: translateY(-50%);
-}
 
 /* ═══ Edit Desc Button ═══ */
 .edit-desc-btn { margin-right: 8px; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; opacity: 0.4; transition: opacity var(--transition); }
@@ -2073,37 +1707,6 @@ a:hover { color: var(--primary-hover); }
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(100%);
-    width: var(--sidebar-width) !important;
-    right: 0;
-    box-shadow: none;
-    border-left: none;
-    border-right: 1px solid var(--border);
-  }
-  .sidebar.open {
-    transform: translateX(0);
-    box-shadow: 4px 0 24px rgba(0,0,0,0.3);
-  }
-  .sidebar-toggle { display: block; }
-  .sidebar-header { display: flex; }
-  .sidebar-header .sidebar-close { display: block; }
-  .sidebar-collapse-btn { display: none; }
-  .sidebar.collapsed { width: var(--sidebar-width) !important; }
-  .sidebar.collapsed .nav-link span,
-  .sidebar.collapsed .nav-section-title span,
-  .sidebar.collapsed .sidebar-header span { display: inline; opacity: 1; }
-  .sidebar.collapsed .nav-link { justify-content: flex-start; padding: 10px 20px; }
-  .sidebar.collapsed .nav-section-title { text-align: start; padding: 8px 20px; }
-  .sidebar.collapsed .sidebar-header { justify-content: flex-start; padding: 20px 16px; }
-  .sidebar.collapsed .sidebar-footer { justify-content: flex-start; padding: 16px 20px; }
-
-  .main-content { margin-right: 0 !important; }
-  .sidebar.hidden ~ .main-content { margin-right: 0; }
-
-  .search-box { width: 140px; }
-  .user-name { display: none; }
-
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .form-grid { grid-template-columns: 1fr; }
   .features-grid { grid-template-columns: 1fr; }
@@ -2127,7 +1730,6 @@ a:hover { color: var(--primary-hover); }
   .stats-container { flex-direction: column; gap: 24px; }
   .hero-content h1 { font-size: 1.6rem; }
   .features { padding: 40px 16px; }
-  .search-box { width: 120px; }
   .commands-filter { flex-direction: column; }
 }
 
@@ -2286,9 +1888,10 @@ a:hover { color: var(--primary-hover); }
 
 /* The brief puts card corners at 20-24px; the shared token is 22px. */
 
-/* .glass is the navbar, the sidebar and every dropdown. Held to 14px to match
-   the cards above -- the rule above it asked for 20px, which is past the brief's
-   12-16px band and reads as frosted rather than glass. */
+/* .glass is every dropdown and panel that is not a card. Held to 14px to match
+   the cards above -- the rule at the top of this file asked for 20px, which is
+   past the brief's 12-16px band and reads as frosted rather than glass. The bar
+   and the rail no longer use this class at all; they are drawn in shell.css. */
 .glass {
   background: var(--nx-glass);
   -webkit-backdrop-filter: blur(14px);
@@ -2302,45 +1905,4 @@ a:hover { color: var(--primary-hover); }
   border: 1px solid var(--nx-glass-br);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-}
-
-/* ── Your standing in this server ────────────────────────────────────────────
-   Added with the per-guild permission rework. The sidebar used to draw locks
-   from a level that had nothing to do with what the routes allowed, so it is
-   worth showing the number it now actually compares against. */
-.sidebar-role {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 14px 12px;
-  padding: 9px 12px;
-  border-radius: var(--nx-radius);
-  border: 1px solid var(--nx-glass-br);
-  background: var(--nx-fill);
-  font-size: .82rem;
-  color: var(--nx-muted);
-}
-
-.sidebar-role > i {
-  color: var(--nx-glow);
-  font-size: .85rem;
-}
-
-.sidebar-role-label {
-  font-weight: 500;
-  color: var(--text);
-}
-
-/* The developer chip. A different colour from the role label on purpose: being
-   a bot developer grants the dev panel and nothing over this server, and the
-   badge should not read as a rank inside the guild. */
-.sidebar-role-dev {
-  margin-inline-start: auto;
-  padding: 2px 9px;
-  border-radius: 999px;
-  font-size: .7rem;
-  font-weight: 700;
-  color: var(--nx-violet-2);
-  background: rgba(168,85,247,.16);
-  border: 1px solid rgba(168,85,247,.34);
 }
