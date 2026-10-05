@@ -647,43 +647,70 @@
 }
 .sidebar-close:hover { background: rgba(255,107,107,.12); color: #ff6b6b; }
 
-/* Collapse handle. It sits on the rail's content-facing edge -- inline-end here
-   -- so it never collides with the bar above it, and it reads as a tab on the
-   frame rather than a button floating in the column.
+/* Collapse handle. It hangs off the middle of the rail's inner edge, because
+   that is the only place the shell has an edge to hang from: the rail's
+   border-inline-end is the frame's dividing line, and a control sitting on that
+   line reads as part of the structure instead of as a button somebody left in
+   the column.
 
-   The tab hangs outward from that edge, so it is rounded on its inline-end
-   corners (top-left and bottom-left in RTL) and square where it meets the rail.
-   A physical `border-radius: 0 10px 10px 0` was here first and rounded the wrong
-   two: the tab was rounded where it joined the rail and square at the edge you
-   are meant to see.
+   Two things it got wrong before. It sat 18px below the rail's top, which is
+   precisely the band .sidebar-role occupies -- the handle and the role chip were
+   level with each other, one hanging off the frame and one sitting inside it,
+   and whichever you looked at first looked accidental. And it was square where
+   it met the rail and rounded only on its far two corners, so it read as a tab
+   slid halfway out of the frame rather than as a grip. It is a full pill now,
+   rounded at both ends.
 
-   inset-block-start is a plain 18px below the rail's top edge again. It had to
-   be calc(var(--nx-topbar-h) + 18px) while the rail ran up behind a floating
-   pill, because the tab is absolutely positioned inside the rail and measures
-   from the rail's padding box -- so at 18px it sat inside the pill's 16..80
-   band. The rail now begins where the band ends, so the bar is nowhere near this
-   edge and the compensation is gone. */
+   It stops flush against the hairline and does not cross it. 18px wide with an
+   overhang of 19px puts its rail-side edge on the border's outer edge exactly,
+   which is the one number here worth understanding: the handle is absolutely
+   positioned, so it measures from the rail's padding box, and an overhang one
+   pixel smaller lays the pill on top of the hairline and cuts the frame's
+   unbroken line in half for 52px. The frame is built on that line staying whole.
+
+   The 18px of overhang only clears because .main-content's padding is 24px: the
+   handle sits in the gutter with 6px to spare and never reaches a card. That is
+   the pair of numbers to revisit together if the page's gutter ever shrinks
+   below 20px, or if the handle gets wider.
+
+   Centred with a negative margin rather than translateY(-50%), so nothing here
+   claims a transform on the button itself and the chevron's own rotation is the
+   only transform in play. */
 .sidebar-collapse-btn {
   position: absolute;
-  inset-block-start: 18px;
-  inset-inline-end: -1px;
+  inset-block-start: 50%;
+  inset-inline-end: -19px;
+  margin-block-start: -26px;
   z-index: 10;
-  width: 22px;
-  height: 34px;
+  width: 18px;
+  height: 52px;
   padding: 0;
   display: grid;
   place-items: center;
+  /* A tighter shadow than --nx-shadow-sm's 8px/28px. That value is sized for a
+     card; on an 18x52 pill it is a smudge the size of the handle itself. */
+  box-shadow: 0 2px 8px rgba(0,0,0,.38);
   border: 1px solid var(--nx-hair);
-  border-inline-end: none;
-  border-start-end-radius: 10px;
-  border-end-end-radius: 10px;
+  border-radius: 999px;
   background: var(--nx-panel);
   color: var(--nx-muted);
-  font-size: .62rem;
+  font-size: .72rem;
   cursor: pointer;
-  transition: background-color .2s var(--nx-ease-out), color .2s var(--nx-ease-out);
+  transition:
+    background-color .2s var(--nx-ease-out),
+    border-color .2s var(--nx-ease-out),
+    color .2s var(--nx-ease-out),
+    box-shadow .2s var(--nx-ease-out);
 }
-.sidebar-collapse-btn:hover { background: var(--nx-purple); color: #fff; }
+/* A wash and a violet rim, not a solid block. This control is on screen at all
+   times, so a hover that fills purple is a purple bar sitting over the content
+   the rest of the time the pointer is anywhere near it. */
+.sidebar-collapse-btn:hover {
+  background: var(--nx-panel-2);
+  border-color: rgba(168,85,247,.34);
+  color: var(--nx-glow);
+  box-shadow: 0 2px 10px rgba(0,0,0,.42), 0 0 14px rgba(104,31,209,.42);
+}
 .sidebar-collapse-btn i { transition: transform .34s var(--nx-ease); }
 .sidebar.collapsed .sidebar-collapse-btn i { transform: rotate(180deg); }
 
@@ -1163,7 +1190,22 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
   border-color: rgba(237,66,69,.45);
   color: #ad2733;
 }
-[data-theme="light"] .sidebar-collapse-btn { background: #fff; border-color: rgba(124,58,237,.14); }
+/* The handle needs all three of its states restated, not just the resting one.
+   --nx-panel-2 is a near-black that no light theme re-points, so the dark
+   hover would put a black pill on a white page -- and --nx-muted is a grey that
+   on white reads as disabled rather than as quiet. */
+[data-theme="light"] .sidebar-collapse-btn {
+  background: #fff;
+  border-color: rgba(124,58,237,.18);
+  color: #6b6382;
+  box-shadow: 0 2px 8px rgba(60,40,120,.14);
+}
+[data-theme="light"] .sidebar-collapse-btn:hover {
+  background: rgba(124,58,237,.07);
+  border-color: rgba(124,58,237,.38);
+  color: #7c3aed;
+  box-shadow: 0 2px 10px rgba(60,40,120,.18), 0 0 14px rgba(124,58,237,.28);
+}
 
 /* ═══ Responsive ═══════════════════════════════════════════════════════════
    Below 768px the rail is a drawer again: it slides over the content, the
