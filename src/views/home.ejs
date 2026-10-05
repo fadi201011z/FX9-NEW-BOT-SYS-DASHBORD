@@ -74,6 +74,10 @@
   // "هوية البوت وقناة السجلات" and five sixths of it was invisible from home.
   // A page with eleven ways in should not need eleven visits to find out.
   const REQ_LABEL = ['دعم', 'مشرف', 'آدمن', 'مدير'];
+  // Two rows of servers, then the button. Chosen because it is the point where a
+  // front door stops being a front door: past six the page is a directory, and the
+  // count in the heading already says how many there are.
+  const GUILD_CAP = 6;
   const SYSTEMS = [
     { icon: 'circle-info', name: 'نظرة عامة', req: null, tint: 'hd-t-p',
       desc: 'الملخّص الذي تبدأ منه: حالة السيرفر بلا تعديل.',
@@ -114,7 +118,7 @@
   <div class="hd-bg">
     <div class="hd-orb hd-o1"></div>
     <div class="hd-orb hd-o2"></div>
-    <div class="hd-grid"></div>
+    <div class="hd-lines"></div>
   </div>
 
   <!-- ── الترحيب ── -->
@@ -214,9 +218,9 @@
   </section>
   <% } else { %>
   <section class="hd-g-wrap">
-    <div class="hd-g-scroll">
-      <% managed.forEach(g => { %>
-      <a href="/guilds/<%= g.id %>" class="hd-g-card" data-name="<%= g.name %>">
+    <div class="hd-g-grid" id="hdGGrid">
+      <% managed.forEach((g, gi) => { %>
+      <a href="/guilds/<%= g.id %>" class="hd-g-card" data-name="<%= g.name %>"<%= gi >= GUILD_CAP ? ' hidden' : '' %>>
         <div class="hd-g-ava <%= g.icon ? '' : 'noimg' %>">
           <% if (g.icon) { %>
           <%# The parent is read BEFORE the node is detached. "this.remove(); this.parentNode.classList..." 
@@ -233,6 +237,15 @@
       </a>
       <% }) %>
     </div>
+    <%# Two rows, then a button. Not a scroller -- a scroller is how the third
+        card disappeared in the first place -- and not "show all", which on an
+        account with thirty servers turns the front door into a directory. The
+        button is a disclosure, so it carries aria-expanded and the count; and
+        typing in the search opens it too, so a server you cannot see is still a
+        server you can find. %>
+    <% if (managed.length > GUILD_CAP) { %>
+    <button type="button" class="hd-g-more" id="hdGMore" aria-expanded="false" aria-controls="hdGGrid"><i class="fas fa-chevron-down" aria-hidden="true"></i><span id="hdGMoreT">عرض <%= managed.length - GUILD_CAP %> سيرفر آخر</span></button>
+    <% } %>
     <%# The search box and this note are one thing. With a single server on screen
         there is nothing to narrow down, so the box is not drawn -- which means
         nothing can ever reveal this note, and rendering it anyway would put dead
@@ -334,7 +347,7 @@
 .hd-orb{position:absolute;border-radius:50%;filter:blur(140px)}
 .hd-o1{width:520px;height:520px;background:#a855f7;top:-260px;right:-120px;opacity:0.06}
 .hd-o2{width:420px;height:420px;background:#7c3aed;bottom:-220px;left:-120px;opacity:0.05}
-.hd-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 0%,transparent 75%);mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 0%,transparent 75%)}
+.hd-lines{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 0%,transparent 75%);mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 0%,transparent 75%)}
 
 /* ── الترحيب ── */
 .hd-hero{position:relative;z-index:1;display:flex;align-items:center;gap:28px;padding:30px;border-radius:22px;background:rgba(14,14,30,0.55);border:1px solid rgba(255,255,255,0.07);box-shadow:0 24px 70px rgba(0,0,0,0.28);overflow:hidden}
@@ -438,7 +451,13 @@
 .hd-search input:focus{border-color:rgba(168,85,247,0.4);box-shadow:0 0 0 3px rgba(168,85,247,0.08)}
 
 /* ── نظرة عامة حية ── */
-.hd-kpis{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+/* minmax(0,1fr), not 1fr. A bare 1fr track is minmax(auto,1fr), and auto floors at
+   min-content: the moment the container is narrower than four tiles of their
+   longest unbreakable run, the tracks refuse to shrink and the grid grows wider
+   than its parent -- measured at 605px inside a 420px box, which is the 185px
+   that pushed the whole document into a horizontal scroll. The zero lets the
+   track go below min-content and the tile's own overflow rule does the rest. */
+.hd-kpis{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
 .hd-kpi{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:all 0.25s}
 .hd-kpi:hover{transform:translateY(-2px);border-color:rgba(168,85,247,0.22);background:rgba(16,16,36,0.7)}
 .hd-kpi-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
@@ -458,10 +477,34 @@
 
 /* ── سيرفراتك ── */
 .hd-g-wrap{position:relative;z-index:1}
-.hd-g-scroll{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
-.hd-g-scroll::-webkit-scrollbar{display:none}
-.hd-g-card{display:flex;align-items:center;gap:12px;min-width:232px;padding:13px 14px;border-radius:14px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:all 0.25s}
-.hd-g-card:hover{transform:translateY(-3px);border-color:rgba(168,85,247,0.3);background:rgba(16,16,36,0.72);box-shadow:0 14px 40px rgba(0,0,0,0.35)}
+/* The cap is [hidden], not a class: it is what it means, it keeps the card out of
+   the accessibility tree while it is folded, and :has() could find it if anything
+   ever needed to. The display value here outranks the user-agent [hidden] rule,
+   so it has to be restated in both directions or the attribute does nothing. */
+.hd-g-card[hidden]{display:none}
+.hd-g-grid.is-open .hd-g-card[hidden]{display:flex}
+.hd-g-more{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:9px 18px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);font-family:'Tajawal', system-ui, sans-serif;font-size:0.74rem;font-weight:600;cursor:pointer;transition:all 0.25s}
+.hd-g-more:hover{background:rgba(168,85,247,0.14);border-color:rgba(168,85,247,0.38);color:#d8b4fe}
+.hd-g-more i{font-size:0.6rem;transition:transform 0.25s}
+.hd-g-grid.is-open~.hd-g-more i{transform:rotate(180deg)}
+/* ── سيرفراتك ──
+   This was a flex row with overflow-x:auto and the scrollbar hidden in two
+   spellings. With three servers the cards are 232px each and the strip is 629px
+   wide, so the third card hung 91px past the edge with nothing on screen to say
+   it was there -- scrollbar-width:none and ::-webkit-scrollbar{display:none}
+   between them. That is the card that "did not show", and the affordance that
+   would have explained it had been deleted.
+
+   Flex, not auto-fill, and the reason is the same one the catalogue below uses:
+   auto-fill lays tracks out and leaves the empties in the last row. Three servers
+   at a two-column width put two cards up and one card beside half a row of nothing
+   -- measured at 49% filled. Flex lets the survivors of the last line grow into the
+   gap, so the row is full at three, at two and at one, for any number of servers.
+   min-width:0 is not optional here: the default min-width:auto lets a long server
+   name push a card wider than its share, and the row stops being full. */
+.hd-g-grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px}
+.hd-g-card{display:flex;flex:1 1 calc(33.3333% - 8px);align-items:center;gap:12px;min-width:0;padding:13px 14px;border-radius:14px;background:rgba(14,14,30,0.62);border:1px solid rgba(255,255,255,0.1);transition:all 0.25s}
+.hd-g-card:hover{transform:translateY(-3px);border-color:rgba(168,85,247,0.42);background:rgba(16,16,36,0.86);box-shadow:0 14px 40px rgba(0,0,0,0.35)}
 .hd-g-ava{position:relative;width:44px;height:44px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,rgba(168,85,247,0.16),rgba(139,92,246,0.16));flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .hd-g-ava img{width:100%;height:100%;object-fit:cover}
 .hd-g-letter{display:none;font-size:1.1rem;font-weight:800;color:#d8b4fe}
@@ -485,7 +528,7 @@
 
 /* ── حالة النظام ── */
 .hd-sys-panel{position:relative;z-index:1;padding:20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06)}
-.hd-sys-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.hd-sys-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
 .hd-sys-cell{padding:13px 15px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)}
 .hd-sys-k{font-size:0.62rem;font-weight:600;color:var(--text-muted)}
 .hd-sys-v{margin-top:5px;font-size:0.86rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -504,8 +547,14 @@
 .hd-nohit[hidden]{display:none}
 
 /* ── بطاقات الأنظمة ── */
-.hd-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.hd-card{position:relative;display:flex;flex-direction:column;padding:24px 20px 22px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px solid rgba(255,255,255,0.06);transition:border-color 0.28s;overflow:hidden}
+/* Flex, not grid, and that is the whole fix for the hole in the last row. Eleven
+   cards in three columns is 3+3+3+2, so the grid left a third of the last row
+   empty -- 214px of nothing under a heading that promises a catalogue. A grid can
+   only be patched for that with :nth-child arithmetic that is wrong at every
+   other breakpoint; flex lets the survivors of the last line grow into the gap, so
+   the row is full at 3, at 2 and at 1 column, for any number of cards. */
+section.hd-grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px}
+.hd-card{position:relative;flex:1 1 calc(33.3333% - 9.34px);min-width:0;display:flex;flex-direction:column;padding:24px 20px 22px;border-radius:16px;background:rgba(14,14,30,0.62);border:1px solid rgba(255,255,255,0.1);transition:border-color 0.28s;overflow:hidden}
 .hd-card-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;margin-bottom:15px;background:color-mix(in srgb, var(--hd-tint) 12%, transparent);color:var(--hd-tint)}
 .hd-card h3{font-size:0.92rem;font-weight:700;margin:0 0 5px}
 .hd-card p{font-size:0.73rem;color:var(--text-muted);margin:0;line-height:1.8}
@@ -570,6 +619,8 @@
 [data-theme="light"] .hd-ribbon-sub,
 [data-theme="light"] .hd-nohit,
 [data-theme="light"] .hd-empty p{color:var(--text-muted)}
+[data-theme="light"] .hd-g-more{color:var(--text-muted);background:rgba(124,58,237,0.06);border-color:var(--border)}
+[data-theme="light"] .hd-g-more:hover{background:rgba(124,58,237,0.12);border-color:#7c3aed;color:#5b21b6}
 [data-theme="light"] .hd-sys-req{color:var(--text-muted);background:rgba(124,58,237,0.06);border-color:var(--border)}
 /* The six cells sit inside the panel, and both were given the same token, so in
    light mode the inset disappeared and the panel read as one flat sheet. This is
@@ -660,14 +711,18 @@
 .hd-sec-diag{animation:hdUp 0.5s ease 0.18s both}
 .hd-sys-panel{animation:hdUp 0.5s ease 0.21s both}
 .hd-sec-sys{animation:hdUp 0.5s ease 0.25s both}
-/* section.hd-grid, not .hd-grid: the name is doing two jobs on this page -- it is
-   the eleven-card catalogue and it is also the faint line grid painted behind
-   everything. The bare selector was sliding the wallpaper into place on load. */
+/* The line grid used to be a second .hd-grid, which meant the catalogue's own
+   rules were landing on it too -- it inherited display:grid and a 3-column
+   template, and an empty grid has no height, so the wallpaper behind the page
+   measured 985x0 and drew nothing. Renamed, not overridden: one name, one job. */
 section.hd-grid{animation:hdUp 0.5s ease 0.29s both}
 
-/* ── التجاوب ── */
+/* ── التجاوب ──
+   Every template here keeps the minmax(0,...) floor for the same reason as the
+   two above: a media query changes how many columns there are, but it does not
+   change the fact that a bare 1fr cannot shrink past min-content. */
 @media(max-width:1080px){
-  .hd-sys-grid{grid-template-columns:repeat(3,1fr)}
+  .hd-sys-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media(max-width:900px){
   .hd-hero{flex-wrap:wrap;gap:22px;padding:24px}
@@ -675,9 +730,10 @@ section.hd-grid{animation:hdUp 0.5s ease 0.29s both}
   .hd-hero-bar{align-self:flex-start}
 }
 @media(max-width:760px){
-  .hd-kpis{grid-template-columns:repeat(2,1fr)}
-  .hd-grid{grid-template-columns:repeat(2,1fr)}
-  .hd-sys-grid{grid-template-columns:repeat(2,1fr)}
+  .hd-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hd-card{flex-basis:calc(50% - 7px)}
+  .hd-g-card{flex-basis:calc(50% - 6px)}
+  .hd-sys-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hd-hero-side{flex-direction:column}
   .hd-hero h1{font-size:1.3rem}
   .hd-search{margin-inline-start:0;width:100%}
@@ -686,8 +742,9 @@ section.hd-grid{animation:hdUp 0.5s ease 0.29s both}
   .hd-ribbon-go{margin-inline-start:0;width:100%}
 }
 @media(max-width:520px){
-  .hd-grid{grid-template-columns:1fr}
-  .hd-sys-grid{grid-template-columns:1fr}
+  .hd-card{flex-basis:100%}
+  .hd-g-card{flex-basis:100%}
+  .hd-sys-grid{grid-template-columns:minmax(0,1fr)}
   .hd-hero{padding:20px}
   .hd-kpi-txt b{font-size:1.15rem}
 }
@@ -861,19 +918,44 @@ section.hd-grid{animation:hdUp 0.5s ease 0.29s both}
     }
   });
 
-  // البحث في سيرفراتك
+  // سيرفراتك: الطي ثم البحث
+  var gGrid = $('hdGGrid');
+  var gMore = $('hdGMore');
+
+  function setOpen(open) {
+    if (!gGrid || !gMore) return;
+    gGrid.classList.toggle('is-open', open);
+    gMore.setAttribute('aria-expanded', open ? 'true' : 'false');
+    // The count is what is still folded away, so it has to stop counting the ones
+    // now on screen. Only the text node is written: rebuilding the button's innerHTML
+    // would replace the chevron too, and the rotate on .hd-g-more i is a transition
+    // -- a fresh <i> starts already rotated and snaps instead of turning.
+    var rest = gGrid.querySelectorAll('.hd-g-card[hidden]').length;
+    var txt = $('hdGMoreT');
+    if (txt) txt.textContent = open ? 'إخفاء الباقي' : 'عرض ' + rest + ' سيرفر آخر';
+  }
+  if (gMore && gGrid) {
+    gMore.addEventListener('click', function () {
+      setOpen(!gGrid.classList.contains('is-open'));
+    });
+  }
+
   var inp = $('hdSearch');
-  if (inp) {
-    var cards = Array.prototype.slice.call(document.querySelectorAll('.hd-g-card'));
+  if (inp && gGrid) {
+    var cards = Array.prototype.slice.call(gGrid.querySelectorAll('.hd-g-card'));
     var noHit = $('hdNoHit');
-    inp.addEventListener('input', function(){
+    inp.addEventListener('input', function () {
       var q = inp.value.trim().toLowerCase();
+      // A cap that hides the answer to the question is not a cap, it is a bug.
+      // Typing opens the rest, and clearing it puts the fold back.
+      if (q && gMore) setOpen(true);
       var shown = 0;
-      cards.forEach(function(c){
+      cards.forEach(function (c) {
         var hit = (c.dataset.name || '').toLowerCase().indexOf(q) >= 0;
         c.style.display = hit ? '' : 'none';
         if (hit) shown++;
       });
+      if (!q && gMore) setOpen(false);
       // A search that matches nothing used to leave a blank strip with no word
       // about why. The note sits under the strip so it does not shift it.
       if (noHit) noHit.hidden = shown > 0;
