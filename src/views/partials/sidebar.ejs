@@ -30,20 +30,32 @@
   </button>
 
   <nav class="sidebar-nav">
+    <%# The four pages the site is made of, in the order they were asked for, and
+        the only four in this section.
+
+        لوحة التحكم and السيرفرات used to sit here as well. They are gone from the
+        rail on purpose: this section is the list of where you can *go*, and
+        neither of them is that -- both are places you configure a server, so both
+        belong to the server's own section, which is where the other twelve
+        per-guild pages already live. Neither is unreachable: the home page's grid
+        links to both, and so does the account menu.
+
+        Nothing here is permission-gated, so no data-req and no lock icon. That was
+        never true of these four and it is worth saying, because the section below
+        is full of them and the absence here would otherwise look like a mistake. -%>
     <div class="nav-section">
       <span class="nav-section-title"><i class="fas fa-compass" aria-hidden="true"></i> <span>الرئيسية</span></span>
       <a href="/home" class="nav-link <%= currentPage === 'home' ? 'active' : '' %>" title="الصفحة الرئيسية"<% if (currentPage === 'home') { %> aria-current="page"<% } %>>
         <i class="fas fa-home" aria-hidden="true"></i>
         <span>الصفحة الرئيسية</span>
       </a>
-      <a href="/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %> <%= perms.can.dashboard ? '' : 'locked' %>" data-req="3" title="لوحة التحكم"<% if (currentPage === 'dashboard') { %> aria-current="page"<% } %>>
-        <i class="fas fa-th-large" aria-hidden="true"></i>
-        <span>لوحة التحكم</span>
-        <% if (!perms.can.dashboard) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
+      <a href="/docs" class="nav-link <%= currentPage === 'docs' ? 'active' : '' %>" title="الدليل الشامل"<% if (currentPage === 'docs') { %> aria-current="page"<% } %>>
+        <i class="fas fa-book" aria-hidden="true"></i>
+        <span>الدليل الشامل</span>
       </a>
-      <a href="/guilds" class="nav-link <%= currentPage === 'guilds' ? 'active' : '' %>" title="السيرفرات"<% if (currentPage === 'guilds') { %> aria-current="page"<% } %>>
-        <i class="fas fa-server" aria-hidden="true"></i>
-        <span>السيرفرات</span>
+      <a href="/about" class="nav-link <%= currentPage === 'about' ? 'active' : '' %>" title="نبذة عنا"<% if (currentPage === 'about') { %> aria-current="page"<% } %>>
+        <i class="fas fa-address-card" aria-hidden="true"></i>
+        <span>نبذة عنا</span>
       </a>
       <a href="/status" class="nav-link <%= currentPage === 'status' ? 'active' : '' %>" title="حالة البوت"<% if (currentPage === 'status') { %> aria-current="page"<% } %>>
         <i class="fas fa-heartbeat" aria-hidden="true"></i>
@@ -116,19 +128,20 @@
     </div>
     <% } %>
 
+    <%# Rendered only when there is something in it. التوثيق moved up into the
+        section above because it is one of the four pages, which left this one
+        holding a single developer-only row -- so for everyone else it was a
+        heading with nothing under it, and an empty heading reads as a broken
+        section rather than as one that is not there. -%>
+    <% if (perms.can.dev) { %>
     <div class="nav-section">
       <span class="nav-section-title"><i class="fas fa-ellipsis-h" aria-hidden="true"></i> <span>أخرى</span></span>
-      <a href="/docs" class="nav-link <%= currentPage === 'docs' ? 'active' : '' %>" title="التوثيق"<% if (currentPage === 'docs') { %> aria-current="page"<% } %>>
-        <i class="fas fa-book" aria-hidden="true"></i>
-        <span>التوثيق</span>
-      </a>
-      <% if (perms.can.dev) { %>
       <a href="/dev" class="nav-link <%= currentPage === 'dev' ? 'active' : '' %>" title="لوحة المطور"<% if (currentPage === 'dev') { %> aria-current="page"<% } %>>
         <i class="fas fa-code" aria-hidden="true"></i>
         <span>لوحة المطور</span>
       </a>
-      <% } %>
     </div>
+    <% } %>
   </nav>
 
   <%# websocket.js replaces this element's innerHTML with the same

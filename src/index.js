@@ -224,6 +224,15 @@ app.get('/status', (req, res) => {
   res.render('status', { user: req.session?.user || null, title: 'حالة البوت' });
 });
 
+// ─── About ────────────────────────────────────────────────────────────────
+// Public, like /docs and /status: no isAuthenticated, so the page renders for a
+// logged-out visitor too and the rail's fourth link never dead-ends on a bounce.
+// res.locals.perms is already set for every request by the middleware above, so
+// the rail locks and the role badge below it need nothing extra here.
+app.get('/about', (req, res) => {
+  res.render('about', { user: req.session?.user || null, title: 'نبذة عنا' });
+});
+
 // ─── Access Denied ───────────────────────────────────────────────────────
 app.get('/access-denied', (req, res) => {
   res.status(403).render('access-denied', { layout: false, user: req.session?.user || null, title: 'لا يمكنك الدخول', clientId: config.discord.clientId, reason: req.query.reason || 'owner' });
