@@ -384,6 +384,7 @@ router.get('/features', isAuthenticated, isOwnerOrDeveloper, async (req, res) =>
   const features = await readFeatureState();
   res.render('dev/features', {
     user: req.session.user,
+    title: 'حالة الخصائص',
     features,
     counts: countFeatureStates(features),
     groups: FEATURE_GROUPS,
