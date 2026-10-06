@@ -265,40 +265,42 @@
        حالياً" under a heading that called it مباشر. Half the row was a hole, on
        the one page a person opens first.
 
-       What replaced it is read from /api/status and is therefore always there:
-       the dashboard's own process, measured. And when the bot API misses, the
-       panel says which of the five possible causes it was -- the mapping is the
-       one written out in routes/status.js, because "غير متصل" alone has never
-       once told anyone what to fix. -->
+       What replaced it is read from /api/status. The six readings are masked in
+       the markup at the owner's request -- the platform, the Node version, the
+       uptime and the memory footprint do not need to sit on a page that can be
+       screenshotted. What is left of the call is the one line worth reading:
+       when the bot API misses, the panel says which of the five possible causes
+       it was -- the mapping is the one written out in routes/status.js, because
+       "غير متصل" alone has never once told anyone what to fix. -->
   <div class="hd-sec-head hd-sec-diag">
     <h2><i class="fas fa-heart-pulse"></i> حالة النظام</h2>
-    <span>قياسات اللوحة نفسها، لحظة بلحظة</span>
+    <span>قياسات اللوحة نفسها، مقنّعة</span>
   </div>
   <section class="hd-sys-panel">
     <div class="hd-sys-grid">
       <div class="hd-sys-cell">
         <div class="hd-sys-k">اتصال البوت</div>
-        <div class="hd-sys-v" id="hdSysLink">—</div>
+        <div class="hd-sys-v" id="hdSysLink">•••</div>
       </div>
       <div class="hd-sys-cell">
         <div class="hd-sys-k">استجابة اللوحة</div>
-        <div class="hd-sys-v" id="hdSysRsp">—</div>
+        <div class="hd-sys-v" id="hdSysRsp">•••</div>
       </div>
       <div class="hd-sys-cell">
         <div class="hd-sys-k">مدة التشغيل</div>
-        <div class="hd-sys-v" id="hdSysUp">—</div>
+        <div class="hd-sys-v" id="hdSysUp">•••</div>
       </div>
       <div class="hd-sys-cell">
         <div class="hd-sys-k">الذاكرة</div>
-        <div class="hd-sys-v" id="hdSysMem">—</div>
+        <div class="hd-sys-v" id="hdSysMem">•••</div>
       </div>
       <div class="hd-sys-cell">
         <div class="hd-sys-k">إصدار Node</div>
-        <div class="hd-sys-v" id="hdSysNode">—</div>
+        <div class="hd-sys-v" id="hdSysNode">•••</div>
       </div>
       <div class="hd-sys-cell">
         <div class="hd-sys-k">المنصة</div>
-        <div class="hd-sys-v" id="hdSysPlat">—</div>
+        <div class="hd-sys-v" id="hdSysPlat">•••</div>
       </div>
     </div>
     <p class="hd-sys-note" id="hdSysNote" hidden></p>
@@ -532,9 +534,6 @@
 .hd-sys-cell{padding:13px 15px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)}
 .hd-sys-k{font-size:0.62rem;font-weight:600;color:var(--text-muted)}
 .hd-sys-v{margin-top:5px;font-size:0.86rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hd-sys-v.is-on{color:#57f287}
-.hd-sys-v.is-off{color:#f87171}
-.hd-sys-v.is-na{color:var(--text-muted)}
 /* The one line that turns "غير متصل" into something actionable. routes/status.js
    already worked out that each way this can fail has exactly one fix and wrote it
    in a comment; this is where it is said out loud. */
@@ -629,15 +628,12 @@ section.hd-grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px
 [data-theme="light"] .hd-hero h1,
 [data-theme="light"] .hd-ribbon-title,
 [data-theme="light"] .hd-sys-v{color:var(--text)}
-[data-theme="light"] .hd-sys-v.is-on{color:#047857}
-[data-theme="light"] .hd-sys-v.is-off{color:#b91c1c}
 [data-theme="light"] .hd-sys-note{background:rgba(220,38,38,0.06);border-color:rgba(220,38,38,0.2);color:#b91c1c}
 [data-theme="light"] .hd-sys-note b{color:#991b1b}
 [data-theme="light"] .hd-kpi:hover,
 [data-theme="light"] .hd-g-card:hover,
 [data-theme="light"] .hd-theme:hover{background:#fff;border-color:var(--border)}
-[data-theme="light"] .hd-kpi.is-na .hd-kpi-txt b,
-[data-theme="light"] .hd-sys-v.is-na{color:var(--text-muted)}
+[data-theme="light"] .hd-kpi.is-na .hd-kpi-txt b{color:var(--text-muted)}
 [data-theme="light"] .hd-ping-good{color:#047857}
 [data-theme="light"] .hd-ping-mid{color:#b45309}
 [data-theme="light"] .hd-ping-bad{color:#dc2626}
@@ -816,40 +812,14 @@ section.hd-grid{animation:hdUp 0.5s ease 0.29s both}
     'timeout':   'البوت ما زال يقلع، أو رابطه في اللوحة غير صحيح.',
     'network':   'رابط البوت في اللوحة غير صحيح أو غير موصول.'
   };
-  var PLATFORM = { win32: 'Windows', linux: 'Linux', darwin: 'macOS' };
-
-  function setVal(id, text, cls){
-    var el = $(id);
-    if (!el) return;
-    el.textContent = text;
-    if (cls) el.className = 'hd-sys-v ' + cls;
-  }
-
-  function fmtUptime(s){
-    s = Math.max(0, Math.floor(Number(s) || 0));
-    var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
-    if (d) return d + (d === 1 ? ' يوم ' : ' أيام ') + h + ' س';
-    if (h) return h + ' س ' + m + ' د';
-    return m + ' د';
-  }
-
-  /* ست قراءات من نداء واحد. إمّا تُقاس، أو تُقال مرة واحدة بدل ست شرطات. */
+  /* القيم الستة مخفية بطلب المالك: تُكتب مرة واحدة في القالب ولا تُقرأ من
+     /api/status، فما بقي من النداء غير الملاحظة اللي تشرح سبب توقّف البوت. */
   function fillPanel(d){
     var note = $('hdSysNote');
-    var ids = ['hdSysLink','hdSysRsp','hdSysUp','hdSysMem','hdSysNode','hdSysPlat'];
     if (!d) {
-      ids.forEach(function(id){ setVal(id, DASH, 'is-na'); });
       if (note) { note.textContent = 'تعذّر قراءة حالة النظام من الخادم، فرقام الشبكة أعلاه لن تتحدث أيضاً.'; note.hidden = false; }
       return;
     }
-
-    var rt = isFinite(Number(d.responseTime)), mem = d.memory && isFinite(Number(d.memory.rss));
-    setVal('hdSysLink', d.botOnline ? 'متصل' : 'غير متصل', d.botOnline ? 'is-on' : 'is-off');
-    setVal('hdSysRsp', rt ? Math.round(Number(d.responseTime)) + 'ms' : DASH, rt ? '' : 'is-na');
-    setVal('hdSysUp', isFinite(Number(d.uptime)) ? fmtUptime(d.uptime) : DASH, isFinite(Number(d.uptime)) ? '' : 'is-na');
-    setVal('hdSysMem', mem ? Math.round(Number(d.memory.rss) / 1048576) + ' م.ب' : DASH, mem ? '' : 'is-na');
-    setVal('hdSysNode', d.nodeVersion ? String(d.nodeVersion).replace(/^v/, '') : DASH, d.nodeVersion ? '' : 'is-na');
-    setVal('hdSysPlat', PLATFORM[d.platform] || d.platform || DASH, d.platform ? '' : 'is-na');
 
     if (note) {
       if (d.botOnline) { note.hidden = true; note.textContent = ''; }
