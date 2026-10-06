@@ -342,7 +342,9 @@ function initFadeAnimations() {
     });
   }, { threshold: 0.1 });
 
-  document.querySelectorAll('.stat-card, .card, .feature-card, .command-card, .doc-card, .guild-card').forEach(el => {
+  // .doc-card is deliberately not in this list: the command guide runs its own
+  // staggered rise (see views/docs.ejs) and would otherwise be animated twice.
+  document.querySelectorAll('.stat-card, .card, .feature-card, .command-card, .guild-card').forEach(el => {
     el.style.opacity = '0';
     observer.observe(el);
   });

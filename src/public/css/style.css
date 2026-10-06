@@ -1223,40 +1223,12 @@ a:hover { color: var(--primary-hover); }
 .command-body p { font-size: 0.78rem; color: var(--text-muted); margin: 4px 0; }
 .command-meta { display: flex; gap: 12px; font-size: 0.7rem; color: var(--text-muted); }
 
-/* ═══ Docs ═══ */
-.docs-filter { margin-bottom: 20px; }
-.docs-filter input {
-  width: 100%; background: var(--bg-glass-hover); color: var(--text);
-  border: 1px solid var(--border); border-radius: 24px;
-  padding: 12px 20px; font-family: var(--font); margin-bottom: 12px;
-}
-.docs-filter input:focus { outline: none; border-color: var(--primary); }
-
-.docs-categories { display: flex; gap: 8px; flex-wrap: wrap; }
-.docs-categories a { font-size: 0.8rem; }
-
-.docs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 12px;
-}
-.doc-card { padding: 16px; }
-.doc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.doc-category {
-  font-size: 0.7rem; padding: 2px 8px; border-radius: 4px;
-  background: rgba(168, 85, 247, 0.15); color: var(--primary); font-weight: 600;
-}
-.doc-command {
-  font-size: 0.85rem; font-weight: 700; direction: ltr;
-  background: var(--bg-glass-hover); padding: 2px 8px; border-radius: 4px;
-}
-.doc-desc { font-size: 0.85rem; color: var(--text-muted); }
-.doc-options { margin-top: 10px; }
-.doc-options strong { font-size: 0.78rem; display: block; margin-bottom: 4px; }
-.doc-options ul { list-style: none; }
-.doc-options li { font-size: 0.78rem; color: var(--text-muted); padding: 2px 0; }
-.doc-options code { font-size: 0.75rem; background: rgba(168, 85, 247, 0.15); padding: 1px 5px; border-radius: 3px; }
-.required { color: var(--danger); }
+/* ═══ Docs ═══
+   The command guide's styles moved into src/views/docs.ejs, with the page.
+   They were the only reader of the classes removed here and the redesign is
+   large enough that keeping them in this file would have meant either a
+   parallel set of rules or a rename that left the old ones behind. All that
+   stays here is the note. */
 
 /* ═══ Backup ═══ */
 .backup-create { text-align: center; padding: 24px; }

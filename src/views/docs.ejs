@@ -1,57 +1,327 @@
 <% currentPage = 'docs' %>
-<div class="page-header">
-  <h1><i class="fas fa-book"></i> توثيق الأوامر</h1>
-  <p>جميع أوامر البوت مع الشرح والاستخدام</p>
-</div>
+<%
+  /* One source of truth for how each command category is named, drawn and
+     tinted. The label and icon are the only place a category is spelled, so a
+     badge can never drift from the heading it sits under. A category the bot
+     grows that is not listed here still renders -- catInfo() falls back to the
+     raw key with a neutral tint rather than dropping the command. */
+  const CAT = {
+    setup:      { label: 'الإعداد',   icon: 'fa-sliders',       color: '#38bdf8' },
+    moderation: { label: 'الإدارة',   icon: 'fa-shield-halved', color: '#f87171' },
+    info:       { label: 'المعلومات', icon: 'fa-circle-info',   color: '#a78bfa' },
+    members:    { label: 'الأعضاء',   icon: 'fa-users',         color: '#34d399' },
+    ticket:     { label: 'التذاكر',   icon: 'fa-ticket',        color: '#fbbf24' },
+    voice:      { label: 'الصوت',     icon: 'fa-microphone',    color: '#22d3ee' },
+  };
+  const catInfo = c => CAT[c] || { label: c, icon: 'fa-terminal', color: '#a855f7' };
 
-<div class="docs-filter">
-  <input type="text" id="docsSearch" placeholder="🔍 بحث عن أمر..." oninput="filterDocs()">
-  <div class="docs-categories">
-    <a href="/docs" class="btn-sm <%= !locals.category ? 'active' : '' %>">الكل</a>
-    <% const cats = ['setup','moderation','info','members','ticket','voice'] %>
-    <% cats.forEach(c => { %>
-      <a href="/docs/<%= c %>" class="btn-sm <%= locals.category === c ? 'active' : '' %>"><%= c %></a>
+  const all = Array.isArray(commands) ? commands : [];
+  const activeCat = (typeof category !== 'undefined' && category) ? category : '';
+
+  /* The pill row lists every category the bot ships, in the order CAT is
+     written, whether or not the current page is showing one of them. Building it
+     from the commands that were passed in would have been shorter, but on
+     /docs/:category that array holds one category only -- every other pill would
+     vanish and the filtered page would lose its own navigation. A category the
+     bot grows that is not in CAT is appended instead of dropped. */
+  const seen = [];
+  all.forEach(c => { if (!seen.includes(c.category)) seen.push(c.category); });
+  const known = Object.keys(CAT);
+  const cats = known.concat(seen.filter(c => !known.includes(c)));
+%>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   دليل الأوامر — page styles
+
+   Scoped to this page on purpose: the whole block is inline in docs.ejs, so
+   nothing here can reach another screen. It builds on the shared tokens
+   (css/tokens.css) and adds no new palette -- the only new ink is the two
+   display fonts, loaded here rather than in the layout so the rest of the site
+   does not pay for them.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.docs-hero{
+  position:relative; overflow:hidden; isolation:isolate;
+  padding:30px 26px; margin-bottom:18px;
+  border:1px solid var(--border); border-radius:20px;
+  background:
+    radial-gradient(120% 170% at 88% -30%, rgba(168,85,247,.32), transparent 58%),
+    radial-gradient(90% 140% at -5% 130%, rgba(34,211,238,.16), transparent 55%),
+    var(--bg-card);
+}
+.docs-hero-glow{
+  position:absolute; z-index:-1; top:-45%; inset-inline-end:-8%;
+  width:340px; height:340px; border-radius:50%;
+  background:radial-gradient(circle, rgba(168,85,247,.5), transparent 70%);
+  filter:blur(26px); pointer-events:none;
+  animation:docsFloat 7s ease-in-out infinite;
+}
+@keyframes docsFloat{
+  0%,100%{ transform:translate3d(0,0,0) scale(1); }
+  50%    { transform:translate3d(-16px,20px,0) scale(1.08); }
+}
+.docs-hero-inner{ position:relative; }
+.docs-eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:5px 12px; border-radius:999px;
+  font-size:.72rem; font-weight:700; letter-spacing:.01em;
+  color:#e9d9ff; background:rgba(168,85,247,.16); border:1px solid rgba(168,85,247,.35);
+}
+[data-theme="light"] .docs-eyebrow{ color:#6b21a8; }
+.docs-hero-title{
+  font-family:'Cairo', var(--font);
+  font-size:clamp(1.6rem, 4vw, 2.4rem); font-weight:900; line-height:1.25;
+  margin:14px 0 8px;
+}
+.docs-hero-accent{
+  background:linear-gradient(90deg, var(--primary), #22d3ee);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.docs-hero-sub{ max-width:560px; color:var(--text-muted); font-size:.95rem; line-height:1.9; }
+.docs-stats{ display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; }
+.docs-stat{
+  display:flex; flex-direction:column; gap:2px; min-width:96px;
+  padding:10px 18px; border-radius:12px;
+  background:var(--bg-glass); border:1px solid var(--border);
+}
+.docs-stat strong{
+  font-family:'Cairo',var(--font); font-size:1.45rem; font-weight:800;
+  line-height:1; color:var(--text); font-variant-numeric:tabular-nums;
+}
+.docs-stat span{ font-size:.72rem; color:var(--text-muted); }
+
+/* ── toolbar: search + category row ─────────────────────────────────────── */
+.docs-toolbar{
+  position:sticky; top:var(--nx-topbar-h); z-index:5;
+  display:flex; flex-direction:column; gap:12px;
+  padding:14px; margin-bottom:18px;
+  border:1px solid var(--border); border-radius:16px;
+  background:color-mix(in srgb, var(--bg-secondary) 78%, transparent);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+}
+[data-theme="light"] .docs-toolbar{ background:color-mix(in srgb, #fff 82%, transparent); }
+
+.docs-search{ position:relative; display:flex; align-items:center; }
+.docs-search > i{
+  position:absolute; inset-inline-start:16px;
+  color:var(--text-muted); font-size:.9rem; pointer-events:none;
+}
+.docs-search input{
+  width:100%; padding:12px 44px 12px 16px;
+  font-family:var(--font); font-size:.9rem;
+  color:var(--text); background:var(--bg-glass-hover);
+  border:1px solid var(--border); border-radius:14px;
+  transition:border-color var(--transition), box-shadow var(--transition);
+}
+.docs-search input:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-glow); }
+
+.docs-cats{ display:flex; flex-wrap:wrap; gap:8px; }
+.docs-cat{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 14px; border-radius:999px;
+  font-size:.78rem; font-weight:600;
+  color:var(--text-muted); background:var(--bg-glass); border:1px solid var(--border);
+  transition:color var(--transition), border-color var(--transition), transform var(--transition), background var(--transition);
+}
+.docs-cat:hover{ color:var(--text); border-color:var(--primary); transform:translateY(-1px); }
+.docs-cat.active{
+  color:#fff; border-color:transparent;
+  background:linear-gradient(135deg,#7c3aed,#6d28d9);
+  box-shadow:0 6px 18px var(--primary-glow);
+}
+
+/* ── command grid ───────────────────────────────────────────────────────── */
+.docs-grid{
+  display:grid; gap:12px;
+  grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+}
+.doc-card{
+  position:relative; display:flex; flex-direction:column; gap:6px;
+  padding:16px; overflow:hidden;
+  border:1px solid var(--border); border-radius:var(--radius);
+  background:var(--bg-glass);
+  transition:transform var(--transition), border-color var(--transition),
+             box-shadow var(--transition), background var(--transition);
+  animation:docsRise .5s cubic-bezier(.2,.7,.3,1) both;
+  /* A 50-card page must not take two seconds to appear, so the stagger is
+     capped at the twelfth card and everything after lands together. */
+  animation-delay:calc(min(var(--i, 0), 12) * 40ms);
+}
+@keyframes docsRise{
+  from{ opacity:0; transform:translateY(12px); }
+  to  { opacity:1; transform:none; }
+}
+.doc-card::after{
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(120deg, transparent 30%, rgba(255,255,255,.07) 46%, transparent 62%);
+  opacity:0; transition:opacity var(--transition);
+}
+.doc-card:hover{
+  transform:translateY(-3px);
+  border-color:color-mix(in srgb, var(--cat, var(--primary)) 55%, var(--border));
+  box-shadow:0 14px 34px rgba(0,0,0,.30);
+  background:var(--bg-glass-hover);
+}
+.doc-card:hover::after{ opacity:1; }
+
+.doc-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.doc-badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 10px; border-radius:999px;
+  font-size:.68rem; font-weight:700;
+  color:var(--cat, var(--primary));
+  background:color-mix(in srgb, var(--cat, var(--primary)) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--cat, var(--primary)) 34%, transparent);
+}
+.doc-cmd{
+  direction:ltr; padding:3px 9px; border-radius:8px;
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:.8rem; font-weight:600; color:var(--text);
+  background:var(--bg-glass-hover); border:1px solid var(--border);
+}
+.doc-desc{ margin-top:4px; font-size:.85rem; color:var(--text-muted); line-height:1.85; }
+
+.doc-options{ margin-top:8px; padding-top:12px; border-top:1px dashed var(--border); }
+.doc-options-label{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:.72rem; font-weight:700; color:var(--text);
+}
+.doc-options ul{ list-style:none; margin-top:8px; display:flex; flex-direction:column; gap:6px; }
+.doc-options li{ display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--text-muted); }
+.doc-options li code{
+  direction:ltr; padding:1px 6px; border-radius:5px;
+  font-family:'JetBrains Mono', ui-monospace, monospace; font-size:.72rem;
+  color:var(--cat, var(--primary));
+  background:color-mix(in srgb, var(--cat, var(--primary)) 12%, transparent);
+}
+.doc-req{
+  margin-inline-start:auto; font-style:normal;
+  padding:1px 7px; border-radius:999px;
+  font-size:.65rem; font-weight:700;
+  color:#f87171; background:rgba(248,113,113,.14); border:1px solid rgba(248,113,113,.3);
+}
+
+/* ── empty / no-results ─────────────────────────────────────────────────── */
+.docs-empty{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:50px 20px; text-align:center; color:var(--text-muted);
+}
+.docs-empty i{ font-size:2rem; color:var(--primary); opacity:.85; }
+.docs-empty p{ font-size:.85rem; }
+.docs-empty[hidden]{ display:none; }
+
+@media (max-width:640px){
+  .docs-hero{ padding:22px 18px; }
+  .docs-toolbar{ position:static; }
+  .docs-grid{ grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion: reduce){
+  .docs-hero-glow, .doc-card{ animation:none !important; }
+  .docs-hero-glow, .doc-card, .docs-cat, .docs-search input{ transition:none !important; }
+}
+</style>
+
+<section class="docs-hero">
+  <div class="docs-hero-glow" aria-hidden="true"></div>
+  <div class="docs-hero-inner">
+    <span class="docs-eyebrow"><i class="fas fa-book-open"></i> الدليل الشامل</span>
+    <h1 class="docs-hero-title">كل أوامر <span class="docs-hero-accent">كراتوس</span> بمكان واحد</h1>
+    <p class="docs-hero-sub">ابحث بالاسم أو الوصف، فلتر حسب القسم، وشوف كل أمر وشنو يسوي وشنو خياراته.</p>
+    <div class="docs-stats">
+      <div class="docs-stat"><strong id="docsTotal"><%= all.length %></strong><span><%= activeCat ? 'أمر بهذا القسم' : 'أمر موثّق' %></span></div>
+      <div class="docs-stat"><strong><%= cats.length %></strong><span>قسم</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="docs-toolbar">
+  <div class="docs-search">
+    <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" id="docsSearch" placeholder="🔍 ابحث عن أمر بالاسم أو الوصف..." autocomplete="off" aria-label="بحث في الأوامر">
+  </div>
+  <div class="docs-cats">
+    <a href="/docs" class="docs-cat <%= !activeCat ? 'active' : '' %>">الكل</a>
+    <% cats.forEach(c => { const info = catInfo(c); %>
+      <a href="/docs/<%= c %>" class="docs-cat <%= activeCat === c ? 'active' : '' %>"><i class="fas <%= info.icon %>"></i> <%= info.label %></a>
     <% }) %>
   </div>
 </div>
 
+<% if (all.length === 0) { %>
+  <div class="docs-empty">
+    <i class="fas fa-inbox"></i>
+    <p><%= activeCat ? 'لا توجد أوامر بهذا القسم بعد.' : 'ما وصل أي أمر من البوت بعد.' %></p>
+  </div>
+<% } else { %>
 <div class="docs-grid" id="docsGrid">
-  <% commands.forEach(cmd => { %>
-    <div class="doc-card glass" data-name="<%= cmd.name %>">
-      <div class="doc-header">
-        <span class="doc-category"><%= cmd.category %></span>
-        <code class="doc-command">/<%= cmd.name %></code>
+  <% all.forEach((cmd, i) => { const info = catInfo(cmd.category); %>
+    <article class="doc-card" style="--i:<%= i %>;--cat:<%= info.color %>"
+             data-search="<%= [cmd.name, cmd.description || '', ...(cmd.options || []).map(o => o.name + ' ' + (o.description || ''))].join(' ').toLowerCase() %>">
+      <div class="doc-top">
+        <span class="doc-badge"><i class="fas <%= info.icon %>"></i> <%= info.label %></span>
+        <code class="doc-cmd">/<%= cmd.name %></code>
       </div>
       <p class="doc-desc"><%= cmd.description || 'بدون وصف' %></p>
       <% if (cmd.options && cmd.options.length > 0) { %>
         <div class="doc-options">
-          <strong>الخيارات:</strong>
+          <span class="doc-options-label"><i class="fas fa-list-ul"></i> الخيارات</span>
           <ul>
             <% cmd.options.forEach(o => { %>
-              <li><code><%= o.name %></code> — <%= o.description %><%= o.required ? ' <span class="required">*</span>' : '' %></li>
+              <li>
+                <code><%= o.name %></code>
+                <span><%= o.description %></span>
+                <% if (o.required) { %><em class="doc-req">مطلوب</em><% } %>
+              </li>
             <% }) %>
           </ul>
         </div>
       <% } %>
-    </div>
+    </article>
   <% }) %>
 </div>
 
-<div class="empty-state" id="noDocs" style="display:none">
-  <i class="fas fa-search"></i>
-  <p>لا توجد نتائج للبحث</p>
+<div class="docs-empty" id="noDocs" hidden>
+  <i class="fas fa-magnifying-glass"></i>
+  <p>ما لقيت أمر بهذا البحث — جرّب كلمة ثانية.</p>
 </div>
+<% } %>
 
 <script>
-function filterDocs() {
-  const q = document.getElementById('docsSearch').value.toLowerCase();
-  const cards = document.querySelectorAll('.doc-card');
-  let visible = 0;
-  cards.forEach(c => {
-    const match = c.dataset.name.includes(q);
-    c.style.display = match ? '' : 'none';
-    if (match) visible++;
+(function () {
+  var input = document.getElementById('docsSearch');
+  var grid = document.getElementById('docsGrid');
+  var empty = document.getElementById('noDocs');
+  var total = document.getElementById('docsTotal');
+  if (!input || !grid) return;
+
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.doc-card'));
+
+  function filterDocs() {
+    var q = input.value.trim().toLowerCase();
+    var visible = 0;
+    cards.forEach(function (card) {
+      var match = !q || card.dataset.search.indexOf(q) !== -1;
+      card.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    empty.hidden = visible !== 0;
+    if (total) total.textContent = visible;
+  }
+
+  input.addEventListener('input', filterDocs);
+
+  // "/" reaches the search box from anywhere on the page, Escape clears it --
+  // the shortcut the other docs tabs on the web already trained people to use.
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== input) {
+      e.preventDefault();
+      input.focus();
+    } else if (e.key === 'Escape' && document.activeElement === input) {
+      input.value = '';
+      filterDocs();
+    }
   });
-  document.getElementById('noDocs').style.display = visible === 0 ? '' : 'none';
-}
+})();
 </script>
