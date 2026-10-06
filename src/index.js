@@ -252,8 +252,18 @@ app.get('/status', (req, res) => {
 // logged-out visitor too and the rail's fourth link never dead-ends on a bounce.
 // res.locals.perms is already set for every request by the middleware above, so
 // the rail locks and the role badge below it need nothing extra here.
-app.get('/about', (req, res) => {
-  res.render('about', { user: req.session?.user || null, title: 'نبذة عنا' });
+//
+// getCommandStats() reads the same command source /docs renders, so the count on
+// this page and the list on the guide can never disagree. It also fails soft to
+// the bundled fallback, so the page shows a number whether or not the bot's
+// command folder is present beside the dashboard.
+app.get('/about', async (req, res) => {
+  let stats = null;
+  try {
+    const { getCommandStats } = await import('./services/syncService.js');
+    stats = getCommandStats();
+  } catch { /* leave stats null: the hero simply omits the two number tiles */ }
+  res.render('about', { user: req.session?.user || null, title: 'نبذة عنا', stats });
 });
 
 // ─── Access Denied ───────────────────────────────────────────────────────

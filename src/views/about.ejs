@@ -1,10 +1,436 @@
-<%# نبذة عنا. Empty on purpose -- the page exists and is in the rail so the fourth
-    link has somewhere to point, and the writing has not been written yet. The
-    heading is the whole of it on purpose: a placeholder that says "coming soon"
-    is worse than an obviously unfinished page, because it promises something the
-    page is not going to deliver. Fill in below this line. -%>
 <% currentPage = 'about' %>
+<%
+  /* Everything the page says about itself is written once and rendered from
+     here, so a heading, a chip and a card cannot drift apart. The facts below
+     are the ones the rest of the site already stands on -- the command systems
+     mirror the guide's categories, the stack mirrors package.json, and the
+     support link is the one the landing page, the footer, the premium page and
+     the maintenance page all point at. Nothing here is a number the page
+     cannot show.
 
-<div class="page-header fade-in">
-  <h1><i class="fas fa-address-card" style="color:var(--nx-glow)"></i> نبذة عنا</h1>
+     stats comes from the about route (getCommandStats). It is null when the
+     call fails, and both counters are dropped rather than printed as 0. */
+  const s = (typeof stats !== 'undefined' && stats) ? stats : null;
+  const cmdTotal = s && Number.isFinite(s.total) ? s.total : null;
+  const catCount = s && Array.isArray(s.categories) ? s.categories.length : null;
+
+  const SYS = [
+    { i: 'fa-shield-halved', c: '#f87171', t: 'الإشراف',            d: 'تحذير وكتم وحظر وطرد ومسح، مع قفل القنوات وفتحها وتغيير الأدوار والألقاب.' },
+    { i: 'fa-ticket',        c: '#fbbf24', t: 'التذاكر',            d: 'بنل تذاكر، وتقييمات للمشرفين، وتذكير بالرد، ومتابعة كاملة لكل تكت من فتحه لإغلاقه.' },
+    { i: 'fa-volume-high',   c: '#22d3ee', t: 'الرومات الصوتية المؤقتة', d: 'قناة صوتية تُنشأ لحظة ما يدخل عضو وتُحذف لحالها عند الفراغ.' },
+    { i: 'fa-hand-sparkles', c: '#34d399', t: 'الترحيب والإحصائيات', d: 'بطاقة ترحيب عند انضمام كل عضو، وقنوات إحصائيات تتحدّث لحالها.' },
+    { i: 'fa-shield',        c: '#a78bfa', t: 'الحماية',            d: 'منع الغارات والإزعاج والروابط، لحماية سيرفرك قبل ما يصير الضرر.' },
+    { i: 'fa-clipboard-list',c: '#38bdf8', t: 'السجلات',            d: 'سجل عام وسجل إشراف وسجل بوت يوثّقون كل حدث مهم يصير بالسيرفر.' },
+    { i: 'fa-bell',          c: '#f472b6', t: 'الإشعارات',          d: 'اشتراكات يوتيوب وكيك وتويتر، وتنبيه فوري عند كل جديد.' },
+    { i: 'fa-bullhorn',      c: '#fb923c', t: 'الإعلانات',          d: 'إرسال إعلانات رسمية بتنسيق احترافي لكل السيرفر.' },
+    { i: 'fa-sliders',       c: '#818cf8', t: 'الإعداد والأتمتة',   d: 'قائمة إعدادات مركزية، ردود تلقائية، ونسخ احتياطي لاستعادة سيرفرك.' },
+  ];
+
+  const TECH = [
+    { i: 'fa-brands fa-node-js', t: 'Node.js',        d: 'بيئة التشغيل' },
+    { i: 'fa-server',            t: 'Express',        d: 'خادم الويب' },
+    { i: 'fa-code',              t: 'EJS',            d: 'قوالب الواجهة' },
+    { i: 'fa-database',          t: 'MongoDB',        d: 'قاعدة البيانات' },
+    { i: 'fa-plug',              t: 'WebSocket',      d: 'تحديث لحظي' },
+    { i: 'fa-brands fa-discord', t: 'Discord API',    d: 'تكامل البوت' },
+  ];
+
+  const STEPS = [
+    { i: 'fa-right-to-bracket', t: 'سجّل الدخول بديسكورد', d: 'دخول آمن عبر OAuth — بلا كلمة سر إضافية وبلا بيانات تشاركها.' },
+    { i: 'fa-server',           t: 'اختر سيرفرك',          d: 'كل سيرفر تديره يظهر في قائمة السيرفرات، وتنتقل بينه بضغطة.' },
+    { i: 'fa-sliders',          t: 'اضبط كل نظام',         d: 'من الإشراف للتذاكر للرومات الصوتية، الإعدادات كلها من داخل اللوحة.' },
+  ];
+
+  const FAQ = [
+    { q: 'شنو هو كراتوس؟',                 a: 'بوت ديسكورد متكامل، معه لوحة تحكم ويب عربية تدير سيرفرك من المتصفح: الإشراف، التذاكر، الرومات الصوتية، الحماية، السجلات، الإشعارات، والأتمتة.' },
+    { q: 'شلون أدخل اللوحة؟',              a: 'تسجّل دخولك بحساب ديسكورد مباشرة — بدون كلمة سر إضافية. زر «دخول» بأعلى الصفحة يمشي بك بالخطوات.' },
+    { q: 'وين ألقى شرح الأوامر كلها؟',      a: 'صفحة الدليل الشامل فيها كل أمر مع وصفه وخياراته، مقسّمة حسب الأقسام — وتقدر تفلتر على القسم اللي تريده.' },
+    { q: 'هل الواجهة بالعربي؟',            a: 'إي، اللوحة كلها عربية وبتنسيق من اليمين لليسار، ومصمّمة تتحمّل الشاشات الصغيرة والكبيرة.' },
+    { q: 'شلون أتابع حالة البوت؟',          a: 'صفحة حالة البوت تبيّن إذا كان البوت شغّال والخدمات مستجيبة، بتحديث مباشر.' },
+    { q: 'شلون أتواصل ويا الفريق؟',         a: 'عبر سيرفر الدعم الرسمي على ديسكورد — الرابط موجود بأسفل الصفحة.' },
+  ];
+
+  const SUPPORT = 'https://discord.gg/ENQut4HHKb';
+
+  const counters = [];
+  if (cmdTotal !== null) counters.push({ v: cmdTotal, l: 'أمر موثّق', i: 'fa-terminal' });
+  if (catCount !== null) counters.push({ v: catCount, l: 'قسم رئيسي', i: 'fa-layer-group' });
+  counters.push({ v: SYS.length, l: 'نظام متكامل', i: 'fa-cubes' });
+%>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   نبذة عنا — page styles
+
+   Self-contained on purpose, the same way the guide's are: this is the only
+   page that wears these classes, so they travel with it instead of adding a
+   fifth block to a stylesheet the whole shell already pays for. Colours come
+   from the shared tokens -- --text/--border/--bg-card for everything the light
+   theme re-points, and the --nx- accents for the rest -- so the page follows
+   the site palette in both themes instead of restating it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ab{
+  display:flex; flex-direction:column; gap:44px;
+  max-width:1080px; margin:0 auto;
+  font-family:'Cairo', var(--nx-font);
+}
+.ab *{ box-sizing:border-box; }
+.ab :focus-visible{ outline:2px solid var(--nx-glow); outline-offset:3px; border-radius:6px; }
+
+/* ── Section headings ───────────────────────────────────────────────────── */
+.ab-sec-head{ max-width:640px; margin-bottom:22px; }
+.ab-sec-title{
+  margin:0 0 8px; font-size:clamp(1.35rem, 2.4vw, 1.75rem); font-weight:800;
+  color:var(--text); letter-spacing:-.01em;
+}
+.ab-sec-sub{ margin:0; color:var(--text-muted); font-size:.98rem; line-height:1.75; }
+
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+.ab-hero{
+  position:relative; overflow:hidden;
+  padding:clamp(28px, 4.6vw, 54px);
+  border:1px solid var(--border);
+  border-radius:30px;
+  background:
+    radial-gradient(120% 150% at 100% 0%, rgba(168,85,247,.20), transparent 55%),
+    radial-gradient(120% 150% at 0% 100%, rgba(56,189,248,.10), transparent 55%),
+    var(--bg-card);
+  box-shadow:var(--shadow);
+}
+.ab-eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 14px; border-radius:999px; margin-bottom:18px;
+  font-size:.78rem; font-weight:700; letter-spacing:.02em;
+  color:var(--nx-violet-2);
+  background:rgba(168,85,247,.12);
+  border:1px solid var(--nx-glass-br);
+}
+.ab-hero h1{
+  margin:0 0 14px; line-height:1.2; font-weight:900; letter-spacing:-.02em;
+  font-size:clamp(1.9rem, 4.6vw, 3rem); color:var(--text);
+}
+.ab-accent{
+  background:linear-gradient(100deg, var(--nx-violet-2), var(--nx-glow) 55%, #38bdf8);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
+.ab-lead{ margin:0; max-width:620px; color:var(--text-muted); font-size:1.05rem; line-height:1.95; }
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.ab-actions{ display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
+.ab-btn{
+  display:inline-flex; align-items:center; gap:9px;
+  padding:12px 22px; border-radius:14px; border:1px solid transparent;
+  font-weight:700; font-size:.94rem; text-decoration:none; cursor:pointer;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .2s ease;
+}
+.ab-btn i{ font-size:.95em; }
+.ab-btn-p{
+  color:#fff; background:linear-gradient(135deg, var(--nx-purple-l), var(--nx-purple));
+  box-shadow:var(--nx-glow-shadow);
+}
+.ab-btn-p:hover{ color:#fff; transform:translateY(-2px); box-shadow:0 14px 40px rgba(168,85,247,.42); }
+.ab-btn-g{ color:var(--nx-violet-2); background:var(--bg-glass); border-color:var(--nx-glass-br); }
+.ab-btn-g:hover{ color:#fff; background:var(--nx-purple); border-color:var(--nx-purple); text-decoration:none; }
+.ab-btn-d{ background:#5865f2; color:#fff; box-shadow:0 8px 26px rgba(88,101,242,.32); }
+.ab-btn-d:hover{ color:#fff; filter:brightness(1.06); }
+
+/* ── Counters ───────────────────────────────────────────────────────────── */
+.ab-stats{
+  display:grid; gap:14px; margin-top:30px;
+  grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+}
+.ab-stat{
+  display:flex; align-items:center; gap:14px;
+  padding:16px 18px; border:1px solid var(--border);
+  border-radius:var(--nx-radius-md);
+  background:var(--bg-glass);
+}
+.ab-stat i{
+  display:grid; place-items:center; flex:0 0 auto;
+  width:40px; height:40px; border-radius:12px; font-size:1rem;
+  color:var(--nx-violet-2); background:rgba(168,85,247,.14);
+}
+.ab-stat b{ display:block; font-size:1.5rem; font-weight:800; color:var(--text); line-height:1; }
+.ab-stat span{ display:block; margin-top:5px; font-size:.8rem; color:var(--text-muted); }
+
+/* ── Intro ──────────────────────────────────────────────────────────────── */
+.ab-intro{
+  display:grid; gap:20px; grid-template-columns:1.6fr .9fr; align-items:start;
+}
+.ab-prose p{ margin:0 0 16px; color:var(--text-muted); line-height:1.95; font-size:1rem; }
+.ab-prose p:last-child{ margin-bottom:0; }
+.ab-note{
+  padding:22px; border:1px solid var(--border); border-radius:var(--nx-radius-lg);
+  background:var(--bg-card);
+}
+.ab-note h3{ margin:0 0 14px; font-size:1rem; color:var(--text); display:flex; align-items:center; gap:9px; }
+.ab-note h3 i{ color:var(--nx-gold); }
+.ab-note ul{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:11px; }
+.ab-note li{ display:flex; align-items:flex-start; gap:10px; color:var(--text-muted); font-size:.92rem; line-height:1.6; }
+.ab-note li i{ margin-top:4px; color:var(--nx-green); font-size:.85rem; }
+
+/* ── Systems grid ───────────────────────────────────────────────────────── */
+.ab-grid{ display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(270px, 1fr)); }
+.ab-sys{
+  position:relative; overflow:hidden;
+  padding:22px; border:1px solid var(--border); border-radius:var(--nx-radius-lg);
+  background:var(--bg-card);
+  transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.ab-sys::before{
+  content:""; position:absolute; inset-block-start:0; inset-inline:0; height:3px;
+  background:linear-gradient(90deg, transparent, var(--ab-c, var(--nx-glow)), transparent);
+  opacity:.75;
+}
+.ab-sys:hover{ transform:translateY(-4px); border-color:rgba(168,85,247,.35); box-shadow:var(--nx-glow-shadow); }
+.ab-sys__i{
+  display:grid; place-items:center; width:46px; height:46px; margin-bottom:15px;
+  border-radius:14px; font-size:1.15rem; color:var(--ab-c, var(--nx-violet-2));
+  background:color-mix(in srgb, var(--ab-c, var(--nx-glow)) 16%, transparent);
+}
+.ab-sys h3{ margin:0 0 8px; font-size:1.02rem; color:var(--text); }
+.ab-sys p{ margin:0; color:var(--text-muted); font-size:.9rem; line-height:1.8; }
+
+/* color-mix is not everywhere yet; the fallback keeps the tile legible. */
+@supports not (color: color-mix(in srgb, red 10%, transparent)){
+  .ab-sys__i{ background:rgba(168,85,247,.14); }
+}
+
+/* ── Tech chips ─────────────────────────────────────────────────────────── */
+.ab-tech{ display:flex; flex-wrap:wrap; gap:12px; }
+.ab-chip{
+  display:inline-flex; align-items:center; gap:11px;
+  padding:12px 18px; border:1px solid var(--border); border-radius:999px;
+  background:var(--bg-glass); transition:border-color .2s ease, transform .2s ease;
+}
+.ab-chip:hover{ border-color:rgba(168,85,247,.4); transform:translateY(-2px); }
+.ab-chip i{ font-size:1.15rem; color:var(--nx-violet-2); }
+.ab-chip b{ font-size:.92rem; color:var(--text); font-weight:700; }
+.ab-chip small{ font-size:.78rem; color:var(--text-muted); }
+
+/* ── Steps ──────────────────────────────────────────────────────────────── */
+.ab-steps{ display:grid; gap:16px; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); counter-reset:ab-step; }
+.ab-step{
+  position:relative; padding:24px; border:1px solid var(--border);
+  border-radius:var(--nx-radius-lg); background:var(--bg-card);
+}
+.ab-step__n{
+  display:grid; place-items:center; width:38px; height:38px; margin-bottom:15px;
+  border-radius:50%; font-weight:800; color:#090713;
+  background:linear-gradient(135deg, var(--nx-violet-2), var(--nx-glow));
+  box-shadow:var(--nx-glow-shadow);
+}
+.ab-step h3{ margin:0 0 8px; font-size:1.02rem; color:var(--text); display:flex; align-items:center; gap:9px; }
+.ab-step h3 i{ color:var(--text-muted); font-size:.9rem; }
+.ab-step p{ margin:0; color:var(--text-muted); font-size:.9rem; line-height:1.8; }
+
+/* ── FAQ ────────────────────────────────────────────────────────────────── */
+.ab-faq{ display:flex; flex-direction:column; gap:12px; }
+.ab-q{
+  border:1px solid var(--border); border-radius:var(--nx-radius-md);
+  background:var(--bg-card); overflow:hidden;
+}
+.ab-q summary{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:18px 22px; cursor:pointer; list-style:none;
+  font-weight:700; color:var(--text); font-size:.98rem;
+}
+.ab-q summary::-webkit-details-marker{ display:none; }
+.ab-q summary i{ color:var(--nx-violet-2); transition:transform .25s ease; flex:0 0 auto; }
+.ab-q[open] summary i{ transform:rotate(45deg); }
+.ab-q__a{ padding:0 22px 20px; margin:0; color:var(--text-muted); line-height:1.9; font-size:.92rem; }
+
+/* ── Closing band ───────────────────────────────────────────────────────── */
+.ab-cta{
+  position:relative; overflow:hidden; text-align:center;
+  padding:clamp(30px, 4vw, 46px);
+  border:1px solid var(--nx-glass-br); border-radius:26px;
+  background:
+    radial-gradient(80% 140% at 50% 0%, rgba(168,85,247,.24), transparent 60%),
+    var(--bg-card);
+}
+.ab-cta h2{ margin:0 0 10px; font-size:clamp(1.3rem, 2.6vw, 1.7rem); color:var(--text); }
+.ab-cta p{ margin:0 auto 22px; max-width:520px; color:var(--text-muted); line-height:1.8; }
+.ab-cta__row{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; }
+
+/* ── Entrance ───────────────────────────────────────────────────────────── */
+.ab-rise{ animation:abRise .55s cubic-bezier(.2,.7,.3,1) both; animation-delay:calc(var(--i, 0) * 55ms); }
+@keyframes abRise{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:none; } }
+.ab-hero::after{
+  content:""; position:absolute; inset-block-start:-90px; inset-inline-start:-70px;
+  width:280px; height:280px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, rgba(56,189,248,.28), transparent 65%);
+  filter:blur(24px); animation:abOrb 11s ease-in-out infinite alternate;
+}
+@keyframes abOrb{ from{ transform:translate3d(0,0,0) scale(1); } to{ transform:translateY(24px) scale(1.08); } }
+
+/* ── Light theme ──────────────────────────────────────────────────────────
+   The shell re-points --text/--border/--bg-card for its light sheet, so the
+   body of the page follows for free. Only the purple accents carry no light
+   reading of their own: #d8b4fe on white is a ghost, so they step down to the
+   solid violet here. --nx-violet-2 is left as the resting ghost tint because
+   it still reads on the dark card in the dark theme. */
+[data-theme="light"] .ab-accent{
+  background:linear-gradient(100deg, var(--nx-purple) 0%, var(--nx-purple-l) 55%, #2563eb 100%);
+  -webkit-background-clip:text; background-clip:text;
+}
+[data-theme="light"] .ab-btn-g{ color:var(--nx-purple); background:rgba(124,58,237,.06); border-color:rgba(124,58,237,.25); }
+[data-theme="light"] .ab-btn-g:hover{ color:#fff; background:var(--nx-purple); border-color:var(--nx-purple); }
+[data-theme="light"] .ab-stat i,
+[data-theme="light"] .ab-chip i,
+[data-theme="light"] .ab-q summary i,
+[data-theme="light"] .ab-note h3 i{ color:var(--nx-purple); }
+
+/* ── Responsive & motion ────────────────────────────────────────────────── */
+@media (max-width: 820px){
+  .ab-intro{ grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion: reduce){
+  .ab-rise, .ab-hero::after{ animation:none !important; }
+  .ab-sys, .ab-chip{ transition:none; }
+}
+</style>
+
+<div class="ab">
+
+  <!-- ══ Hero ═══════════════════════════════════════════════════════════════ -->
+  <section class="ab-hero ab-rise" style="--i:0">
+    <span class="ab-eyebrow"><i class="fas fa-address-card"></i> نبذة عنا</span>
+    <h1>كراتوس — <span class="ab-accent">بوت ديسكورد ولوحة تحكم</span> بمستوى احترافي</h1>
+    <p class="ab-lead">
+      بوت ديسكورد متكامل مع لوحة تحكم ويب عربية تدير سيرفرك من المتصفح:
+      إشراف، تذاكر، رومات صوتية مؤقتة، حماية، سجلات، إشعارات، وأتمتة — كلها بمكان واحد.
+    </p>
+
+    <div class="ab-actions">
+      <% if (user) { %>
+        <a href="/home" class="ab-btn ab-btn-p"><i class="fas fa-gauge-high"></i> روح للوحة</a>
+      <% } else { %>
+        <a href="/auth/discord" class="ab-btn ab-btn-p"><i class="fa-brands fa-discord"></i> سجّل الدخول</a>
+      <% } %>
+      <a href="/docs" class="ab-btn ab-btn-g"><i class="fas fa-book"></i> استعرض الدليل</a>
+    </div>
+
+    <div class="ab-stats">
+      <% counters.forEach((c, i) => { %>
+        <div class="ab-stat ab-rise" style="--i:<%= i + 1 %>">
+          <i class="fas <%= c.i %>" aria-hidden="true"></i>
+          <div>
+            <b><%= c.v %></b>
+            <span><%= c.l %></span>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </section>
+
+  <!-- ── Intro ─────────────────────────────────────────────────────────── -->
+  <section class="ab-intro">
+    <div class="ab-prose ab-rise" style="--i:1">
+      <h2 class="ab-sec-title">شنو هو كراتوس؟</h2>
+      <p>
+        كراتوس نظام لإدارة سيرفرات ديسكورد مكوّن من جزئين: بوت يعمل داخل السيرفر
+        ينفّذ الأوامر ويراقب الأحداث، ولوحة تحكم على الويب تعطيك تحكم كامل من دون
+        ما تكتب أمر واحد. تربط الاثنين قاعدة بيانات واحدة واتصال مباشر، فالتغيير
+        اللي تسويه باللوحة يطبّق على سيرفرك فورًا.
+      </p>
+      <p>
+        بدل ما تتنقّل بين عشر بوتات وأوامر متفرقة، كراتوس يجمع الإشراف والتذاكر
+        والصوت والترحيب والحماية والإشعارات بنظام واحد، وإعداداته كلها من لوحة
+        واحدة. والبوت مبني للاستخدام العربي: واجهة عربية، تنسيق RTL، وشروحات
+        واضحة لكل أمر.
+      </p>
+    </div>
+
+    <aside class="ab-note ab-rise" style="--i:2">
+      <h3><i class="fas fa-bolt"></i> ليش كراتوس؟</h3>
+      <ul>
+        <li><i class="fas fa-check"></i> لوحة عربية بالكامل بتنسيق RTL.</li>
+        <li><i class="fas fa-check"></i> إدارة كل سيرفراتك من مكان واحد.</li>
+        <li><i class="fas fa-check"></i> إعدادات مركزية لكل الأنظمة، بلا أوامر معقّدة.</li>
+        <li><i class="fas fa-shield-halved"></i> حماية وسجلات تسبق الضرر، ما تلحقه.</li>
+        <li><i class="fas fa-circle-check"></i> دليل كامل لكل أمر مع خياراته.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <!-- ── Systems ───────────────────────────────────────────────────────────── -->
+  <section>
+    <div class="ab-sec-head">
+      <h2 class="ab-sec-title">الأنظمة الأساسية</h2>
+      <p class="ab-sec-sub">تسعة أنظمة متكاملة تغطي إدارة السيرفر من أول تحية عضو إلى آخر سجل إشراف.</p>
+    </div>
+    <div class="ab-grid">
+      <% SYS.forEach((x, i) => { %>
+        <article class="ab-sys ab-rise" style="--i:<%= i + 1 %>; --ab-c:<%= x.c %>">
+          <div class="ab-sys__i"><i class="fas <%= x.i %>" aria-hidden="true"></i></div>
+          <h3><%= x.t %></h3>
+          <p><%= x.d %></p>
+        </article>
+      <% }); %>
+    </div>
+  </section>
+
+  <!-- ── Stack ─────────────────────────────────────────────────────────────── -->
+  <section>
+    <div class="ab-sec-head">
+      <h2 class="ab-sec-title">التقنيات</h2>
+      <p class="ab-sec-sub">مبني على حزمة ويب حديثة ومعروفة، عشان يبقى سريع وآمن وسهل الصيانة.</p>
+    </div>
+    <div class="ab-tech">
+      <% TECH.forEach((t, i) => { %>
+        <span class="ab-chip ab-rise" style="--i:<%= i + 1 %>">
+          <i class="<%= t.i %>" aria-hidden="true"></i>
+          <b><%= t.t %></b>
+          <small><%= t.d %></small>
+        </span>
+      <% }); %>
+    </div>
+  </section>
+
+  <!-- ── How to start ──────────────────────────────────────────────────────── -->
+  <section>
+    <div class="ab-sec-head">
+      <h2 class="ab-sec-title">كيف تبدأ</h2>
+      <p class="ab-sec-sub">ثلاث خطوات وتكون داخل اللوحة، جاهز تضبط سيرفرك.</p>
+    </div>
+    <div class="ab-steps">
+      <% STEPS.forEach((st, i) => { %>
+        <article class="ab-step ab-rise" style="--i:<%= i + 1 %>">
+          <span class="ab-step__n"><%= i + 1 %></span>
+          <h3><i class="fas <%= st.i %>" aria-hidden="true"></i> <%= st.t %></h3>
+          <p><%= st.d %></p>
+        </article>
+      <% }); %>
+    </div>
+  </section>
+
+  <!-- ── FAQ ───────────────────────────────────────────────────────────────── -->
+  <section>
+    <div class="ab-sec-head">
+      <h2 class="ab-sec-title">أسئلة شائعة</h2>
+      <p class="ab-sec-sub">أكثر الأشياء اللي تتسأل عنها — وإذا ما لقيت جوابك، سيرفر الدعم يستناك.</p>
+    </div>
+    <div class="ab-faq">
+      <% FAQ.forEach((f, i) => { %>
+        <details class="ab-q ab-rise" style="--i:<%= i + 1 %>"<%= i === 0 ? ' open' : '' %>>
+          <summary><span><%= f.q %></span><i class="fas fa-plus" aria-hidden="true"></i></summary>
+          <p class="ab-q__a"><%= f.a %></p>
+        </details>
+      <% }); %>
+    </div>
+  </section>
+
+  <!-- ── Closing ───────────────────────────────────────────────────────────── -->
+  <section class="ab-cta ab-rise">
+    <h2>جاهز تبدأ؟</h2>
+    <p>تصفّح كل الأوامر، تابع حالة البوت مباشرة، أو انضم لسيرفر الدعم.</p>
+    <div class="ab-cta__row">
+      <a href="/commands" class="ab-btn ab-btn-p"><i class="fas fa-terminal"></i> كل الأوامر</a>
+      <a href="/status" class="ab-btn ab-btn-g"><i class="fas fa-heartbeat"></i> حالة البوت</a>
+      <a href="<%= SUPPORT %>" target="_blank" rel="noopener" class="ab-btn ab-btn-d"><i class="fa-brands fa-discord"></i> سيرفر الدعم</a>
+    </div>
+  </section>
 </div>
