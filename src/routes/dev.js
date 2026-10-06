@@ -65,23 +65,12 @@ router.get('/', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   guildsData.sort((a, b) => b.memberCount - a.memberCount);
   const totalMembers = guildsData.reduce((s, g) => s + g.memberCount, 0);
 
-  let maintenanceDoc = await Maintenance.findOne();
-  if (maintenanceDoc && maintenanceDoc.enabled && maintenanceDoc.endTime && Date.now() >= maintenanceDoc.endTime) {
-    maintenanceDoc.enabled = false;
-    maintenanceDoc.endTime = null;
-    await maintenanceDoc.save();
-  }
-  const maintenanceRaw = maintenanceDoc ? maintenanceDoc.toObject() : null;
-  const maintenance = {
-    enabled: maintenanceRaw?.enabled || false,
-    endTime: maintenanceRaw?.endTime || null,
-    durationMinutes: maintenanceRaw?.durationMinutes || 0,
-    message: maintenanceRaw?.message || '',
-    channelId: maintenanceRaw?.channelId || '',
-    updatedAt: maintenanceRaw?.updatedAt || 0,
-    updatedBy: maintenanceRaw?.updatedBy || '',
-    changelog: maintenanceRaw?.changelog || { botUpdates: '', siteUpdates: '' },
-  };
+  // A read-only snapshot for the landing card; the actual controls live on
+  // /dev/maintenance now. maintenanceState() is declared further down and is
+  // hoisted, so it can be used here.
+  let maintenanceDoc = null;
+  try { maintenanceDoc = await Maintenance.findOne(); } catch {}
+  const maintenance = maintenanceState(maintenanceDoc);
 
   const botInviteUrl = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(config.discord.clientId || '')}&permissions=8&scope=bot`;
 
@@ -111,36 +100,11 @@ router.get('/', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   });
 });
 
-// ── The developer section's placeholder pages ────────────────────────────
-// Each carries its own currentPage, so the rail lights exactly one row of the
-// section, and each stands behind the same two middlewares as /dev itself: the
-// section is drawn from perms.can.dev, so a row nobody may press must not be
-// reachable by typing its address either.
-//
-// One table and one loop because the rest are structurally identical today
-// -- a heading and nothing under it. /dev/bot, /dev/status, /dev/guilds and
-// /dev/features all used to sit in this table; each left when it grew data of
-// its own and is now an ordinary route below, and the table keeps the rest.
-// Which page is which is
-// therefore written down once, and the two addresses, the two currentPages and
-// the two titles cannot drift apart the way two hand-written routes would.
-//
-// The two left are namespaced under /dev on purpose, and one of them collides
-// with a word the site already uses: /guilds is the account's own server list.
-// Give it a flat address here and one page would answer to two names, two rows
-// of the rail would light together on it, and the public page would inherit the
-// developer's permissions. /status was the other collision and still lives
-// under /dev even now that it has its own route, because the public /status is
-// the same name for a different reader -- a logged-out visitor.
-const DEV_PAGES = [
-  { path: 'maintenance', view: 'dev/maintenance', page: 'dev-maintenance', title: 'وضع الصيانة' },
-];
-
-for (const page of DEV_PAGES) {
-  router.get('/' + page.path, isAuthenticated, isOwnerOrDeveloper, (req, res) => {
-    res.render(page.view, { user: req.session.user, title: page.title });
-  });
-}
+// Every page in this section is now a real route below (bot, status, guilds,
+// features, maintenance), each carrying its own `currentPage` so the rail
+// lights exactly one row. They all sit behind the same two middlewares as
+// /dev itself: the section is drawn from perms.can.dev, so a row nobody may
+// press must not be reachable by typing its address either.
 
 // ── Bot management (identity, invite builder, live health) ───────────────
 // Rebuilt from a placeholder. The page needs data no static view can carry:
@@ -254,22 +218,195 @@ router.get('/guild-invite/:guildId', isAuthenticated, isOwnerOrDeveloper, async 
   }
 });
 
-// ── Maintenance mode start / stop / save ──────────────────────────────
+// ── Maintenance control (/dev/maintenance) ──────────────────────────────
+// Two independent switches over one shared document:
+//
+//   • البوت  — the bot gates its commands on botEnabled/botEndTime. Starting
+//     also sets its Discord presence to DND and posts a start notice to
+//     channelId; stopping posts the end notice with the changelog.
+//   • الموقع — the dashboard middleware in index.js redirects visitors while
+//     `enabled` is true. The public landing script reads it from
+//     /dev/maintenance/status, which stays public on purpose.
+//
+// The dashboard owns the document (source of truth) and pushes the bot half to
+// the bot so it applies at once; the bot also reads the same collection, so a
+// missed push still lands within seconds.
+function maintenanceState(doc) {
+  const now = Date.now();
+  const d = doc ? (typeof doc.toObject === 'function' ? doc.toObject() : doc) : {};
+  const remain = (on, end) => (on && end ? Math.max(0, end - now) : 0);
+  return {
+    bot: {
+      enabled: !!d.botEnabled,
+      message: d.botMessage || '',
+      endTime: d.botEndTime || null,
+      durationMinutes: d.botDurationMinutes || 0,
+      startedAt: d.botStartedAt || null,
+      remainMs: remain(d.botEnabled, d.botEndTime),
+    },
+    site: {
+      enabled: !!d.enabled,
+      message: d.message || '',
+      endTime: d.endTime || null,
+      durationMinutes: d.durationMinutes || 0,
+      remainMs: remain(d.enabled, d.endTime),
+    },
+    channelId: d.channelId || '',
+    changelog: d.changelog || { botUpdates: '', siteUpdates: '' },
+    updatedAt: d.updatedAt || 0,
+    updatedBy: d.updatedBy || '',
+  };
+}
+
+// Auto-end anything whose window has elapsed. Saves once when it changed.
+async function expireMaintenance(doc) {
+  const now = Date.now();
+  let changed = false;
+  if (doc.botEnabled && doc.botEndTime && now >= doc.botEndTime) {
+    doc.botEnabled = false; doc.botEndTime = null; doc.botDurationMinutes = 0; changed = true;
+  }
+  if (doc.enabled && doc.endTime && now >= doc.endTime) {
+    doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0; changed = true;
+  }
+  if (changed) await doc.save();
+  return changed;
+}
+
 async function getOrCreateMaintenance() {
   let doc = await Maintenance.findOne();
   if (!doc) doc = new Maintenance();
   return doc;
 }
 
-async function syncMaintenanceToBot(action, channelId, changelog) {
+async function syncMaintenanceToBot(payload) {
   try {
-    const body = {};
-    if (action) body.action = action;
-    if (channelId) body.channelId = channelId;
-    if (changelog) body.changelog = changelog;
-    await botPost(`${config.botApiUrl}/api/maintenance/sync`, body, { timeout: 3000 });
-  } catch {}
+    await botPost(`${config.botApiUrl}/api/maintenance/sync`, payload, { timeout: 3500 });
+    return true;
+  } catch {
+    return false;
+  }
 }
+
+router.get('/maintenance', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  let doc = null;
+  try {
+    doc = await getOrCreateMaintenance();
+    await expireMaintenance(doc);
+  } catch {}
+  res.render('dev/maintenance', {
+    user: req.session.user,
+    title: 'وضع الصيانة',
+    maintenance: maintenanceState(doc),
+  });
+});
+
+// Live state for the page's countdown and refresh button. Never throws.
+router.get('/maintenance/state', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  try {
+    const doc = await getOrCreateMaintenance();
+    await expireMaintenance(doc);
+    res.json({ ok: true, maintenance: maintenanceState(doc) });
+  } catch {
+    res.status(500).json({ ok: false });
+  }
+});
+
+// The bot's own view of the flag, used only for the "synced" badge. Never
+// throws: an unreachable bot is a state the page draws, not an error.
+router.get('/maintenance/live', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  try {
+    const r = await botFetch(`${config.botApiUrl}/api/maintenance`, { signal: AbortSignal.timeout(3500) });
+    if (!r.ok) throw new Error('http ' + r.status);
+    const data = await r.json();
+    res.json({ online: true, bot: data });
+  } catch (err) {
+    res.json({ online: false, error: String(err?.message || err) });
+  }
+});
+
+router.post('/maintenance/bot', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  try {
+    const enabled = req.body?.enabled === true || req.body?.enabled === 'true';
+    const minutes = Math.max(0, parseInt(req.body?.minutes ?? '0', 10) || 0);
+    const message = String(req.body?.message || '').trim().slice(0, 400);
+    const channelId = String(req.body?.channelId || '').trim().slice(0, 32);
+    const botUpdates = String(req.body?.botUpdates || '').trim();
+    const siteUpdates = String(req.body?.siteUpdates || '').trim();
+    const by = req.session.user.id || '';
+    const doc = await getOrCreateMaintenance();
+    const wasEnabled = !!doc.botEnabled;
+    const prevDuration = doc.botDurationMinutes || 0;
+
+    doc.botEnabled = enabled;
+    doc.botMessage = message || doc.botMessage;
+    doc.channelId = channelId || doc.channelId;
+    if (enabled) {
+      // Starting (or re-saving while on): keep an existing deadline when the
+      // duration did not change, so saving the message cannot silently extend it.
+      const changed = minutes !== (doc.botDurationMinutes || 0);
+      doc.botDurationMinutes = minutes;
+      if (!wasEnabled || !doc.botEndTime || changed) {
+        doc.botStartedAt = Date.now();
+        doc.botEndTime = minutes > 0 ? Date.now() + minutes * 60 * 1000 : null;
+      }
+      if (!wasEnabled) doc.changelog = { botUpdates: '', siteUpdates: '' };
+    } else {
+      doc.botEndTime = null;
+      doc.botDurationMinutes = 0;
+      doc.changelog = {
+        botUpdates: botUpdates || 'لم يتم إضافة تحديثات',
+        siteUpdates: siteUpdates || 'لم يتم إضافة تحديثات',
+      };
+    }
+    doc.updatedAt = Date.now(); doc.updatedBy = by;
+    await doc.save();
+
+    // start/stop send a Discord notice; update just persists + refreshes presence.
+    const action = enabled && !wasEnabled ? 'start' : (!enabled && wasEnabled ? 'stop' : 'update');
+    let synced = false;
+    if (enabled || wasEnabled) {
+      synced = await syncMaintenanceToBot({
+        action,
+        channelId: doc.channelId,
+        message: doc.botMessage,
+        endTime: doc.botEndTime,
+        durationMinutes: doc.botDurationMinutes,
+        elapsedMinutes: prevDuration,
+        changelog: doc.changelog,
+      });
+    }
+    if (action !== 'update') {
+      await logActivity(by, null, `dev.maintenance.bot.${action}`, 'bot', action === 'start' ? 'وضع البوت في الصيانة' : 'إيقاف صيانة البوت', req.ip, req.sessionID);
+    }
+    res.json({ ok: true, synced, maintenance: maintenanceState(doc) });
+  } catch (err) {
+    console.error('[dev/maintenance/bot]', err);
+    res.status(500).json({ ok: false, error: 'db' });
+  }
+});
+
+router.post('/maintenance/site', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  try {
+    const enabled = req.body?.enabled === true || req.body?.enabled === 'true';
+    const minutes = Math.max(0, parseInt(req.body?.minutes ?? '0', 10) || 0);
+    const message = String(req.body?.message || '').trim().slice(0, 400);
+    const by = req.session.user.id || '';
+    const doc = await getOrCreateMaintenance();
+
+    doc.enabled = enabled;
+    doc.endTime = enabled && minutes > 0 ? Date.now() + minutes * 60 * 1000 : null;
+    doc.durationMinutes = enabled ? minutes : 0;
+    if (message) doc.message = message;
+    doc.updatedAt = Date.now(); doc.updatedBy = by;
+    await doc.save();
+
+    await logActivity(by, null, enabled ? 'dev.maintenance.site.start' : 'dev.maintenance.site.stop', 'site', enabled ? 'وضع الموقع في الصيانة' : 'إيقاف صيانة الموقع', req.ip, req.sessionID);
+    res.json({ ok: true, maintenance: maintenanceState(doc) });
+  } catch (err) {
+    console.error('[dev/maintenance/site]', err);
+    res.status(500).json({ ok: false, error: 'db' });
+  }
+});
 
 // Public on purpose, and the only unguarded route in this file.
 //
@@ -290,52 +427,6 @@ router.get('/maintenance/status', async (req, res) => {
     const remain = doc.enabled && doc.endTime ? Math.max(0, doc.endTime - Date.now()) : 0;
     res.json({ enabled: doc.enabled, remainMs: remain, message: doc.message, durationMinutes: doc.durationMinutes, startedAt: doc.updatedAt || null, endTime: doc.endTime || null, changelog: doc.changelog || { botUpdates: '', siteUpdates: '' } });
   } catch { res.json({ enabled: false }); }
-});
-
-router.get('/maintenance/start', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
-  try {
-    const doc = await getOrCreateMaintenance();
-    doc.enabled = true; doc.changelog = { botUpdates: '', siteUpdates: '' }; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
-    await doc.save();
-    syncMaintenanceToBot('start', doc.channelId);
-    res.redirect('/dev');
-  } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
-});
-
-router.post('/maintenance/stop', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
-  try {
-    const doc = await getOrCreateMaintenance();
-    const botUpdates = (req.body.botUpdates || '').trim();
-    const siteUpdates = (req.body.siteUpdates || '').trim();
-    const changelog = {
-      botUpdates: botUpdates || 'لم يتم إضافة تحديثات',
-      siteUpdates: siteUpdates || 'لم يتم إضافة تحديثات',
-    };
-    doc.changelog = changelog;
-    doc.enabled = false; doc.endTime = null; doc.durationMinutes = 0; doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
-    await doc.save();
-    syncMaintenanceToBot('stop', doc.channelId, changelog);
-    res.redirect('/dev');
-  } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
-});
-
-router.post('/maintenance/save', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
-  try {
-    const rawMinutes = parseInt(req.body.minutes || '0');
-    const message = (req.body.message || '').trim();
-    const channelId = (req.body.channelId || '').trim();
-    const doc = await getOrCreateMaintenance();
-    if (rawMinutes > 0) {
-      doc.endTime = Date.now() + rawMinutes * 60 * 1000;
-      doc.durationMinutes = rawMinutes;
-    } else { doc.endTime = null; doc.durationMinutes = 0; }
-    if (message) doc.message = message;
-    if (channelId) doc.channelId = channelId;
-    doc.updatedAt = Date.now(); doc.updatedBy = req.session.user.id || '';
-    await doc.save();
-    syncMaintenanceToBot(undefined, doc.channelId);
-    res.redirect('/dev');
-  } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
 });
 
 // ─── Feature switchboard (/dev/features) ────────────────────────────────

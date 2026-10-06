@@ -137,254 +137,42 @@
     <button type="button" class="dv-btn dv-btn-danger" onclick="cleanupTickets()"><i class="fas fa-broom"></i> تنظيف التذاكر القديمة</button>
   </section>
 
-  <!-- ── وضع الصيانة ── -->
+  <!-- ── وضع الصيانة — بطاقة موجزة تقود إلى الصفحة المخصصة ── -->
   <div class="dv-sec-head">
     <h2><i class="fas fa-shield-halved"></i> وضع الصيانة</h2>
-    <span class="dv-mnt-state <%= maintenance.enabled ? 'on' : '' %>"><i class="fas fa-circle"></i> <%= maintenance.enabled ? 'الصيانة مفعلة' : 'الخدمات تعمل بشكل طبيعي' %></span>
+    <a class="dv-mnt-open" href="/dev/maintenance">إدارة الصيانة <i class="fas fa-arrow-left"></i></a>
   </div>
 
-  <section class="dv-panel dv-mnt <%= maintenance.enabled ? 'on' : '' %>">
-    <div class="dv-mnt-head">
-      <div class="dv-mnt-status">
-        <div class="dv-mnt-dot"></div>
-        <div>
-          <div class="dv-mnt-label"><%= maintenance.enabled ? 'وضع الصيانة — مفعل' : 'وضع الصيانة — معطل' %></div>
-          <div class="dv-mnt-sub">
-            <% if (maintenance.enabled) { %>
-              الصيانة عامة — جميع الزوار يتأثرون
-            <% } else { %>
-              كل الخدمات تعمل بشكل طبيعي
-            <% } %>
-          </div>
-        </div>
-      </div>
-      <div class="dv-mnt-actions">
-        <% if (maintenance.enabled) { %>
-          <button type="button" class="dv-btn dv-btn-danger" id="mntShowChangelogBtn"><i class="fas fa-power-off"></i> إيقاف الصيانة</button>
-        <% } else { %>
-          <a href="/dev/maintenance/start" id="mntStartBtn" class="dv-btn dv-btn-success" style="opacity:.5;pointer-events:none"><i class="fas fa-play"></i> تفعيل الصيانة</a>
-        <% } %>
-      </div>
-    </div>
-
-    <div class="dv-mnt-body <%= maintenance.enabled ? '' : 'dim' %>">
-      <div class="dv-mnt-note">
-        <i class="fas fa-circle-exclamation"></i>
-        <div>يجب اختيار المدة الزمنية أولاً لتفعيل زر البدء. يمكنك إدخال <strong>0</strong> للصيانة بدون وقت محدد (مفتوحة).</div>
-      </div>
-
-      <form method="POST" action="/dev/maintenance/save" id="mntSaveForm">
-        <input type="hidden" name="minutes" id="mntMinutesField" value="">
-        <div class="dv-mnt-f">
-          <label>⏱ المدة الزمنية</label>
-          <div class="dv-mnt-presets">
-            <button type="button" class="mnt-preset" data-min="15">15د</button>
-            <button type="button" class="mnt-preset" data-min="30">30د</button>
-            <button type="button" class="mnt-preset" data-min="60">1س</button>
-            <button type="button" class="mnt-preset" data-min="120">2س</button>
-            <button type="button" class="mnt-preset" data-min="360">6س</button>
-            <button type="button" class="mnt-preset" data-min="1440">24س</button>
-            <button type="button" id="mntCustomBtn" class="mnt-preset"><i class="fas fa-keyboard"></i> مخصص</button>
-          </div>
-          <div class="dv-mnt-inputs">
-            <input type="number" id="mntMinutes" min="0" placeholder="عدد الدقائق (0 = بدون وقت محدد)">
-            <input type="datetime-local" id="mntPicker">
-          </div>
-        </div>
-
-        <div class="dv-mnt-f">
-          <label>💬 رسالة الصيانة</label>
-          <input type="text" name="message" id="mntMessage" value="<%= maintenance.message || '' %>" placeholder="الموقع تحت الصيانة حالياً...">
-        </div>
-
-        <div class="dv-mnt-f">
-          <label>📢 روم إشعارات الصيانة (ID)</label>
-          <input type="text" name="channelId" id="mntChannel" value="<%= maintenance.channelId || '' %>" placeholder="أدخل ID الروم في الديسكورد" style="direction:ltr;text-align:left;font-family:monospace">
-          <div class="dv-hint">يُرسل إشعار عند بدء وانتهاء الصيانة في هذا الروم</div>
-        </div>
-
-        <div class="dv-mnt-save-row">
-          <button type="submit" class="dv-btn dv-btn-primary"><i class="fas fa-check"></i> حفظ الإعدادات</button>
-          <span id="mntSummary"></span>
-        </div>
-        <div class="dv-hint">💡 حفظ الإعدادات لا يرسل إشعار في الديسكورد. يتم الإرسال فقط عند تفعيل أو إيقاف الصيانة.</div>
-      </form>
-
-      <script>
-      (function(){
-        var mins = document.getElementById('mntMinutes');
-        var picker = document.getElementById('mntPicker');
-        var hidden = document.getElementById('mntMinutesField');
-        var summary = document.getElementById('mntSummary');
-        var presets = document.querySelectorAll('.mnt-preset');
-        var customBtn = document.getElementById('mntCustomBtn');
-
-        function setActive(btn) {
-          presets.forEach(function(p) { p.classList.remove('active'); });
-          if (customBtn) customBtn.classList.remove('active');
-          if (btn) btn.classList.add('active');
-        }
-
-        function calcMins() {
-          var m = parseInt(mins.value) || 0;
-          if (m > 0) {
-            picker.value = '';
-            hidden.value = m;
-            summary.textContent = '🕐 تنتهي بعد ' + m + ' دقيقة';
-            return;
-          }
-          var d = picker.value;
-          if (d) {
-            mins.value = '';
-            var diff = Math.round((new Date(d).getTime() - Date.now()) / 60000);
-            if (diff > 0) {
-              hidden.value = diff;
-              summary.textContent = '📅 تنتهي ' + d;
-              return;
-            }
-          }
-          hidden.value = '';
-          summary.textContent = '⏳ غير محددة';
-        }
-
-        presets.forEach(function(b) {
-          b.addEventListener('click', function() {
-            setActive(this);
-            mins.value = this.dataset.min;
-            picker.value = '';
-            calcMins();
-          });
-        });
-
-        customBtn.addEventListener('click', function() {
-          setActive(null);
-          customBtn.classList.add('active');
-          mins.value = '';
-          picker.value = '';
-          picker.focus();
-          calcMins();
-        });
-
-        mins.addEventListener('input', function() {
-          setActive(null);
-          if (this.value) picker.value = '';
-          calcMins();
-        });
-
-        picker.addEventListener('input', function() {
-          setActive(null);
-          if (this.value) mins.value = '';
-          calcMins();
-        });
-
-        document.getElementById('mntSaveForm').addEventListener('submit', function(e) {
-          calcMins();
-        });
-
-        <% if (maintenance.durationMinutes > 0) { %>
-          mins.value = <%= maintenance.durationMinutes %>;
-          hidden.value = <%= maintenance.durationMinutes %>;
-          summary.textContent = '🕐 تنتهي بعد <%= maintenance.durationMinutes %> دقيقة';
-        <% } %>
-
-        function updateStartBtn() {
-          var btn = document.getElementById('mntStartBtn');
-          if (!btn) return;
-          var hasTime = !!(parseInt(mins.value) > 0) || !!(picker.value) || (parseInt(mins.value) === 0);
-          btn.style.opacity = hasTime ? '1' : '.5';
-          btn.style.pointerEvents = hasTime ? 'auto' : 'none';
-        }
-
-        updateStartBtn();
-        mins.addEventListener('input', updateStartBtn);
-        picker.addEventListener('input', updateStartBtn);
-        presets.forEach(function(b) {
-          b.addEventListener('click', updateStartBtn);
-        });
-        customBtn.addEventListener('click', function() {
-          setTimeout(updateStartBtn, 50);
-        });
-      })();
-      </script>
-
-      <% if (maintenance.enabled) { %>
-      <div class="dv-mnt-divider"></div>
-      <div class="dv-mnt-extra">
-        <a href="/maintenance?preview=1" target="_blank" class="dv-btn dv-btn-ghost"><i class="fas fa-eye"></i> معاينة صفحة الصيانة</a>
-        <% if (maintenance.endTime) { %>
-          <span class="dv-hint">🕐 تنتهي <span dir="ltr"><%= new Date(maintenance.endTime).toLocaleString('ar-EG') %></span></span>
-        <% } %>
-      </div>
-      <!-- Changelog form (hidden, shown when clicking stop) -->
-      <div class="dv-mnt-divider"></div>
-      <div id="mntChangelogSection" style="display:none">
-        <div class="dv-mnt-chg-title"><i class="fas fa-scroll"></i> سجل التحديثات — أضف ملخصاً للتغييرات التي تمت أثناء الصيانة</div>
-        <form method="POST" action="/dev/maintenance/stop" id="mntStopForm">
-          <div class="dv-mnt-f">
-            <label><i class="fas fa-robot"></i> تحديثات البوت — الأوامر، الأنظمة، الحماية، الصوت، التكتات...</label>
-            <textarea name="botUpdates" rows="4" placeholder="مثال: تم إصلاح مشكلة /ping↵تم إضافة أمر /newcommand↵تم تحسين أداء البوت"><%= maintenance.changelog && maintenance.changelog.botUpdates || '' %></textarea>
-            <div class="dv-hint">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
-          </div>
-          <div class="dv-mnt-f">
-            <label><i class="fas fa-globe"></i> تحديثات الموقع — لوحة التحكم، التصميم، API، السرعة...</label>
-            <textarea name="siteUpdates" rows="4" placeholder="مثال: إعادة تصميم صفحة الإحصائيات↵إصلاح مشكلة الوقت في العدّاد↵تحسين سرعة تحميل الصفحات"><%= maintenance.changelog && maintenance.changelog.siteUpdates || '' %></textarea>
-            <div class="dv-hint">إذا تركت الحقل فارغاً، سيتم إرسال "لم يتم إضافة تحديثات" تلقائياً</div>
-          </div>
-          <div class="dv-mnt-actions-row">
-            <button type="submit" class="dv-btn dv-btn-danger"><i class="fas fa-power-off"></i> تأكيد إيقاف الصيانة وإرسال الإشعار</button>
-            <button type="button" class="dv-btn dv-btn-ghost" id="mntCancelChangelog"><i class="fas fa-times"></i> إلغاء</button>
-          </div>
-        </form>
-      </div>
-      <script>
-      (function(){
-        var showBtn = document.getElementById('mntShowChangelogBtn');
-        var section = document.getElementById('mntChangelogSection');
-        var cancelBtn = document.getElementById('mntCancelChangelog');
-        var botField = document.querySelector('textarea[name="botUpdates"]');
-        var siteField = document.querySelector('textarea[name="siteUpdates"]');
-        var stopForm = document.getElementById('mntStopForm');
-
-        // Restore from localStorage if DB is empty (user was typing before refresh)
-        if (botField && siteField) {
-          var savedBot = localStorage.getItem('mntChangelogBot');
-          var savedSite = localStorage.getItem('mntChangelogSite');
-          if (savedBot && !botField.value.trim()) botField.value = savedBot;
-          if (savedSite && !siteField.value.trim()) siteField.value = savedSite;
-          // Auto-save on input
-          botField.addEventListener('input', function() { localStorage.setItem('mntChangelogBot', botField.value); });
-          siteField.addEventListener('input', function() { localStorage.setItem('mntChangelogSite', siteField.value); });
-        }
-
-        if (showBtn && section) {
-          showBtn.addEventListener('click', function() {
-            section.style.display = 'block';
-            showBtn.style.display = 'none';
-            section.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          });
-          // Auto-open if there's unsaved text in localStorage
-          if (localStorage.getItem('mntChangelogBot') || localStorage.getItem('mntChangelogSite')) {
-            showBtn.click();
-          }
-        }
-        if (cancelBtn && section && showBtn) {
-          cancelBtn.addEventListener('click', function() {
-            section.style.display = 'none';
-            showBtn.style.display = '';
-          });
-        }
-        // Clear localStorage on successful form submit
-        if (stopForm) {
-          stopForm.addEventListener('submit', function() {
-            localStorage.removeItem('mntChangelogBot');
-            localStorage.removeItem('mntChangelogSite');
-          });
-        }
-      })();
-      </script>
-      <% } %>
+  <section class="dv-panel">
+    <div class="dv-mnt-summary">
+      <a class="dv-mnt-scope <%= maintenance.bot.enabled ? 'on' : '' %>" href="/dev/maintenance">
+        <span class="dv-mnt-scope-ic"><i class="fas fa-robot"></i></span>
+        <span class="dv-mnt-scope-body"><b>البوت</b><small><%= maintenance.bot.enabled ? 'تحت الصيانة' : 'يعمل بشكل طبيعي' %></small></span>
+        <span class="dv-mnt-scope-dot"></span>
+      </a>
+      <a class="dv-mnt-scope <%= maintenance.site.enabled ? 'on' : '' %>" href="/dev/maintenance">
+        <span class="dv-mnt-scope-ic"><i class="fas fa-globe"></i></span>
+        <span class="dv-mnt-scope-body"><b>الموقع</b><small><%= maintenance.site.enabled ? 'تحت الصيانة' : 'يعمل بشكل طبيعي' %></small></span>
+        <span class="dv-mnt-scope-dot"></span>
+      </a>
     </div>
   </section>
+  <style>
+  .dv-mnt-open{margin-inline-start:auto;position:relative;z-index:1;display:inline-flex;align-items:center;gap:7px;font-size:0.74rem;font-weight:700;color:#c9a4ff;text-decoration:none;padding:6px 13px;border-radius:100px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2)}
+  .dv-mnt-open:hover{background:rgba(168,85,247,0.15)}
+  .dv-mnt-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .dv-mnt-scope{display:flex;align-items:center;gap:14px;padding:15px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);text-decoration:none;color:inherit;transition:transform .25s,border-color .25s,background .25s}
+  .dv-mnt-scope:hover{transform:translateY(-2px);border-color:rgba(168,85,247,0.4)}
+  .dv-mnt-scope.on{border-color:rgba(255,217,61,0.4);background:rgba(255,217,61,0.05)}
+  .dv-mnt-scope-ic{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);color:#a855f7;font-size:1.05rem;flex-shrink:0}
+  .dv-mnt-scope.on .dv-mnt-scope-ic{color:#ffd93d;background:rgba(255,217,61,0.12)}
+  .dv-mnt-scope-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .dv-mnt-scope-body b{font-size:.9rem;font-weight:800}
+  .dv-mnt-scope-body small{font-size:.72rem;color:rgba(255,255,255,0.4)}
+  .dv-mnt-scope-dot{width:10px;height:10px;border-radius:50%;background:#57f287;box-shadow:0 0 0 4px rgba(87,242,135,.12);flex-shrink:0}
+  .dv-mnt-scope.on .dv-mnt-scope-dot{background:#ffd93d;box-shadow:0 0 0 4px rgba(255,217,61,.14)}
+  @media(max-width:640px){.dv-mnt-summary{grid-template-columns:1fr}}
+  </style>
 
   <%- include('partials/dev-developers') %>
 
