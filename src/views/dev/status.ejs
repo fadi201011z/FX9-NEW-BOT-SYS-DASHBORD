@@ -1,10 +1,554 @@
 <% currentPage = 'dev-status' %>
-<%# Not /status. That address is the public "حالة البوت" a logged-out visitor can
-    read, and the developer's page is a different question asked by a different
-    person -- so this one lives under /dev and carries its own currentPage. Sharing
-    the address would light two rows of the rail on one page and hand the public
-    page the developer's permissions. -%>
-<div class="page-header">
-  <h1><i class="fas fa-gauge-high"></i> حالة البوت</h1>
-  <p>الاتصال، سرعة الاستجابة، مدة التشغيل، والذاكرة</p>
+<%
+  /* حالة البوت — the developer's copy. The public /status answers "is it up?";
+     this one answers "what exactly is happening?" for the person on call, so it
+     shows what the public page withholds: the bot API address, the secret's
+     fingerprint (never the secret), per-endpoint latency, collection counts and
+     the raw payloads. Every value is fetched from the route that already owns
+     it; nothing here is invented and no secret is printed. */
+  const SYSTEMS = [
+    { icon: 'fa-circle-info',       name: 'نظرة عامة',       dep: 'db'   },
+    { icon: 'fa-ticket',            name: 'التذاكر',         dep: 'both' },
+    { icon: 'fa-microphone',        name: 'الرومات المؤقتة', dep: 'both' },
+    { icon: 'fa-clock-rotate-left', name: 'سجل النشاط',      dep: 'db'   },
+    { icon: 'fa-bell',              name: 'الإشعارات',       dep: 'both' },
+    { icon: 'fa-sliders',           name: 'الإعدادات',       dep: 'db'   },
+    { icon: 'fa-terminal',          name: 'الأوامر',         dep: 'both' },
+    { icon: 'fa-shield-halved',     name: 'الحماية',         dep: 'both' },
+    { icon: 'fa-gem',               name: 'نظام البريميوم',  dep: 'db'   },
+    { icon: 'fa-user-gear',         name: 'المدراء',         dep: 'db'   },
+    { icon: 'fa-database',          name: 'النسخ الاحتياطي', dep: 'db'   },
+  ];
+  const DEP_LABEL = {
+    bot:  'يعتمد على البوت',
+    db:   'يعتمد على قاعدة البيانات',
+    both: 'يعتمد على البوت وقاعدة البيانات',
+  };
+%>
+
+<div class="dst">
+
+  <!-- ── الحالة الكلية ── -->
+  <section class="dst-hero" id="dstHero" data-state="wait" aria-live="polite">
+    <span class="dst-hero-glow" aria-hidden="true"></span>
+    <div class="dst-orb" aria-hidden="true"><span class="dst-orb-ring"></span><i class="fas fa-satellite-dish"></i></div>
+    <div class="dst-hero-body">
+      <span class="dst-eyebrow"><span class="dst-eyebrow-dot" aria-hidden="true"></span> تشخيص المطوّر</span>
+      <h1 class="dst-title" id="dstOverall">جارٍ فحص الأنظمة…</h1>
+      <p class="dst-sub" id="dstOverview">نقرأ البوت وقاعدة البيانات مباشرةً ثم نستنتج حالة كل نظام — والشاشة تعرض القيم الخام كما هي.</p>
+    </div>
+    <div class="dst-hero-side">
+      <div class="dst-count" id="dstCount">— / —</div>
+      <div class="dst-count-lbl">نظاماً يعمل</div>
+      <button type="button" class="dst-btn dst-btn-primary" id="dstRefresh"><i class="fas fa-rotate"></i> تحديث</button>
+      <div class="dst-stamp">آخر تحديث <b id="dstStamp">—</b></div>
+    </div>
+  </section>
+
+  <div class="dst-reason" id="dstReason" role="status" hidden></div>
+
+  <!-- ── المؤشرات الحية ── -->
+  <section class="dst-metrics">
+    <div class="dst-metric"><div class="dst-mic ic-p"><i class="fas fa-plug-circle-check"></i></div><div><b id="dstKState">—</b><span>حالة البوت</span></div></div>
+    <div class="dst-metric"><div class="dst-mic ic-a"><i class="fas fa-gauge-high"></i></div><div><b id="dstKPing">—</b><span>سرعة الاستجابة</span></div></div>
+    <div class="dst-metric"><div class="dst-mic ic-c"><i class="fas fa-server"></i></div><div><b id="dstKGuilds">—</b><span>سيرفر متصل</span></div></div>
+    <div class="dst-metric"><div class="dst-mic ic-g"><i class="fas fa-users"></i></div><div><b id="dstKMembers">—</b><span>إجمالي الأعضاء</span></div></div>
+    <div class="dst-metric"><div class="dst-mic ic-p"><i class="fas fa-terminal"></i></div><div><b id="dstKCmds">—</b><span>أمر مسجّل</span></div></div>
+    <div class="dst-metric"><div class="dst-mic ic-a"><i class="fas fa-microchip"></i></div><div><b id="dstKMem">—</b><span>ذاكرة اللوحة</span></div></div>
+  </section>
+
+  <!-- ── المكوّنات الأساسية ── -->
+  <div class="dst-sec-head"><h2><i class="fas fa-layer-group"></i> المكوّنات الأساسية</h2><span>أساس كل ما تحت، بقيمٍ خام</span></div>
+  <section class="dst-core">
+    <div class="dst-core-card" id="dstCoreDash">
+      <div class="dst-core-top">
+        <div class="dst-core-ic"><i class="fas fa-gauge-high"></i></div>
+        <div class="dst-core-name">واجهة اللوحة<span>الخادم الذي يقدّم هذه الصفحة</span></div>
+        <span class="dst-pill" id="dstPillDash" data-state="up"><i class="dst-dot"></i> يعمل</span>
+      </div>
+      <dl class="dst-kv" id="dstKvDash"></dl>
+    </div>
+    <div class="dst-core-card" id="dstCoreDb">
+      <div class="dst-core-top">
+        <div class="dst-core-ic"><i class="fas fa-database"></i></div>
+        <div class="dst-core-name">قاعدة البيانات<span>تخزين بيانات كل الأنظمة</span></div>
+        <span class="dst-pill" id="dstPillDb" data-state="unknown"><i class="dst-dot"></i> —</span>
+      </div>
+      <dl class="dst-kv" id="dstKvDb"></dl>
+    </div>
+    <div class="dst-core-card" id="dstCoreBot">
+      <div class="dst-core-top">
+        <div class="dst-core-ic"><i class="fas fa-robot"></i></div>
+        <div class="dst-core-name">خدمة البوت<span>الاتصال ببوابة ديسكورد</span></div>
+        <span class="dst-pill" id="dstPillBot" data-state="unknown"><i class="dst-dot"></i> —</span>
+      </div>
+      <dl class="dst-kv" id="dstKvBot"></dl>
+    </div>
+  </section>
+
+  <!-- ── الأنظمة ── -->
+  <div class="dst-sec-head"><h2><i class="fas fa-diagram-project"></i> الأنظمة</h2><span>حالة كل نظام مشتقّة من البوت + قاعدة البيانات</span></div>
+  <section class="dst-systems">
+    <% SYSTEMS.forEach(function (s) { %>
+    <div class="dst-sys" data-dep="<%= s.dep %>">
+      <div class="dst-sys-ic"><i class="fas <%= s.icon %>"></i></div>
+      <div class="dst-sys-txt"><b><%= s.name %></b><span><%= DEP_LABEL[s.dep] %></span></div>
+      <span class="dst-pill" data-pill data-state="unknown"><i class="dst-dot"></i> —</span>
+    </div>
+    <% }); %>
+  </section>
+
+  <!-- ── صحة نقاط النهاية + الخام ── -->
+  <div class="dst-cols">
+    <section class="dst-panel">
+      <div class="dst-panel-head"><h2><i class="fas fa-heart-pulse"></i> صحة نقاط الـ API</h2><span>كل نقطة تُقاس بزمنها ورمزها</span></div>
+      <div class="dst-eps" id="dstEps"><p class="dst-muted">جارٍ الفحص...</p></div>
+    </section>
+
+    <section class="dst-panel">
+      <div class="dst-panel-head">
+        <h2><i class="fas fa-code"></i> الاستجابة الخام</h2>
+        <div class="dst-raw-bar">
+          <select id="dstRawPick" aria-label="اختر نقطة النهاية"></select>
+          <button type="button" class="dst-mini" id="dstRawCopy" title="نسخ JSON"><i class="fas fa-copy"></i></button>
+        </div>
+      </div>
+      <pre class="dst-raw" id="dstRaw" dir="ltr">—</pre>
+    </section>
+  </div>
+
+  <!-- ── التذاكر + الصيانة ── -->
+  <div class="dst-cols">
+    <section class="dst-panel">
+      <div class="dst-panel-head"><h2><i class="fas fa-ticket"></i> إحصائيات التذاكر</h2><span>قراءة مباشرة من قاعدة البيانات</span></div>
+      <div class="dst-tix">
+        <div class="dst-tix-cell"><b id="dstTixTotal">—</b><span>الإجمالي</span></div>
+        <div class="dst-tix-cell"><b id="dstTixOpen">—</b><span>مفتوحة</span></div>
+        <div class="dst-tix-cell"><b id="dstTixClosed">—</b><span>مغلقة</span></div>
+      </div>
+      <div class="dst-prog">
+        <div class="dst-prog-head"><span>نسبة الإغلاق</span><b id="dstTixPct">—</b></div>
+        <div class="dst-prog-track"><i class="dst-prog-fill" id="dstTixBar"></i></div>
+      </div>
+    </section>
+
+    <section class="dst-panel">
+      <div class="dst-panel-head"><h2><i class="fas fa-shield-halved"></i> وضع الصيانة</h2><a class="dst-mini-link" href="/dev/maintenance">إدارة <i class="fas fa-arrow-left"></i></a></div>
+      <div class="dst-mnt" id="dstMnt">
+        <div class="dst-mnt-state" id="dstMntState" data-state="unknown"><i class="fas fa-circle"></i> —</div>
+        <p class="dst-muted" id="dstMntMsg">—</p>
+        <div class="dst-mnt-sub" id="dstMntSub"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ── الأوامر ── -->
+  <div class="dst-sec-head"><h2><i class="fas fa-terminal"></i> الأوامر حسب القسم</h2><span id="dstCmdTotal">—</span></div>
+  <section class="dst-panel"><div class="dst-cats" id="dstCats"><p class="dst-muted">جارٍ الفحص...</p></div></section>
+
+  <p class="dst-note"><i class="fas fa-lock"></i> القيم السرّية (توكن البوت و API_SECRET) لا تُطبع هنا أبداً؛ تُعرض فقط حالتها وبصمتها. كل ما عداه خام بلا ترميز.</p>
+
 </div>
+
+<style>
+.dst{
+  --ok:#57f287; --bad:#ff6b6b; --warn:#ffd93d;
+  --dst-a:#a855f7; --dst-a-ink:#c9a4ff; --dst-a-soft:rgba(168,85,247,.12);
+  --dst-line:var(--border); --dst-card:var(--bg-card); --dst-muted:var(--text-muted);
+  display:flex; flex-direction:column; gap:8px; max-width:1120px; margin:0 auto; position:relative; padding-bottom:30px;
+}
+[data-theme="light"] .dst{--dst-a-ink:#6d28d9; --dst-a-soft:rgba(124,58,237,.10)}
+@keyframes dstRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.dst > *{animation:dstRise .45s ease both}
+
+/* ── Hero ── */
+.dst-hero{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;gap:22px;padding:25px;border-radius:22px;border:1px solid var(--dst-line);background:radial-gradient(120% 190% at 92% -45%,var(--dst-a-soft),transparent 60%),var(--dst-card);box-shadow:var(--shadow);margin-bottom:8px}
+.dst-hero-glow{position:absolute;z-index:-1;top:-40%;inset-inline-end:-6%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.32),transparent 70%);filter:blur(30px);pointer-events:none}
+.dst-orb{position:relative;flex-shrink:0;width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--dst-a-ink);background:var(--dst-a-soft);border:1px solid rgba(168,85,247,.32)}
+.dst-orb-ring{position:absolute;inset:-5px;border-radius:22px;border:2px solid var(--dst-a);opacity:.5;animation:dstPulse 2.2s ease-in-out infinite}
+@keyframes dstPulse{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.09);opacity:0}}
+.dst-hero[data-state="off"] .dst-orb-ring{animation:none;opacity:.3}
+.dst-hero-body{flex:1;min-width:0}
+.dst-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;font-size:.72rem;font-weight:700;color:var(--dst-muted);background:var(--bg-glass);border:1px solid var(--dst-line)}
+.dst-eyebrow-dot{width:7px;height:7px;border-radius:50%;background:var(--dst-a);box-shadow:0 0 0 3px var(--dst-a-soft)}
+.dst-hero[data-state="ok"] .dst-eyebrow-dot{background:var(--ok)}
+.dst-hero[data-state="warn"] .dst-eyebrow-dot{background:var(--warn)}
+.dst-hero[data-state="off"] .dst-eyebrow-dot{background:var(--bad)}
+.dst-title{margin:10px 0 5px;font-size:clamp(1.3rem,2.6vw,1.7rem);font-weight:900;line-height:1.25}
+.dst-sub{font-size:.85rem;color:var(--dst-muted);max-width:62ch;margin:0;line-height:1.8}
+.dst-hero-side{display:flex;flex-direction:column;align-items:flex-end;gap:9px;flex-shrink:0;text-align:end}
+.dst-count{font-size:1.55rem;font-weight:900;font-variant-numeric:tabular-nums}
+.dst-count-lbl{font-size:.72rem;color:var(--dst-muted)}
+.dst-stamp{font-size:.7rem;color:var(--dst-muted)}
+.dst-stamp b{color:var(--dst-a-ink)}
+
+/* ── Buttons ── */
+.dst-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:11px;font-family:inherit;font-size:.8rem;font-weight:700;line-height:1;border:none;cursor:pointer;text-decoration:none;transition:transform .2s,box-shadow .2s,color .2s,border-color .2s}
+.dst-btn-primary{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 6px 20px rgba(124,58,237,.32)}
+.dst-btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(124,58,237,.42)}
+.dst-btn:disabled{opacity:.6;cursor:default;transform:none}
+.dst-mini{width:34px;height:34px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--bg-glass);border:1px solid var(--dst-line);color:var(--dst-muted);cursor:pointer;font-size:.78rem;transition:color .2s,border-color .2s}
+.dst-mini:hover{color:var(--dst-a-ink);border-color:rgba(168,85,247,.4)}
+.dst-mini-link{font-size:.74rem;font-weight:700;color:var(--dst-a-ink);text-decoration:none}
+.dst-mini-link:hover{text-decoration:underline}
+
+/* ── Reason ── */
+.dst-reason{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:13px;font-size:.82rem;line-height:1.8;background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.24);color:var(--text);margin-bottom:8px}
+.dst-reason[hidden]{display:none}
+.dst-reason i{color:#b98900;margin-top:4px}
+
+/* ── Sections ── */
+.dst-sec-head{display:flex;align-items:center;gap:12px;margin:22px 0 12px;flex-wrap:wrap}
+.dst-sec-head h2{font-size:1rem;font-weight:800;margin:0;display:flex;align-items:center;gap:9px}
+.dst-sec-head h2 i{color:var(--dst-a-ink);font-size:.9rem}
+.dst-sec-head > span{margin-inline-start:auto;font-size:.72rem;color:var(--dst-muted)}
+.dst-panel{padding:20px 22px;border-radius:18px;background:var(--dst-card);border:1px solid var(--dst-line)}
+.dst-panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.dst-panel-head h2{font-size:.96rem;font-weight:800;margin:0;display:flex;align-items:center;gap:9px}
+.dst-panel-head h2 i{color:var(--dst-a-ink);font-size:.88rem}
+.dst-panel-head > span{font-size:.72rem;color:var(--dst-muted)}
+.dst-muted{color:var(--dst-muted);font-size:.8rem;margin:0}
+
+/* ── Metrics ── */
+.dst-metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.dst-metric{display:flex;align-items:center;gap:12px;padding:15px;border-radius:15px;background:var(--dst-card);border:1px solid var(--dst-line);transition:transform .25s,border-color .25s}
+.dst-metric:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.35)}
+.dst-mic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.ic-p{background:var(--dst-a-soft);color:var(--dst-a-ink)}
+.ic-g{background:rgba(87,242,135,.14);color:#2fb45f}
+.ic-a{background:rgba(255,217,61,.16);color:#b98900}
+.ic-c{background:rgba(140,90,255,.16);color:var(--dst-a-ink)}
+.dst-metric b{display:block;font-size:1.2rem;font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums}
+.dst-metric span{font-size:.68rem;color:var(--dst-muted)}
+.dst-metric b.ok{color:#22c55e}
+.dst-metric b.off{color:#ef4444}
+
+/* ── Core components ── */
+.dst-core{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.dst-core-card{padding:16px;border-radius:16px;background:var(--dst-card);border:1px solid var(--dst-line)}
+.dst-core-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.dst-core-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;background:var(--dst-a-soft);color:var(--dst-a-ink);flex-shrink:0}
+.dst-core-name{flex:1;min-width:0;font-size:.86rem;font-weight:800;line-height:1.3}
+.dst-core-name span{display:block;font-size:.68rem;font-weight:500;color:var(--dst-muted)}
+.dst-kv{margin:0;display:flex;flex-direction:column;gap:6px}
+.dst-kv > div{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.76rem;padding:6px 8px;border-radius:8px}
+.dst-kv > div:nth-child(odd){background:var(--bg-glass)}
+.dst-kv dt{color:var(--dst-muted)}
+.dst-kv dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums;text-align:end;word-break:break-word}
+.dst-kv dd.ltr{direction:ltr;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.72rem}
+.dst-kv dd.ok{color:#22c55e}
+.dst-kv dd.off{color:#ef4444}
+.dst-kv dd.warn{color:#b98900}
+
+/* ── Systems ── */
+.dst-systems{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.dst-sys{position:relative;display:flex;align-items:center;gap:12px;padding:14px 15px;border-radius:15px;background:var(--dst-card);border:1px solid var(--dst-line);transition:transform .2s,border-color .2s}
+.dst-sys:hover{transform:translateY(-2px)}
+.dst-sys.is-down{border-color:color-mix(in srgb,var(--bad) 30%,var(--dst-line))}
+.dst-sys-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:.95rem;background:var(--bg-glass);color:var(--dst-a-ink);flex-shrink:0}
+.dst-sys.is-down .dst-sys-ic{color:var(--bad)}
+.dst-sys-txt{flex:1;min-width:0}
+.dst-sys-txt b{display:block;font-size:.85rem;font-weight:700}
+.dst-sys-txt span{font-size:.69rem;color:var(--dst-muted)}
+
+/* ── Pills ── */
+.dst-pill{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;padding:5px 11px;border-radius:999px;font-size:.72rem;font-weight:700;white-space:nowrap;color:var(--dst-muted);background:var(--bg-glass);border:1px solid var(--dst-line)}
+.dst-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.dst-pill[data-state="up"]{color:#3ddc84;background:rgba(87,242,133,.10);border-color:rgba(87,242,133,.34)}
+.dst-pill[data-state="down"]{color:#ff7a7a;background:rgba(255,107,107,.10);border-color:rgba(255,107,107,.34)}
+[data-theme="light"] .dst-pill[data-state="up"]{color:#116b39;background:rgba(17,107,57,.10);border-color:rgba(17,107,57,.3)}
+[data-theme="light"] .dst-pill[data-state="down"]{color:#b42323;background:rgba(180,35,35,.10);border-color:rgba(180,35,35,.3)}
+
+/* ── Two columns ── */
+.dst-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+
+/* ── Endpoints ── */
+.dst-eps{display:flex;flex-direction:column;gap:8px}
+.dst-ep{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;background:var(--bg-glass);border:1px solid var(--dst-line)}
+.dst-ep-name{font-size:.78rem;font-weight:700;flex:1;min-width:0}
+.dst-ep code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.68rem;color:var(--dst-muted);direction:ltr}
+.dst-ep b{font-size:.72rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dst-ep b.ok{color:#22c55e}
+.dst-ep b.off{color:#ef4444}
+.dst-ep b.warn{color:#b98900}
+
+/* ── Raw ── */
+.dst-raw-bar{display:flex;align-items:center;gap:8px}
+.dst-raw-bar select{padding:8px 11px;border-radius:9px;background:var(--bg-glass);border:1px solid var(--dst-line);color:var(--text);font-family:inherit;font-size:.76rem;font-weight:600;outline:none;cursor:pointer}
+.dst-raw{margin:0;max-height:320px;overflow:auto;padding:14px;border-radius:12px;background:var(--bg-glass);border:1px solid var(--dst-line);color:var(--text);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.72rem;line-height:1.7;white-space:pre;unicode-bidi:plaintext}
+[data-theme="light"] .dst-raw{background:rgba(28,21,51,.04)}
+
+/* ── Tickets ── */
+.dst-tix{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.dst-tix-cell{text-align:center;padding:14px 8px;border-radius:13px;background:var(--bg-glass);border:1px solid var(--dst-line)}
+.dst-tix-cell b{display:block;font-size:1.3rem;font-weight:900;font-variant-numeric:tabular-nums}
+.dst-tix-cell span{font-size:.72rem;color:var(--dst-muted)}
+.dst-prog{padding:13px;border-radius:13px;background:var(--bg-glass);border:1px solid var(--dst-line)}
+.dst-prog-head{display:flex;justify-content:space-between;font-size:.76rem;color:var(--dst-muted);margin-bottom:9px}
+.dst-prog-head b{color:var(--text);font-variant-numeric:tabular-nums}
+.dst-prog-track{height:8px;border-radius:999px;background:var(--dst-a-soft);overflow:hidden}
+.dst-prog-fill{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#7c3aed,#a855f7);transition:width .5s}
+
+/* ── Maintenance ── */
+.dst-mnt{display:flex;flex-direction:column;gap:10px}
+.dst-mnt-state{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;font-size:.82rem;font-weight:800;padding:8px 14px;border-radius:11px;background:var(--bg-glass);border:1px solid var(--dst-line)}
+.dst-mnt-state i{font-size:.5rem}
+.dst-mnt-state[data-state="on"]{color:#ff7a7a;background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.24)}
+.dst-mnt-state[data-state="off"]{color:#3ddc84;background:rgba(87,242,133,.08);border-color:rgba(87,242,133,.24)}
+.dst-mnt-sub{font-size:.74rem;color:var(--dst-muted)}
+
+/* ── Command categories ── */
+.dst-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.dst-cat{padding:12px 14px;border-radius:13px;background:var(--bg-glass);border:1px solid var(--dst-line)}
+.dst-cat-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.dst-cat-top span{font-size:.78rem;font-weight:700;text-transform:capitalize;word-break:break-word}
+.dst-cat-top b{font-size:.86rem;font-weight:800;color:var(--dst-a-ink);font-variant-numeric:tabular-nums}
+.dst-cat-bar{height:6px;border-radius:100px;background:var(--dst-a-soft);overflow:hidden}
+.dst-cat-bar i{display:block;height:100%;border-radius:100px;background:linear-gradient(90deg,#7c3aed,#a855f7)}
+
+.dst-note{display:flex;gap:10px;align-items:flex-start;margin:16px 0 0;padding:12px 15px;border-radius:12px;font-size:.76rem;line-height:1.8;color:var(--dst-muted);background:var(--dst-a-soft);border:1px solid rgba(168,85,247,.18)}
+.dst-note i{color:var(--dst-a-ink);margin-top:4px}
+
+.dst-cats .dst-muted,.dst-eps .dst-muted{grid-column:1/-1;padding:6px 2px}
+
+@media(max-width:980px){.dst-metrics{grid-template-columns:repeat(3,1fr)}.dst-core{grid-template-columns:1fr}.dst-cols{grid-template-columns:1fr}}
+@media(max-width:720px){.dst-hero{flex-direction:column;align-items:flex-start;padding:22px}.dst-hero-side{flex-direction:row;flex-wrap:wrap;align-items:center;width:100%;text-align:start}}
+@media(max-width:560px){.dst-metrics{grid-template-columns:repeat(2,1fr)}.dst-tix{grid-template-columns:1fr}.dst-systems{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.dst > *{animation:none}.dst-orb-ring{animation:none}}
+</style>
+
+<script>
+(function () {
+  var CLIENT_OWNER = <%- isOwner ? 'true' : 'false' %>;
+
+  var ENDPOINTS = [
+    { key: 'status',  name: 'حالة النظام',    url: '/api/status' },
+    { key: 'diag',    name: 'التشخيص',        url: '/api/diagnostics' },
+    { key: 'botinfo', name: 'معلومات البوت',  url: '/api/bot/info' },
+    { key: 'cmds',    name: 'الأوامر',        url: '/api/commands/stats' },
+    { key: 'tix',     name: 'التذاكر',        url: '/api/tickets/stats' },
+    { key: 'maint',   name: 'وضع الصيانة',    url: '/dev/maintenance/status' }
+  ];
+  var data = {};
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmt(n) { n = Number(n) || 0; return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n); }
+  function num(v) { return v == null || isNaN(v) ? '—' : v; }
+  function mb(b) { return b == null ? '—' : (Number(b) / 1048576).toFixed(1) + ' MB'; }
+  function dur(s) {
+    s = Math.floor(Number(s) || 0);
+    var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+    if (d) return d + 'ي ' + h + 'س';
+    if (h) return h + 'س ' + m + 'د';
+    if (m) return m + 'د';
+    return s + 'ث';
+  }
+  function stateOf(dep, bot, db) {
+    if (dep === 'bot') return bot; if (dep === 'db') return db; if (dep === 'both') return bot && db; return true;
+  }
+  function pill(el, cls, label) {
+    if (!el) return;
+    el.className = 'dst-pill';
+    el.dataset.state = cls;
+    el.innerHTML = '<i class="dst-dot"></i> ' + esc(label);
+  }
+
+  /* ── Probe every endpoint: HTTP code + latency, and keep the body ──
+     A status page must never hang on the thing it is reporting on: with the
+     database down /api/tickets/stats stops answering entirely, so every probe
+     carries an 8s deadline. A timeout is a result, not a failure of the page. */
+  var PROBE_TIMEOUT = 8000;
+  function probe(ep) {
+    var t0 = performance.now();
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, PROBE_TIMEOUT);
+    var opts = { cache: 'no-store' };
+    if (ctrl) opts.signal = ctrl.signal;
+    return fetch(ep.url, opts).then(function (r) {
+      return r.text().then(function (txt) {
+        clearTimeout(timer);
+        var body = null;
+        try { body = JSON.parse(txt); } catch (e) { body = txt; }
+        return { ok: r.ok, status: r.status, ms: Math.round(performance.now() - t0), body: body };
+      });
+    }).catch(function () {
+      clearTimeout(timer);
+      return { ok: false, status: 0, ms: Math.round(performance.now() - t0), body: null, timedOut: true };
+    });
+  }
+
+  function renderEndpoints() {
+    var box = $('dstEps');
+    if (!box) return;
+    box.innerHTML = ENDPOINTS.map(function (ep) {
+      var d = data[ep.key] || {};
+      var cls = d.ok ? 'ok' : (d.status === 403 ? 'warn' : 'off');
+      var label = d.status ? ('HTTP ' + d.status) : (d.timedOut ? 'لا استجابة' : 'فشل الاتصال');
+      return '<div class="dst-ep"><span class="dst-ep-name">' + esc(ep.name) + '</span>' +
+        '<code>' + esc(ep.url) + '</code>' +
+        '<b class="' + cls + '">' + label + ' · ' + (d.ms != null ? d.ms + 'ms' : '—') + '</b></div>';
+    }).join('');
+  }
+
+  function renderRawOptions() {
+    var sel = $('dstRawPick');
+    if (!sel || sel.options.length) return;
+    sel.innerHTML = ENDPOINTS.map(function (ep) { return '<option value="' + ep.key + '">' + esc(ep.name) + '</option>'; }).join('');
+    sel.addEventListener('change', renderRaw);
+    renderRaw();
+  }
+  function renderRaw() {
+    var sel = $('dstRawPick'), pre = $('dstRaw');
+    if (!sel || !pre) return;
+    var k = sel.value, d = data[k] || {};
+    if (d.status === 403) { pre.textContent = '// ' + d.status + ' — هذه النقطة متاحة للمالك فقط'; return; }
+    if (!d.body && !d.status) { pre.textContent = '// ' + (d.timedOut ? 'لا استجابة خلال المهلة' : 'تعذّر الاتصال'); return; }
+    try { pre.textContent = JSON.stringify(d.body, null, 2); }
+    catch (e) { pre.textContent = String(d.body); }
+  }
+
+  function render() {
+    var st = (data.status && data.status.body) || {};
+    var bot = st.botOnline === true;
+    var db = st.dbOnline === true;
+
+    /* Overall */
+    var systems = Array.prototype.slice.call(document.querySelectorAll('.dst-sys'));
+    var up = 0;
+    systems.forEach(function (s) {
+      var state = stateOf(s.dataset.dep, bot, db);
+      s.classList.toggle('is-down', state === false);
+      var p = s.querySelector('.dst-pill');
+      pill(p, state === true ? 'up' : 'down', state === true ? 'يعمل' : 'متوقف');
+      if (state === true) up++;
+    });
+
+    var hero = $('dstHero');
+    var stateCls = (bot && db) ? 'ok' : (bot || db) ? 'warn' : 'off';
+    if (hero) hero.dataset.state = stateCls;
+    if ($('dstCount')) $('dstCount').textContent = up + ' / ' + systems.length;
+    if ($('dstOverall')) $('dstOverall').textContent = (bot && db) ? 'كل الأنظمة تعمل' : (!bot && !db) ? 'انقطاع كامل' : (!bot ? 'البوت غير متصل' : 'قاعدة البيانات غير متصلة');
+
+    var reasons = [];
+    if (!bot) reasons.push('البوت لا يستجيب' + (st.botApiError ? ' (' + st.botApiError + ')' : '') + '.');
+    if (!db) reasons.push('قاعدة البيانات غير متصلة.');
+    var rb = $('dstReason');
+    if (rb) {
+      rb.hidden = reasons.length === 0;
+      if (reasons.length) rb.innerHTML = '<i class="fas fa-triangle-exclamation"></i><div>' + reasons.map(esc).join('<br>') + '</div>';
+    }
+
+    /* Metrics */
+    if ($('dstKState')) { $('dstKState').textContent = bot ? 'متصل' : 'غير متصل'; $('dstKState').className = bot ? 'ok' : 'off'; }
+    if ($('dstKPing')) $('dstKPing').textContent = st.ping != null ? st.ping + 'ms' : '—';
+    if ($('dstKGuilds')) $('dstKGuilds').textContent = st.guildCount != null ? fmt(st.guildCount) : '—';
+    if ($('dstKMembers')) $('dstKMembers').textContent = st.members != null ? fmt(st.members) : '—';
+    if ($('dstKMem') && st.memory) $('dstKMem').textContent = mb(st.memory.heapUsed || st.memory.rss);
+
+    /* Dashboard component */
+    pill($('dstPillDash'), 'up', 'يعمل');
+    kv($('dstKvDash'), [
+      ['مدة التشغيل', st.uptime != null ? dur(st.uptime) : '—'],
+      ['الذاكرة', st.memory ? mb(st.memory.heapUsed || st.memory.rss) : '—'],
+      ['Node', st.nodeVersion || '—', 'ltr'],
+      ['المنصّة', st.platform || '—', 'ltr'],
+      ['زمن الاستجابة', st.responseTime != null ? st.responseTime + 'ms' : '—']
+    ]);
+
+    /* Database component */
+    var diag = (data.diag && data.diag.body) || {};
+    var mongo = diag.mongo || {};
+    pill($('dstPillDb'), db ? 'up' : 'down', db ? 'متصلة' : 'غير متصلة');
+    var collCount = (mongo.collections && Object.keys(mongo.collections).length) || 0;
+    kv($('dstKvDb'), [
+      ['الحالة', db ? 'متصلة' : 'غير متصلة', db ? 'ok' : 'off'],
+      ['قاعدة البيانات', mongo.dbName || '—', 'ltr'],
+      ['عدد المجموعات', collCount || '—'],
+      ['قراءة التذاكر', (data.tix && data.tix.body && data.tix.body.total != null) ? 'تعمل' : '—']
+    ]);
+
+    /* Bot component */
+    var bapi = diag.botApi || {};
+    pill($('dstPillBot'), bot ? 'up' : 'down', bot ? 'متصل' : 'غير متصل');
+    kv($('dstKvBot'), [
+      ['عنوان API', bapi.baseUrl || '—', 'ltr'],
+      ['رمز HTTP', st.botApiHttp ? String(st.botApiHttp) : '—', bot ? 'ok' : 'off'],
+      ['توكن Discord', CLIENT_OWNER ? (diag.discord && diag.discord.hasBotToken ? 'متوفر' : 'غير مضبوط') : '—', (diag.discord && diag.discord.hasBotToken) ? 'ok' : ''],
+      ['Secret مضبوط', st.secretConfigured ? ('نعم (' + (st.secretLength || 0) + ')') : 'لا', st.secretConfigured ? 'ok' : 'warn'],
+      ['بصمة Secret', st.secretHint || '—', 'ltr']
+    ]);
+
+    /* Tickets */
+    var tx = (data.tix && data.tix.body) || {};
+    if ($('dstTixTotal')) $('dstTixTotal').textContent = num(tx.total);
+    if ($('dstTixOpen')) $('dstTixOpen').textContent = num(tx.open);
+    if ($('dstTixClosed')) $('dstTixClosed').textContent = num(tx.closed);
+    var pct = tx.total ? Math.round((tx.closed || 0) / tx.total * 100) : 0;
+    if ($('dstTixPct')) $('dstTixPct').textContent = tx.total ? pct + '%' : '—';
+    if ($('dstTixBar')) $('dstTixBar').style.width = (tx.total ? pct : 0) + '%';
+
+    /* Maintenance */
+    var mt = (data.maint && data.maint.body) || {};
+    var mEl = $('dstMntState');
+    if (mEl) {
+      mEl.dataset.state = mt.enabled ? 'on' : 'off';
+      mEl.innerHTML = '<i class="fas fa-circle"></i> ' + (mt.enabled ? 'الصيانة مفعّلة' : 'الخدمات تعمل');
+    }
+    if ($('dstMntMsg')) $('dstMntMsg').textContent = mt.enabled ? (mt.message || 'لا توجد رسالة') : 'لا توجد صيانة جارية.';
+    if ($('dstMntSub')) $('dstMntSub').textContent = mt.enabled && mt.remainMs != null ? ('متبقٍ ' + dur(mt.remainMs / 1000)) : '';
+
+    /* Commands */
+    var cmd = (data.cmds && data.cmds.body) || {};
+    if ($('dstKCmds')) $('dstKCmds').textContent = cmd.total != null ? fmt(cmd.total) : '—';
+    if ($('dstCmdTotal')) $('dstCmdTotal').textContent = (cmd.total != null ? cmd.total : '—') + ' أمر';
+    var catBox = $('dstCats');
+    if (catBox) {
+      var per = cmd.perCategory || {};
+      var entries = Object.keys(per).map(function (k) { return { k: k, v: Number(per[k]) || 0 }; }).sort(function (a, b) { return b.v - a.v; });
+      if (!entries.length) catBox.innerHTML = '<p class="dst-muted">لا توجد أوامر مسجّلة.</p>';
+      else {
+        var max = entries.reduce(function (m, e) { return Math.max(m, e.v); }, 0) || 1;
+        catBox.innerHTML = entries.map(function (e) {
+          return '<div class="dst-cat"><div class="dst-cat-top"><span>' + esc(e.k) + '</span><b>' + e.v + '</b></div>' +
+            '<div class="dst-cat-bar"><i style="width:' + Math.max(4, Math.round(e.v / max * 100)) + '%"></i></div></div>';
+        }).join('');
+      }
+    }
+
+    renderEndpoints();
+    renderRaw();
+
+    if ($('dstStamp')) $('dstStamp').textContent = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function kv(el, rows) {
+    if (!el) return;
+    el.innerHTML = rows.map(function (r) {
+      var cls = r[2] || '';
+      return '<div><dt>' + esc(r[0]) + '</dt><dd class="' + cls + '">' + esc(r[1]) + '</dd></div>';
+    }).join('');
+  }
+
+  function refresh() {
+    var btn = $('dstRefresh');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-rotate fa-spin"></i> فحص'; }
+    return Promise.all(ENDPOINTS.map(function (ep) {
+      return probe(ep).then(function (res) { data[ep.key] = res; });
+    })).then(render).then(function () {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate"></i> تحديث'; }
+    });
+  }
+
+  if ($('dstRefresh')) $('dstRefresh').addEventListener('click', refresh);
+  if ($('dstRawCopy')) $('dstRawCopy').addEventListener('click', function () {
+    var pre = $('dstRaw'); if (!pre) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(pre.textContent);
+  });
+
+  renderRawOptions();
+  refresh();
+  setInterval(function () { if (!document.hidden) refresh(); }, 20000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+})();
+</script>

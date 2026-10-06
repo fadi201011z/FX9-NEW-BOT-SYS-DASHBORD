@@ -116,20 +116,20 @@ router.get('/', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
 // reachable by typing its address either.
 //
 // One table and one loop because the rest are structurally identical today
-// -- a heading and nothing under it. /dev/bot and /dev/guilds used to sit in
-// this table; each left when it grew data of its own and is now an ordinary
-// route below, and the table keeps the rest. Which page is which is therefore
-// written down once, and the three addresses, the three currentPages and the
-// three titles cannot drift apart the way three hand-written routes would.
+// -- a heading and nothing under it. /dev/bot, /dev/status and /dev/guilds all
+// used to sit in this table; each left when it grew data of its own and is now
+// an ordinary route below, and the table keeps the rest. Which page is which is
+// therefore written down once, and the two addresses, the two currentPages and
+// the two titles cannot drift apart the way two hand-written routes would.
 //
-// All three are namespaced under /dev on purpose, and two of them collide with
-// words the site already uses. /status is the public "حالة البوت" that a
-// logged-out visitor reads, and /guilds is the account's own server list: give
-// either of them a flat address here and one page would answer to two names, two
-// rows of the rail would light together on it, and the public page would inherit
-// the developer's permissions.
+// The two left are namespaced under /dev on purpose, and one of them collides
+// with a word the site already uses: /guilds is the account's own server list.
+// Give it a flat address here and one page would answer to two names, two rows
+// of the rail would light together on it, and the public page would inherit the
+// developer's permissions. /status was the other collision and still lives
+// under /dev even now that it has its own route, because the public /status is
+// the same name for a different reader -- a logged-out visitor.
 const DEV_PAGES = [
-  { path: 'status', view: 'dev/status', page: 'dev-status', title: 'حالة البوت' },
   { path: 'features', view: 'dev/features', page: 'dev-features', title: 'حالة الخصائص' },
   { path: 'maintenance', view: 'dev/maintenance', page: 'dev-maintenance', title: 'وضع الصيانة' },
 ];
@@ -169,6 +169,21 @@ router.get('/bot', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
     developers,
     isOwner: req.perms?.isOwner || false,
     title: 'إدارة البوت',
+  });
+});
+
+// ── Developer status (a superset of the public /status) ──────────────────
+// Every number on the page comes from the routes that already serve it
+// (status, diagnostics, bot info, commands, tickets) plus the maintenance
+// endpoint; nothing is read at render time and nothing is invented. It left
+// the table above once it grew past a heading, and it stayed under /dev
+// because /status is the public board a logged-out visitor reads -- same name,
+// different reader, so it must not share the address.
+router.get('/status', isAuthenticated, isOwnerOrDeveloper, (req, res) => {
+  res.render('dev/status', {
+    user: req.session.user,
+    isOwner: req.perms?.isOwner || false,
+    title: 'حالة البوت',
   });
 });
 
