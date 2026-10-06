@@ -132,6 +132,12 @@ router.get('/status', async (req, res) => {
     memory: process.memoryUsage(),
     nodeVersion: process.version,
     platform: process.platform,
+    // Whether Mongo is actually connected. The public status page reports it as
+    // a component in its own right: every dashboard system that reads or writes
+    // is only as available as this flag, and "the bot is up but nothing saves"
+    // is otherwise indistinguishable from a healthy deploy. A boolean leaks
+    // nothing the /tickets/stats endpoint above does not already answer.
+    dbOnline: mongoose.connection.readyState === 1,
     responseTime: Date.now() - start,
     guildCount,
     members,

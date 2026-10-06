@@ -1,622 +1,692 @@
 <% currentPage = 'status' %>
-<div class="page-header fade-in">
-  <h1><i class="fas fa-heartbeat" style="color:var(--danger)"></i> حالة البوت</h1>
-  <p>مراقبة مباشرة لحالة البوت وأداء الخادم</p>
-</div>
+<%
+  /* الأنظمة الإحدى عشرة التي تعرضها اللوحة. لكل نظام `dep` واحدة من ثلاث:
+     'bot' ← يحتاج اتصال البوت، 'db' ← يحتاج قاعدة البيانات،
+     'both' ← يحتاجهما معاً. لا نمنح أي نظام حالة من عندنا: /api/status يقيس
+     علمين فقط (botOnline و dbOnline)، وحالة كل نظام تُشتق منهما بحسب ما
+     يتوقف عليه عمله فعلاً. نظام لا نعرف حالته لا يُعلن «يعمل». */
+  const SYSTEMS = [
+    { icon: 'fa-circle-info',      name: 'نظرة عامة',       dep: 'db'   },
+    { icon: 'fa-ticket',           name: 'التذاكر',         dep: 'both' },
+    { icon: 'fa-microphone',       name: 'الرومات المؤقتة', dep: 'both' },
+    { icon: 'fa-clock-rotate-left', name: 'سجل النشاط',     dep: 'db'   },
+    { icon: 'fa-bell',             name: 'الإشعارات',       dep: 'both' },
+    { icon: 'fa-sliders',          name: 'الإعدادات',       dep: 'db'   },
+    { icon: 'fa-terminal',         name: 'الأوامر',         dep: 'both' },
+    { icon: 'fa-shield-halved',    name: 'الحماية',         dep: 'both' },
+    { icon: 'fa-gem',              name: 'نظام البريميوم',  dep: 'db'   },
+    { icon: 'fa-user-gear',        name: 'المدراء',         dep: 'db'   },
+    { icon: 'fa-database',         name: 'النسخ الاحتياطي', dep: 'db'   },
+  ];
 
-<!-- Hero Status Banner -->
-<div class="status-hero glass fade-in-up" id="statusHero">
-  <div class="status-hero-glow"></div>
-  <div class="status-hero-icon">
-    <div class="status-hero-pulse"></div>
-    <i class="fas fa-robot"></i>
-  </div>
-  <div class="status-hero-info">
-    <div class="status-hero-name">KRS Bot</div>
-    <div class="status-hero-status" id="heroStatus">
-      <span class="status-dot online" id="heroDot"></span>
-      <span id="heroStatusText">جاري التحميل...</span>
-    </div>
-  </div>
-  <div class="status-hero-meta" id="heroMeta">
-    <span><i class="fas fa-tag"></i> v<span id="heroVersion">---</span></span>
-    <span><i class="fas fa-clock"></i> <span id="heroUptime">---</span></span>
-  </div>
-</div>
+  const DEP_LABEL = {
+    bot:  'يعتمد على البوت',
+    db:   'يعتمد على قاعدة البيانات',
+    both: 'يعتمد على البوت وقاعدة البيانات',
+  };
 
-<!-- Status Cards -->
-<div class="stats-grid fade-in-up" id="statusGrid">
-  <div class="stat-card glass" style="animation-delay:0.05s">
-    <div class="stat-icon" style="--stat-color:#57f287">
-      <i class="fas fa-signal"></i>
-    </div>
-    <div class="stat-info">
-      <span class="stat-value" id="sResponseTime">---</span>
-      <span class="stat-label">وقت الاستجابة</span>
-    </div>
-  </div>
+  /* المكوّنات الجذرية: أساس اللوحة نفسه. الثلاثة تُقاس مباشرة، لا استنتاجاً. */
+  const CORE = [
+    { icon: 'fa-gauge-high', name: 'واجهة اللوحة',   dep: 'always', note: 'الخادم الذي يقدّم هذه الصفحة' },
+    { icon: 'fa-database',   name: 'قاعدة البيانات', dep: 'db',     note: 'تخزين بيانات كل الأنظمة' },
+    { icon: 'fa-robot',      name: 'خدمة البوت',     dep: 'bot',    note: 'الاتصال ببوابة ديسكورد' },
+  ];
+%>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   حالة البوت — page styles
 
-  <div class="stat-card glass" style="animation-delay:0.1s">
-    <div class="stat-icon" style="--stat-color:#a855f7">
-      <i class="fas fa-server"></i>
-    </div>
-    <div class="stat-info">
-      <span class="stat-value" id="sGuilds">---</span>
-      <span class="stat-label">السيرفرات النشطة</span>
-    </div>
-  </div>
+   Scoped to this page: the whole block is inline in status.ejs, so nothing here
+   can reach another screen. It builds on the shared tokens (css/tokens.css and
+   the theme-aware --text/--border/--bg-card names from style.css) and adds no
+   new palette -- only the state colours, which every status board needs.
 
-  <div class="stat-card glass" style="animation-delay:0.15s">
-    <div class="stat-icon" style="--stat-color:var(--nx-gold)">
-      <i class="fas fa-terminal"></i>
-    </div>
-    <div class="stat-info">
-      <span class="stat-value" id="sCommands">---</span>
-      <span class="stat-label">الأوامر الكلية</span>
-    </div>
-  </div>
+   The old page reused the shell's .stat-card and .card classes, and js/main.js
+   sets every one of those to opacity:0 until an IntersectionObserver fires. A
+   reader without JS saw a blank page. Everything below is a new st-* name, so
+   the shell never touches it and the content is visible before any script runs.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-  <div class="stat-card glass" style="animation-delay:0.2s">
-    <div class="stat-icon" style="--stat-color:#eb459e">
-      <i class="fas fa-ticket"></i>
-    </div>
-    <div class="stat-info">
-      <span class="stat-value" id="sTickets">---</span>
-      <span class="stat-label">التذاكر المفتوحة</span>
-    </div>
-  </div>
+.st{
+  --ok:#57f287;
+  --bad:#ff6b6b;
+  --warn:#ffd93d;
+  --accent:var(--nx-glow);
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
 
-  <div class="stat-card glass" style="animation-delay:0.25s">
-    <div class="stat-icon" style="--stat-color:#57f287">
-      <i class="fas fa-microchip"></i>
-    </div>
-    <div class="stat-info">
-      <span class="stat-value" id="sMemory">---</span>
-      <span class="stat-label">استهلاك الذاكرة</span>
-    </div>
-  </div>
+/* ── Entrance ──────────────────────────────────────────────────────────────
+   CSS-only, so it plays with JS disabled and cannot leave the page at
+   opacity:0 if a script throws. */
+@keyframes stRise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+.st > *{ animation:stRise .45s var(--nx-ease-out) both; }
+.st > *:nth-child(2){ animation-delay:.04s; }
+.st > *:nth-child(3){ animation-delay:.08s; }
+.st > *:nth-child(4){ animation-delay:.12s; }
+.st > *:nth-child(5){ animation-delay:.16s; }
+.st > *:nth-child(6){ animation-delay:.20s; }
+.st > *:nth-child(7){ animation-delay:.24s; }
 
-  <div class="stat-card glass" style="animation-delay:0.3s">
-    <div class="stat-icon" style="--stat-color:#a855f7">
-      <i class="fas fa-globe"></i>
-    </div>
-    <div class="stat-info">
-      <span class="stat-value" id="sPlatform">---</span>
-      <span class="stat-label">المنصة</span>
-    </div>
-  </div>
-</div>
+/* ── Hero ──────────────────────────────────────────────────────────────────
+   --accent is the single thing that changes with the overall state, so the
+   orb, its ring, the eyebrow dot and the header wash all move together. */
+.st-hero{
+  --accent:var(--nx-glow);
+  position:relative; overflow:hidden; isolation:isolate;
+  display:flex; align-items:center; gap:22px;
+  padding:26px; border-radius:22px;
+  border:1px solid var(--border);
+  background:
+    radial-gradient(120% 190% at 92% -45%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 60%),
+    radial-gradient(90% 150% at -8% 140%, rgba(34,211,238,.09), transparent 55%),
+    var(--bg-card);
+  box-shadow:var(--shadow);
+}
+.st-hero[data-state="ok"]{ --accent:var(--ok); }
+.st-hero[data-state="warn"]{ --accent:var(--warn); }
+.st-hero[data-state="off"]{ --accent:var(--bad); }
+.st-hero-glow{
+  position:absolute; z-index:-1; top:-40%; inset-inline-end:-6%;
+  width:320px; height:320px; border-radius:50%;
+  background:radial-gradient(circle, color-mix(in srgb, var(--accent) 42%, transparent), transparent 70%);
+  filter:blur(30px); pointer-events:none;
+  animation:stFloat 7s ease-in-out infinite;
+}
+@keyframes stFloat{ 0%,100%{ transform:translate3d(0,0,0) scale(1); } 50%{ transform:translate3d(-14px,16px,0) scale(1.08); } }
 
-<div class="dashboard-grid">
-  <!-- Server Details -->
-  <div class="card glass fade-in-up" style="animation-delay:0.35s">
-    <div class="card-header">
-      <h3><i class="fas fa-server" style="color:var(--primary)"></i> تفاصيل الخادم</h3>
-      <button class="btn-refresh" onclick="loadStatus()" title="تحديث">
-        <i class="fas fa-sync-alt"></i> تحديث
+.st-orb{
+  position:relative; flex-shrink:0;
+  width:66px; height:66px; border-radius:19px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.7rem; color:var(--accent);
+  background:color-mix(in srgb, var(--accent) 15%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+}
+.st-orb-ring{
+  position:absolute; inset:-5px; border-radius:23px;
+  border:2px solid var(--accent); opacity:.5;
+  animation:stPulse 2.2s ease-in-out infinite;
+}
+@keyframes stPulse{ 0%,100%{ transform:scale(1); opacity:.5; } 50%{ transform:scale(1.09); opacity:0; } }
+.st-hero[data-state="off"] .st-orb-ring{ animation:none; opacity:.35; }
+
+.st-hero-body{ flex:1; min-width:0; }
+.st-eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:4px 12px; border-radius:999px;
+  font-size:.72rem; font-weight:700;
+  color:var(--text-muted); background:var(--bg-glass); border:1px solid var(--border);
+}
+.st-eyebrow-dot{
+  width:7px; height:7px; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.st-title{
+  margin:10px 0 5px; line-height:1.25;
+  font-size:clamp(1.35rem, 2.6vw, 1.75rem); font-weight:900; letter-spacing:-.4px;
+}
+.st-sub{ font-size:.86rem; color:var(--text-muted); max-width:56ch; }
+
+.st-hero-side{
+  display:flex; flex-direction:column; align-items:flex-end; gap:9px;
+  flex-shrink:0; text-align:end;
+}
+.st-hero-count{ font-size:1.6rem; font-weight:900; letter-spacing:-.5px; line-height:1; }
+.st-hero-count-lbl{ font-size:.72rem; color:var(--text-muted); margin-top:-4px; }
+.st-refresh{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:8px 15px; border-radius:11px;
+  font-family:var(--font); font-size:.78rem; font-weight:700; cursor:pointer;
+  color:var(--text); background:var(--bg-glass); border:1px solid var(--border);
+  transition:color .2s, border-color .2s, background .2s;
+}
+.st-refresh:hover{ color:var(--primary); border-color:var(--primary); }
+.st-refresh i{ transition:transform .6s var(--nx-ease-out); }
+.st-refresh.is-busy i{ animation:stSpin .8s linear infinite; }
+@keyframes stSpin{ to{ transform:rotate(360deg); } }
+.st-stamp{ font-size:.7rem; color:var(--text-muted); }
+
+/* ── Reason band ───────────────────────────────────────────────────────── */
+.st-reason{
+  display:flex; align-items:flex-start; gap:10px;
+  padding:12px 16px; border-radius:14px;
+  font-size:.84rem; line-height:1.7; color:var(--text);
+  background:color-mix(in srgb, var(--warn) 9%, var(--bg-card));
+  border:1px solid color-mix(in srgb, var(--warn) 34%, transparent);
+}
+.st-reason i{ color:var(--warn); margin-top:3px; flex-shrink:0; }
+.st-reason[hidden]{ display:none; }
+
+/* ── Panels ────────────────────────────────────────────────────────────── */
+.st-panel{
+  padding:20px; border-radius:20px;
+  border:1px solid var(--border); background:var(--bg-card); box-shadow:var(--shadow);
+}
+.st-panel-head{
+  display:flex; align-items:baseline; justify-content:space-between;
+  gap:12px; flex-wrap:wrap; margin-bottom:16px;
+}
+.st-h2{ display:flex; align-items:center; gap:9px; font-size:1rem; font-weight:800; }
+.st-h2 i{ color:var(--primary); font-size:.92rem; }
+.st-hint{ font-size:.74rem; color:var(--text-muted); }
+
+/* ── Core components ───────────────────────────────────────────────────── */
+.st-core{ display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:12px; }
+.st-core-card{
+  display:flex; align-items:center; gap:13px;
+  padding:15px; border-radius:15px;
+  background:var(--bg-secondary);
+  border:1px solid var(--border);
+  transition:transform .2s var(--nx-ease-out), border-color .2s;
+}
+.st-core-card:hover{ transform:translateY(-2px); }
+.st-core-card.is-up{ border-color:color-mix(in srgb, var(--ok) 34%, var(--border)); }
+.st-core-card.is-down{ border-color:color-mix(in srgb, var(--bad) 34%, var(--border)); }
+.st-core-ic{
+  flex-shrink:0; width:42px; height:42px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.05rem; color:var(--primary); background:var(--bg-glass);
+}
+.st-core-card.is-down .st-core-ic{ color:var(--bad); }
+.st-core-txt{ flex:1; min-width:0; }
+.st-core-name{ font-weight:700; font-size:.9rem; }
+.st-core-note{ font-size:.71rem; color:var(--text-muted); }
+
+/* ── Status pill ───────────────────────────────────────────────────────── */
+.st-pill{
+  display:inline-flex; align-items:center; gap:7px; flex-shrink:0;
+  padding:5px 11px; border-radius:999px; white-space:nowrap;
+  font-size:.74rem; font-weight:700;
+  color:var(--text-muted); background:var(--bg-glass); border:1px solid var(--border);
+}
+.st-pill[data-state="up"]{
+  color:#39d97a; background:rgba(87,242,133,.10); border-color:rgba(87,242,133,.34);
+}
+.st-pill[data-state="down"]{
+  color:#ff7a7a; background:rgba(255,107,107,.10); border-color:rgba(255,107,107,.34);
+}
+.st-dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
+.st-pill[data-state="up"] .st-dot,
+.st-pill[data-state="down"] .st-dot{ box-shadow:0 0 0 3px color-mix(in srgb, currentColor 22%, transparent); }
+
+/* ── Metrics ───────────────────────────────────────────────────────────── */
+.st-metrics{ display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; }
+.st-metric{
+  display:flex; align-items:center; gap:12px;
+  padding:15px; border-radius:15px;
+  background:var(--bg-secondary); border:1px solid var(--border);
+}
+.st-metric-ic{
+  flex-shrink:0; width:42px; height:42px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center; font-size:1rem;
+  color:var(--tint, var(--primary));
+  background:color-mix(in srgb, var(--tint, var(--primary)) 15%, transparent);
+}
+.st-metric-txt{ min-width:0; }
+.st-metric-v{ display:block; font-size:1.3rem; font-weight:900; letter-spacing:-.4px; line-height:1.15; font-variant-numeric:tabular-nums; }
+.st-metric-l{ font-size:.74rem; color:var(--text-muted); }
+
+/* ── Systems grid ──────────────────────────────────────────────────────── */
+.st-systems{ display:grid; grid-template-columns:repeat(auto-fit, minmax(252px, 1fr)); gap:12px; }
+.st-sys{
+  position:relative; display:flex; align-items:center; gap:12px;
+  padding:14px 15px; border-radius:15px;
+  background:var(--bg-secondary); border:1px solid var(--border);
+  transition:transform .2s var(--nx-ease-out), border-color .2s;
+}
+.st-sys:hover{ transform:translateY(-2px); }
+.st-sys::before{
+  content:''; position:absolute; inset-block:9px; inset-inline-start:0;
+  width:3px; border-radius:3px; background:transparent;
+}
+.st-sys.is-up::before{ background:var(--ok); }
+.st-sys.is-down::before{ background:var(--bad); }
+.st-sys.is-down{ border-color:color-mix(in srgb, var(--bad) 30%, var(--border)); }
+.st-sys-ic{
+  flex-shrink:0; width:38px; height:38px; border-radius:11px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.98rem; color:var(--primary); background:var(--bg-glass);
+}
+.st-sys.is-down .st-sys-ic{ color:var(--bad); }
+.st-sys-txt{ flex:1; min-width:0; }
+.st-sys-name{ font-weight:700; font-size:.86rem; }
+.st-sys-need{ font-size:.7rem; color:var(--text-muted); }
+
+/* ── Pill status colours on the shared pill ────────────────────────────── */
+.st-pill{ background:var(--bg-glass); }
+.st-pill[data-state="up"]{ color:#3ddc84; background:rgba(87,242,133,.10); border-color:rgba(87,242,133,.34); }
+.st-pill[data-state="down"]{ color:#ff7a7a; background:rgba(255,107,107,.10); border-color:rgba(255,107,107,.34); }
+.st-pill[data-state="unknown"]{ color:var(--text-muted); background:var(--bg-glass); border-color:var(--border); }
+.st-dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
+
+/* ── Two-column block ──────────────────────────────────────────────────── */
+.st-cols{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+
+.st-tix{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.st-tix-cell{
+  text-align:center; padding:14px 8px; border-radius:13px;
+  background:var(--bg-secondary); border:1px solid var(--border);
+}
+.st-tix-cell b{ display:block; font-size:1.35rem; font-weight:900; font-variant-numeric:tabular-nums; }
+.st-tix-cell span{ font-size:.72rem; color:var(--text-muted); }
+.st-prog{ padding:13px; border-radius:13px; background:var(--bg-secondary); border:1px solid var(--border); }
+.st-prog-head{ display:flex; justify-content:space-between; font-size:.76rem; color:var(--text-muted); margin-bottom:9px; }
+.st-prog-head b{ color:var(--text); font-variant-numeric:tabular-nums; }
+.st-prog-track{ height:8px; border-radius:999px; background:var(--bg-glass); overflow:hidden; }
+.st-prog-fill{ display:block; height:100%; width:0; border-radius:999px; background:linear-gradient(90deg, var(--nx-purple), var(--nx-glow)); transition:width .5s var(--nx-ease-out); }
+
+.st-dl{ display:flex; flex-direction:column; gap:2px; }
+.st-dl > div{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 12px; border-radius:11px; font-size:.84rem; }
+.st-dl > div:nth-child(odd){ background:var(--bg-secondary); }
+.st-dl dt{ color:var(--text-muted); }
+.st-dl dd{ font-weight:700; font-variant-numeric:tabular-nums; }
+.st-dl dd.is-ltr{ direction:ltr; unicode-bidi:plaintext; }
+
+.st-chart{ position:relative; height:210px; width:100%; }
+
+/* ── Light theme ─────────────────────────────────────────────────────────
+   shell.css flips the shell's own tokens in light mode but not a page's
+   content colours, so the two state tints get a darker value here to stay
+   readable on white. */
+[data-theme="light"] .st-pill[data-state="up"]{ color:#116b39; background:rgba(17,107,57,.10); border-color:rgba(17,107,57,.30); }
+[data-theme="light"] .st-pill[data-state="down"]{ color:#b42323; background:rgba(180,35,35,.10); border-color:rgba(180,35,35,.30); }
+[data-theme="light"] .st-reason i{ color:#8a6300; }
+[data-theme="light"] .st-hero{ --accent:var(--nx-purple); }
+[data-theme="light"] .st-hero[data-state="ok"]{ --accent:#116b39; }
+[data-theme="light"] .st-hero[data-state="warn"]{ --accent:#8a6300; }
+[data-theme="light"] .st-hero[data-state="off"]{ --accent:#b42323; }
+
+/* ── Small screens ─────────────────────────────────────────────────────── */
+@media (max-width:820px){ .st-cols{ grid-template-columns:1fr; } }
+@media (max-width:720px){
+  .st-hero{ flex-direction:column; align-items:flex-start; padding:22px; }
+  .st-hero-side{ flex-direction:row; flex-wrap:wrap; align-items:center; width:100%; text-align:start; }
+  .st-hero-count-lbl{ margin-top:0; }
+}
+@media (max-width:480px){ .st-tix{ grid-template-columns:1fr; } }
+
+@media (prefers-reduced-motion: reduce){
+  .st *{ animation:none !important; transition:none !important; }
+}
+</style>
+
+<div class="st">
+
+  <!-- ── الحالة الكلية ─────────────────────────────────────────────────── -->
+  <section class="st-hero" id="stHero" data-state="wait" aria-live="polite">
+    <span class="st-hero-glow" aria-hidden="true"></span>
+    <div class="st-orb" id="stOrb" data-state="wait" aria-hidden="true">
+      <span class="st-orb-ring"></span>
+      <i class="fas fa-robot"></i>
+    </div>
+    <div class="st-hero-body">
+      <span class="st-eyebrow"><span class="st-eyebrow-dot" aria-hidden="true"></span> حالة النظام</span>
+      <h1 class="st-title" id="stOverall">جارٍ فحص الأنظمة…</h1>
+      <p class="st-sub" id="stOverallSub">نقرأ حالة البوت وقاعدة البيانات، ثم نستنتج حالة كل نظام.</p>
+    </div>
+    <div class="st-hero-side">
+      <div class="st-hero-count" id="stCount">— / —</div>
+      <div class="st-hero-count-lbl">نظاماً يعمل</div>
+      <button type="button" class="st-refresh" id="stRefresh">
+        <i class="fas fa-rotate" aria-hidden="true"></i><span>تحديث</span>
       </button>
+      <div class="st-stamp">آخر تحديث <time id="stStamp">—</time></div>
     </div>
-    <div class="status-details" id="statusDetails">
-      <div class="detail-row">
-        <span><i class="fas fa-code"></i> Node.js</span>
-        <span id="sNodeVersion" class="detail-value">---</span>
+  </section>
+
+  <!-- سبب الانقطاع، يظهر فقط عند وجود خلل -->
+  <div class="st-reason" id="stReason" role="status" hidden></div>
+
+  <!-- ── المكوّنات الأساسية ────────────────────────────────────────────── -->
+  <section class="st-panel">
+    <div class="st-panel-head">
+      <h2 class="st-h2"><i class="fas fa-server" aria-hidden="true"></i> المكوّنات الأساسية</h2>
+      <span class="st-hint">الأساس الذي تعتمد عليه بقية الأنظمة</span>
+    </div>
+    <div class="st-core" id="stCore">
+      <% CORE.forEach(c => { %>
+      <article class="st-core-card" data-dep="<%= c.dep %>">
+        <span class="st-core-ic"><i class="fas <%= c.icon %>" aria-hidden="true"></i></span>
+        <div class="st-core-txt">
+          <div class="st-core-name"><%= c.name %></div>
+          <div class="st-core-note"><%= c.note %></div>
+        </div>
+        <span class="st-pill" data-pill><span class="st-dot" aria-hidden="true"></span><span data-pill-text>…</span></span>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+
+  <!-- ── مؤشرات مباشرة ─────────────────────────────────────────────────── -->
+  <section class="st-panel">
+    <div class="st-panel-head">
+      <h2 class="st-h2"><i class="fas fa-chart-simple" aria-hidden="true"></i> مؤشرات مباشرة</h2>
+      <span class="st-hint">قياسات اللحظة</span>
+    </div>
+    <div class="st-metrics">
+      <div class="st-metric">
+        <span class="st-metric-ic" style="--tint:#34d399"><i class="fas fa-server" aria-hidden="true"></i></span>
+        <div class="st-metric-txt"><span class="st-metric-v" id="stGuilds">—</span><span class="st-metric-l">سيرفر</span></div>
       </div>
-      <div class="detail-row">
-        <span><i class="fas fa-cube"></i> إصدار البوت</span>
-        <span id="sBotVersion" class="detail-value">---</span>
+      <div class="st-metric">
+        <span class="st-metric-ic" style="--tint:#22d3ee"><i class="fas fa-users" aria-hidden="true"></i></span>
+        <div class="st-metric-txt"><span class="st-metric-v" id="stMembers">—</span><span class="st-metric-l">عضو</span></div>
       </div>
-      <div class="detail-row">
-        <span><i class="fas fa-columns"></i> إصدار الداشبورد</span>
-        <span class="detail-value">1.0.0</span>
+      <div class="st-metric">
+        <span class="st-metric-ic" style="--tint:#ffd93d"><i class="fas fa-terminal" aria-hidden="true"></i></span>
+        <div class="st-metric-txt"><span class="st-metric-v" id="stCmds">—</span><span class="st-metric-l">أمر موثّق</span></div>
       </div>
-      <div class="detail-row">
-        <span><i class="fas fa-clock"></i> وقت التشغيل</span>
-        <span id="sUptimeDetail" class="detail-value">---</span>
+      <div class="st-metric">
+        <span class="st-metric-ic" style="--tint:#eb459e"><i class="fas fa-ticket" aria-hidden="true"></i></span>
+        <div class="st-metric-txt"><span class="st-metric-v" id="stOpen">—</span><span class="st-metric-l">تذكرة مفتوحة</span></div>
       </div>
-      <div class="detail-row">
-        <span><i class="fas fa-hourglass-half"></i> وقت الاستجابة</span>
-        <span id="sResponseDetail" class="detail-value">---</span>
+      <div class="st-metric">
+        <span class="st-metric-ic" style="--tint:#a855f7"><i class="fas fa-microchip" aria-hidden="true"></i></span>
+        <div class="st-metric-txt"><span class="st-metric-v" id="stMemory">—</span><span class="st-metric-l">ذاكرة مستخدمة</span></div>
       </div>
-      <div class="detail-row">
-        <span><i class="fas fa-database"></i> الذاكرة المستخدمة</span>
-        <span id="sMemoryDetail" class="detail-value">---</span>
+      <div class="st-metric">
+        <span class="st-metric-ic" style="--tint:#38bdf8"><i class="fas fa-signal" aria-hidden="true"></i></span>
+        <div class="st-metric-txt"><span class="st-metric-v" id="stPing">—</span><span class="st-metric-l">زمن استجابة ديسكورد</span></div>
       </div>
     </div>
+  </section>
+
+  <!-- ── الأنظمة ───────────────────────────────────────────────────────── -->
+  <section class="st-panel">
+    <div class="st-panel-head">
+      <h2 class="st-h2"><i class="fas fa-layer-group" aria-hidden="true"></i> الأنظمة</h2>
+      <span class="st-hint">أحد عشر نظاماً، وحالة كل واحد منها</span>
+    </div>
+    <div class="st-systems" id="stSystems">
+      <% SYSTEMS.forEach(s => { %>
+      <article class="st-sys" data-dep="<%= s.dep %>">
+        <span class="st-sys-ic"><i class="fas <%= s.icon %>" aria-hidden="true"></i></span>
+        <div class="st-sys-txt">
+          <div class="st-sys-name"><%= s.name %></div>
+          <div class="st-sys-need"><%= DEP_LABEL[s.dep] %></div>
+        </div>
+        <span class="st-pill" data-pill><span class="st-dot" aria-hidden="true"></span><span data-pill-text>…</span></span>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+
+  <!-- ── التذاكر + تفاصيل الخدمة ───────────────────────────────────────── -->
+  <div class="st-cols">
+    <section class="st-panel">
+      <div class="st-panel-head">
+        <h2 class="st-h2"><i class="fas fa-ticket" aria-hidden="true"></i> إحصائيات التذاكر</h2>
+      </div>
+      <div class="st-tix">
+        <div class="st-tix-cell"><b id="stTixTotal">—</b><span>الإجمالي</span></div>
+        <div class="st-tix-cell"><b id="stTixOpen">—</b><span>مفتوحة</span></div>
+        <div class="st-tix-cell"><b id="stTixClosed">—</b><span>مغلقة</span></div>
+      </div>
+      <div class="st-prog">
+        <div class="st-prog-head"><span>نسبة الإغلاق</span><b id="stTixPct">—</b></div>
+        <div class="st-prog-track"><span class="st-prog-fill" id="stTixBar"></span></div>
+      </div>
+    </section>
+
+    <section class="st-panel">
+      <div class="st-panel-head">
+        <h2 class="st-h2"><i class="fas fa-microchip" aria-hidden="true"></i> تفاصيل الخدمة</h2>
+      </div>
+      <dl class="st-dl">
+        <div><dt>إصدار البوت</dt><dd class="is-ltr" id="stVersion">—</dd></div>
+        <div><dt>إصدار اللوحة</dt><dd class="is-ltr" id="stDashVersion">—</dd></div>
+        <div><dt>Node.js</dt><dd class="is-ltr" id="stNode">—</dd></div>
+        <div><dt>المنصة</dt><dd class="is-ltr" id="stPlatform">—</dd></div>
+        <div><dt>وقت التشغيل</dt><dd id="stUptime">—</dd></div>
+        <div><dt>قاعدة البيانات</dt><dd id="stDbState">—</dd></div>
+      </dl>
+    </section>
   </div>
 
-  <!-- Ticket Stats -->
-  <div class="card glass fade-in-up" style="animation-delay:0.4s">
-    <div class="card-header">
-      <h3><i class="fas fa-ticket" style="color:var(--warning)"></i> إحصائيات التذاكر</h3>
+  <!-- ── زمن استجابة اللوحة ────────────────────────────────────────────── -->
+  <section class="st-panel">
+    <div class="st-panel-head">
+      <h2 class="st-h2"><i class="fas fa-wave-square" aria-hidden="true"></i> زمن استجابة اللوحة</h2>
+      <span class="st-hint">آخر 40 قياساً · يتجدد كل 15 ثانية</span>
     </div>
-    <div class="ticket-stats-grid">
-      <div class="ticket-stat-item">
-        <div class="ticket-stat-icon" style="background:rgba(168,85,247,0.15);color:#a855f7">
-          <i class="fas fa-inbox"></i>
-        </div>
-        <div class="ticket-stat-info">
-          <span class="ticket-stat-number" id="tTotal">---</span>
-          <span class="ticket-stat-label">الإجمالي</span>
-        </div>
-      </div>
-      <div class="ticket-stat-item">
-        <div class="ticket-stat-icon" style="background:rgba(87,242,135,0.15);color:#57f287">
-          <i class="fas fa-envelope-open-text"></i>
-        </div>
-        <div class="ticket-stat-info">
-          <span class="ticket-stat-number" id="tOpen">---</span>
-          <span class="ticket-stat-label">مفتوحة</span>
-        </div>
-      </div>
-      <div class="ticket-stat-item">
-        <div class="ticket-stat-icon" style="background:rgba(237,66,69,0.15);color:#ed4245">
-          <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="ticket-stat-info">
-          <span class="ticket-stat-number" id="tClosed">---</span>
-          <span class="ticket-stat-label">مغلقة</span>
-        </div>
-      </div>
-    </div>
-    <div class="ticket-progress">
-      <div class="progress-header">
-        <span>نسبة الإنجاز</span>
-        <span id="tCompletion">0%</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill success" id="tProgressBar" style="width:0%"></div>
-      </div>
-    </div>
-  </div>
-</div>
+    <div class="st-chart"><canvas id="stChart" aria-label="مخطط زمن استجابة اللوحة" role="img"></canvas></div>
+  </section>
 
-<!-- Performance Chart -->
-<div class="card glass fade-in-up" style="animation-delay:0.45s;padding:24px">
-  <div class="card-header">
-    <h3><i class="fas fa-chart-area" style="color:var(--primary)"></i> أداء الخادم</h3>
-    <div class="chart-legend">
-      <span><span class="legend-dot" style="background:#a855f7"></span> زمن الاستجابة</span>
-    </div>
-  </div>
-  <div class="chart-container">
-    <canvas id="performanceChart"></canvas>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-let perfChart = null;
-let historyData = [];
-const MAX_HISTORY = 40;
+(function () {
+  'use strict';
 
-function formatUptime(seconds) {
-  const d = Math.floor(seconds / 86400);
-  const h = Math.floor((seconds % 86400) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  const parts = [];
-  if (d > 0) parts.push(d + 'd');
-  if (h > 0) parts.push(h + 'h');
-  if (m > 0) parts.push(m + 'm');
-  parts.push(s + 's');
-  return parts.join(' ');
-}
+  var DASH = '—';
+  var $ = function (id) { return document.getElementById(id); };
 
-async function loadStatus() {
-  try {
-    const [statusRes, botInfoRes, cmdStatsRes, ticketStatsRes] = await Promise.all([
-      fetch('/api/status'),
-      fetch('/api/bot/info'),
-      fetch('/api/commands/stats'),
-      fetch('/api/tickets/stats')
-    ]);
-    const status = await statusRes.json();
-    const botInfo = await botInfoRes.json();
-    const cmdStats = await cmdStatsRes.json();
-    const ticketStats = await ticketStatsRes.json();
+  /* الأسباب الخمسة التي يمكن لـ routes/status.js أن يبلّغ بها عن انقطاع
+     البوت، ولكل واحد إصلاح واحد. نفس الخريطة المستخدمة في صفحة /home. */
+  var CAUSE = {
+    'HTTP 404': 'البوت يعمل على نسخة أقدم، أو لم يُطلق حدث التشغيل بعد.',
+    'HTTP 401': 'المفتاح السري يختلف بين اللوحة والبوت.',
+    'HTTP 503': 'المفتاح السري غير مضبوط عند البوت أصلاً.',
+    'timeout':  'البوت ما زال يقلع، أو رابط خدمته غير قابل للوصول.',
+    'network':  'تعذّر الوصول إلى خدمة البوت.',
+  };
+  var PLAT = { win32: 'Windows', linux: 'Linux', darwin: 'macOS' };
 
-    // Hero
-    document.getElementById('heroStatusText').textContent = status.botOnline ? 'متصل' : 'غير متصل';
-    document.getElementById('heroDot').className = status.botOnline ? 'status-dot online' : 'status-dot offline';
-    document.getElementById('heroVersion').textContent = botInfo.version || '---';
-    document.getElementById('heroUptime').textContent = formatUptime(status.uptime);
-
-    // Stat cards
-    document.getElementById('sResponseTime').textContent = status.responseTime + 'ms';
-    document.getElementById('sGuilds').textContent = (status.guildCount ?? '?');
-    document.getElementById('sCommands').textContent = (cmdStats.total || '?');
-    document.getElementById('sTickets').textContent = ticketStats.open || '0';
-    document.getElementById('sMemory').textContent = (status.memory && status.memory.heapUsed ? (status.memory.heapUsed / 1024 / 1024).toFixed(1) + ' MB' : '—');
-    document.getElementById('sPlatform').textContent = status.platform === 'win32' ? '🪟 Windows' : status.platform === 'linux' ? '🐧 Linux' : status.platform;
-
-    // Details
-    document.getElementById('sNodeVersion').textContent = status.nodeVersion;
-    document.getElementById('sBotVersion').textContent = botInfo.version || '---';
-    document.getElementById('sUptimeDetail').textContent = formatUptime(status.uptime);
-    document.getElementById('sResponseDetail').textContent = status.responseTime + 'ms';
-    document.getElementById('sMemoryDetail').textContent = (status.memory && status.memory.heapUsed ? (status.memory.heapUsed / 1024 / 1024).toFixed(2) + ' / ' + (status.memory.heapTotal / 1024 / 1024).toFixed(2) + ' MB' : '—');
-
-    // Ticket stats
-    document.getElementById('tTotal').textContent = ticketStats.total || '0';
-    document.getElementById('tOpen').textContent = ticketStats.open || '0';
-    document.getElementById('tClosed').textContent = ticketStats.closed || '0';
-    const total = ticketStats.total || 1;
-    const closed = ticketStats.closed || 0;
-    const pct = Math.round((closed / total) * 100);
-    document.getElementById('tCompletion').textContent = pct + '%';
-    document.getElementById('tProgressBar').style.width = pct + '%';
-
-    // Chart history
-    const now = new Date();
-    const label = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-    historyData.push({ label, value: status.responseTime });
-    if (historyData.length > MAX_HISTORY) historyData.shift();
-    updateChart();
-  } catch {
-    document.getElementById('heroStatusText').textContent = 'غير متصل';
-    document.getElementById('heroDot').className = 'status-dot offline';
+  function fmt(n) {
+    return (n === null || n === undefined || !isFinite(n)) ? DASH : Number(n).toLocaleString('en-US');
   }
-}
+  function uptime(sec) {
+    if (typeof sec !== 'number' || !isFinite(sec)) return DASH;
+    sec = Math.max(0, Math.floor(sec));
+    var d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600),
+        m = Math.floor(sec % 3600 / 60), s = sec % 60, out = [];
+    if (d) out.push(d + ' يوم');
+    if (h) out.push(h + ' ساعة');
+    if (m) out.push(m + ' دقيقة');
+    if (!d && !h) out.push(s + ' ثانية');
+    return out.join(' ');
+  }
+  function bytes(b) {
+    if (typeof b !== 'number' || !isFinite(b)) return DASH;
+    var mb = b / 1048576;
+    return (mb >= 100 ? mb.toFixed(0) : mb.toFixed(1)) + ' MB';
+  }
 
-function updateChart() {
-  if (perfChart) {
-    perfChart.data.labels = historyData.map(d => d.label);
-    perfChart.data.datasets[0].data = historyData.map(d => d.value);
-    perfChart.update('none');
-  } else {
-    const ctx = document.getElementById('performanceChart').getContext('2d');
-    /*
-     * Chart.js paints onto a canvas, so it cannot inherit a CSS rule and the
-     * tokens have to be read across.
-     *
-     * Two of the three locals that used to stand here were dead: `isDark`
-     * compared --bg-primary against the literal '#0a0b1e' and `textColor` was
-     * assigned and never read. When the palette moved off navy onto #090713 the
-     * comparison began failing on every load, silently, and nothing noticed
-     * because nothing consumed the result.
-     */
-    const chartStyle = getComputedStyle(document.body);
-    const mutedColor = chartStyle.getPropertyValue('--text-muted').trim();
-    const textColor = chartStyle.getPropertyValue('--text').trim();
-    // The site's frosted surface, at the alpha it is authored with, so the
-    // tooltip sits on the same glass as every other floating panel.
-    const glassColor = chartStyle.getPropertyValue('--nx-glass').trim();
+  /* fetch مع مهلة: قاعدة البيانات إن سقطت تجعل /tickets/stats يتعلّق حتى
+     مهلة mongoose الافتراضية (10 ثوانٍ)، فلا نسمح لنقطة واحدة أن تجمّد
+     الصفحة كلها. كل نداء يسقط إلى null في مهلة 4.5 ثانية. */
+  function getJSON(url) {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 4500);
+    return fetch(url, { cache: 'no-store', signal: ctrl.signal, headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+      .then(function (v) { clearTimeout(timer); return v; });
+  }
 
-    perfChart = new Chart(ctx, {
+  /* حالة النظام تُشتق من علمين حقيقيين فقط. لا تُنسب حالة إلى نظام لم نقسها. */
+  function depUp(dep, s) {
+    if (dep === 'always') return true;
+    if (dep === 'db') return s.db === true;
+    if (dep === 'bot') return s.bot === true;
+    return s.bot === true && s.db === true; // both
+  }
+
+  function paintDeps(s, known) {
+    var nodes = document.querySelectorAll('[data-dep]');
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      var up = known ? depUp(el.getAttribute('data-dep'), s) : null;
+      el.classList.toggle('is-up', up === true);
+      el.classList.toggle('is-down', up === false);
+      var pill = el.querySelector('[data-pill]');
+      var txt = el.querySelector('[data-pill-text]');
+      if (pill) pill.setAttribute('data-state', up === true ? 'up' : (up === false ? 'down' : 'unknown'));
+      if (txt) txt.textContent = up === true ? 'تعمل' : (up === false ? 'متوقفة' : 'غير معروف');
+    }
+  }
+
+  /* ── لوحة الاستجابة ─────────────────────────────────────────────────── */
+  var points = [], chart = null;
+  function drawChart() {
+    if (chart || !window.Chart || !$('stChart')) return;
+    var cs = getComputedStyle(document.body);
+    var tick = cs.getPropertyValue('--text-muted').trim() || '#8890a1';
+    var grid = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,.06)';
+    chart = new Chart($('stChart'), {
       type: 'line',
-      data: {
-        labels: historyData.map(d => d.label),
-        datasets: [{
-          label: 'زمن الاستجابة (ms)',
-          data: historyData.map(d => d.value),
-          borderColor: '#a855f7',
-          backgroundColor: (ctx) => {
-            const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
-            g.addColorStop(0, 'rgba(168,85,247,0.25)');
-            g.addColorStop(1, 'rgba(168,85,247,0)');
-            return g;
-          },
-          fill: true,
-          tension: 0.3,
-          pointRadius: 3,
-          pointBackgroundColor: '#a855f7',
-          pointBorderColor: 'transparent',
-          pointHoverRadius: 6,
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: '#a855f7',
-          pointHoverBorderWidth: 3,
-          borderWidth: 2,
-        }]
-      },
+      data: { labels: [], datasets: [{
+        data: [], borderColor: '#a855f7', borderWidth: 2, tension: .35, fill: true,
+        pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: '#a855f7',
+        backgroundColor: function (c) {
+          var g = c.chart.ctx.createLinearGradient(0, 0, 0, 200);
+          g.addColorStop(0, 'rgba(168,85,247,.28)');
+          g.addColorStop(1, 'rgba(168,85,247,0)');
+          return g;
+        }
+      }] },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: glassColor,
-            titleColor: textColor,
-            bodyColor: textColor,
-            borderColor: 'rgba(168,85,247,0.2)',
-            borderWidth: 1,
-            padding: 12,
-            cornerRadius: 8,
-            displayColors: false,
-            callbacks: {
-              label: (ctx) => ctx.parsed.y + 'ms'
-            }
-          }
-        },
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return c.parsed.y + ' ms'; } } } },
         scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: mutedColor, font: { size: 10 } }
-          },
+          x: { display: false },
           y: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: { color: mutedColor, font: { size: 10 }, callback: (v) => v + 'ms' },
-            beginAtZero: true
-          }
+            beginAtZero: true, border: { display: false },
+            ticks: { precision: 0, color: tick, font: { size: 10 } },
+            grid: { color: grid },
+          },
         },
-        animation: { duration: 300 }
-      }
+        animation: { duration: 400 },
+      },
     });
   }
-}
+  function pushPoint(v) {
+    points.push({ t: Date.now(), v: v });
+    if (points.length > 40) points.shift();
+    drawChart();
+    if (!chart) return;
+    chart.data.labels = points.map(function (p) {
+      return new Date(p.t).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    });
+    chart.data.datasets[0].data = points.map(function (p) { return p.v; });
+    chart.update('none');
+  }
 
-// Init
-loadStatus();
-setInterval(loadStatus, 15000);
+  function renderStatus(st) {
+    var known = !!st && typeof st === 'object';
+    var s = { bot: known && st.botOnline === true, db: known && st.dbOnline === true };
+
+    if (!known) {
+      $('stOverall').textContent = 'تعذّر قراءة الحالة';
+      $('stOverallSub').textContent = 'ما وصلنا جواب من واجهة الحالة. حدّث الصفحة أو تحقق من اللوحة.';
+    } else if (s.bot && s.db) {
+      $('stOverall').textContent = 'جميع الأنظمة تعمل';
+      $('stOverallSub').textContent = 'البوت متصل وقاعدة البيانات متصلة، وكل الأنظمة متاحة.';
+    } else if (s.bot && !s.db) {
+      $('stOverall').textContent = 'قاعدة البيانات غير متصلة';
+      $('stOverallSub').textContent = 'البوت متصل، لكن الأنظمة التي تقرأ من قاعدة البيانات متوقفة.';
+    } else if (!s.bot && s.db) {
+      $('stOverall').textContent = 'البوت غير متصل';
+      $('stOverallSub').textContent = 'اللوحة وقاعدة البيانات تعملان، والأنظمة التي تعتمد على البوت متوقفة.';
+    } else {
+      $('stOverall').textContent = 'انقطاع كامل';
+      $('stOverallSub').textContent = 'البوت وقاعدة البيانات غير متصلين، وكل الأنظمة متوقفة.';
+    }
+
+    var state = !known ? 'off'
+      : (s.bot && s.db) ? 'ok'
+      : (s.bot || s.db) ? 'warn'
+      : 'off';
+    var hero = $('stHero'); if (hero) hero.setAttribute('data-state', state);
+    var orb = $('stOrb'); if (orb) orb.setAttribute('data-state', state);
+
+    /* سبب الانقطاع */
+    var lines = [];
+    if (known && !s.bot) {
+      var cause = CAUSE[st.botApiError] || 'لم يُرجع طلب الحالة سبباً معروفاً.';
+      if (st.secretConfigured === false) cause += ' والمفتاح السري غير مضبوط في اللوحة.';
+      lines.push('البوت غير متصل — ' + cause);
+    }
+    if (known && !s.db) lines.push('قاعدة البيانات غير متصلة، فالأنظمة التي تقرأ منها أو تكتب فيها متوقفة.');
+    var reason = $('stReason');
+    if (reason) {
+      if (lines.length) { reason.hidden = false; reason.innerHTML = '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i><span>' + lines.join(' ') + '</span>'; }
+      else reason.hidden = true;
+    }
+
+    paintDeps(s, known);
+
+    var total = document.querySelectorAll('.st-sys').length;
+    var up = document.querySelectorAll('.st-sys.is-up').length;
+    var count = $('stCount');
+    if (count) count.textContent = (known ? up : DASH) + ' / ' + total;
+
+    /* المؤشرات المأخوذة من الحالة */
+    $('stGuilds').textContent = known ? fmt(st.guildCount) : DASH;
+    $('stMembers').textContent = known ? fmt(st.members) : DASH;
+    $('stMemory').textContent = known && st.memory ? bytes(st.memory.heapUsed) : DASH;
+    $('stPing').textContent = known && typeof st.ping === 'number' ? st.ping + ' ms' : DASH;
+    $('stUptime').textContent = uptime(known ? st.uptime : null);
+    $('stNode').textContent = known && st.nodeVersion ? st.nodeVersion : DASH;
+    $('stPlatform').textContent = known && st.platform ? (PLAT[st.platform] || st.platform) : DASH;
+    $('stDbState').textContent = !known ? DASH : (s.db ? 'متصلة' : 'غير متصلة');
+
+    var stampEl = $('stStamp');
+    if (stampEl) stampEl.textContent = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+
+    if (known && typeof st.responseTime === 'number') pushPoint(st.responseTime);
+  }
+
+  function renderInfo(info) {
+    $('stVersion').textContent = info && info.version ? 'v' + info.version : DASH;
+    $('stDashVersion').textContent = info && info.dashboard ? info.dashboard : DASH;
+  }
+  function renderCommands(cmd) {
+    $('stCmds').textContent = cmd && typeof cmd.total === 'number' ? fmt(cmd.total) : DASH;
+  }
+  function renderTickets(tix) {
+    var T = tix && typeof tix.total === 'number' ? tix.total : null;
+    var O = tix && typeof tix.open === 'number' ? tix.open : null;
+    var C = tix && typeof tix.closed === 'number' ? tix.closed : null;
+    $('stTixTotal').textContent = fmt(T);
+    $('stTixOpen').textContent = fmt(O);
+    $('stTixClosed').textContent = fmt(C);
+    $('stOpen').textContent = fmt(O);
+    var pct = (T && T > 0 && typeof C === 'number') ? Math.round(C / T * 1000) / 10 : 0;
+    $('stTixPct').textContent = (T && T > 0) ? pct + '%' : DASH;
+    $('stTixBar').style.width = (T && T > 0 ? pct : 0) + '%';
+  }
+
+  /* نرسم حالة البوت فور وصولها، ثم نملأ الباقي كلٌّ على حدة، فلا ينتظر
+     جزءٌ بطيء بقية الصفحة. */
+  function refresh() {
+    var btn = $('stRefresh');
+    if (btn) btn.classList.add('is-busy');
+
+    getJSON('/api/status').then(function (st) {
+      renderStatus(st);
+      return Promise.all([
+        getJSON('/api/bot/info'),
+        getJSON('/api/commands/stats'),
+        getJSON('/api/tickets/stats'),
+      ]);
+    }).then(function (r) {
+      renderInfo(r[0]);
+      renderCommands(r[1]);
+      renderTickets(r[2]);
+    }).catch(function () {
+      renderStatus(null);
+    }).then(function () {
+      if (btn) btn.classList.remove('is-busy');
+    });
+  }
+
+  var btn = $('stRefresh');
+  if (btn) btn.addEventListener('click', refresh);
+  refresh();
+  setInterval(refresh, 15000);
+})();
 </script>
-
-<style>
-  .fade-in-up {
-    animation: fadeInUp 0.5s ease forwards;
-    opacity: 0;
-  }
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .fade-in {
-    animation: fadeIn 0.4s ease forwards;
-    opacity: 0;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .status-hero {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 24px 28px;
-    margin-bottom: 24px;
-    border-radius: var(--radius);
-    position: relative;
-    overflow: hidden;
-  }
-  .status-hero-glow {
-    position: absolute;
-    top: -60px;
-    left: -60px;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-  }
-  .status-hero-icon {
-    position: relative;
-    width: 64px;
-    height: 64px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(168,85,247,0.05));
-    border: 1px solid rgba(168,85,247,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    color: #a855f7;
-    flex-shrink: 0;
-  }
-  .status-hero-pulse {
-    position: absolute;
-    top: -4px; left: -4px; right: -4px; bottom: -4px;
-    border-radius: 22px;
-    border: 2px solid rgba(168,85,247,0.15);
-    animation: heroPulse 2s ease-in-out infinite;
-  }
-  @keyframes heroPulse {
-    0%, 100% { transform: scale(1); opacity: 0.6; }
-    50% { transform: scale(1.08); opacity: 0; }
-  }
-  .status-hero-info { flex: 1; }
-  .status-hero-name {
-    font-size: 1.2rem;
-    font-weight: 800;
-    margin-bottom: 4px;
-  }
-  .status-hero-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-  }
-  .status-hero-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-align: left;
-  }
-  .status-hero-meta span {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px;
-    margin-bottom: 24px;
-  }
-  .stat-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 18px;
-    border-radius: var(--radius);
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  }
-  .stat-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-  }
-  .stat-icon[style*="--stat-color"] {
-    background: color-mix(in srgb, var(--stat-color, var(--primary)) 15%, transparent);
-    color: var(--stat-color, var(--primary));
-  }
-  .stat-info { flex: 1; }
-  .stat-value {
-    display: block;
-    font-size: 1.3rem;
-    font-weight: 800;
-    letter-spacing: -0.3px;
-  }
-  .stat-label {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-  }
-
-  .detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    background: var(--bg-glass-hover);
-    font-size: 0.85rem;
-    transition: background 0.2s;
-  }
-  .detail-row:hover {
-    background: color-mix(in srgb, var(--bg-glass-hover) 80%, var(--primary) 5%);
-  }
-  .detail-row span:first-child {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-muted);
-  }
-  .detail-row span:first-child i {
-    width: 16px;
-    font-size: 0.8rem;
-  }
-  .detail-value {
-    font-weight: 700;
-    font-family: 'Tajawal', ui-monospace, monospace;
-    direction: ltr;
-    text-align: left;
-  }
-
-  .ticket-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .ticket-stat-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    border-radius: var(--radius-sm);
-    background: var(--bg-glass-hover);
-  }
-  .ticket-stat-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
-  }
-  .ticket-stat-number {
-    display: block;
-    font-size: 1.2rem;
-    font-weight: 800;
-  }
-  .ticket-stat-label {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-  }
-  .ticket-progress {
-    padding: 12px;
-    border-radius: var(--radius-sm);
-    background: var(--bg-glass-hover);
-  }
-  .progress-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-  }
-
-  .chart-container {
-    position: relative;
-    height: 220px;
-    width: 100%;
-  }
-  .chart-legend {
-    display: flex;
-    gap: 12px;
-    font-size: 0.78rem;
-    color: var(--text-muted);
-  }
-  .legend-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-left: 4px;
-  }
-
-  .btn-refresh {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-family: var(--font);
-    font-size: 0.78rem;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .btn-refresh:hover {
-    background: var(--bg-glass-hover);
-    color: var(--text);
-    border-color: var(--primary);
-  }
-  .btn-refresh i {
-    font-size: 0.75rem;
-  }
-
-  @media (max-width: 768px) {
-    .status-hero {
-      flex-direction: column;
-      text-align: center;
-      padding: 20px;
-    }
-    .status-hero-meta {
-      flex-direction: row;
-      gap: 16px;
-      text-align: center;
-    }
-    .stats-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    .ticket-stats-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
