@@ -113,6 +113,29 @@ export async function getBotGuilds(botToken) {
   return res.data;
 }
 
+// The bot's own Discord user -- name and avatar for the bot management card.
+// Distinct from getUserInfo above, which reads whoever is signed in via OAuth.
+// Returns null instead of throwing so an absent or rejected token degrades the
+// identity card to the configured client id rather than failing the whole page.
+export async function getBotSelf(botToken) {
+  if (!botToken) return null;
+  try {
+    const res = await axios.get('https://discord.com/api/users/@me', {
+      headers: { Authorization: `Bot ${botToken}` },
+      timeout: 4000,
+    });
+    const u = res.data || {};
+    return {
+      id: u.id,
+      username: u.username,
+      globalName: u.global_name || u.username,
+      avatar: u.avatar || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function getGuildInfo(guildId, botToken) {
   try {
     const res = await axios.get(`https://discord.com/api/guilds/${guildId}?with_counts=true`, {

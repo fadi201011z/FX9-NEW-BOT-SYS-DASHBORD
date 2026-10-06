@@ -1,5 +1,628 @@
 <% currentPage = 'dev-bot' %>
-<div class="page-header">
-  <h1><i class="fas fa-robot"></i> إدارة البوت</h1>
-  <p>رابط الدعوة، هوية البوت، والمطورين اللي عندهم صلاحية</p>
+<%
+  /* The developer section's bot page. Everything shown here is either passed
+     by the route (identity, client/owner ids, developer list) or fetched from
+     the /api endpoints that already serve it (status, bot info, diagnostics,
+     command counts). Nothing is guessed, and the invite link is built in the
+     browser from the client id -- no invite is minted for a page nobody read. */
+  const self = botSelf || {};
+  const botName = self.globalName || self.username || 'KRS Bot';
+  const botAvatar = (self.id && self.avatar)
+    ? 'https://cdn.discordapp.com/avatars/' + self.id + '/' + self.avatar + '.png?size=128'
+    : 'https://cdn.discordapp.com/embed/avatars/0.png';
+  const devCount = (developers || []).length;
+
+  /* The permission bits the invite builder offers. Values are Discord's own
+     permission integers, kept literal so the browser only ever adds them. */
+  const perms = [
+    { v: 8,              label: 'صلاحيات كاملة (Administrator)' },
+    { v: 32,             label: 'إدارة السيرفر' },
+    { v: 2,              label: 'طرد الأعضاء' },
+    { v: 4,              label: 'حظر الأعضاء' },
+    { v: 268435456,      label: 'إدارة الرتب' },
+    { v: 16,             label: 'إدارة القنوات' },
+    { v: 1024,           label: 'مشاهدة القنوات' },
+    { v: 2048,           label: 'إرسال الرسائل' },
+    { v: 16384,          label: 'تضمين الروابط' },
+    { v: 32768,          label: 'إرفاق الملفات' },
+    { v: 65536,          label: 'قراءة سجل الرسائل' },
+    { v: 8192,           label: 'إدارة الرسائل' },
+    { v: 131072,         label: 'منشن @everyone' },
+    { v: 64,             label: 'إضافة تفاعلات' },
+    { v: 1048576,        label: 'الاتصال بالصوت' },
+    { v: 2097152,        label: 'التحدث في الصوت' },
+    { v: 134217728,      label: 'إدارة الألقاب' },
+    { v: 1099511627776,  label: 'إسكات الأعضاء (Timeout)' }
+  ];
+%>
+
+<div class="bm">
+
+  <!-- ── الهيرو: هوية البوت ── -->
+  <section class="bm-hero">
+    <span class="bm-orb bm-orb-a"></span>
+    <span class="bm-orb bm-orb-b"></span>
+    <div class="bm-hero-id">
+      <div class="bm-ava">
+        <img src="<%= botAvatar %>" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+        <span class="bm-ava-dot" id="bmHeroDot" title="جارٍ الفحص..."></span>
+      </div>
+      <div class="bm-hero-name">
+        <span class="bm-tag"><i class="fas fa-robot"></i> إدارة البوت</span>
+        <h1><%= botName %></h1>
+        <div class="bm-hero-sub">
+          <code id="bmClientId"><%= clientId || '—' %></code>
+          <% if (clientId) { %>
+          <button type="button" class="bm-mini" id="bmCopyId" title="نسخ معرّف البوت" aria-label="نسخ معرّف البوت"><i class="fas fa-copy"></i></button>
+          <% } %>
+          <span class="bm-state load" id="bmHeroState"><i class="fas fa-circle-notch fa-spin"></i> جارٍ الفحص...</span>
+        </div>
+      </div>
+    </div>
+    <div class="bm-hero-actions">
+      <a class="bm-btn bm-btn-primary" href="<%= botInviteUrl %>" target="_blank" rel="noopener"><i class="fas fa-code-branch"></i> دعوة البوت</a>
+      <button type="button" class="bm-btn bm-btn-ghost" id="bmRefresh"><i class="fas fa-rotate"></i> تحديث</button>
+    </div>
+  </section>
+
+  <!-- ── المؤشرات الحية ── -->
+  <div class="bm-sec-head">
+    <h2><i class="fas fa-wave-square"></i> الحالة الحية</h2>
+    <span>آخر تحديث: <b id="bmUpdated">—</b></span>
+  </div>
+  <section class="bm-kpis">
+    <div class="bm-kpi">
+      <div class="bm-kpi-ic ic-p"><i class="fas fa-plug-circle-check"></i></div>
+      <div class="bm-kpi-txt"><b id="bmKState">—</b><span id="bmKStateSub">حالة الاتصال</span></div>
+    </div>
+    <div class="bm-kpi">
+      <div class="bm-kpi-ic ic-a"><i class="fas fa-gauge-high"></i></div>
+      <div class="bm-kpi-txt"><b id="bmKPing">—</b><span>سرعة الاستجابة</span></div>
+    </div>
+    <div class="bm-kpi">
+      <div class="bm-kpi-ic ic-c"><i class="fas fa-server"></i></div>
+      <div class="bm-kpi-txt"><b id="bmKGuilds">—</b><span>سيرفر متصل</span></div>
+    </div>
+    <div class="bm-kpi">
+      <div class="bm-kpi-ic ic-g"><i class="fas fa-users"></i></div>
+      <div class="bm-kpi-txt"><b id="bmKMembers">—</b><span>إجمالي الأعضاء</span></div>
+    </div>
+  </section>
+
+  <!-- ── مُنشئ رابط الدعوة ── -->
+  <section class="bm-card bm-builder">
+    <header class="bm-card-head">
+      <h2><i class="fas fa-wand-magic-sparkles"></i> مُنشئ رابط الدعوة</h2>
+      <p>اختر الصلاحيات التي يحتاجها البوت وسيُبنى رابط الدعوة مباشرةً. الرابط يتكوّن في متصفحك ولا يُرسل إلى أي مكان.</p>
+    </header>
+    <div class="bm-builder-grid">
+      <div class="bm-perms">
+        <div class="bm-perms-top">
+          <span>الصلاحيات</span>
+          <div class="bm-presets">
+            <button type="button" class="bm-chip" data-preset="full">كامل</button>
+            <button type="button" class="bm-chip" data-preset="standard">قياسي</button>
+            <button type="button" class="bm-chip" data-preset="read">قراءة</button>
+            <button type="button" class="bm-chip" data-preset="none">مسح</button>
+          </div>
+        </div>
+        <div class="bm-perms-grid">
+          <% perms.forEach(function (p) { %>
+          <label class="bm-perm"><input type="checkbox" data-perm="<%= p.v %>"<%= p.v === 8 ? ' checked' : '' %>><span><%= p.label %></span></label>
+          <% }); %>
+        </div>
+      </div>
+      <div class="bm-invite">
+        <label class="bm-scope"><input type="checkbox" id="bmScopeCmd" checked><span>صلاحية الأوامر <code>applications.commands</code></span></label>
+        <div class="bm-bits"><span>قيمة الصلاحيات</span><b id="bmBits">8</b></div>
+        <input type="text" class="bm-invite-url" id="bmInviteUrl" readonly dir="ltr" aria-label="رابط الدعوة" placeholder="جارٍ البناء...">
+        <div class="bm-invite-actions">
+          <button type="button" class="bm-btn bm-btn-primary" id="bmCopyUrl"><i class="fas fa-copy"></i> نسخ الرابط</button>
+          <a class="bm-btn bm-btn-ghost" id="bmOpenUrl" href="#" target="_blank" rel="noopener"><i class="fas fa-arrow-up-right-from-square"></i> فتح</a>
+          <% if (clientId) { %>
+          <a class="bm-btn bm-btn-ghost" href="<%= botInviteUrl %>" target="_blank" rel="noopener"><i class="fas fa-shield-halved"></i> الدعوة الافتراضية</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── النظام والاتصال ── -->
+  <section class="bm-card">
+    <header class="bm-card-head">
+      <h2><i class="fas fa-microchip"></i> النظام والاتصال</h2>
+      <p>بيانات حيّة من البوت وقاعدة البيانات — تُحدَّث تلقائياً.</p>
+    </header>
+    <div class="bm-info-grid">
+      <div class="bm-info"><span>اسم النظام</span><b id="bmInfoName">—</b></div>
+      <div class="bm-info"><span>إصدار النظام</span><b id="bmInfoVer">—</b></div>
+      <div class="bm-info"><span>إصدار اللوحة</span><b id="bmInfoDash">—</b></div>
+      <div class="bm-info"><span>إصدار Node</span><b id="bmInfoNode">—</b></div>
+      <div class="bm-info"><span>نظام التشغيل</span><b id="bmInfoPlat">—</b></div>
+      <div class="bm-info"><span>مدة تشغيل اللوحة</span><b id="bmInfoUptime">—</b></div>
+      <div class="bm-info"><span>الذاكرة المستخدمة</span><b id="bmInfoMem">—</b></div>
+      <div class="bm-info"><span>استجابة اللوحة</span><b id="bmInfoResp">—</b></div>
+      <div class="bm-info"><span>قاعدة البيانات</span><b id="bmInfoDb">—</b></div>
+      <div class="bm-info"><span>مفتاح الأمان</span><b id="bmInfoSecret">—</b></div>
+      <div class="bm-info"><span>API البوت</span><b id="bmInfoApi">—</b></div>
+    </div>
+  </section>
+
+  <!-- ── أوامر البوت ── -->
+  <section class="bm-card">
+    <header class="bm-card-head">
+      <h2><i class="fas fa-terminal"></i> أوامر البوت <span class="bm-count" id="bmCmdTotal">—</span></h2>
+      <p>إجمالي الأوامر المسجّلة وتوزيعها على الأقسام.</p>
+    </header>
+    <div class="bm-cmds" id="bmCmds"><p class="bm-muted"><i class="fas fa-spinner fa-spin"></i> جارٍ الجلب...</p></div>
+  </section>
+
+  <!-- ── التشخيص (للمالك فقط) ── -->
+  <% if (isOwner) { %>
+  <section class="bm-card">
+    <header class="bm-card-head">
+      <h2><i class="fas fa-stethoscope"></i> تشخيص البنية التحتية</h2>
+      <p>حالة اتصال اللوحة بالبوت وبقاعدة البيانات — متاحة للمالك فقط.</p>
+    </header>
+    <div class="bm-diag" id="bmDiag"><p class="bm-muted"><i class="fas fa-spinner fa-spin"></i> جارٍ الفحص...</p></div>
+    <div class="bm-colls" id="bmColls"></div>
+  </section>
+  <% } else { %>
+  <section class="bm-card bm-locked">
+    <i class="fas fa-lock"></i>
+    <div>تشخيص البنية التحتية (عنوان API، التوكن، مجموعات قاعدة البيانات) متاح للمالك فقط.</div>
+  </section>
+  <% } %>
+
+  <!-- ── المطوّرون ── -->
+  <section class="bm-card">
+    <header class="bm-card-head bm-head-row">
+      <div>
+        <h2><i class="fas fa-user-astronaut"></i> مطوّرو البوت <span class="bm-count"><%= devCount %></span></h2>
+        <p>من يملك الوصول إلى لوحة المطور. الإضافة والإزالة من صفحة لوحة المطور.</p>
+      </div>
+      <a class="bm-btn bm-btn-ghost" href="/dev"><i class="fas fa-user-gear"></i> إدارة المطوّرين</a>
+    </header>
+    <div class="bm-devs">
+      <% if (ownerId) { %>
+      <div class="bm-dev">
+        <div class="bm-dev-ava owner"><i class="fas fa-crown"></i></div>
+        <div class="bm-dev-info"><code><%= ownerId %></code><span>مالك النظام — صلاحية كاملة</span></div>
+        <span class="bm-dev-tag owner">المالك</span>
+      </div>
+      <% } %>
+      <% (developers || []).forEach(function (d) { %>
+      <div class="bm-dev">
+        <div class="bm-dev-ava"><i class="fas fa-code"></i></div>
+        <div class="bm-dev-info">
+          <code><%= d.userId %></code>
+          <span><% if (d.username) { %><%= d.username %> · <% } %><% if (d.note) { %><%= d.note %> · <% } %>مطوّر</span>
+        </div>
+        <span class="bm-dev-tag">مطوّر</span>
+      </div>
+      <% }); %>
+      <% if (!ownerId && !devCount) { %>
+      <p class="bm-muted">لا يوجد مطوّرون مسجّلون.</p>
+      <% } %>
+    </div>
+  </section>
+
+  <!-- ── روابط سريعة ── -->
+  <section class="bm-links">
+    <a class="bm-link" href="/dev/guilds"><i class="fas fa-server"></i><b>السيرفرات المتصلة</b><span>روابط انضمام لكل سيرفر</span></a>
+    <a class="bm-link" href="/status"><i class="fas fa-heart-pulse"></i><b>حالة البوت العامة</b><span>صفحة الحالة التي يراها الجميع</span></a>
+    <a class="bm-link" href="/dev/maintenance"><i class="fas fa-shield-halved"></i><b>وضع الصيانة</b><span>تفعيل الصيانة وسجل التحديثات</span></a>
+    <a class="bm-link" href="/dev/features"><i class="fas fa-toggle-on"></i><b>حالة الخصائص</b><span>الأنظمة المفعلة في البوت</span></a>
+  </section>
+
 </div>
+
+<div class="bm-toast" id="bmToast" role="status" aria-live="polite"></div>
+
+<style>
+.bm{
+  --bm-a:#a855f7;
+  --bm-a-ink:#c9a4ff;
+  --bm-a-soft:rgba(168,85,247,.12);
+  --bm-line:var(--border);
+  --bm-card:var(--bg-card);
+  --bm-text:var(--text);
+  --bm-muted:var(--text-muted);
+  max-width:1120px;margin:0 auto;position:relative;padding-bottom:30px;
+}
+[data-theme="light"] .bm{--bm-a-ink:#6d28d9;--bm-a-soft:rgba(124,58,237,.10);}
+
+/* ── الهيرو ── */
+.bm-hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:28px 30px;border-radius:24px;border:1px solid var(--bm-line);background:linear-gradient(135deg,var(--bm-a-soft),rgba(124,58,237,.05) 45%,var(--bm-card));box-shadow:var(--shadow)}
+.bm-orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
+.bm-orb-a{width:280px;height:280px;background:#a855f7;opacity:.16;top:-120px;inset-inline-end:-60px}
+.bm-orb-b{width:220px;height:220px;background:#7c3aed;opacity:.12;bottom:-120px;inset-inline-start:-40px}
+.bm-hero-id{position:relative;z-index:1;display:flex;align-items:center;gap:18px;flex:1;min-width:0}
+.bm-ava{position:relative;width:76px;height:76px;flex-shrink:0;border-radius:22px;padding:3px;background:linear-gradient(135deg,#a855f7,#7c3aed);box-shadow:0 12px 30px rgba(124,58,237,.35)}
+.bm-ava img{width:100%;height:100%;border-radius:19px;object-fit:cover;display:block;background:var(--bm-card)}
+.bm-ava-dot{position:absolute;bottom:-2px;inset-inline-end:-2px;width:20px;height:20px;border-radius:50%;background:var(--bm-muted);border:4px solid var(--bm-card);transition:background .3s}
+.bm-ava-dot.ok{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.18)}
+.bm-ava-dot.off{background:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.18)}
+.bm-hero-name{min-width:0}
+.bm-tag{display:inline-flex;align-items:center;gap:7px;font-size:.68rem;font-weight:700;color:var(--bm-a-ink);background:var(--bm-a-soft);border:1px solid rgba(168,85,247,.22);padding:5px 13px;border-radius:100px;margin-bottom:10px}
+.bm-hero h1{margin:0 0 8px;font-size:clamp(1.5rem,3vw,2rem);font-weight:800;line-height:1.2;background:linear-gradient(120deg,#a855f7,#d8b4fe);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+[data-theme="light"] .bm-hero h1{background:linear-gradient(120deg,#6d28d9,#7c3aed);-webkit-background-clip:text;background-clip:text}
+.bm-hero-sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bm-hero-sub code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.76rem;color:var(--bm-muted);background:var(--bg-glass);border:1px solid var(--bm-line);padding:4px 10px;border-radius:9px;direction:ltr}
+.bm-mini{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--bg-glass);border:1px solid var(--bm-line);color:var(--bm-muted);cursor:pointer;font-size:.72rem;transition:color .2s,border-color .2s}
+.bm-mini:hover{color:var(--bm-a-ink);border-color:rgba(168,85,247,.45)}
+.bm-state{display:inline-flex;align-items:center;gap:7px;font-size:.7rem;font-weight:700;padding:5px 13px;border-radius:100px;border:1px solid var(--bm-line);background:var(--bg-glass);color:var(--bm-muted)}
+.bm-state i{font-size:.5rem}
+.bm-state.ok{color:#22c55e;border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08)}
+.bm-state.off{color:#ef4444;border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08)}
+.bm-hero-actions{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap}
+
+/* ── الأزرار ── */
+.bm-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:11px;font-family:inherit;font-size:.82rem;font-weight:700;line-height:1;border:none;cursor:pointer;text-decoration:none;transition:transform .22s,box-shadow .22s,background .22s,color .22s,border-color .22s}
+.bm-btn-primary{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 6px 20px rgba(124,58,237,.32)}
+.bm-btn-primary:hover{transform:translateY(-2px);color:#fff;box-shadow:0 12px 30px rgba(124,58,237,.42)}
+.bm-btn-ghost{background:var(--bg-glass);color:var(--bm-muted);border:1px solid var(--bm-line)}
+.bm-btn-ghost:hover{color:var(--bm-text);border-color:rgba(168,85,247,.4)}
+.bm-btn:disabled{opacity:.6;cursor:default;transform:none}
+
+/* ── عناوين الأقسام ── */
+.bm-sec-head{display:flex;align-items:center;gap:12px;margin:26px 0 14px;flex-wrap:wrap}
+.bm-sec-head h2{font-size:1rem;font-weight:800;margin:0;display:flex;align-items:center;gap:9px}
+.bm-sec-head h2 i{color:var(--bm-a-ink);font-size:.9rem}
+.bm-sec-head > span{margin-inline-start:auto;font-size:.72rem;color:var(--bm-muted)}
+.bm-sec-head > span b{color:var(--bm-a-ink)}
+
+/* ── المؤشرات ── */
+.bm-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.bm-kpi{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:16px;background:var(--bm-card);border:1px solid var(--bm-line);transition:transform .25s,border-color .25s}
+.bm-kpi:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.35)}
+.bm-kpi-ic{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.ic-p{background:rgba(168,85,247,.14);color:var(--bm-a-ink)}
+.ic-g{background:rgba(87,242,135,.14);color:#2fb45f}
+.ic-a{background:rgba(255,217,61,.16);color:#b98900}
+.ic-c{background:rgba(140,90,255,.16);color:var(--bm-a-ink)}
+[data-theme="light"] .ic-g{color:#0f7a3d}
+.bm-kpi-txt b{display:block;font-size:1.3rem;font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums}
+.bm-kpi-txt span{font-size:.68rem;color:var(--bm-muted)}
+.bm-kpi-txt b.ok{color:#22c55e}
+.bm-kpi-txt b.off{color:#ef4444}
+
+/* ── البطاقات ── */
+.bm-card{margin-top:16px;padding:22px 24px;border-radius:18px;background:var(--bm-card);border:1px solid var(--bm-line);box-shadow:var(--shadow)}
+.bm-card-head{margin-bottom:16px}
+.bm-card-head h2{font-size:1rem;font-weight:800;margin:0 0 6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bm-card-head h2 i{color:var(--bm-a-ink)}
+.bm-card-head p{margin:0;font-size:.78rem;color:var(--bm-muted);line-height:1.85;max-width:75ch}
+.bm-head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.bm-count{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:24px;padding:0 9px;border-radius:100px;font-size:.72rem;font-weight:800;background:var(--bm-a-soft);border:1px solid rgba(168,85,247,.26);color:var(--bm-a-ink)}
+.bm-muted{color:var(--bm-muted);font-size:.82rem;margin:0}
+
+/* ── مُنشئ الدعوة ── */
+.bm-builder-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:20px}
+.bm-perms-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.bm-perms-top > span{font-size:.78rem;font-weight:700;color:var(--bm-muted)}
+.bm-presets{display:flex;gap:6px;flex-wrap:wrap}
+.bm-chip{padding:6px 13px;border-radius:100px;background:var(--bg-glass);border:1px solid var(--bm-line);color:var(--bm-muted);font-family:inherit;font-size:.72rem;font-weight:700;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
+.bm-chip:hover{color:var(--bm-text);border-color:rgba(168,85,247,.4)}
+.bm-chip.active{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-color:transparent}
+.bm-perms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:8px}
+.bm-perm{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:11px;background:var(--bg-glass);border:1px solid var(--bm-line);cursor:pointer;font-size:.76rem;color:var(--bm-text);transition:border-color .2s,background .2s;user-select:none}
+.bm-perm:hover{border-color:rgba(168,85,247,.35)}
+.bm-perm:has(input:checked){border-color:rgba(168,85,247,.5);background:var(--bm-a-soft)}
+.bm-perm:has(input:disabled){opacity:.4;cursor:not-allowed}
+.bm-perm input{accent-color:#7c3aed;width:16px;height:16px;flex-shrink:0;cursor:inherit}
+.bm-invite{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:14px;background:linear-gradient(160deg,var(--bm-a-soft),transparent);border:1px solid rgba(168,85,247,.2)}
+.bm-scope{display:flex;align-items:center;gap:9px;font-size:.78rem;font-weight:600;cursor:pointer}
+.bm-scope input{accent-color:#7c3aed;width:16px;height:16px}
+.bm-scope code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.72rem;color:var(--bm-a-ink);background:var(--bg-glass);padding:2px 7px;border-radius:6px;direction:ltr}
+.bm-bits{display:flex;align-items:center;justify-content:space-between;font-size:.76rem;color:var(--bm-muted)}
+.bm-bits b{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.9rem;color:var(--bm-a-ink);direction:ltr}
+.bm-invite-url{width:100%;padding:11px 13px;border-radius:11px;background:var(--bg-glass);border:1px solid var(--bm-line);color:var(--bm-text);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.72rem;outline:none;box-sizing:border-box}
+.bm-invite-url:focus{border-color:rgba(168,85,247,.5);box-shadow:0 0 0 3px var(--bm-a-soft)}
+.bm-invite-actions{display:flex;gap:8px;flex-wrap:wrap}
+.bm-invite-actions .bm-btn{flex:1;min-width:110px;padding:10px 14px;font-size:.76rem}
+
+/* ── النظام ── */
+.bm-info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.bm-info{padding:13px 15px;border-radius:13px;background:var(--bg-glass);border:1px solid var(--bm-line)}
+.bm-info span{display:block;font-size:.68rem;color:var(--bm-muted);margin-bottom:5px}
+.bm-info b{font-size:.92rem;font-weight:800;font-variant-numeric:tabular-nums;word-break:break-word}
+.bm-info b.ok{color:#22c55e}
+.bm-info b.off{color:#ef4444}
+.bm-info b.warn{color:#f59e0b}
+
+/* ── الأوامر ── */
+.bm-cmds{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.bm-cat{padding:12px 14px;border-radius:13px;background:var(--bg-glass);border:1px solid var(--bm-line)}
+.bm-cat-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.bm-cat-top span{font-size:.78rem;font-weight:700;text-transform:capitalize;word-break:break-word}
+.bm-cat-top b{font-size:.86rem;font-weight:800;color:var(--bm-a-ink);font-variant-numeric:tabular-nums}
+.bm-cat-bar{height:6px;border-radius:100px;background:var(--bm-a-soft);overflow:hidden}
+.bm-cat-bar i{display:block;height:100%;border-radius:100px;background:linear-gradient(90deg,#7c3aed,#a855f7)}
+.bm-muted{padding:8px 2px}
+
+/* ── التشخيص ── */
+.bm-diag{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+.bm-diag-cell{padding:13px 15px;border-radius:13px;background:var(--bg-glass);border:1px solid var(--bm-line)}
+.bm-diag-cell span{display:block;font-size:.68rem;color:var(--bm-muted);margin-bottom:5px}
+.bm-diag-cell b{font-size:.84rem;font-weight:700;line-height:1.6;word-break:break-word}
+.bm-diag-cell b.ok{color:#22c55e}
+.bm-diag-cell b.off{color:#ef4444}
+.bm-colls{display:none;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px}
+.bm-colls.show{display:grid}
+.bm-colls div{display:flex;align-items:center;justify-content:space-between;background:var(--bg-glass);border:1px solid var(--bm-line);border-radius:10px;padding:8px 11px;font-size:.74rem}
+.bm-colls span{color:var(--bm-muted);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.68rem}
+.bm-diag .bm-muted,.bm-cmds .bm-muted{grid-column:1/-1}
+.bm-locked{display:flex;align-items:center;gap:14px;color:var(--bm-muted);font-size:.82rem;line-height:1.8}
+.bm-locked i{font-size:1.2rem;color:var(--bm-a-ink);flex-shrink:0}
+
+/* ── المطوّرون ── */
+.bm-devs{display:flex;flex-direction:column;gap:9px}
+.bm-dev{display:flex;align-items:center;gap:13px;padding:12px 15px;border-radius:13px;background:var(--bg-glass);border:1px solid var(--bm-line)}
+.bm-dev-ava{width:38px;height:38px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--bm-a-ink);background:var(--bm-a-soft);border:1px solid rgba(168,85,247,.22)}
+.bm-dev-ava.owner{color:#f5d623;background:rgba(245,214,37,.1);border-color:rgba(245,214,37,.26)}
+.bm-dev-info{flex:1;min-width:0}
+.bm-dev-info code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.8rem;color:var(--bm-text);direction:ltr;display:block}
+.bm-dev-info span{font-size:.68rem;color:var(--bm-muted);display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bm-dev-tag{flex-shrink:0;font-size:.64rem;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--bm-a-soft);border:1px solid rgba(168,85,247,.26);color:var(--bm-a-ink)}
+.bm-dev-tag.owner{background:rgba(245,214,37,.1);border-color:rgba(245,214,37,.26);color:#f5d623}
+
+/* ── روابط سريعة ── */
+.bm-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;margin-top:16px}
+.bm-link{display:flex;flex-direction:column;gap:3px;padding:16px 18px;border-radius:15px;background:var(--bm-card);border:1px solid var(--bm-line);text-decoration:none;transition:transform .25s,border-color .25s}
+.bm-link:hover{transform:translateY(-3px);border-color:rgba(168,85,247,.4)}
+.bm-link i{color:var(--bm-a-ink);font-size:1rem;margin-bottom:5px}
+.bm-link b{font-size:.86rem;font-weight:800;color:var(--bm-text)}
+.bm-link span{font-size:.72rem;color:var(--bm-muted)}
+
+/* ── توست ── */
+.bm-toast{position:fixed;bottom:28px;inset-inline-start:50%;transform:translate(50%,10px);z-index:10000;padding:12px 22px;border-radius:12px;font-size:.82rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 12px 34px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.bm-toast.show{opacity:1;transform:translate(50%,0)}
+.bm-toast.err{background:linear-gradient(135deg,#ef4444,#dc2626)}
+
+@keyframes bmUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.bm-hero{animation:bmUp .45s ease both}
+.bm-sec-head,.bm-kpis{animation:bmUp .45s ease .05s both}
+.bm-card,.bm-links{animation:bmUp .45s ease .1s both}
+
+@media(max-width:920px){
+  .bm-kpis{grid-template-columns:repeat(2,1fr)}
+  .bm-builder-grid{grid-template-columns:1fr}
+  .bm-hero{flex-direction:column;align-items:stretch}
+  .bm-hero-actions .bm-btn{flex:1}
+}
+@media(max-width:560px){
+  .bm-hero{padding:22px}
+  .bm-kpis{grid-template-columns:1fr}
+  .bm-perms-grid{grid-template-columns:1fr}
+  .bm-ava{width:64px;height:64px}
+}
+@media(prefers-reduced-motion:reduce){
+  .bm-hero,.bm-sec-head,.bm-kpis,.bm-card,.bm-links{animation:none}
+  .bm-kpi,.bm-btn,.bm-link,.bm-ava-dot{transition:none}
+}
+</style>
+
+<script>
+(function () {
+  var CLIENT_ID = <%- JSON.stringify(clientId || '') %>;
+  var DEFAULT_URL = <%- JSON.stringify(botInviteUrl) %>;
+
+  function $(id) { return document.getElementById(id); }
+  function fmt(n) { n = Number(n) || 0; return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n); }
+  function dur(s) {
+    s = Math.floor(Number(s) || 0);
+    var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+    if (d) return d + 'ي ' + h + 'س';
+    if (h) return h + 'س ' + m + 'د';
+    if (m) return m + 'د';
+    return s + 'ث';
+  }
+  function mb(b) { return (Number(b) / 1048576).toFixed(1) + ' MB'; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  var toastEl = $('bmToast');
+  function toast(msg, isErr) {
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.toggle('err', !!isErr);
+    toastEl.classList.add('show');
+    clearTimeout(toastEl._tm);
+    toastEl._tm = setTimeout(function () { toastEl.classList.remove('show'); }, 2800);
+  }
+  function copy(value, okMsg) {
+    var done = function () { toast(okMsg || 'تم النسخ'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).then(done, function () { toast('تعذّر النسخ', true); });
+    } else {
+      var t = document.createElement('textarea');
+      t.value = value; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); done(); } catch (e) { toast('تعذّر النسخ', true); }
+      document.body.removeChild(t);
+    }
+  }
+
+  /* ── مُنشئ رابط الدعوة ── */
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.bm-perm input'));
+  var scopeCmd = $('bmScopeCmd');
+  var urlField = $('bmInviteUrl');
+  var bitsEl = $('bmBits');
+  var PRESETS = {
+    full: [8],
+    standard: [32, 16, 1024, 2048, 16384, 32768, 65536, 8192, 64, 2, 4],
+    read: [1024, 65536],
+    none: []
+  };
+
+  function syncAdmin() {
+    var adminBox = boxes.filter(function (b) { return +b.dataset.perm === 8; })[0];
+    var admin = adminBox && adminBox.checked;
+    boxes.forEach(function (b) {
+      if (+b.dataset.perm !== 8) { b.disabled = !!admin; if (admin) b.checked = false; }
+    });
+  }
+
+  function build() {
+    var sum = 0, checkedCount = 0;
+    boxes.forEach(function (b) { if (b.checked) { sum += +b.dataset.perm; checkedCount++; } });
+    if (bitsEl) bitsEl.textContent = sum;
+    if (urlField) {
+      if (!CLIENT_ID) { urlField.value = ''; urlField.placeholder = 'معرّف البوت غير مضبوط'; }
+      else {
+        var scope = 'bot' + (scopeCmd && scopeCmd.checked ? '%20applications.commands' : '');
+        urlField.value = 'https://discord.com/oauth2/authorize?client_id=' + encodeURIComponent(CLIENT_ID) + '&permissions=' + sum + '&scope=' + scope;
+      }
+    }
+    var open = $('bmOpenUrl');
+    if (open) open.href = urlField ? (urlField.value || DEFAULT_URL) : DEFAULT_URL;
+    Array.prototype.forEach.call(document.querySelectorAll('.bm-chip'), function (c) {
+      var list = PRESETS[c.dataset.preset] || [];
+      var active = list.length === checkedCount && list.every(function (v) { return boxes.some(function (b) { return +b.dataset.perm === v && b.checked; }); });
+      c.classList.toggle('active', active);
+    });
+  }
+
+  boxes.forEach(function (b) {
+    b.addEventListener('change', function () { syncAdmin(); build(); });
+  });
+  if (scopeCmd) scopeCmd.addEventListener('change', build);
+
+  Array.prototype.forEach.call(document.querySelectorAll('.bm-chip'), function (c) {
+    c.addEventListener('click', function () {
+      var list = PRESETS[c.dataset.preset] || [];
+      boxes.forEach(function (b) { b.checked = list.indexOf(+b.dataset.perm) !== -1; });
+      syncAdmin();
+      build();
+    });
+  });
+
+  syncAdmin();
+  build();
+
+  /* ── الحالة الحية ── */
+  var lastStatus = null;
+
+  function paintStatus(d) {
+    lastStatus = d;
+    var online = d.botOnline === true;
+    var dot = $('bmHeroDot');
+    if (dot) { dot.classList.toggle('ok', online); dot.classList.toggle('off', !online); dot.title = online ? 'البوت متصل' : 'البوت غير متصل'; }
+
+    var state = $('bmHeroState');
+    if (state) {
+      state.className = 'bm-state ' + (online ? 'ok' : 'off');
+      state.innerHTML = '<i class="fas fa-circle"></i> ' + (online ? 'متصل' : 'غير متصل');
+    }
+
+    var kState = $('bmKState');
+    if (kState) { kState.textContent = online ? 'متصل' : 'غير متصل'; kState.className = online ? 'ok' : 'off'; }
+    var kSub = $('bmKStateSub');
+    if (kSub) kSub.textContent = online ? 'API البوت يستجيب' : (d.botApiError ? 'خطأ: ' + d.botApiError : 'API البوت');
+
+    if ($('bmKPing')) $('bmKPing').textContent = d.ping != null ? d.ping + 'ms' : '—';
+    if ($('bmKGuilds')) $('bmKGuilds').textContent = d.guildCount != null ? fmt(d.guildCount) : '—';
+    if ($('bmKMembers')) $('bmKMembers').textContent = d.members != null ? fmt(d.members) : '—';
+    if ($('bmInfoNode')) $('bmInfoNode').textContent = d.nodeVersion || '—';
+    if ($('bmInfoPlat')) $('bmInfoPlat').textContent = d.platform || '—';
+    if ($('bmInfoUptime')) $('bmInfoUptime').textContent = d.uptime != null ? dur(d.uptime) : '—';
+    if ($('bmInfoMem') && d.memory) $('bmInfoMem').textContent = mb(d.memory.heapUsed || d.memory.rss);
+    if ($('bmInfoResp')) $('bmInfoResp').textContent = d.responseTime != null ? d.responseTime + 'ms' : '—';
+    var db = $('bmInfoDb');
+    if (db) { db.textContent = d.dbOnline ? 'متصلة' : 'غير متصلة'; db.className = d.dbOnline ? 'ok' : 'off'; }
+    var sec = $('bmInfoSecret');
+    if (sec) {
+      if (d.secretConfigured) { sec.textContent = 'مضبوط (' + (d.secretLength || 0) + ' حرف)'; sec.className = 'ok'; }
+      else { sec.textContent = 'غير مضبوط'; sec.className = 'warn'; }
+    }
+    var api = $('bmInfoApi');
+    if (api) {
+      api.textContent = d.botApiHttp ? ('HTTP ' + d.botApiHttp) : (online ? 'يستجيب' : 'لا يستجيب');
+      api.className = online ? 'ok' : 'off';
+    }
+
+    if ($('bmUpdated')) $('bmUpdated').textContent = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function loadStatus() {
+    return fetch('/api/status').then(function (r) { return r.json(); }).then(paintStatus).catch(function () {
+      var state = $('bmHeroState');
+      if (state) { state.className = 'bm-state off'; state.innerHTML = '<i class="fas fa-circle"></i> تعذّر الفحص'; }
+    });
+  }
+
+  function loadBotInfo() {
+    return fetch('/api/bot/info').then(function (r) { return r.json(); }).then(function (d) {
+      if ($('bmInfoName')) $('bmInfoName').textContent = d.name || '—';
+      if ($('bmInfoVer')) $('bmInfoVer').textContent = d.version || '—';
+      if ($('bmInfoDash')) $('bmInfoDash').textContent = d.dashboard || '—';
+    }).catch(function () {});
+  }
+
+  function loadCommands() {
+    var box = $('bmCmds');
+    return fetch('/api/commands/stats').then(function (r) { return r.json(); }).then(function (d) {
+      if ($('bmCmdTotal')) $('bmCmdTotal').textContent = d.total != null ? d.total : '—';
+      if (!box) return;
+      var per = d.perCategory || {};
+      var entries = Object.keys(per).map(function (k) { return { k: k, v: Number(per[k]) || 0 }; }).sort(function (a, b) { return b.v - a.v; });
+      if (!entries.length && Array.isArray(d.categories)) entries = d.categories.map(function (k) { return { k: k, v: 0 }; });
+      if (!entries.length) { box.innerHTML = '<p class="bm-muted">لا توجد أوامر مسجّلة.</p>'; return; }
+      var max = entries.reduce(function (m, e) { return Math.max(m, e.v); }, 0) || 1;
+      box.innerHTML = entries.map(function (e) {
+        return '<div class="bm-cat"><div class="bm-cat-top"><span>' + esc(e.k) + '</span><b>' + e.v + '</b></div>' +
+          '<div class="bm-cat-bar"><i style="width:' + Math.max(4, Math.round(e.v / max * 100)) + '%"></i></div></div>';
+      }).join('');
+    }).catch(function () { if (box) box.innerHTML = '<p class="bm-muted">تعذّر جلب الإحصائيات.</p>'; });
+  }
+
+  function loadDiag() {
+    var box = $('bmDiag');
+    if (!box) return Promise.resolve();
+    return fetch('/api/diagnostics').then(function (r) { return r.json(); }).then(function (d) {
+      function cell(label, value, cls) {
+        return '<div class="bm-diag-cell"><span>' + label + '</span><b' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(value) + '</b></div>';
+      }
+      var botOk = d.botApi && d.botApi.online;
+      var num = function (v) { return v == null || isNaN(v) ? '—' : v; };
+      var statsLine = botOk
+        ? ('متصل • ' + num(d.botApi.stats && d.botApi.stats.guilds) + ' سيرفر • ' + num(d.botApi.stats && d.botApi.stats.members) + ' عضو')
+        : ('غير متصل' + (d.botApi && d.botApi.error ? ' (' + d.botApi.error + ')' : ''));
+      box.innerHTML =
+        cell('عنوان API البوت', (d.botApi && d.botApi.baseUrl) || '—', botOk ? 'ok' : 'off') +
+        cell('اتصال البوت', statsLine, botOk ? 'ok' : 'off') +
+        cell('توكن Discord', d.discord && d.discord.hasBotToken ? 'متوفر' : 'غير مضبوط', d.discord && d.discord.hasBotToken ? 'ok' : 'off') +
+        cell('MongoDB', d.mongo && d.mongo.connected ? ('متصلة • ' + (d.mongo.dbName || '?')) : 'غير متصلة', d.mongo && d.mongo.connected ? 'ok' : 'off');
+      var colls = $('bmColls');
+      if (colls && d.mongo && d.mongo.connected && d.mongo.collections) {
+        colls.innerHTML = Object.keys(d.mongo.collections).map(function (k) {
+          return '<div><span>' + esc(k) + '</span><b>' + num(d.mongo.collections[k]) + '</b></div>';
+        }).join('');
+        colls.classList.add('show');
+      }
+    }).catch(function () { box.innerHTML = '<p class="bm-muted">تعذّر جلب التشخيص.</p>'; });
+  }
+
+  function refreshAll() {
+    var btn = $('bmRefresh');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-rotate fa-spin"></i> جارٍ التحديث'; }
+    return Promise.all([loadStatus(), loadBotInfo(), loadCommands(), loadDiag()]).then(function () {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate"></i> تحديث'; }
+    });
+  }
+
+  if ($('bmRefresh')) $('bmRefresh').addEventListener('click', function () { refreshAll(); toast('تم التحديث'); });
+  if ($('bmCopyId')) $('bmCopyId').addEventListener('click', function () { if (CLIENT_ID) copy(CLIENT_ID, 'تم نسخ معرّف البوت'); });
+  if ($('bmCopyUrl')) $('bmCopyUrl').addEventListener('click', function () {
+    var v = urlField && urlField.value;
+    if (v) copy(v, 'تم نسخ رابط الدعوة'); else toast('معرّف البوت غير مضبوط', true);
+  });
+
+  refreshAll();
+  // Live values do not need a socket; a poll is enough and stops when the tab
+  // is hidden, so a forgotten /dev/bot tab does not keep hitting the API.
+  var timer = setInterval(function () { if (!document.hidden) refreshAll(); }, 20000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) refreshAll();
+  });
+})();
+</script>

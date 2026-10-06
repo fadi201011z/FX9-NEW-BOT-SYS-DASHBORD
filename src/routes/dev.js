@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated, isOwnerOrDeveloper } from '../middleware/auth.js';
 import { getAllGuildConfig, getGuildAdmins, getActivity, getAuditLogs, logActivity } from '../database.js';
-import { getBotGuilds } from '../auth/discord.js';
+import { getBotGuilds, getBotSelf } from '../auth/discord.js';
 import Maintenance from '../models/Maintenance.js';
 import BotDeveloper from '../models/BotDeveloper.js';
 import { invalidate } from '../services/capabilities.js';
@@ -109,27 +109,26 @@ router.get('/', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   });
 });
 
-// ── The developer section's four remaining pages ─────────────────────────
+// ── The developer section's placeholder pages ────────────────────────────
 // Each carries its own currentPage, so the rail lights exactly one row of the
 // section, and each stands behind the same two middlewares as /dev itself: the
 // section is drawn from perms.can.dev, so a row nobody may press must not be
 // reachable by typing its address either.
 //
-// One table and one loop because the four left are structurally identical today
-// -- a heading and nothing under it. /dev/guilds used to sit in this table; it
-// left when it grew data of its own and is now an ordinary route below, and the
-// table keeps the rest. Which page is which is therefore written down once, and
-// the four addresses, the four currentPages and the four titles cannot drift
-// apart the way four hand-written routes would.
+// One table and one loop because the rest are structurally identical today
+// -- a heading and nothing under it. /dev/bot and /dev/guilds used to sit in
+// this table; each left when it grew data of its own and is now an ordinary
+// route below, and the table keeps the rest. Which page is which is therefore
+// written down once, and the three addresses, the three currentPages and the
+// three titles cannot drift apart the way three hand-written routes would.
 //
-// All four are namespaced under /dev on purpose, and two of them collide with
+// All three are namespaced under /dev on purpose, and two of them collide with
 // words the site already uses. /status is the public "حالة البوت" that a
 // logged-out visitor reads, and /guilds is the account's own server list: give
 // either of them a flat address here and one page would answer to two names, two
 // rows of the rail would light together on it, and the public page would inherit
 // the developer's permissions.
 const DEV_PAGES = [
-  { path: 'bot', view: 'dev/bot', page: 'dev-bot', title: 'إدارة البوت' },
   { path: 'status', view: 'dev/status', page: 'dev-status', title: 'حالة البوت' },
   { path: 'features', view: 'dev/features', page: 'dev-features', title: 'حالة الخصائص' },
   { path: 'maintenance', view: 'dev/maintenance', page: 'dev-maintenance', title: 'وضع الصيانة' },
@@ -141,7 +140,39 @@ for (const page of DEV_PAGES) {
   });
 }
 
-// ── Connected servers (the one page in the section that draws live data) ──
+// ── Bot management (identity, invite builder, live health) ───────────────
+// Rebuilt from a placeholder. The page needs data no static view can carry:
+// the bot's own Discord identity (name + avatar, read with the bot token),
+// the configured client/owner ids, and the current developer list. Live
+// health, diagnostics and command counts are fetched by the page itself from
+// the /api routes that already serve them, so nothing here duplicates them.
+router.get('/bot', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  const clientId = config.discord.clientId || '';
+  const ownerId = config.discord.ownerId || '';
+  const botInviteUrl = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&permissions=8&scope=bot`;
+
+  // Null when there is no token or Discord is unreachable; the view then falls
+  // back to the client id and the default avatar instead of failing.
+  const botSelf = await getBotSelf(config.discord.botToken);
+
+  let developers = [];
+  try {
+    developers = await BotDeveloper.find({}).sort({ addedAt: -1 }).lean();
+  } catch {}
+
+  res.render('dev/bot', {
+    user: req.session.user,
+    clientId,
+    ownerId,
+    botSelf,
+    botInviteUrl,
+    developers,
+    isOwner: req.perms?.isOwner || false,
+    title: 'إدارة البوت',
+  });
+});
+
+// ── Connected servers (a page in the section that draws live data) ───────
 // It left the table above because it needs the bot's guild list with the same
 // two counts /dev draws, and because every row is a join link: the page asks
 // /guild-invite/:guildId only when a user presses a row, so no invite is minted
