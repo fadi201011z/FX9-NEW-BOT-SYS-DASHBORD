@@ -1,5 +1,574 @@
 <% currentPage = 'dev-features' %>
-<div class="page-header">
-  <h1><i class="fas fa-list-check"></i> حالة الخصائص</h1>
-  <p>كل خاصية من خصائص البوت، مفعّلة أو لا</p>
+<%
+  /* حالة الخصائص — the switchboard. One card per bot feature; each can be
+     turned on, put under maintenance, or disabled outright. The dashboard
+     stores the decision and pushes it to the bot, which enforces it at every
+     gate (commands, ticket/Voice components, protection, logging, monitors).
+     Everything the server renders comes from featureCatalog.js; the only live
+     reads are the bot's own view (sync badge) and the command counts. */
+  const byGroup = {};
+  groups.forEach(function (g) { byGroup[g.id] = []; });
+  features.forEach(function (f) {
+    if (!byGroup[f.group]) byGroup[f.group] = [];
+    byGroup[f.group].push(f);
+  });
+%>
+
+<div class="dfe">
+
+  <!-- ── الحالة الكلية ── -->
+  <section class="dfe-hero" id="dfeHero" data-state="wait">
+    <span class="dfe-hero-glow" aria-hidden="true"></span>
+    <div class="dfe-orb" aria-hidden="true"><i class="fas fa-toggle-on"></i></div>
+    <div class="dfe-hero-body">
+      <span class="dfe-eyebrow"><span class="dfe-eyebrow-dot" aria-hidden="true"></span> مركز تحكم الخصائص</span>
+      <h1 class="dfe-title" id="dfeOverall">لوحة تشغيل أنظمة البوت</h1>
+      <p class="dfe-sub">شغّل أي خصيصة أو ضعها تحت الصيانة أو عطّلها من مكان واحد. القرار يُحفظ فوراً ويُدفع إلى البوت ليطبّقه على الأوامر والأحداث والأنظمة الخلفية.</p>
+    </div>
+    <div class="dfe-hero-side">
+      <div class="dfe-count" id="dfeCount">—</div>
+      <div class="dfe-count-lbl">خصيصة تعمل</div>
+      <button type="button" class="dfe-btn" id="dfeRefresh"><i class="fas fa-rotate"></i> تحديث</button>
+      <span class="dfe-sync" id="dfeSync" data-state="unknown"><i class="fas fa-circle-notch fa-spin"></i> جارٍ التحقق من البوت…</span>
+    </div>
+  </section>
+
+  <div class="dfe-reason" id="dfeReason" role="status" hidden></div>
+
+  <!-- ── المؤشرات ── -->
+  <section class="dfe-metrics">
+    <div class="dfe-metric"><div class="dfe-mic ic-all"><i class="fas fa-layer-group"></i></div><div><b id="dfeMTotal"><%= features.length %></b><span>إجمالي الخصائص</span></div></div>
+    <div class="dfe-metric"><div class="dfe-mic ic-on"><i class="fas fa-circle-play"></i></div><div><b id="dfeMOn"><%= counts.on %></b><span>تعمل</span></div></div>
+    <div class="dfe-metric"><div class="dfe-mic ic-maint"><i class="fas fa-screwdriver-wrench"></i></div><div><b id="dfeMMaint"><%= counts.maintenance %></b><span>تحت الصيانة</span></div></div>
+    <div class="dfe-metric"><div class="dfe-mic ic-off"><i class="fas fa-circle-xmark"></i></div><div><b id="dfeMOff"><%= counts.off %></b><span>معطّلة</span></div></div>
+  </section>
+
+  <!-- ── أدوات التصفية ── -->
+  <div class="dfe-toolbar">
+    <div class="dfe-search">
+      <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+      <input type="search" id="dfeSearch" placeholder="ابحث باسم الخصيصة أو مفتاحها…" autocomplete="off">
+    </div>
+    <div class="dfe-filters" id="dfeFilters" role="tablist">
+      <button type="button" class="is-active" data-filter="all">الكل</button>
+      <button type="button" data-filter="on">تعمل</button>
+      <button type="button" data-filter="maintenance">صيانة</button>
+      <button type="button" data-filter="off">معطّلة</button>
+    </div>
+  </div>
+
+  <!-- ── الإجراءات الجماعية ── -->
+  <div class="dfe-bulk" id="dfeBulk">
+    <label class="dfe-bulk-all"><input type="checkbox" id="dfeAll"> <span>تحديد الكل</span></label>
+    <span class="dfe-bulk-count" id="dfeSelCount">لم يتم تحديد أي خصيصة</span>
+    <div class="dfe-bulk-actions">
+      <button type="button" data-bulk="on"><i class="fas fa-circle-play"></i> تشغيل المحدد</button>
+      <button type="button" data-bulk="maintenance"><i class="fas fa-screwdriver-wrench"></i> صيانة المحدد</button>
+      <button type="button" data-bulk="off"><i class="fas fa-circle-xmark"></i> تعطيل المحدد</button>
+    </div>
+  </div>
+
+  <!-- ── المجموعات ── -->
+  <% groups.forEach(function (g) { var list = byGroup[g.id] || []; if (!list.length) return; %>
+  <section class="dfe-group" data-group="<%= g.id %>">
+    <div class="dfe-group-head">
+      <h2><i class="fas <%= g.icon %>"></i> <%= g.name %></h2>
+      <span id="dfeGroupCount-<%= g.id %>"><%= list.length %> خصائص</span>
+    </div>
+    <div class="dfe-grid">
+      <% list.forEach(function (f) { %>
+      <article class="dfe-card" data-key="<%= f.key %>" data-state="<%= f.state %>" data-group="<%= f.group %>"
+               data-name="<%= f.name %>" data-search="<%= (f.name + ' ' + f.key + ' ' + f.desc).replace(/"/g,'') %>">
+        <div class="dfe-card-top">
+          <label class="dfe-check" title="تحديد"><input type="checkbox" data-key="<%= f.key %>"></label>
+          <div class="dfe-ic"><i class="fas <%= f.icon %>"></i></div>
+          <div class="dfe-name"><b><%= f.name %></b><code><%= f.key %></code></div>
+          <span class="dfe-pill" data-state="<%= f.state %>"><i></i> <%= stateMeta[f.state].label %></span>
+        </div>
+
+        <p class="dfe-desc"><%= f.desc %></p>
+
+        <div class="dfe-meta">
+          <span class="dfe-cmds" data-folders="<%= f.folders.join(',') %>"><i class="fas fa-terminal"></i> —</span>
+          <span class="dfe-updated" data-updated="<%= f.updatedAt %>" data-by="<%= f.updatedBy %>">—</span>
+        </div>
+
+        <div class="dfe-seg" role="group" aria-label="حالة <%= f.name %>">
+          <% states.forEach(function (s) { %>
+          <button type="button" class="dfe-seg-btn <%= f.state === s ? 'is-active' : '' %>" data-set="<%= s %>">
+            <i class="fas <%= stateMeta[s].icon %>"></i> <%= stateMeta[s].short %>
+          </button>
+          <% }); %>
+        </div>
+
+        <div class="dfe-msg" <%= f.state === 'maintenance' ? '' : 'hidden' %>>
+          <i class="fas fa-comment-dots" aria-hidden="true"></i>
+          <input type="text" class="dfe-msg-input" maxlength="300" placeholder="رسالة الصيانة التي يراها المستخدم (اتركها فارغة للافتراضي)" value="<%= f.message %>">
+        </div>
+
+        <div class="dfe-foot">
+          <span class="dfe-bot" data-state="unknown"><i class="fas fa-circle-notch fa-spin"></i> جارٍ التحقق</span>
+        </div>
+      </article>
+      <% }); %>
+    </div>
+  </section>
+  <% }); %>
+
+  <p class="dfe-empty" id="dfeEmpty" hidden><i class="fas fa-filter-circle-xmark"></i> لا توجد خصائص مطابقة للبحث.</p>
+
+  <p class="dfe-note"><i class="fas fa-shield-halved"></i> كل تبديل يُسجَّل في سجل النشاط باسمك، ويُدفع إلى البوت فوراً؛ وإن تعذّر الدفع يقرأ البوت القرار خلال ثوانٍ من قاعدة البيانات. الخصائص المعطّلة تتوقف كلياً، وخصائص الصيانة تردّ برسالتها مع إمكانية وصول المطورين والمالك للتجربة.</p>
+
 </div>
+
+<div class="dfe-toast" id="dfeToast" role="status" aria-live="polite"></div>
+
+<style>
+.dfe{
+  --ok:#57f287; --bad:#ff6b6b; --warn:#ffd93d;
+  --dfe-a:#a855f7; --dfe-a-ink:#c9a4ff; --dfe-a-soft:rgba(168,85,247,.12);
+  --dfe-line:var(--border); --dfe-card:var(--bg-card); --dfe-muted:var(--text-muted);
+  display:flex; flex-direction:column; gap:8px; max-width:1120px; margin:0 auto; position:relative; padding-bottom:30px;
+}
+[data-theme="light"] .dfe{--dfe-a-ink:#6d28d9; --dfe-a-soft:rgba(124,58,237,.10)}
+@keyframes dfeRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.dfe > *{animation:dfeRise .45s ease both}
+
+/* ── Hero ── */
+.dfe-hero{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;gap:22px;padding:25px;border-radius:22px;border:1px solid var(--dfe-line);background:radial-gradient(120% 190% at 92% -45%,var(--dfe-a-soft),transparent 60%),var(--dfe-card);box-shadow:var(--shadow);margin-bottom:8px}
+.dfe-hero-glow{position:absolute;z-index:-1;top:-45%;inset-inline-end:-6%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.30),transparent 70%);filter:blur(30px);pointer-events:none}
+.dfe-orb{flex-shrink:0;width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--dfe-a-ink);background:var(--dfe-a-soft);border:1px solid rgba(168,85,247,.3)}
+.dfe-hero[data-state="ok"] .dfe-orb{color:#2fb45f;background:rgba(87,242,135,.12);border-color:rgba(87,242,135,.34)}
+.dfe-hero[data-state="warn"] .dfe-orb{color:#b98900;background:rgba(255,217,61,.14);border-color:rgba(255,217,61,.34)}
+.dfe-hero[data-state="off"] .dfe-orb{color:#ff6b6b;background:rgba(255,107,107,.12);border-color:rgba(255,107,107,.34)}
+.dfe-hero-body{flex:1;min-width:0}
+.dfe-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;font-weight:700;color:var(--dfe-muted)}
+.dfe-eyebrow-dot{width:7px;height:7px;border-radius:50%;background:var(--dfe-a);box-shadow:0 0 0 4px var(--dfe-a-soft)}
+.dfe-title{font-size:1.4rem;font-weight:900;margin:8px 0 6px;line-height:1.25}
+.dfe-sub{font-size:.82rem;color:var(--dfe-muted);line-height:1.85;margin:0;max-width:640px}
+.dfe-hero-side{display:flex;flex-direction:column;align-items:flex-end;gap:9px;flex-shrink:0}
+.dfe-count{font-size:1.55rem;font-weight:900;font-variant-numeric:tabular-nums}
+.dfe-count-lbl{font-size:.72rem;color:var(--dfe-muted);margin-top:-6px}
+.dfe-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;border:none;cursor:pointer;font-family:inherit;font-size:.79rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 6px 20px rgba(124,58,237,.32);transition:transform .2s,box-shadow .2s}
+.dfe-btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(124,58,237,.42)}
+.dfe-btn:disabled{opacity:.6;cursor:default;transform:none}
+.dfe-sync{display:inline-flex;align-items:center;gap:7px;font-size:.73rem;font-weight:700;color:var(--dfe-muted);padding:6px 11px;border-radius:999px;background:var(--bg-glass);border:1px solid var(--dfe-line)}
+.dfe-sync[data-state="ok"]{color:#3ddc84;border-color:rgba(87,242,133,.34);background:rgba(87,242,133,.08)}
+.dfe-sync[data-state="warn"]{color:#b98900;border-color:rgba(255,217,61,.34);background:rgba(255,217,61,.08)}
+.dfe-sync[data-state="off"]{color:#ff7a7a;border-color:rgba(255,107,107,.3);background:rgba(255,107,107,.08)}
+[data-theme="light"] .dfe-sync[data-state="ok"]{color:#116b39}
+
+.dfe-reason{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:13px;font-size:.82rem;line-height:1.8;background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.24);color:var(--text);margin-bottom:8px}
+.dfe-reason[hidden]{display:none}
+.dfe-reason i{color:#b98900;margin-top:4px}
+
+/* ── Metrics ── */
+.dfe-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.dfe-metric{display:flex;align-items:center;gap:12px;padding:15px;border-radius:15px;background:var(--dfe-card);border:1px solid var(--dfe-line);transition:transform .25s,border-color .25s}
+.dfe-metric:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.35)}
+.dfe-mic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.ic-all{background:var(--dfe-a-soft);color:var(--dfe-a-ink)}
+.ic-on{background:rgba(87,242,135,.14);color:#2fb45f}
+.ic-maint{background:rgba(255,217,61,.16);color:#b98900}
+.ic-off{background:rgba(255,107,107,.14);color:#ff6b6b}
+.dfe-metric b{display:block;font-size:1.3rem;font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums}
+.dfe-metric span{font-size:.68rem;color:var(--dfe-muted)}
+
+/* ── Toolbar ── */
+.dfe-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.dfe-search{position:relative;flex:1;min-width:220px}
+.dfe-search i{position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);color:var(--dfe-muted);font-size:.8rem;pointer-events:none}
+.dfe-search input{width:100%;padding:11px 38px 11px 14px;border-radius:12px;background:var(--dfe-card);border:1px solid var(--dfe-line);color:var(--text);font-family:inherit;font-size:.82rem;outline:none;transition:border-color .2s}
+.dfe-search input:focus{border-color:rgba(168,85,247,.5)}
+.dfe-filters{display:flex;gap:6px;background:var(--dfe-card);border:1px solid var(--dfe-line);border-radius:12px;padding:5px}
+.dfe-filters button{padding:7px 14px;border-radius:8px;border:none;background:transparent;color:var(--dfe-muted);font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer;transition:background .2s,color .2s}
+.dfe-filters button:hover{color:var(--text)}
+.dfe-filters button.is-active{background:var(--dfe-a-soft);color:var(--dfe-a-ink)}
+
+/* ── Bulk ── */
+.dfe-bulk{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 16px;margin-top:12px;border-radius:14px;background:var(--bg-glass);border:1px dashed var(--dfe-line)}
+.dfe-bulk-all{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;cursor:pointer}
+.dfe-bulk-count{font-size:.74rem;color:var(--dfe-muted);margin-inline-end:auto}
+.dfe-bulk-actions{display:flex;gap:8px;flex-wrap:wrap}
+.dfe-bulk-actions button{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:9px;border:1px solid var(--dfe-line);background:var(--dfe-card);color:var(--text);font-family:inherit;font-size:.73rem;font-weight:700;cursor:pointer;transition:border-color .2s,transform .2s}
+.dfe-bulk-actions button:hover{transform:translateY(-1px);border-color:rgba(168,85,247,.45)}
+.dfe-bulk-actions button:disabled{opacity:.45;cursor:default;transform:none;pointer-events:none}
+
+/* ── Groups ── */
+.dfe-group{margin-top:18px}
+.dfe-group-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.dfe-group-head h2{font-size:.98rem;font-weight:800;margin:0;display:flex;align-items:center;gap:9px}
+.dfe-group-head h2 i{color:var(--dfe-a-ink);font-size:.9rem}
+.dfe-group-head > span{font-size:.72rem;color:var(--dfe-muted)}
+.dfe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+
+/* ── Card ── */
+.dfe-card{position:relative;display:flex;flex-direction:column;gap:11px;padding:16px;border-radius:16px;background:var(--dfe-card);border:1px solid var(--dfe-line);transition:border-color .2s,transform .2s,box-shadow .2s}
+.dfe-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.dfe-card[data-state="off"]{border-color:rgba(255,107,107,.28)}
+.dfe-card[data-state="maintenance"]{border-color:rgba(255,217,61,.30)}
+.dfe-card-top{display:flex;align-items:center;gap:11px}
+.dfe-check{display:flex;align-items:center;cursor:pointer}
+.dfe-check input{width:16px;height:16px;accent-color:#7c3aed;cursor:pointer}
+.dfe-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;background:var(--bg-glass);color:var(--dfe-a-ink);flex-shrink:0}
+.dfe-name{flex:1;min-width:0}
+.dfe-name b{display:block;font-size:.87rem;font-weight:800;line-height:1.3}
+.dfe-name code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.66rem;color:var(--dfe-muted);direction:ltr}
+.dfe-desc{font-size:.76rem;line-height:1.75;color:var(--dfe-muted);margin:0;min-height:44px}
+.dfe-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.69rem;color:var(--dfe-muted);flex-wrap:wrap}
+.dfe-meta i{color:var(--dfe-a-ink)}
+
+/* ── State pill ── */
+.dfe-pill{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;padding:5px 11px;border-radius:999px;font-size:.71rem;font-weight:800;white-space:nowrap;color:var(--dfe-muted);background:var(--bg-glass);border:1px solid var(--dfe-line)}
+.dfe-pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.dfe-pill[data-state="on"]{color:#3ddc84;background:rgba(87,242,133,.10);border-color:rgba(87,242,133,.34)}
+.dfe-pill[data-state="off"]{color:#ff7a7a;background:rgba(255,107,107,.10);border-color:rgba(255,107,107,.34)}
+.dfe-pill[data-state="maintenance"]{color:#e7b500;background:rgba(255,217,61,.10);border-color:rgba(255,217,61,.34)}
+[data-theme="light"] .dfe-pill[data-state="on"]{color:#116b39}
+[data-theme="light"] .dfe-pill[data-state="off"]{color:#b42323}
+[data-theme="light"] .dfe-pill[data-state="maintenance"]{color:#8a6d00}
+
+/* ── Segmented control ── */
+.dfe-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px;border-radius:12px;background:var(--bg-glass);border:1px solid var(--dfe-line)}
+.dfe-seg-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:8px;border:none;background:transparent;color:var(--dfe-muted);font-family:inherit;font-size:.72rem;font-weight:700;cursor:pointer;transition:background .18s,color .2s,transform .2s}
+.dfe-seg-btn:hover{color:var(--text)}
+.dfe-seg-btn.is-active{color:#fff;background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 4px 14px rgba(124,58,237,.3)}
+.dfe-seg-btn[data-set="on"].is-active{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 6px 16px rgba(34,197,94,.3)}
+.dfe-seg-btn[data-set="off"].is-active{background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 6px 20px rgba(239,68,68,.3)}
+.dfe-seg-btn[data-set="maintenance"].is-active{background:linear-gradient(135deg,#eab308,#b98900);color:#1a1300;box-shadow:0 6px 20px rgba(255,217,61,.28)}
+.dfe-seg-btn:disabled{opacity:.55;cursor:default}
+
+/* ── Maintenance message ── */
+.dfe-msg{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:10px;background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.22)}
+.dfe-msg[hidden]{display:none}
+.dfe-msg i{color:#b98900;font-size:.8rem}
+.dfe-msg-input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--text);font-family:inherit;font-size:.75rem}
+
+/* ── Footer of card ── */
+.dfe-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dfe-bot{display:inline-flex;align-items:center;gap:6px;font-size:.68rem;font-weight:700;color:var(--dfe-muted)}
+.dfe-bot[data-state="ok"]{color:#2fb45f}
+.dfe-bot[data-state="warn"]{color:#b98900}
+.dfe-bot[data-state="offline"]{color:var(--dfe-muted)}
+
+/* ── Misc ── */
+.dfe-empty{text-align:center;color:var(--dfe-muted);font-size:.85rem;padding:30px;border:1px dashed var(--dfe-line);border-radius:16px;margin:18px 0 0}
+.dfe-empty[hidden]{display:none}
+.dfe-empty i{margin-inline-end:8px}
+.dfe-note{display:flex;gap:10px;align-items:flex-start;margin:20px 0 0;padding:12px 15px;border-radius:12px;font-size:.76rem;line-height:1.85;color:var(--dfe-muted);background:var(--dfe-a-soft);border:1px solid rgba(168,85,247,.18)}
+.dfe-note i{color:var(--dfe-a-ink);margin-top:4px}
+
+/* ── Toast ── */
+.dfe-toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,140%);z-index:1200;display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:13px;background:var(--bg-card);border:1px solid var(--dfe-line);box-shadow:var(--shadow);font-size:.8rem;font-weight:700;transition:transform .35s cubic-bezier(.2,.9,.3,1.2);max-width:90vw}
+.dfe-toast.is-show{transform:translate(-50%,0)}
+.dfe-toast[data-kind="ok"]{border-color:rgba(87,242,133,.4)}
+.dfe-toast[data-kind="warn"]{border-color:rgba(255,217,61,.4)}
+.dfe-toast[data-kind="err"]{border-color:rgba(255,107,107,.4)}
+
+@media(max-width:900px){.dfe-metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.dfe-hero{flex-direction:column;align-items:flex-start;padding:22px}.dfe-hero-side{flex-direction:row;flex-wrap:wrap;align-items:center;width:100%}.dfe-count-lbl{margin:0}.dfe-bulk-count{margin-inline-end:0}}
+@media(prefers-reduced-motion:reduce){.dfe > *{animation:none}.dfe-toast{transition:none}}
+</style>
+
+<script>
+(function () {
+  var STATES = <%- JSON.stringify(states) %>;
+  var LABEL = { on: 'تعمل', off: 'معطّلة', maintenance: 'صيانة' };
+  var FOLDER_TO_FEATURE = <%- JSON.stringify(folderToFeature) %>;
+
+  function $(id) { return document.getElementById(id); }
+  function cardEl(key) { return document.querySelector('.dfe-card[data-key="' + key + '"]'); }
+  function cards() { return Array.prototype.slice.call(document.querySelectorAll('.dfe-card')); }
+
+  /* ── Toast ── */
+  var toastTimer = null;
+  function toast(text, kind) {
+    var t = $('dfeToast');
+    if (!t) return;
+    t.textContent = text;
+    t.dataset.kind = kind || 'ok';
+    t.classList.add('is-show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('is-show'); }, 3200);
+  }
+
+  /* ── Summary (hero + metric strip) ── */
+  function refreshSummary() {
+    var list = cards();
+    var c = { on: 0, off: 0, maintenance: 0 };
+    list.forEach(function (el) { if (c[el.dataset.state] != null) c[el.dataset.state]++; });
+    if ($('dfeMTotal')) $('dfeMTotal').textContent = list.length;
+    if ($('dfeMOn')) $('dfeMOn').textContent = c.on;
+    if ($('dfeMOff')) $('dfeMOff').textContent = c.off;
+    if ($('dfeMMaint')) $('dfeMMaint').textContent = c.maintenance;
+    if ($('dfeCount')) $('dfeCount').textContent = c.on + ' / ' + list.length;
+
+    var hero = $('dfeHero');
+    var state = c.off || c.maintenance ? 'warn' : 'ok';
+    if (hero) hero.dataset.state = state;
+    if ($('dfeOverall')) {
+      $('dfeOverall').textContent = (!c.off && !c.maintenance)
+        ? 'كل الخصائص تعمل'
+        : (c.off + ' معطّلة · ' + c.maintenance + ' تحت الصيانة');
+    }
+    var reason = $('dfeReason');
+    if (reason) {
+      var msgs = [];
+      if (c.off) msgs.push(c.off + ' خصيصة معطّلة — لن يستجيب البوت لها إطلاقاً.');
+      if (c.maintenance) msgs.push(c.maintenance + ' خصيصة تحت الصيانة — تردّ برسالتها ويمكن للمطورين تجربتها.');
+      reason.hidden = msgs.length === 0;
+      if (msgs.length) reason.innerHTML = '<i class="fas fa-circle-info"></i><div>' + msgs.join('<br>') + '</div>';
+    }
+  }
+
+  /* ── Apply a state to one card (pure DOM, no request) ── */
+  function applyLocal(key, state, message) {
+    var card = cardEl(key);
+    if (!card) return;
+    card.dataset.state = state;
+    var pill = card.querySelector('.dfe-pill');
+    if (pill) { pill.dataset.state = state; pill.innerHTML = '<i></i> ' + LABEL[state]; }
+    card.querySelectorAll('.dfe-seg-btn').forEach(function (b) {
+      b.classList.toggle('is-active', b.dataset.set === state);
+    });
+    var box = card.querySelector('.dfe-msg');
+    if (box) {
+      if (state === 'maintenance') box.removeAttribute('hidden');
+      else box.setAttribute('hidden', '');
+    }
+    var input = card.querySelector('.dfe-msg-input');
+    if (message != null && input) input.value = message;
+    refreshSummary();
+  }
+  function msgInput(card) { return card.querySelector('.dfe-msg-input'); }
+  function stateOf(card) { return card.dataset.state; }
+
+  /* ── Bot sync badge ── */
+  var botStates = null; // Map<key,state> or null when the bot is unreachable
+  function paintBotBadge(card) {
+    var el = card.querySelector('.dfe-bot');
+    if (!el) return;
+    if (!botStates) {
+      el.dataset.state = 'offline';
+      el.innerHTML = '<i class="fas fa-plug-circle-xmark"></i> البوت غير متصل';
+      return;
+    }
+    var live = botStates.get(card.dataset.key) || 'on';
+    if (live === card.dataset.state) {
+      el.dataset.state = 'ok';
+      el.innerHTML = '<i class="fas fa-circle-check"></i> مُتزامن مع البوت';
+    } else {
+      el.dataset.state = 'warn';
+      el.innerHTML = '<i class="fas fa-clock-rotate-left"></i> بانتظار المزامنة';
+    }
+  }
+
+  function refreshLive() {
+    var sync = $('dfeSync');
+    return fetch('/dev/features/live', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.online) {
+          botStates = new Map((d.features || []).map(function (f) { return [f.key, f.state]; }));
+          if (sync) { sync.dataset.state = 'ok'; sync.innerHTML = '<i class="fas fa-plug-circle-check"></i> البوت متصل'; }
+        } else {
+          botStates = null;
+          if (sync) { sync.dataset.state = 'warn'; sync.innerHTML = '<i class="fas fa-plug-circle-xmark"></i> تعذّر الوصول للبوت'; }
+        }
+        cards().forEach(paintBotBadge);
+      })
+      .catch(function () {
+        botStates = null;
+        if (sync) { sync.dataset.state = 'warn'; sync.innerHTML = '<i class="fas fa-plug-circle-xmark"></i> تعذّر الوصول للبوت'; }
+        cards().forEach(paintBotBadge);
+      });
+  }
+
+  /* ── Command counts per feature ── */
+  function refreshCommandCounts() {
+    var withFolders = Array.prototype.slice.call(document.querySelectorAll('.dfe-cmds[data-folders]'));
+    if (!withFolders.length) return;
+    fetch('/api/commands/stats', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        var per = (d && d.perCategory) || {};
+        withFolders.forEach(function (el) {
+          var folders = (el.dataset.folders || '').split(',').filter(Boolean);
+          var n = folders.reduce(function (s, f) { return s + (Number(per[f]) || 0); }, 0);
+          el.innerHTML = '<i class="fas fa-terminal"></i> ' + (n ? n + ' أمر' : 'بدون أوامر');
+        });
+      })
+      .catch(function () {});
+  }
+
+  /* ── Save one feature ── */
+  function saveFeature(key, state, message, silent) {
+    var card = cardEl(key);
+    if (card) card.classList.add('is-busy');
+    return fetch('/dev/features/' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: state, message: message || '' })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.d.ok) throw new Error('save-failed');
+        if (card) {
+          card.dataset.state = res.d.state;
+          var up = card.querySelector('.dfe-updated');
+          if (up) up.textContent = 'آخر تعديل الآن';
+          paintBotBadge(card);
+        }
+        refreshSummary();
+        if (!silent) toast('تم ضبط «' + res.d.key + '» إلى ' + LABEL[res.d.state], 'ok');
+        return res.d;
+      })
+      .catch(function () {
+        toast('تعذّر حفظ التغيير، حاول مجدداً', 'err');
+        throw new Error('save-failed');
+      })
+      .then(function (d) { if (card) card.classList.remove('is-busy'); return d; },
+            function (e) { if (card) card.classList.remove('is-busy'); throw e; });
+  }
+
+  /* ── Card interactions (delegated) ── */
+  document.addEventListener('click', function (ev) {
+    var segBtn = ev.target.closest && ev.target.closest('.dfe-seg-btn');
+    if (segBtn) {
+      var card = segBtn.closest('.dfe-card');
+      var state = segBtn.dataset.set;
+      if (!card || stateOf(card) === state) return;
+      var prev = stateOf(card);
+      var key = card.dataset.key;
+      var msg = msgInput(card) ? msgInput(card).value : '';
+      applyLocal(key, state, null); // optimistic
+      saveFeature(key, state, msg).catch(function () {
+        // The server refused it: put the switch back where it was.
+        applyLocal(key, prev, null);
+        paintBotBadge(card);
+      });
+      return;
+    }
+    var bulkBtn = ev.target.closest && ev.target.closest('[data-bulk]');
+    if (bulkBtn) {
+      var state2 = bulkBtn.dataset.bulk;
+      var keys = selectedKeys();
+      if (!keys.length) { toast('حدّد خصيصة واحدة على الأقل', 'warn'); return; }
+      bulkBtn.disabled = true;
+      fetch('/dev/features/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keys: keys, state: state2 })
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (!res.ok || !res.d.ok) throw new Error('bulk');
+          keys.forEach(function (k) {
+            var c = cardEl(k);
+            if (c) { applyLocal(k, state2, null); paintBotBadge(c); }
+          });
+          var anySynced = (res.d.updated || []).some(function (u) { return u.synced; });
+          toast('تم تطبيق «' + LABEL[state2] + '» على ' + keys.length + ' خصيصة' + (anySynced ? '' : ' — سيطبّقها البوت خلال ثوانٍ'), 'ok');
+          resetSelection();
+        })
+        .catch(function () { toast('تعذّر تطبيق الإجراء الجماعي', 'err'); })
+        .then(function () { bulkBtn.disabled = false; });
+      return;
+    }
+  });
+
+  /* ── Maintenance message: save on blur / Enter ── */
+  document.addEventListener('change', function (ev) {
+    var input = ev.target.closest && ev.target.closest('.dfe-msg-input');
+    if (!input) return;
+    var card = input.closest('.dfe-card');
+    if (!card || stateOf(card) !== 'maintenance') return;
+    saveFeature(card.dataset.key, 'maintenance', input.value, true)
+      .then(function () { toast('حُفظت رسالة الصيانة', 'ok'); })
+      .catch(function () {});
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter') return;
+    var input = ev.target.closest && ev.target.closest('.dfe-msg-input');
+    if (input) { input.blur(); }
+  });
+
+  /* ── Selection ── */
+  function selectedKeys() {
+    return Array.prototype.slice.call(document.querySelectorAll('.dfe-check input:checked'))
+      .map(function (i) { return i.dataset.key; });
+  }
+  function resetSelection() {
+    Array.prototype.forEach.call(document.querySelectorAll('.dfe-check input:checked'), function (i) { i.checked = false; });
+    if ($('dfeAll')) { $('dfeAll').checked = false; }
+    updateSelCount();
+  }
+  function updateSelCount() {
+    var n = selectedKeys().length;
+    if ($('dfeSelCount')) $('dfeSelCount').textContent = n ? (n + ' خصيصة محددة') : 'لم يتم تحديد أي خصيصة';
+  }
+  document.addEventListener('change', function (ev) {
+    if (ev.target && ev.target.id === 'dfeAll') {
+      var on = ev.target.checked;
+      visibleCards().forEach(function (c) {
+        var box = c.querySelector('.dfe-check input');
+        if (box) box.checked = on;
+      });
+      updateSelCount();
+      return;
+    }
+    if (ev.target && ev.target.closest && ev.target.closest('.dfe-check')) {
+      updateSelCount();
+    }
+  });
+
+  /* ── Filtering ── */
+  var currentFilter = 'all';
+  function visibleCards() {
+    return cards().filter(function (c) { return !c.hidden; });
+  }
+  function applyFilter() {
+    var q = ($('dfeSearch') ? $('dfeSearch').value : '').trim().toLowerCase();
+    var shown = 0;
+    cards().forEach(function (c) {
+      var okState = currentFilter === 'all' || c.dataset.state === currentFilter;
+      var hay = (c.dataset.search || c.dataset.name || '').toLowerCase();
+      var okSearch = !q || hay.indexOf(q) !== -1;
+      var show = okState && okSearch;
+      c.hidden = !show;
+      if (show) shown++;
+    });
+    // Hide a group whose cards are all hidden.
+    Array.prototype.forEach.call(document.querySelectorAll('.dfe-group'), function (g) {
+      var any = Array.prototype.some.call(g.querySelectorAll('.dfe-card'), function (c) { return !c.hidden; });
+      g.hidden = !any;
+    });
+    if ($('dfeEmpty')) $('dfeEmpty').hidden = shown !== 0;
+  }
+  if ($('dfeSearch')) $('dfeSearch').addEventListener('input', applyFilter);
+  var filterBar = $('dfeFilters');
+  if (filterBar) {
+    filterBar.addEventListener('click', function (ev) {
+      var b = ev.target.closest('button[data-filter]');
+      if (!b) return;
+      currentFilter = b.dataset.filter;
+      Array.prototype.forEach.call(filterBar.querySelectorAll('button'), function (x) { x.classList.toggle('is-active', x === b); });
+      applyFilter();
+    });
+  }
+
+  /* ── Boot ── */
+  if ($('dfeRefresh')) $('dfeRefresh').addEventListener('click', function () {
+    var b = $('dfeRefresh');
+    b.disabled = true; b.innerHTML = '<i class="fas fa-rotate fa-spin"></i> تحديث';
+    Promise.all([refreshLive(), (function () { refreshCommandCounts(); return Promise.resolve(); })()])
+      .then(function () { b.disabled = false; b.innerHTML = '<i class="fas fa-rotate"></i> تحديث'; });
+  });
+
+  refreshSummary();
+  applyFilter();
+  refreshLive();
+  refreshCommandCounts();
+  setInterval(function () { if (!document.hidden) refreshLive(); }, 20000);
+})();
+</script>

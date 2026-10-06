@@ -4,6 +4,8 @@ import { getAllGuildConfig, getGuildAdmins, getActivity, getAuditLogs, logActivi
 import { getBotGuilds, getBotSelf } from '../auth/discord.js';
 import Maintenance from '../models/Maintenance.js';
 import BotDeveloper from '../models/BotDeveloper.js';
+import Feature from '../models/Feature.js';
+import { FEATURE_CATALOG, FEATURE_GROUPS, FEATURE_STATES, STATE_META, FOLDER_TO_FEATURE } from '../services/featureCatalog.js';
 import { invalidate } from '../services/capabilities.js';
 import config from '../config.js';
 import axios from 'axios';
@@ -116,9 +118,10 @@ router.get('/', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
 // reachable by typing its address either.
 //
 // One table and one loop because the rest are structurally identical today
-// -- a heading and nothing under it. /dev/bot, /dev/status and /dev/guilds all
-// used to sit in this table; each left when it grew data of its own and is now
-// an ordinary route below, and the table keeps the rest. Which page is which is
+// -- a heading and nothing under it. /dev/bot, /dev/status, /dev/guilds and
+// /dev/features all used to sit in this table; each left when it grew data of
+// its own and is now an ordinary route below, and the table keeps the rest.
+// Which page is which is
 // therefore written down once, and the two addresses, the two currentPages and
 // the two titles cannot drift apart the way two hand-written routes would.
 //
@@ -130,7 +133,6 @@ router.get('/', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
 // under /dev even now that it has its own route, because the public /status is
 // the same name for a different reader -- a logged-out visitor.
 const DEV_PAGES = [
-  { path: 'features', view: 'dev/features', page: 'dev-features', title: 'حالة الخصائص' },
   { path: 'maintenance', view: 'dev/maintenance', page: 'dev-maintenance', title: 'وضع الصيانة' },
 ];
 
@@ -334,6 +336,120 @@ router.post('/maintenance/save', isAuthenticated, isOwnerOrDeveloper, async (req
     syncMaintenanceToBot(undefined, doc.channelId);
     res.redirect('/dev');
   } catch (err) { res.redirect('/dev?error=' + encodeURIComponent(err.message)); }
+});
+
+// ─── Feature switchboard (/dev/features) ────────────────────────────────
+// The control plane for the bot's features. Each feature has one of three
+// states: on, off, or maintenance. The dashboard owns the decision (this DB)
+// and pushes it to the bot so it takes effect immediately; the bot also polls
+// the same collection, so a missed push still lands within a few seconds.
+//
+// The write routes answer JSON rather than redirecting: the page is a live
+// switchboard and should not reload on every toggle. Reads are server-rendered
+// so the page has real content before any script runs.
+async function readFeatureState() {
+  let docs = [];
+  try {
+    docs = await Feature.find({}).lean();
+  } catch {}
+  const stored = new Map(docs.map((d) => [d.key, d]));
+  return FEATURE_CATALOG.map((f) => {
+    const d = stored.get(f.key);
+    return {
+      ...f,
+      state: FEATURE_STATES.includes(d?.state) ? d.state : 'on',
+      message: d?.message || '',
+      updatedAt: d?.updatedAt || 0,
+      updatedBy: d?.updatedBy || '',
+    };
+  });
+}
+
+function countFeatureStates(list) {
+  const c = { on: 0, off: 0, maintenance: 0 };
+  for (const f of list) if (c[f.state] != null) c[f.state]++;
+  return c;
+}
+
+async function pushFeatureToBot(key, state, message, updatedBy) {
+  try {
+    await botPost(`${config.botApiUrl}/api/features/sync`, { key, state, message, updatedBy }, { timeout: 3000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+router.get('/features', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  const features = await readFeatureState();
+  res.render('dev/features', {
+    user: req.session.user,
+    features,
+    counts: countFeatureStates(features),
+    groups: FEATURE_GROUPS,
+    stateMeta: STATE_META,
+    states: FEATURE_STATES,
+    folderToFeature: FOLDER_TO_FEATURE,
+  });
+});
+
+// The bot's own view of the flags, used only for the "synced" badge. Never
+// throws: an unreachable bot is a state the page draws, not an error.
+router.get('/features/live', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  try {
+    const r = await botFetch(`${config.botApiUrl}/api/features`, { signal: AbortSignal.timeout(3500) });
+    if (!r.ok) throw new Error('http ' + r.status);
+    const data = await r.json();
+    res.json({ online: true, features: Array.isArray(data?.features) ? data.features : [] });
+  } catch (err) {
+    res.json({ online: false, features: [], error: String(err?.message || err) });
+  }
+});
+
+// NOTE: declared before /features/:key, otherwise "bulk" would be read as a key.
+router.post('/features/bulk', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  const state = FEATURE_STATES.includes(req.body?.state) ? req.body.state : null;
+  const rawKeys = Array.isArray(req.body?.keys) ? req.body.keys : [];
+  const known = new Set(FEATURE_CATALOG.map((f) => f.key));
+  const keys = rawKeys.filter((k) => typeof k === 'string' && known.has(k));
+  if (!state || !keys.length) return res.status(400).json({ ok: false, error: 'bad-request' });
+
+  const by = req.session.user.id || '';
+  const now = Date.now();
+  const updated = [];
+  for (const key of keys) {
+    try {
+      await Feature.updateOne({ key }, { $set: { key, state, updatedAt: now, updatedBy: by } }, { upsert: true });
+    } catch (err) {
+      console.error('[dev/features/bulk]', err);
+      return res.status(500).json({ ok: false, error: 'db' });
+    }
+    updated.push({ key, synced: await pushFeatureToBot(key, state, '', by) });
+  }
+  await logActivity(by, null, 'dev.feature.bulk', state, `تبديل ${keys.length} خصيصة إلى «${state}»`, req.ip, req.sessionID);
+  res.json({ ok: true, state, updated });
+});
+
+router.post('/features/:key', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  const key = String(req.params.key || '');
+  const feature = FEATURE_CATALOG.find((f) => f.key === key);
+  if (!feature) return res.status(404).json({ ok: false, error: 'unknown' });
+
+  const state = FEATURE_STATES.includes(req.body?.state) ? req.body.state : 'on';
+  const message = String(req.body?.message || '').trim().slice(0, 300);
+  const by = req.session.user.id || '';
+  const now = Date.now();
+
+  try {
+    await Feature.updateOne({ key }, { $set: { key, state, message, updatedAt: now, updatedBy: by } }, { upsert: true });
+  } catch (err) {
+    console.error('[dev/features]', err);
+    return res.status(500).json({ ok: false, error: 'db' });
+  }
+
+  const synced = await pushFeatureToBot(key, state, message, by);
+  await logActivity(by, null, 'dev.feature.set', key, `ضبط خصيصة «${key}» على «${state}»`, req.ip, req.sessionID);
+  res.json({ ok: true, key, state, message, updatedAt: now, updatedBy: by, synced });
 });
 
 // ─── Who counts as a bot developer ──────────────────────────────────────
