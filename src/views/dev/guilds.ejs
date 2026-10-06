@@ -1,10 +1,444 @@
 <% currentPage = 'dev-guilds' %>
-<%# An address and a name, nothing else yet. currentPage is set here rather than
-    passed in, like every other page in this project: the layout renders the body
-    first and the rail afterwards, so the row in the section below lights from
-    this line and not from a value the route had to remember to keep in step with
-    it. The address lives in routes/dev.js, next to the other four. -%>
-<div class="page-header">
-  <h1><i class="fas fa-network-wired"></i> السيرفرات المتصلة</h1>
-  <p>كل السيرفرات اللي البوت متصل فيها</p>
+<%
+  /* The developer section's server page. Every card is one server the bot is
+     in, drawn from the list the route assembled (bot API, Discord API as the
+     fallback). The invite is not on the page as a link: the bot mints it on
+     demand through /guild-invite/:guildId, so nothing is created for a page
+     nobody read, and the card only asks for it when pressed. Counts are summed
+     from that same list, never guessed. */
+  const fmt = n => { n = Number(n) || 0; return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n); };
+  const totalMembers = botGuilds.reduce((s, g) => s + (g.memberCount || 0), 0);
+  const totalConfigs = botGuilds.reduce((s, g) => s + (g.configCount || 0), 0);
+  const totalAdmins  = botGuilds.reduce((s, g) => s + (g.adminCount  || 0), 0);
+%>
+
+<div class="dg">
+
+  <!-- ── الهيرو ── -->
+  <section class="dg-hero">
+    <span class="dg-orb dg-orb-a"></span>
+    <span class="dg-orb dg-orb-b"></span>
+    <div class="dg-hero-body">
+      <span class="dg-tag"><i class="fas fa-code"></i> قسم المطورين</span>
+      <h1>سيرفرات البوت</h1>
+      <p>كل سيرفر متصل بالبوت الآن، مع رابط انضمام جاهز لكل واحد.</p>
+      <div class="dg-hero-meta">
+        <span><i class="fas fa-circle dg-live"></i> متصل بالبوت</span>
+        <span><i class="fas fa-shield-halved"></i> صلاحية كاملة</span>
+      </div>
+    </div>
+    <div class="dg-hero-count">
+      <b><%= botGuilds.length %></b>
+      <span>سيرفر متصل</span>
+    </div>
+  </section>
+
+  <!-- ── المؤشرات ── -->
+  <section class="dg-kpis">
+    <div class="dg-kpi">
+      <div class="dg-kpi-ic ic-p"><i class="fas fa-server"></i></div>
+      <div class="dg-kpi-txt"><b><%= botGuilds.length %></b><span>سيرفر متصل</span></div>
+    </div>
+    <div class="dg-kpi">
+      <div class="dg-kpi-ic ic-g"><i class="fas fa-users"></i></div>
+      <div class="dg-kpi-txt"><b><%= fmt(totalMembers) %></b><span>إجمالي الأعضاء</span></div>
+    </div>
+    <div class="dg-kpi">
+      <div class="dg-kpi-ic ic-a"><i class="fas fa-sliders"></i></div>
+      <div class="dg-kpi-txt"><b><%= totalConfigs %></b><span>إعداد مخصص</span></div>
+    </div>
+    <div class="dg-kpi">
+      <div class="dg-kpi-ic ic-c"><i class="fas fa-user-shield"></i></div>
+      <div class="dg-kpi-txt"><b><%= totalAdmins %></b><span>مدراء معتمدون</span></div>
+    </div>
+  </section>
+
+  <!-- ── بانر دعوة البوت ── -->
+  <section class="dg-banner">
+    <div class="dg-banner-txt">
+      <div class="dg-banner-ic"><i class="fas fa-plus"></i></div>
+      <div>
+        <b>أضف البوت إلى سيرفر آخر</b>
+        <p>ادعُ البوت لأي سيرفر تديره، وسيظهر هنا مع رابط انضمام جاهز فوراً.</p>
+      </div>
+    </div>
+    <a class="dg-btn dg-btn-primary" href="<%= botInviteUrl %>" target="_blank" rel="noopener"><i class="fas fa-code-branch"></i> دعوة البوت</a>
+  </section>
+
+  <% if (!botGuilds.length) { %>
+  <!-- ── لا سيرفرات ── -->
+  <section class="dg-empty">
+    <div class="dg-empty-ic"><i class="fas fa-satellite-dish"></i></div>
+    <h3>لا توجد سيرفرات متصلة</h3>
+    <p>البوت غير موجود في أي سيرفر حالياً، أو تعذّر الوصول إلى قائمة السيرفرات. ابدأ بدعوة البوت إلى سيرفر تديره.</p>
+    <a class="dg-btn dg-btn-primary" href="<%= botInviteUrl %>" target="_blank" rel="noopener"><i class="fas fa-code-branch"></i> دعوة البوت</a>
+  </section>
+  <% } else { %>
+  <!-- ── السيرفرات ── -->
+  <div class="dg-bar">
+    <div class="dg-search">
+      <i class="fas fa-magnifying-glass"></i>
+      <input id="dgSearch" type="text" placeholder="ابحث باسم السيرفر أو المعرّف..." aria-label="بحث عن سيرفر" autocomplete="off">
+    </div>
+    <select id="dgSort" class="dg-select" aria-label="ترتيب السيرفرات">
+      <option value="members">الأكثر أعضاء</option>
+      <option value="name">الاسم (أ - ي)</option>
+      <option value="config">الأكثر إعداداً</option>
+      <option value="admins">الأكثر مدراء</option>
+    </select>
+    <button type="button" class="dg-icon-btn" id="dgReset" title="إعادة تعيين" aria-label="إعادة تعيين البحث والترتيب"><i class="fas fa-rotate-left"></i></button>
+    <span class="dg-found"><b id="dgFound"><%= botGuilds.length %></b> سيرفر</span>
+  </div>
+
+  <section class="dg-grid" id="dgGrid">
+    <% botGuilds.forEach(g => { %>
+    <article class="dg-card" data-name="<%= g.name %>" data-id="<%= g.id %>" data-members="<%= g.memberCount %>" data-config="<%= g.configCount %>" data-admins="<%= g.adminCount %>">
+      <div class="dg-card-top">
+        <div class="dg-ava <%= g.icon ? '' : 'noimg' %>">
+          <% if (g.icon) { %>
+          <%# The parent is read BEFORE the node is detached -- remove() nulls parentNode. -%>
+          <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" loading="lazy" onerror="var p=this.parentNode;this.remove();p.classList.add('noimg')">
+          <% } %>
+          <span class="dg-letter"><%= (g.name || '?').charAt(0) %></span>
+          <span class="dg-dot" title="البوت متصل"></span>
+        </div>
+        <div class="dg-id">
+          <h3 title="<%= g.name %>"><%= g.name %></h3>
+          <code><%= g.id %></code>
+        </div>
+      </div>
+
+      <div class="dg-stats">
+        <span class="dg-stat"><i class="fas fa-users"></i> <b><%= fmt(g.memberCount) %></b> عضو</span>
+        <span class="dg-stat"><i class="fas fa-sliders"></i> <b><%= g.configCount %></b> إعداد</span>
+        <span class="dg-stat"><i class="fas fa-user-shield"></i> <b><%= g.adminCount %></b> مدير</span>
+      </div>
+
+      <div class="dg-actions">
+        <button type="button" class="dg-btn dg-btn-primary dg-join" data-id="<%= g.id %>" data-name="<%= g.name %>"><i class="fas fa-link"></i> رابط الانضمام</button>
+        <a class="dg-btn dg-btn-ghost" href="/guilds/<%= g.id %>"><i class="fas fa-gauge-high"></i> الإدارة</a>
+      </div>
+    </article>
+    <% }) %>
+  </section>
+  <p class="dg-noresult" id="dgNoResult" hidden><i class="fas fa-face-frown"></i> ما لقيت سيرفر بهذا الاسم.</p>
+  <% } %>
 </div>
+
+<!-- ── مودال رابط الانضمام ── -->
+<div class="dg-modal" id="dgModal">
+  <div class="dg-modal-scrim" data-close></div>
+  <div class="dg-modal-card" role="dialog" aria-modal="true" aria-labelledby="dgModalTitle">
+    <button type="button" class="dg-modal-x" data-close aria-label="إغلاق"><i class="fas fa-xmark"></i></button>
+    <div class="dg-modal-ic"><i class="fas fa-link"></i></div>
+    <h3 id="dgModalTitle">رابط الانضمام</h3>
+    <p id="dgModalSub">جارٍ إنشاء الرابط...</p>
+    <div class="dg-spinner" id="dgSpinner"><i class="fas fa-spinner fa-spin"></i> ينشئه البوت الآن...</div>
+    <div class="dg-linkbox" id="dgLinkBox" hidden>
+      <input type="text" id="dgLinkInput" readonly dir="ltr" aria-label="رابط الانضمام">
+      <button type="button" class="dg-copy" id="dgCopyBtn"><i class="fas fa-copy"></i> نسخ</button>
+    </div>
+    <div class="dg-modal-actions">
+      <a class="dg-btn dg-btn-primary" id="dgOpen" href="#" target="_blank" rel="noopener" hidden><i class="fas fa-arrow-up-right-from-square"></i> فتح في ديسكورد</a>
+      <button type="button" class="dg-btn dg-btn-ghost" data-close>إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div class="dg-toast" id="dgToast" role="status" aria-live="polite"></div>
+
+<style>
+.dg{
+  --dg-a:#a855f7;
+  --dg-a-ink:#c9a4ff;
+  --dg-a-soft:rgba(168,85,247,.12);
+  --dg-line:var(--border);
+  --dg-card:var(--bg-card);
+  --dg-text:var(--text);
+  --dg-muted:var(--text-muted);
+  max-width:1120px;margin:0 auto;position:relative;padding-bottom:30px;
+}
+[data-theme="light"] .dg{--dg-a-ink:#6d28d9;--dg-a-soft:rgba(124,58,237,.10);}
+
+/* ── الهيرو ── */
+.dg-hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:24px;padding:32px;border-radius:24px;border:1px solid var(--dg-line);background:linear-gradient(135deg,var(--dg-a-soft),rgba(124,58,237,.05) 45%,var(--dg-card));box-shadow:var(--shadow)}
+.dg-orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none}
+.dg-orb-a{width:280px;height:280px;background:#a855f7;opacity:.16;top:-120px;inset-inline-end:-60px}
+.dg-orb-b{width:220px;height:220px;background:#7c3aed;opacity:.12;bottom:-120px;inset-inline-start:-40px}
+.dg-hero-body{position:relative;z-index:1;flex:1;min-width:0}
+.dg-tag{display:inline-flex;align-items:center;gap:7px;font-size:.68rem;font-weight:700;color:var(--dg-a-ink);background:var(--dg-a-soft);border:1px solid rgba(168,85,247,.22);padding:5px 13px;border-radius:100px;margin-bottom:14px}
+.dg-hero h1{margin:0 0 8px;font-size:clamp(1.55rem,3vw,2.05rem);font-weight:800;line-height:1.25;background:linear-gradient(120deg,#a855f7,#d8b4fe);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+[data-theme="light"] .dg-hero h1{background:linear-gradient(120deg,#6d28d9,#7c3aed);-webkit-background-clip:text;background-clip:text}
+.dg-hero p{margin:0 0 16px;font-size:.9rem;color:var(--dg-muted);line-height:1.9;max-width:60ch}
+.dg-hero-meta{display:flex;gap:8px;flex-wrap:wrap}
+.dg-hero-meta span{display:inline-flex;align-items:center;gap:7px;font-size:.7rem;font-weight:600;color:var(--dg-muted);background:var(--bg-glass);border:1px solid var(--dg-line);padding:5px 13px;border-radius:100px}
+.dg-hero-meta i{color:var(--dg-a-ink);font-size:.62rem}
+.dg-hero-count{position:relative;z-index:1;flex-shrink:0;text-align:center;padding:18px 26px;border-radius:18px;background:var(--dg-card);border:1px solid var(--dg-line);box-shadow:var(--shadow)}
+.dg-hero-count b{display:block;font-size:2.4rem;font-weight:800;line-height:1;color:var(--dg-a-ink);font-variant-numeric:tabular-nums}
+.dg-hero-count span{display:block;margin-top:6px;font-size:.72rem;color:var(--dg-muted)}
+
+/* ── المؤشرات ── */
+.dg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.dg-kpi{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:16px;background:var(--dg-card);border:1px solid var(--dg-line);transition:transform .25s,border-color .25s}
+.dg-kpi:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.35)}
+.dg-kpi-ic{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.ic-p{background:rgba(168,85,247,.14);color:var(--dg-a-ink)}
+.ic-g{background:rgba(87,242,135,.14);color:#2fb45f}
+.ic-a{background:rgba(255,217,61,.16);color:#b98900}
+.ic-c{background:rgba(140,90,255,.16);color:var(--dg-a-ink)}
+[data-theme="light"] .ic-g{color:#0f7a3d}
+.dg-kpi-txt b{display:block;font-size:1.35rem;font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums}
+.dg-kpi-txt span{font-size:.68rem;color:var(--dg-muted)}
+
+/* ── بانر الدعوة ── */
+.dg-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:16px;padding:16px 20px;border-radius:16px;background:linear-gradient(120deg,var(--dg-a-soft),rgba(139,92,246,.06));border:1px solid rgba(168,85,247,.22)}
+.dg-banner-txt{display:flex;align-items:center;gap:14px;min-width:0}
+.dg-banner-ic{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 6px 18px rgba(124,58,237,.35)}
+.dg-banner b{display:block;font-size:.9rem;font-weight:800}
+.dg-banner p{margin:2px 0 0;font-size:.76rem;color:var(--dg-muted);line-height:1.8}
+
+/* ── الأزرار ── */
+.dg-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:11px;font-family:inherit;font-size:.82rem;font-weight:700;line-height:1;border:none;cursor:pointer;text-decoration:none;transition:transform .22s,box-shadow .22s,background .22s,color .22s}
+.dg-btn-primary{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 6px 20px rgba(124,58,237,.32)}
+.dg-btn-primary:hover{transform:translateY(-2px);color:#fff;box-shadow:0 12px 30px rgba(124,58,237,.42)}
+.dg-btn-ghost{background:var(--bg-glass);color:var(--dg-muted);border:1px solid var(--dg-line)}
+.dg-btn-ghost:hover{color:var(--dg-text);border-color:rgba(168,85,247,.4)}
+.dg-btn:disabled{opacity:.6;cursor:default;transform:none}
+
+/* ── شريط البحث ── */
+.dg-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:26px 0 16px}
+.dg-search{position:relative;display:flex;align-items:center;flex:1;min-width:200px;max-width:360px}
+.dg-search i{position:absolute;inset-inline-start:14px;font-size:.78rem;color:var(--dg-muted);pointer-events:none}
+.dg-search input{width:100%;padding:11px 16px;padding-inline-start:38px;border-radius:11px;background:var(--bg-glass);border:1px solid var(--dg-line);color:var(--dg-text);font-family:inherit;font-size:.82rem;outline:none;transition:border-color .25s,box-shadow .25s}
+.dg-search input::placeholder{color:var(--dg-muted);opacity:.8}
+.dg-search input:focus{border-color:rgba(168,85,247,.5);box-shadow:0 0 0 3px var(--dg-a-soft)}
+.dg-select{padding:11px 14px;border-radius:11px;background:var(--bg-glass);border:1px solid var(--dg-line);color:var(--dg-text);font-family:inherit;font-size:.8rem;font-weight:600;outline:none;cursor:pointer}
+.dg-select:focus{border-color:rgba(168,85,247,.5);box-shadow:0 0 0 3px var(--dg-a-soft)}
+.dg-icon-btn{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--bg-glass);border:1px solid var(--dg-line);color:var(--dg-muted);cursor:pointer;font-size:.85rem;transition:color .22s,border-color .22s}
+.dg-icon-btn:hover{color:var(--dg-text);border-color:rgba(168,85,247,.4)}
+.dg-found{margin-inline-start:auto;font-size:.75rem;color:var(--dg-muted)}
+.dg-found b{color:var(--dg-a-ink);font-weight:800}
+
+/* ── شبكة السيرفرات ── */
+.dg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.dg-card{position:relative;display:flex;flex-direction:column;gap:14px;min-width:0;padding:18px;border-radius:18px;background:var(--dg-card);border:1px solid var(--dg-line);transition:transform .25s,border-color .25s,box-shadow .25s;animation:dgUp .45s ease both}
+.dg-card::before{content:'';position:absolute;inset-inline:0;top:0;height:2px;border-radius:18px 18px 0 0;background:linear-gradient(90deg,transparent,var(--dg-a),transparent);opacity:0;transition:opacity .25s}
+.dg-card:hover{transform:translateY(-3px);border-color:rgba(168,85,247,.4);box-shadow:0 16px 40px rgba(0,0,0,.22)}
+.dg-card:hover::before{opacity:1}
+.dg-card-top{display:flex;align-items:center;gap:13px;min-width:0}
+.dg-ava{position:relative;width:56px;height:56px;flex-shrink:0;border-radius:16px;overflow:visible;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--dg-a-soft),rgba(124,58,237,.1));border:1px solid var(--dg-line)}
+.dg-ava img{width:100%;height:100%;border-radius:15px;object-fit:cover}
+.dg-letter{display:none;font-size:1.3rem;font-weight:800;color:var(--dg-a-ink)}
+.dg-ava.noimg .dg-letter{display:block}
+.dg-dot{position:absolute;bottom:-3px;inset-inline-end:-3px;width:16px;height:16px;border-radius:50%;background:#57f287;border:3px solid var(--bg-secondary)}
+.dg-id{min-width:0;flex:1;overflow:hidden}
+.dg-id h3{margin:0 0 3px;font-size:.95rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dg-id code{font-family:var(--nx-mono,monospace);font-size:.68rem;color:var(--dg-muted);direction:ltr;display:inline-block}
+.dg-stats{display:flex;gap:8px;flex-wrap:wrap}
+.dg-stat{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--dg-muted);background:var(--bg-glass);border:1px solid var(--dg-line);padding:5px 11px;border-radius:100px}
+.dg-stat i{color:var(--dg-a-ink);font-size:.68rem}
+.dg-stat b{color:var(--dg-text);font-weight:800;font-variant-numeric:tabular-nums}
+.dg-actions{display:flex;gap:8px;margin-top:auto}
+.dg-join{flex:1;padding:11px 14px;font-size:.78rem}
+.dg-actions .dg-btn-ghost{flex:1;padding:11px 14px;font-size:.78rem}
+
+/* ── لا حالات ── */
+.dg-empty,.dg-noresult{text-align:center}
+.dg-empty{padding:44px 24px;border-radius:18px;background:var(--dg-card);border:1px dashed var(--dg-line)}
+.dg-empty-ic{width:60px;height:60px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;background:var(--dg-a-soft);color:var(--dg-a-ink)}
+.dg-empty h3{margin:0 0 8px;font-size:1rem;font-weight:800}
+.dg-empty p{margin:0 auto 20px;max-width:52ch;font-size:.82rem;color:var(--dg-muted);line-height:1.9}
+.dg-noresult{margin:22px 0;font-size:.85rem;color:var(--dg-muted)}
+.dg-noresult i{margin-inline-end:6px}
+
+/* ── المودال ── */
+.dg-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}
+.dg-modal.open{opacity:1;visibility:visible;pointer-events:auto}
+.dg-modal-scrim{position:absolute;inset:0;background:rgba(6,4,15,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+[data-theme="light"] .dg-modal-scrim{background:rgba(28,21,51,.4)}
+.dg-modal-card{position:relative;width:100%;max-width:480px;padding:26px;border-radius:20px;background:var(--bg-secondary);border:1px solid var(--dg-line);box-shadow:0 30px 80px rgba(0,0,0,.5);text-align:center;transform:translateY(12px) scale(.98);transition:transform .2s ease}
+.dg-modal.open .dg-modal-card{transform:none}
+.dg-modal-x{position:absolute;top:14px;inset-inline-end:14px;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--bg-glass);border:1px solid var(--dg-line);color:var(--dg-muted);cursor:pointer;font-size:.8rem;transition:color .2s,border-color .2s}
+.dg-modal-x:hover{color:var(--dg-text);border-color:rgba(239,68,68,.45)}
+.dg-modal-ic{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;background:var(--dg-a-soft);color:var(--dg-a-ink)}
+.dg-modal-card h3{margin:0 0 6px;font-size:1.05rem;font-weight:800}
+.dg-modal-card p#dgModalSub{margin:0 0 18px;font-size:.82rem;color:var(--dg-muted);line-height:1.8;min-height:1.4em}
+.dg-spinner{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;font-size:.82rem;color:var(--dg-muted)}
+.dg-linkbox{display:flex;gap:8px;margin-bottom:18px}
+.dg-linkbox[hidden]{display:none}
+.dg-linkbox input{flex:1;min-width:0;padding:11px 14px;border-radius:11px;background:var(--bg-glass);border:1px solid var(--dg-line);color:var(--dg-text);font-family:var(--nx-mono,monospace);font-size:.76rem;outline:none}
+.dg-linkbox input:focus{border-color:rgba(168,85,247,.5);box-shadow:0 0 0 3px var(--dg-a-soft)}
+.dg-copy{display:inline-flex;align-items:center;gap:7px;padding:11px 16px;border-radius:11px;border:1px solid var(--dg-line);background:var(--bg-glass);color:var(--dg-text);font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:border-color .2s,color .2s}
+.dg-copy:hover{border-color:rgba(168,85,247,.45);color:var(--dg-a-ink)}
+.dg-modal-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.dg-modal-actions .dg-btn[hidden]{display:none}
+
+/* ── توست ── */
+.dg-toast{position:fixed;bottom:28px;inset-inline-start:50%;transform:translate(50%,10px);z-index:10000;padding:12px 22px;border-radius:12px;font-size:.82rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 12px 34px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.dg-toast.show{opacity:1;transform:translate(50%,0)}
+.dg-toast.err{background:linear-gradient(135deg,#ef4444,#dc2626)}
+
+@keyframes dgUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.dg-hero{animation:dgUp .45s ease both}
+.dg-kpis{animation:dgUp .45s ease .05s both}
+.dg-banner{animation:dgUp .45s ease .1s both}
+
+@media(max-width:920px){
+  .dg-kpis{grid-template-columns:repeat(2,1fr)}
+  .dg-hero{flex-direction:column;align-items:flex-start}
+  .dg-hero-count{width:100%;text-align:start;display:flex;align-items:baseline;gap:10px}
+  .dg-hero-count b{font-size:1.9rem}
+  .dg-hero-count span{margin-top:0}
+}
+@media(max-width:560px){
+  .dg-hero{padding:24px}
+  .dg-grid{grid-template-columns:1fr}
+  .dg-found{margin-inline-start:0;width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  .dg-hero,.dg-kpis,.dg-banner,.dg-card{animation:none}
+  .dg-card,.dg-kpi,.dg-btn,.dg-modal,.dg-modal-card{transition:none}
+}
+</style>
+
+<script>
+(function () {
+  var grid = document.getElementById('dgGrid');
+  var search = document.getElementById('dgSearch');
+  var sort = document.getElementById('dgSort');
+  var reset = document.getElementById('dgReset');
+  var found = document.getElementById('dgFound');
+  var noResult = document.getElementById('dgNoResult');
+  var modal = document.getElementById('dgModal');
+  var sub = document.getElementById('dgModalSub');
+  var spinner = document.getElementById('dgSpinner');
+  var linkBox = document.getElementById('dgLinkBox');
+  var linkInput = document.getElementById('dgLinkInput');
+  var openBtn = document.getElementById('dgOpen');
+  var copyBtn = document.getElementById('dgCopyBtn');
+  var opener = null;
+
+  function toast(msg, isErr) {
+    var t = document.getElementById('dgToast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.toggle('err', !!isErr);
+    t.classList.add('show');
+    clearTimeout(t._tm);
+    t._tm = setTimeout(function () { t.classList.remove('show'); }, 3000);
+  }
+
+  /* ── بحث وترتيب ── */
+  if (grid && search && sort) {
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.dg-card'));
+    var apply = function () {
+      var q = (search.value || '').trim().toLowerCase();
+      var shown = 0;
+      cards.forEach(function (c) {
+        var match = !q || (c.dataset.name || '').toLowerCase().indexOf(q) !== -1 || (c.dataset.id || '').indexOf(q) !== -1;
+        c.hidden = !match;
+        if (match) shown++;
+      });
+      var mode = sort.value;
+      cards.slice().sort(function (a, b) {
+        if (mode === 'name') return (a.dataset.name || '').localeCompare(b.dataset.name || '', 'ar');
+        if (mode === 'config') return (+b.dataset.config || 0) - (+a.dataset.config || 0);
+        if (mode === 'admins') return (+b.dataset.admins || 0) - (+a.dataset.admins || 0);
+        return (+b.dataset.members || 0) - (+a.dataset.members || 0);
+      }).forEach(function (c) { grid.appendChild(c); });
+      if (found) found.textContent = shown;
+      if (noResult) noResult.hidden = shown !== 0;
+    };
+    search.addEventListener('input', apply);
+    sort.addEventListener('change', apply);
+    if (reset) reset.addEventListener('click', function () {
+      search.value = '';
+      sort.value = 'members';
+      apply();
+      search.focus();
+    });
+  }
+
+  /* ── مودال رابط الانضمام ── */
+  function openModal() {
+    modal.classList.add('open');
+    document.documentElement.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    modal.classList.remove('open');
+    document.documentElement.style.overflow = '';
+    if (opener) { try { opener.focus(); } catch (e) {} opener = null; }
+  }
+
+  function fallbackCopy(value, done) {
+    linkInput.select();
+    linkInput.setSelectionRange(0, value.length);
+    try { document.execCommand('copy'); } catch (e) {}
+    done();
+  }
+
+  function makeInvite(id, name, btn) {
+    opener = btn;
+    sub.textContent = 'ينشئ البوت رابطاً لسيرفر «' + name + '»...';
+    spinner.hidden = false;
+    linkBox.hidden = true;
+    openBtn.hidden = true;
+    openBtn.removeAttribute('href');
+    linkInput.value = '';
+    openModal();
+    fetch('/dev/guild-invite/' + encodeURIComponent(id))
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        spinner.hidden = true;
+        if (res.ok && res.d && res.d.url) {
+          linkInput.value = res.d.url;
+          openBtn.href = res.d.url;
+          linkBox.hidden = false;
+          openBtn.hidden = false;
+          sub.textContent = 'رابط انضمام «' + name + '» جاهز — انسخه والصقه في أي مكان.';
+          linkInput.focus();
+          linkInput.select();
+        } else {
+          sub.textContent = (res.d && res.d.error) || 'تعذّر إنشاء رابط دعوة لهذا السيرفر.';
+          toast(sub.textContent, true);
+        }
+      })
+      .catch(function () {
+        spinner.hidden = true;
+        sub.textContent = 'تعذّر الاتصال بالبوت.';
+        toast('تعذّر الاتصال بالبوت', true);
+      });
+  }
+
+  if (grid) {
+    grid.addEventListener('click', function (e) {
+      var btn = e.target.closest('.dg-join');
+      if (btn) makeInvite(btn.dataset.id, btn.dataset.name, btn);
+    });
+  }
+  if (modal) {
+    modal.addEventListener('click', function (e) {
+      if (e.target.closest('[data-close]')) closeModal();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+    });
+  }
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function () {
+      var value = linkInput.value;
+      if (!value) return;
+      var done = function () {
+        copyBtn.innerHTML = '<i class="fas fa-check"></i> تم النسخ';
+        toast('تم نسخ رابط الانضمام');
+        setTimeout(function () { copyBtn.innerHTML = '<i class="fas fa-copy"></i> نسخ'; }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value).then(done, function () { fallbackCopy(value, done); });
+      } else {
+        fallbackCopy(value, done);
+      }
+    });
+  }
+})();
+</script>

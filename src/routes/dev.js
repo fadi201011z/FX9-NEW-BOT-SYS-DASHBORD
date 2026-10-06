@@ -109,27 +109,26 @@ router.get('/', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   });
 });
 
-// ── The developer section's five pages ───────────────────────────────────
+// ── The developer section's four remaining pages ─────────────────────────
 // Each carries its own currentPage, so the rail lights exactly one row of the
 // section, and each stands behind the same two middlewares as /dev itself: the
 // section is drawn from perms.can.dev, so a row nobody may press must not be
 // reachable by typing its address either.
 //
-// One table and one loop because all five are structurally identical today -- a
-// heading and nothing under it. The day one of them needs data of its own it
-// leaves this table and becomes an ordinary route beside this comment, and the
-// table keeps the other four. Which page is which is therefore written down once,
-// and the five addresses, the five currentPages and the five titles cannot drift
-// apart the way five hand-written routes would.
+// One table and one loop because the four left are structurally identical today
+// -- a heading and nothing under it. /dev/guilds used to sit in this table; it
+// left when it grew data of its own and is now an ordinary route below, and the
+// table keeps the rest. Which page is which is therefore written down once, and
+// the four addresses, the four currentPages and the four titles cannot drift
+// apart the way four hand-written routes would.
 //
-// All five are namespaced under /dev on purpose, and two of them collide with
+// All four are namespaced under /dev on purpose, and two of them collide with
 // words the site already uses. /status is the public "حالة البوت" that a
 // logged-out visitor reads, and /guilds is the account's own server list: give
 // either of them a flat address here and one page would answer to two names, two
 // rows of the rail would light together on it, and the public page would inherit
 // the developer's permissions.
 const DEV_PAGES = [
-  { path: 'guilds', view: 'dev/guilds', page: 'dev-guilds', title: 'السرفرات المتصلة' },
   { path: 'bot', view: 'dev/bot', page: 'dev-bot', title: 'إدارة البوت' },
   { path: 'status', view: 'dev/status', page: 'dev-status', title: 'حالة البوت' },
   { path: 'features', view: 'dev/features', page: 'dev-features', title: 'حالة الخصائص' },
@@ -141,6 +140,40 @@ for (const page of DEV_PAGES) {
     res.render(page.view, { user: req.session.user, title: page.title });
   });
 }
+
+// ── Connected servers (the one page in the section that draws live data) ──
+// It left the table above because it needs the bot's guild list with the same
+// two counts /dev draws, and because every row is a join link: the page asks
+// /guild-invite/:guildId only when a user presses a row, so no invite is minted
+// for a page nobody looked at. The invite address itself is created by the bot,
+// not here.
+router.get('/guilds', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  const richGuilds = await getRichBotGuilds();
+
+  const botGuilds = [];
+  for (const g of richGuilds) {
+    const cfg = await getAllGuildConfig(g.id);
+    const admins = await getGuildAdmins(g.id);
+    botGuilds.push({
+      id: g.id,
+      name: g.name,
+      icon: g.icon,
+      memberCount: g.memberCount || 0,
+      configCount: Object.keys(cfg).length,
+      adminCount: admins.length,
+    });
+  }
+  botGuilds.sort((a, b) => b.memberCount - a.memberCount);
+
+  const botInviteUrl = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(config.discord.clientId || '')}&permissions=8&scope=bot`;
+
+  res.render('dev/guilds', {
+    user: req.session.user,
+    botGuilds,
+    botInviteUrl,
+    title: 'السيرفرات المتصلة',
+  });
+});
 
 router.get('/guild/:guildId', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   const { guildId } = req.params;
