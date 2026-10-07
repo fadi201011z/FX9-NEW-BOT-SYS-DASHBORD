@@ -14,7 +14,6 @@ import { securityMiddleware } from './middleware/security.js';
 import { setupWebSocket } from './websocket/index.js';
 
 import authRoutes from './routes/auth.js';
-import dashboardRoutes from './routes/dashboard.js';
 import guildRoutes from './routes/guilds.js';
 import settingsRoutes from './routes/settings.js';
 import ticketRoutes from './routes/tickets.js';
@@ -226,7 +225,11 @@ app.use(async (req, res, next) => {
 // ─── Routes ──────────────────────────────────────────────────────────────
 app.use('/home', homeRoutes);
 app.use('/auth', authRoutes);
-app.use('/dashboard', dashboardRoutes);
+// ─── Retired: /dashboard ───────────────────────────────────────────────────
+// The panel behind this address was superseded by /home and nothing in the
+// site links to it any more. It stays a redirect rather than a 404 so a
+// bookmark or a link already sent to somebody still lands somewhere real.
+app.get('/dashboard', (req, res) => res.redirect('/home'));
 app.use('/guilds', guildRoutes);
 app.use('/settings', settingsRoutes);
 app.use('/tickets', ticketRoutes);

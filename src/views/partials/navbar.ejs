@@ -99,7 +99,12 @@
               </div>
             </div>
             <div class="user-menu-body">
-              <a href="/dashboard" class="<%= perms.can.dashboard ? '' : 'locked' %>" data-req="3"><i class="fas fa-th-large"></i> لوحة التحكم<% if (!perms.can.dashboard) { %> <i class="fas fa-lock nav-lock"></i><% } %></a>
+              <%# /home is the panel now. The old /dashboard is retired and
+                  redirects here, and unlike that page — which sat behind
+                  requireRole('manager') and wore a lock for anyone below it —
+                  /home opens for every signed-in account, so neither the lock
+                  nor data-req belongs on this row any more. %>
+              <a href="/home"><i class="fas fa-th-large"></i> لوحة التحكم</a>
               <a href="/guilds"><i class="fas fa-server"></i> السيرفرات</a>
               <a href="/status"><i class="fas fa-heartbeat"></i> حالة البوت</a>
               <a href="/docs"><i class="fas fa-book"></i> التوثيق</a>

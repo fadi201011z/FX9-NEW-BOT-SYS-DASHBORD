@@ -90,7 +90,7 @@
      * If any guard says busy, the refresh is deferred, not dropped: `due` stays
      * set and the next visibilitychange or focus retries it.
      */
-    const autoRefreshPages = ['dashboard', 'guild-overview', 'tickets', 'voice', 'admins', 'logs', 'guilds', 'dev', 'status'];
+    const autoRefreshPages = ['guild-overview', 'tickets', 'voice', 'admins', 'logs', 'guilds', 'dev', 'status'];
     const currentPg = '<%= typeof currentPage !== "undefined" ? currentPage : "" %>';
     if (autoRefreshPages.includes(currentPg)) {
       const REFRESH_MS = 45000;

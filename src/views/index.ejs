@@ -44,12 +44,12 @@
         <a href="#features" class="nx-btn nx-btn-o">استكشف المزيد <i class="fas fa-arrow-left nx-ico"></i></a>
       </div>
       <%# Rendered only for a signed-in session: a visitor who still has to log
-          in gets the two buttons above and nothing to click twice. The href
-          mirrors the header's, so both buttons on this page land in the same
-          place for the same person. %>
+          in gets the two buttons above and nothing to click twice. Same
+          destination as the header's, which is /home now that /dashboard has
+          been retired. %>
       <% if (locals.user) { %>
         <div class="nx-hero__dash">
-          <a href="<%-(locals.perms && locals.perms.can && locals.perms.can.dashboard) ? '/dashboard' : '/home' %>" class="nx-btn nx-btn-p"><i class="fas fa-gauge-high nx-sico"></i> الانتقال إلى الداشبورد</a>
+          <a href="/home" class="nx-btn nx-btn-p"><i class="fas fa-gauge-high nx-sico"></i> الانتقال إلى الداشبورد</a>
         </div>
       <% } %>
     </div>
