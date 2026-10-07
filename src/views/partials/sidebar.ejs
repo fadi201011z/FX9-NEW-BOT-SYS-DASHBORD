@@ -94,6 +94,14 @@
         <i class="fas fa-circle-info" aria-hidden="true"></i>
         <span>نظرة عامة</span>
       </a>
+      <%# The status page sits second, right behind the overview it reports on.
+          No lock and no data-req, same as the overview above it: it shows a
+          server's health to somebody already allowed into that server, and it
+          writes nothing, so there is no capability left to spend on it. -%>
+      <a href="/guilds/<%= guild.id %>/status" class="nav-link <%= currentPage === 'server-status' ? 'active' : '' %>" data-tip="حالة السيرفر" aria-label="حالة سيرفرك"<% if (currentPage === 'server-status') { %> aria-current="page"<% } %>>
+        <i class="fas fa-chart-line" aria-hidden="true"></i>
+        <span>حالة سيرفرك</span>
+      </a>
       <a href="/settings/<%= guild.id %>" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %> <%= perms.can.settings ? '' : 'locked' %>" data-req="2" data-tip="الإعدادات" aria-label="الإعدادات"<% if (currentPage === 'settings') { %> aria-current="page"<% } %>>
         <i class="fas fa-sliders" aria-hidden="true"></i>
         <span>الإعدادات</span>

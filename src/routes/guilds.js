@@ -3,8 +3,12 @@ import { isAuthenticated, hasGuildAccess, refreshSessionGuilds } from '../middle
 import { getBotGuilds, getGuildInfo } from '../auth/discord.js';
 import { getAllGuildConfig, getGuildAdmins, getAlerts, getActivity, getUserAdminGuilds } from '../database.js';
 import config from '../config.js';
-import { getGuildTickets, getTicketGuildConfig } from '../services/dataReader.js';
+import { getGuildTickets, getTicketGuildConfig, getGuildVoiceChannels } from '../services/dataReader.js';
 import { botFetch, botPost } from '../services/botApi.js';
+import Feature from '../models/Feature.js';
+import Notification from '../models/Notification.js';
+import CommandConfig from '../models/CommandConfig.js';
+import Backup from '../models/Backup.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
 const CACHE_TTL = 300000;
@@ -75,6 +79,161 @@ router.get('/', isAuthenticated, async (req, res) => {
     guilds,
     title: 'اختر السيرفر',
   });
+});
+
+const PROTECTION_KEYS = ['anti_spam', 'anti_link', 'anti_mention', 'anti_nuke', 'anti_raid'];
+
+/**
+ * The health rows of the status page: one entry per system, in the order the
+ * server owner thinks about them. `state` is the feature flag behind the
+ * system when the bot has one — an absent flag reads `on`, which is exactly
+ * what the bot does with it — and `detail` is what this server actually holds,
+ * because a green pill over an unconfigured system is a lie in a nicer font.
+ */
+function buildSystems({ guildId, guildConfig, admins, tickets, voiceRooms, notifCount, backupCount, disabledCmds, premium, features }) {
+  const state = (key) => {
+    if (!key) return 'on';
+    const flag = features.find(f => f.key === key);
+    return flag?.state === 'off' || flag?.state === 'maintenance' ? flag.state : 'on';
+  };
+  const has = (...keys) => keys.some(k => guildConfig[k]);
+  const onCount = PROTECTION_KEYS.filter(k => guildConfig[k] !== 'false').length;
+
+  return [
+    { name: 'الترحيب', icon: 'fa-door-open', href: `/settings/${guildId}`, state: state('welcome'),
+      detail: has('welcome_channel') ? 'قناة الترحيب مضبوطة' : 'لم تُضبط قناة الترحيب' },
+    { name: 'الإحصائيات', icon: 'fa-signal', href: `/settings/${guildId}`, state: state('setup'),
+      detail: has('stats_total', 'stats_online', 'stats_bots') ? 'قنوات الإحصائية تعمل' : 'لا توجد قنوات إحصائية' },
+    { name: 'السجلات', icon: 'fa-clock-rotate-left', href: `/logs/${guildId}`, state: state('logging'),
+      detail: has('log_channel', 'modlog_channel', 'botlog_channel') ? 'قنوات السجل مضبوطة' : 'لم تُضبط قنوات السجل' },
+    { name: 'التذاكر', icon: 'fa-ticket', href: `/tickets/${guildId}`, state: state('tickets'),
+      detail: `${tickets.open.length} مفتوحة من ${tickets.total}` },
+    { name: 'الرومات المؤقتة', icon: 'fa-microphone', href: `/voice/${guildId}`, state: state('temp_voice'),
+      detail: voiceRooms.length ? `${voiceRooms.length} روم مفتوح الآن` : 'لا رومات مفتوحة' },
+    { name: 'الإشعارات', icon: 'fa-bell', href: `/notifications/${guildId}`, state: state('notifications'),
+      detail: notifCount ? `${notifCount} اشتراك نشط` : 'لا اشتراكات' },
+    { name: 'الحماية', icon: 'fa-shield-halved', href: `/protection/${guildId}`, state: state('protection'),
+      detail: `${onCount}/5 أنظمة مفعّلة` },
+    { name: 'الأوامر', icon: 'fa-terminal', href: `/commands/${guildId}`, state: 'on',
+      detail: disabledCmds ? `${disabledCmds} أمر مغلق` : 'كل الأوامر مفعّلة' },
+    { name: 'المدراء', icon: 'fa-users-gear', href: `/admins/${guildId}`, state: 'on',
+      detail: admins.length ? `${admins.length} مدير ورتبة` : 'لا مدراء بعد' },
+    { name: 'البريميوم', icon: 'fa-gem', href: `/premium/${guildId}`, state: 'on',
+      detail: premium ? `باقة ${premium.plan} — ${premium.daysLeft} يوم متبقية` : 'غير مفعّل' },
+    { name: 'النسخ الاحتياطي', icon: 'fa-database', href: `/backup/${guildId}`, state: 'on',
+      detail: backupCount ? `${backupCount} نسخة محفوظة` : 'لا نسخ بعد' },
+  ];
+}
+
+// ─── حالة السيرفر ─────────────────────────────────────────────────────────
+// Read-only, and behind `hasGuildAccess` alone with no role guard: this is
+// the page an appointed moderator opens to see whether the server is healthy,
+// and hiding a server's health from somebody already allowed into it answers
+// nothing. It writes nothing and mutates nothing, so there is nothing to gate.
+router.get('/:guildId/status', isAuthenticated, hasGuildAccess, async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const guild = req.session.user.guilds?.find(g => g.id === guildId);
+    if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
+
+    const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 120);
+
+    const [guildConfig, admins, tickets, voiceRooms, notifCount, backupCount, disabledCmds] = await Promise.all([
+      getAllGuildConfig(guildId),
+      getGuildAdmins(guildId),
+      getGuildTickets(guildId),
+      getGuildVoiceChannels(guildId),
+      Notification.countDocuments({ guildId }),
+      Backup.countDocuments({ guildId }),
+      CommandConfig.countDocuments({ guildId, enabled: false }),
+    ]);
+
+    let features = [];
+    try { features = await Feature.find({}).lean(); } catch {}
+
+    // The bot is the only keeper of the daily history. If it is asleep the
+    // page still renders and says so — a status page that invents numbers
+    // when its source is down is worse than no status page at all.
+    let botReachable = false;
+    let memberCount = null;
+    let series = [];
+
+    const [statsRes, infoRes] = await Promise.all([
+      botFetch(`${config.botApiUrl}/api/guilds/${guildId}/stats?days=${days}`, { signal: AbortSignal.timeout(6000) }).catch(() => null),
+      botFetch(`${config.botApiUrl}/api/guilds/${guildId}/info`, { signal: AbortSignal.timeout(6000) }).catch(() => null),
+    ]);
+
+    if (infoRes && infoRes.ok) {
+      try {
+        const info = await infoRes.json();
+        if (info && Number.isFinite(Number(info.memberCount))) {
+          memberCount = Number(info.memberCount);
+          guild.name = info.name || guild.name;
+          guild.icon = info.icon || guild.icon;
+          botReachable = true;
+        }
+      } catch {}
+    }
+
+    if (statsRes && statsRes.ok) {
+      try {
+        const payload = await statsRes.json();
+        series = Array.isArray(payload?.series) ? payload.series : [];
+        if (memberCount === null && Number.isFinite(Number(payload?.current?.memberCount))) {
+          memberCount = Number(payload.current.memberCount);
+        }
+        botReachable = true;
+      } catch {}
+    }
+
+    // Recomputed here rather than trusted from the response: the KPIs, the
+    // chart and the footnote all read this one object, so they cannot disagree.
+    const totals = series.reduce((acc, d) => ({
+      joins: acc.joins + (d.joins || 0),
+      leaves: acc.leaves + (d.leaves || 0),
+      onlinePeak: Math.max(acc.onlinePeak, d.onlinePeak || 0),
+    }), { joins: 0, leaves: 0, onlinePeak: 0 });
+
+    const today = series.length ? series[series.length - 1] : null;
+    const hasHistory = series.some(d => (d.joins || 0) > 0 || (d.leaves || 0) > 0 || (d.onlinePeak || 0) > 0);
+
+    let premium = null;
+    const premiumExpires = Number(guildConfig.premium_expires_at) || 0;
+    if (guildConfig.premium_plan && premiumExpires > Date.now()) {
+      premium = {
+        plan: guildConfig.premium_plan,
+        expiresAt: premiumExpires,
+        daysLeft: Math.max(1, Math.ceil((premiumExpires - Date.now()) / 86400000)),
+      };
+    }
+
+    const protectionCount = PROTECTION_KEYS.filter(k => guildConfig[k] !== 'false').length;
+
+    const systems = buildSystems({
+      guildId, guildConfig, admins, tickets, voiceRooms,
+      notifCount, backupCount, disabledCmds, premium, features,
+    });
+
+    res.render('guild/server-status', {
+      user: req.session.user,
+      guild,
+      title: `حالة سيرفرك • ${guild.name}`,
+      days,
+      series,
+      totals,
+      today,
+      hasHistory,
+      botReachable,
+      memberCount,
+      tickets,
+      protectionCount,
+      premium,
+      systems,
+    });
+  } catch (err) {
+    console.error('[Server Status Error]', err);
+    res.status(500).render('error', { layout: false, message: 'حدث خطأ في تحميل حالة السيرفر.', user: req.session.user });
+  }
 });
 
 router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {

@@ -1,0 +1,476 @@
+<% currentPage = 'server-status' %>
+<%#
+  حالة سيرفرك — صفحة الحالة اليومية للسيرفر.
+  المصدر: البوت (نافذة `days`) + قاعدة بيانات الداشبورد (حالة الأنظمة).
+  كل الأرقام تأتي من مسار واحد (`series`)، فلا يمكن لبطاقة KPI أن تكذب على
+  الرسم البياني المجاور لها. الزائر الذي يصل قبل أن يبدأ البوت التتبّع يرى
+  شرحاً بذلك بدل فراغ يبدو كعطل. -%>
+<%
+  const AR_DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+  const AR_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+  const fmtDay = (iso) => {
+    const d = new Date(`${iso}T00:00:00Z`);
+    return `${AR_DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${AR_MONTHS[d.getUTCMonth()]}`;
+  };
+  const todayRow = today || null;
+  const todayJoins = todayRow ? (todayRow.joins || 0) : 0;
+  const todayLeaves = todayRow ? (todayRow.leaves || 0) : 0;
+  const todayOnline = todayRow ? (todayRow.onlinePeak || 0) : 0;
+  const net = totals.joins - totals.leaves;
+  const netClass = net > 0 ? 'ss-pos' : (net < 0 ? 'ss-neg' : 'ss-flat');
+  const recent = series.slice(-7).reverse();
+  const ssData = JSON.stringify({
+    series: series.map(d => ({
+      d: d.date,
+      j: d.joins || 0,
+      l: d.leaves || 0,
+      o: d.onlinePeak || 0,
+    })),
+  }).replace(/</g, '\\u003c');
+%>
+
+<% if (!botReachable) { %>
+  <div class="ss-note is-warn">
+    <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+    <div>
+      <strong>البوت لا يستجيب الآن.</strong>
+      الأرقام التي تحتها قد تكون قديمة — تحقّق من حالة البوت، أو أعد المحاولة بعد لحظات.
+      الأنظمة والعدادات التالية تُقرأ من قاعدة البيانات مباشرة وهي صحيحة مهما كان حالة البوت.
+    </div>
+  </div>
+<% } else if (!hasHistory) { %>
+  <div class="ss-note is-info">
+    <i class="fas fa-seedling" aria-hidden="true"></i>
+    <div>
+      <strong>لا يوجد تاريخ بعد.</strong>
+      التتبّع بدأ حديثاً، وستظهر أرقام الدخول والخروج وأعلى قراءة متصلين يومياً اعتباراً من الأيام التالية —
+      كل ما هو تحت هذه الرسالة (العدادات، حالة الأنظمة، الجدول) حيّ الآن.
+    </div>
+  </div>
+<% } %>
+
+<div class="guild-header">
+  <div class="guild-header-info">
+    <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" alt="" class="guild-header-icon" onerror="this.style.display='none'">
+    <div>
+      <h1>حالة سيرفرك</h1>
+      <p>
+        <%= memberCount !== null ? `${memberCount} عضو` : 'عدد الأعضاء غير متاح' %> •
+        نافذة <strong><%= days %> يوم</strong> • آخر تحديث الآن
+      </p>
+    </div>
+  </div>
+  <div class="guild-header-actions">
+    <span class="badge <%= botReachable ? 'badge-success' : 'badge-warning' %>">
+      <i class="fas <%= botReachable ? 'fa-link' : 'fa-plug-circle-xmark' %>"></i>
+      <%= botReachable ? 'البوت متصل' : 'البوت لا يستجيب' %>
+    </span>
+    <a href="?days=<%= days %>" class="btn-sm" title="تحديث الآن"><i class="fas fa-rotate"></i> تحديث</a>
+  </div>
+</div>
+
+<div class="ss-range glass">
+  <span class="ss-range-label"><i class="fas fa-calendar-days" aria-hidden="true"></i> النافذة الزمنية</span>
+  <div class="ss-pills" role="tablist" aria-label="النافذة الزمنية">
+    <% [7, 14, 30, 90].forEach(d => { %>
+      <a class="ss-pill <%= days === d ? 'is-on' : '' %>" href="?days=<%= d %>"<% if (days === d) { %> aria-current="true"<% } %>><%= d %> يوم</a>
+    <% }) %>
+  </div>
+</div>
+
+<div class="stats-grid ss-kpis">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-users"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= memberCount !== null ? memberCount : '—' %></span>
+      <span class="stat-label">الأعضاء</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-signal"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= hasHistory ? todayOnline : '—' %></span>
+      <span class="stat-label">أعلى قراءة اليوم</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-user-plus"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= hasHistory ? todayJoins : '—' %></span>
+      <span class="stat-label">دخول اليوم</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-user-minus"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= hasHistory ? todayLeaves : '—' %></span>
+      <span class="stat-label">خروج اليوم</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: var(--nx-gold)"><i class="fas fa-arrow-trend-up"></i></div>
+    <div class="stat-info">
+      <span class="stat-value <%= hasHistory ? netClass : '' %>">
+        <% if (hasHistory) { %><%= net > 0 ? '+' : '' %><%= net %><% } else { %>—<% } %>
+      </span>
+      <span class="stat-label">صافي النمو (<%= days %> يوم)</span>
+    </div>
+  </div>
+
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-shield-halved"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= protectionCount %>/5</span>
+      <span class="stat-label">أنظمة حماية</span>
+    </div>
+    <a href="/protection/<%= guild.id %>" class="stat-link"><i class="fas fa-arrow-left"></i></a>
+  </div>
+</div>
+
+<div class="card glass ss-chart">
+  <div class="card-header">
+    <h3><i class="fas fa-arrow-right-arrow-left"></i> الدخول والخروج يومياً</h3>
+    <div class="ss-legend" aria-hidden="true">
+      <span class="ss-key is-in"></span> دخول
+      <span class="ss-key is-out"></span> خروج
+    </div>
+  </div>
+  <% if (hasHistory) { %>
+    <div class="ss-canvas"><canvas id="ssFlow" aria-label="رسم الدخول والخروج اليومي" role="img"></canvas></div>
+  <% } else { %>
+    <div class="empty-state">
+      <i class="fas fa-chart-column"></i>
+      <p>لا توجد بيانات في هذه النافذة بعد</p>
+    </div>
+  <% } %>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card glass ss-chart">
+    <div class="card-header">
+      <h3><i class="fas fa-users-viewfinder"></i> المتصلون — أعلى قراءة يومية</h3>
+    </div>
+    <% if (hasHistory) { %>
+      <div class="ss-canvas ss-canvas--half"><canvas id="ssOnline" aria-label="أعلى عدد متصلين يومياً" role="img"></canvas></div>
+    <% } else { %>
+      <div class="empty-state"><i class="fas fa-users-viewfinder"></i><p>لا توجد قياسات بعد</p></div>
+    <% } %>
+  </div>
+
+  <div class="card glass ss-chart">
+    <div class="card-header">
+      <h3><i class="fas fa-chart-line"></i> الصافي التراكمي</h3>
+    </div>
+    <% if (hasHistory) { %>
+      <div class="ss-canvas ss-canvas--half"><canvas id="ssNet" aria-label="صافي نمو الأعضاء تراكمياً" role="img"></canvas></div>
+    <% } else { %>
+      <div class="empty-state"><i class="fas fa-chart-line"></i><p>لا توجد بيانات بعد</p></div>
+    <% } %>
+  </div>
+</div>
+
+<div class="card glass">
+  <div class="card-header">
+    <h3><i class="fas fa-heart-pulse"></i> حالة الأنظمة</h3>
+    <span class="badge badge-default"><%= systems.length %> نظاماً</span>
+  </div>
+  <div class="ss-systems">
+    <% systems.forEach(s => { %>
+      <a class="ss-system" href="<%= s.href %>">
+        <span class="ss-system-icon"><i class="fas <%= s.icon %>" aria-hidden="true"></i></span>
+        <span class="ss-system-text">
+          <strong><%= s.name %></strong>
+          <span><%= s.detail %></span>
+        </span>
+        <span class="ss-pill-state is-<%= s.state %>">
+          <%= s.state === 'maintenance' ? 'صيانة' : (s.state === 'off' ? 'موقوف' : 'مفعّل') %>
+        </span>
+      </a>
+    <% }) %>
+  </div>
+</div>
+
+<div class="card glass">
+  <div class="card-header">
+    <h3><i class="fas fa-table-list"></i> آخر الأيام</h3>
+    <span class="badge badge-default">آخر 7 أيام — الأحدث أولاً</span>
+  </div>
+  <% if (recent.length && hasHistory) { %>
+    <div class="ss-table-wrap">
+      <table class="ss-table">
+        <thead>
+          <tr>
+            <th>اليوم</th>
+            <th>دخول</th>
+            <th>خروج</th>
+            <th>الصافي</th>
+            <th>أعلى متصلين</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% recent.forEach((d, i) => { %>
+            <tr<% if (i === 0) { %> class="is-today"<% } %>>
+              <td>
+                <%= fmtDay(d.date) %>
+                <% if (i === 0) { %><span class="ss-today-tag">اليوم</span><% } %>
+              </td>
+              <td class="ss-num ss-pos">+<%= d.joins || 0 %></td>
+              <td class="ss-num ss-neg">−<%= d.leaves || 0 %></td>
+              <td class="ss-num <%= (d.joins || 0) - (d.leaves || 0) > 0 ? 'ss-pos' : ((d.joins || 0) - (d.leaves || 0) < 0 ? 'ss-neg' : 'ss-flat') %>">
+                <%= ((d.joins || 0) - (d.leaves || 0)) > 0 ? '+' : '' %><%= (d.joins || 0) - (d.leaves || 0) %>
+              </td>
+              <td class="ss-num"><%= d.onlinePeak || 0 %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <i class="fas fa-table-list"></i>
+      <p>لا توجد أيام مسجّلة بعد</p>
+    </div>
+  <% } %>
+</div>
+
+<p class="ss-foot">
+  <i class="fas fa-circle-info" aria-hidden="true"></i>
+  الدخول والخروج تُحسب لحظة وقوع الحدث. المتصلون عيّنة تُؤخذ كل خمس دقائق ويُعرض أعلى قراءة في اليوم —
+  عدد المتصلين الحقيقي أعلى من أي قراءة منفردة. التوقيت بالعيّنات على توقيت UTC.
+</p>
+
+<style>
+  .ss-note {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 16px; margin-bottom: 18px;
+    border-radius: var(--nx-radius, 11px); border: 1px solid;
+    font-size: .87rem; line-height: 1.75;
+  }
+  .ss-note i { font-size: 1.05rem; margin-top: 3px; }
+  .ss-note strong { display: block; margin-bottom: 2px; }
+  .ss-note.is-warn { border-color: rgba(255, 217, 61, .35); background: rgba(255, 217, 61, .07); color: #ffe08a; }
+  .ss-note.is-info { border-color: rgba(140, 90, 255, .3); background: rgba(140, 90, 255, .08); color: #d8b4fe; }
+
+  .ss-range {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 18px;
+    border-radius: var(--nx-radius, 11px);
+  }
+  .ss-range-label { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: .85rem; }
+  .ss-pills { display: flex; gap: 4px; padding: 4px; background: rgba(255, 255, 255, .04); border-radius: 999px; }
+  .ss-pill {
+    padding: 6px 14px; border-radius: 999px; font-size: .8rem;
+    color: var(--text-muted); white-space: nowrap;
+    transition: color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
+  }
+  .ss-pill:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+  .ss-pill.is-on {
+    color: #fff; background: var(--primary, #8c5aff);
+    box-shadow: 0 6px 18px rgba(168, 85, 247, .28);
+  }
+
+  .ss-kpis .stat-value.ss-pos { color: var(--success, #57f287); }
+  .ss-kpis .stat-value.ss-neg { color: var(--danger, #ed4245); }
+
+  .ss-chart .card-header h3 { font-size: .95rem; }
+  .ss-legend { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-muted); }
+  .ss-key { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .ss-key.is-in { background: #57f287; }
+  .ss-key.is-out { background: #ed4245; margin-inline-start: 8px; }
+
+  .ss-canvas { position: relative; height: 300px; }
+  .ss-canvas--half { height: 230px; }
+
+  .ss-systems { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+  .ss-system {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; text-decoration: none;
+    border: 1px solid var(--nx-line, rgba(255, 255, 255, .08));
+    border-radius: var(--nx-radius, 11px);
+    background: rgba(255, 255, 255, .02);
+    transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
+  }
+  .ss-system:hover {
+    border-color: rgba(168, 85, 247, .4);
+    background: rgba(168, 85, 247, .07);
+    transform: translateY(-1px);
+  }
+  .ss-system-icon {
+    width: 36px; height: 36px; flex: 0 0 36px;
+    display: grid; place-items: center;
+    border-radius: 10px; background: rgba(168, 85, 247, .12); color: #c4a2ff;
+    font-size: .92rem;
+  }
+  .ss-system-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .ss-system-text strong { color: var(--text, #fff); font-size: .88rem; font-weight: 600; }
+  .ss-system-text span { color: var(--text-muted); font-size: .76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ss-pill-state {
+    font-size: .7rem; padding: 4px 9px; border-radius: 999px; white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .ss-pill-state.is-on { color: #57f287; background: rgba(87, 242, 135, .1); border-color: rgba(87, 242, 135, .3); }
+  .ss-pill-state.is-maintenance { color: #ffd93d; background: rgba(255, 217, 61, .1); border-color: rgba(255, 217, 61, .3); }
+  .ss-pill-state.is-off { color: #ed4245; background: rgba(237, 66, 69, .1); border-color: rgba(237, 66, 69, .3); }
+
+  .ss-table-wrap { overflow-x: auto; }
+  .ss-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .ss-table th, .ss-table td { padding: 11px 12px; text-align: right; border-bottom: 1px solid var(--nx-line-2, rgba(255, 255, 255, .06)); }
+  .ss-table th { color: var(--text-muted); font-weight: 500; font-size: .76rem; text-transform: none; }
+  .ss-table tbody tr:last-child td { border-bottom: 0; }
+  .ss-table tbody tr:hover td { background: rgba(255, 255, 255, .025); }
+  .ss-table tr.is-today td { background: rgba(168, 85, 247, .07); }
+  .ss-num { font-variant-numeric: tabular-nums; }
+  .ss-pos { color: #57f287; }
+  .ss-neg { color: #ed4245; }
+  .ss-flat { color: var(--text-muted); }
+  .ss-today-tag {
+    display: inline-block; margin-inline-start: 8px; padding: 2px 8px;
+    font-size: .66rem; border-radius: 999px;
+    color: #d8b4fe; background: rgba(168, 85, 247, .16);
+    border: 1px solid rgba(168, 85, 247, .35);
+    vertical-align: middle;
+  }
+
+  .ss-foot {
+    display: flex; gap: 8px; align-items: flex-start;
+    margin-top: 16px; color: var(--text-muted);
+    font-size: .78rem; line-height: 1.8;
+  }
+  .ss-foot i { margin-top: 5px; }
+
+  @media (max-width: 767.98px) {
+    .ss-canvas { height: 220px; }
+    .ss-canvas--half { height: 200px; }
+    .ss-systems { grid-template-columns: 1fr; }
+    .ss-range { flex-direction: column; align-items: stretch; }
+    .ss-pills { justify-content: center; }
+  }
+</style>
+
+<script>window.__SS__ = <%- ssData %>;</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
+  if (typeof Chart === 'undefined') return;
+  var D = window.__SS__ || { series: [] };
+  if (!D.series.length) return;
+
+  Chart.defaults.font.family = "'Tajawal', system-ui, sans-serif";
+  Chart.defaults.color = '#9ca3af';
+  Chart.defaults.borderColor = 'rgba(255,255,255,.06)';
+
+  var labels = D.series.map(function (s) { return s.d.slice(5); });
+  var rtlOpts = { rtl: true, textDirection: 'rtl', displayColors: true, boxWidth: 10, boxHeight: 10, padding: 10 };
+  var xGrid = { display: false };
+  var yGrid = { color: 'rgba(255,255,255,.05)' };
+  var yTicks = { precision: 0, maxRotation: 0 };
+
+  function draw(id, cfg) {
+    var el = document.getElementById(id);
+    if (el) new Chart(el, cfg);
+  }
+
+  draw('ssFlow', {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'دخول',
+          data: D.series.map(function (s) { return s.j; }),
+          backgroundColor: 'rgba(87,242,135,.6)',
+          hoverBackgroundColor: '#57f287',
+          borderColor: 'rgba(87,242,135,.9)',
+          borderWidth: 1,
+          borderRadius: 5,
+          maxBarThickness: 24,
+        },
+        {
+          label: 'خروج',
+          data: D.series.map(function (s) { return s.l; }),
+          backgroundColor: 'rgba(237,66,69,.55)',
+          hoverBackgroundColor: '#ed4245',
+          borderColor: 'rgba(237,66,69,.9)',
+          borderWidth: 1,
+          borderRadius: 5,
+          maxBarThickness: 24,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: rtlOpts },
+      scales: {
+        x: { grid: xGrid, ticks: { maxRotation: 0, autoSkipPadding: 14, font: { size: 10 } } },
+        y: { beginAtZero: true, grid: yGrid, ticks: yTicks },
+      },
+    },
+  });
+
+  draw('ssOnline', {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'أعلى قراءة متصلين',
+        data: D.series.map(function (s) { return s.o; }),
+        borderColor: '#8c5aff',
+        backgroundColor: 'rgba(140,90,255,.16)',
+        fill: true,
+        tension: .35,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: '#8c5aff',
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: rtlOpts },
+      scales: {
+        x: { grid: xGrid, ticks: { maxRotation: 0, autoSkipPadding: 14, font: { size: 10 } } },
+        y: { beginAtZero: true, grid: yGrid, ticks: yTicks },
+      },
+    },
+  });
+
+  var run = 0;
+  var cumulative = D.series.map(function (s) { run += (s.j - s.l); return run; });
+  draw('ssNet', {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'الصافي التراكمي',
+        data: cumulative,
+        borderColor: '#ffd93d',
+        backgroundColor: 'rgba(255,217,61,.14)',
+        fill: true,
+        tension: .3,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: '#ffd93d',
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: rtlOpts },
+      scales: {
+        x: { grid: xGrid, ticks: { maxRotation: 0, autoSkipPadding: 14, font: { size: 10 } } },
+        y: { grid: yGrid, ticks: yTicks },
+      },
+    },
+  });
+})();
+</script>
