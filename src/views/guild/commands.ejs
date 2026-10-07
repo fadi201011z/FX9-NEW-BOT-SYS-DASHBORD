@@ -1,11 +1,50 @@
 <% currentPage = 'commands' %>
+<%
+  // — الأوامر: تفعيل/تعطيل، تعديل الوصف، وصلاحيات الرتب لكل أمر.
+  const enabledCount = commands.filter(c => { const cfg = configMap[c.name]; return cfg ? cfg.enabled !== false : true; }).length;
+  const catsCount = new Set(commands.map(c => c.category).filter(Boolean)).size;
+  const metaCount = Object.values(configMap || {}).filter(cfg => cfg && cfg.allowedRoles?.length).length;
+%>
+
 <div class="page-header">
-  <h1><i class="fas fa-terminal"></i> إدارة الأوامر — <%= guild.name %></h1>
-  <p>عدد الأوامر: <%= commands.length %></p>
+  <h1><i class="fas fa-terminal"></i> الأوامر</h1>
+  <p>تفعيل وتعطيل أوامر سيرفر <strong><%= guild.name %></strong> والتحكم بصلاحياتها</p>
 </div>
 
-<div class="commands-filter">
-  <input type="text" id="commandSearch" placeholder="🔍 بحث عن أمر..." oninput="filterCommands()">
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-terminal" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= commands.length %></span>
+      <span class="stat-label">إجمالي الأوامر</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-toggle-on" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= enabledCount %></span>
+      <span class="stat-label">مفعّلة</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-toggle-off" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= commands.length - enabledCount %></span>
+      <span class="stat-label">معطّلة</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ffa63e"><i class="fas fa-folder-tree" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= catsCount %></span>
+      <span class="stat-label">قسم أوامر</span>
+    </div>
+  </div>
+</div>
+
+<div class="commands-filter cmd-search">
+  <i class="fas fa-search" aria-hidden="true"></i>
+  <input type="text" id="commandSearch" placeholder="بحث عن أمر..." oninput="filterCommands()">
   <select id="categoryFilter" onchange="filterCommands()">
     <option value="all">جميع الأقسام</option>
     <% const cats = [...new Set(commands.map(c => c.category))] %>
@@ -15,36 +54,36 @@
   </select>
 </div>
 
-<div class="commands-grid" id="commandsGrid">
+<div class="commands-grid cmd-grid" id="commandsGrid">
   <% commands.forEach(cmd => { %>
     <% const cfg = configMap[cmd.name] %>
-    <div class="command-card glass" data-name="<%= cmd.name %>" data-category="<%= cmd.category %>">
-      <div class="command-header">
-        <span class="command-category"><%= cmd.category %></span>
+    <div class="command-card cmd-card glass" data-name="<%= cmd.name %>" data-category="<%= cmd.category %>">
+      <div class="command-header cmd-head">
+        <span class="cmd-cat"><%= cmd.category %></span>
         <label class="toggle">
           <input type="checkbox" <%= cfg ? (cfg.enabled ? 'checked' : '') : 'checked' %> onchange="toggleCommand('<%= cmd.name %>', this.checked)">
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <div class="command-body">
-        <h3>/<%= cmd.name %></h3>
-        <p class="command-desc" id="desc-<%= cmd.name %>">
+      <div class="command-body cmd-body">
+        <h3 class="cmd-name">/<%= cmd.name %></h3>
+        <p class="command-desc cmd-desc" id="desc-<%= cmd.name %>">
           <%= cmd.description || 'بدون وصف' %>
           <i class="fas fa-pen edit-desc-btn" onclick="openEditDesc('<%= cmd.name %>')" title="تعديل الوصف"></i>
         </p>
-        <div class="command-meta">
+        <div class="command-meta cmd-meta">
           <span><i class="fas fa-folder"></i> <%= cmd.category %></span>
           <span><i class="fas fa-file"></i> <%= cmd.file %></span>
         </div>
-        <div class="command-roles" id="roles-<%= cmd.name %>" style="margin-top:6px;font-size:0.75rem">
+        <div class="command-roles cmd-roles" id="roles-<%= cmd.name %>">
           <% if (cfg && cfg.allowedRoles && cfg.allowedRoles.length) { %>
-            <div style="color:#43b581;margin-bottom:2px"><i class="fas fa-check-circle"></i> مسموح: <span dir="ltr"><%= cfg.allowedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
+            <div class="cmd-role-row is-allowed"><i class="fas fa-check-circle"></i> مسموح: <span dir="ltr"><%= cfg.allowedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
           <% } %>
           <% if (cfg && cfg.blockedRoles && cfg.blockedRoles.length) { %>
-            <div style="color:#f04747"><i class="fas fa-ban"></i> ممنوع: <span dir="ltr"><%= cfg.blockedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
+            <div class="cmd-role-row is-blocked"><i class="fas fa-ban"></i> ممنوع: <span dir="ltr"><%= cfg.blockedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
           <% } %>
         </div>
-        <button class="btn btn-sm btn-secondary" onclick="openPermsModal('<%= cmd.name %>')" style="margin-top:8px;width:100%">
+        <button class="btn btn-sm btn-secondary cmd-perms-btn" onclick="openPermsModal('<%= cmd.name %>')">
           <i class="fas fa-shield-alt"></i> صلاحيات
         </button>
       </div>
@@ -52,10 +91,48 @@
   <% }) %>
 </div>
 
-<div class="empty-state" id="noCommands" style="display:none">
+<div class="empty-state cmd-nores" id="noCommands" style="display:none">
   <i class="fas fa-search"></i>
   <p>لا توجد نتائج للبحث</p>
 </div>
+
+<style>
+  .cmd-search { position: relative; display: flex; gap: 10px; align-items: center; margin-bottom: 18px; max-width: 640px; }
+  .cmd-search > i { position: absolute; inset-inline-start: 14px; color: var(--text-muted); font-size: .85rem; }
+  .cmd-search input {
+    flex: 1; min-width: 0; padding: 11px 14px 11px 40px;
+    border-radius: 11px; border: 1px solid var(--nx-line, rgba(255,255,255,.09));
+    background: rgba(255,255,255,.03); color: var(--text, #eee); font-family: inherit; outline: none;
+    transition: border-color .18s var(--nx-ease, ease), box-shadow .18s var(--nx-ease, ease);
+  }
+  .cmd-search input:focus { border-color: var(--primary, #a855f7); box-shadow: 0 0 0 3px rgba(168,85,247,.16); }
+  .cmd-search select {
+    padding: 11px 12px; border-radius: 11px; border: 1px solid var(--nx-line, rgba(255,255,255,.09));
+    background: rgba(255,255,255,.03); color: var(--text, #eee); font-family: inherit; outline: none; cursor: pointer;
+  }
+  @media (max-width: 560px) { .cmd-search { flex-wrap: wrap; } .cmd-search select { flex: 1; } }
+
+  .cmd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .cmd-card { display: flex; flex-direction: column; padding: 16px; transition: border-color .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease); }
+  .cmd-card:hover { border-color: rgba(168, 85, 247, .4); transform: translateY(-2px); }
+  .cmd-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .cmd-cat {
+    font-size: .68rem; font-weight: 700; padding: 2px 11px; border-radius: 20px;
+    background: rgba(168, 85, 247, .14); color: var(--primary, #a855f7); letter-spacing: .2px;
+  }
+  .cmd-body { display: flex; flex-direction: column; flex: 1; }
+  .cmd-name { direction: ltr; unicode-bidi: isolate; text-align: right; font-family: var(--nx-mono, Consolas, monospace); font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .cmd-desc { color: var(--text-muted); font-size: .82rem; line-height: 1.6; flex: 1; margin-bottom: 10px; min-height: 30px; }
+  .edit-desc-btn { cursor: pointer; color: var(--text-muted); margin-inline-start: 6px; font-size: .72rem; }
+  .edit-desc-btn:hover { color: var(--primary); }
+  .cmd-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: .72rem; color: var(--text-muted); margin-bottom: 8px; }
+  .cmd-roles { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: .74rem; }
+  .cmd-role-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .cmd-role-row span { direction: ltr; unicode-bidi: isolate; }
+  .cmd-role-row.is-allowed { color: #43b581; }
+  .cmd-role-row.is-blocked { color: #f04747; }
+  .cmd-perms-btn { width: 100%; margin-top: auto; cursor: pointer; }
+</style>
 
 <script>
 function filterCommands() {
@@ -201,8 +278,8 @@ function updateRolesDisplay(name, allowed, blocked) {
   const el = document.getElementById('roles-' + name);
   if (!el) return;
   const labels = [];
-  if (allowed.length) labels.push('<div style="color:#43b581;margin-bottom:2px"><i class="fas fa-check-circle"></i> مسموح: ' + allowed.map(id => '<@&' + id + '>').join(', ') + '</div>');
-  if (blocked.length) labels.push('<div style="color:#f04747"><i class="fas fa-ban"></i> ممنوع: ' + blocked.map(id => '<@&' + id + '>').join(', ') + '</div>');
+  if (allowed.length) labels.push('<div class="cmd-role-row is-allowed"><i class="fas fa-check-circle"></i> مسموح: ' + allowed.map(id => '<@&' + id + '>').join(', ') + '</div>');
+  if (blocked.length) labels.push('<div class="cmd-role-row is-blocked"><i class="fas fa-ban"></i> ممنوع: ' + blocked.map(id => '<@&' + id + '>').join(', ') + '</div>');
   el.innerHTML = labels.join('');
 }
 

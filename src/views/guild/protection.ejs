@@ -1,25 +1,64 @@
 <% currentPage = 'protection' %>
+<%
+  // — الحماية: 5 أنظمة تلقائية + حدود + رومات محضورة.
+  const prKeys = ['antiSpamEnabled', 'antiLinkEnabled', 'antiMentionEnabled', 'antiNukeEnabled', 'antiRaidEnabled'];
+  const prCount = prKeys.filter(k => protection[k] === 'true').length;
+  const restrictedCount = (restrictedChannels || []).length;
+  const punishLabel = { timeout: 'إيقاف مؤقت', kick: 'طرد', warn: 'تحذير' }[protection.spamPunishment] || protection.spamPunishment || '—';
+%>
+
 <div class="page-header">
-  <h1><i class="fas fa-shield-alt"></i> إعدادات الحماية — <%= guild.name %></h1>
-  <p>تحكم بجميع أنظمة الحماية التلقائية والرومات المحضورة</p>
+  <h1><i class="fas fa-shield-halved"></i> الحماية</h1>
+  <p>أنظمة الحماية التلقائية والحدود والرومات المحضورة — في سيرفر <strong><%= guild.name %></strong></p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-shield-halved" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= prCount %>/<%= prKeys.length %></span>
+      <span class="stat-label">أنظمة مفعّلة</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-ban" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= restrictedCount %></span>
+      <span class="stat-label">روم محضور</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ffa63e"><i class="fas fa-gavel" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value" style="font-size:1.15rem"><%= punishLabel %></span>
+      <span class="stat-label">عقوبة السبام</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #4dd6e0"><i class="fas fa-users-slash" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value" style="font-size:1.15rem"><%= protection.antiRaidEnabled === 'true' ? 'مفعّل' : 'متوقف' %></span>
+      <span class="stat-label">حالة Anti-Raid</span>
+    </div>
+  </div>
 </div>
 
 <form id="protectionForm" onsubmit="updateProtection(event)">
   <% const systems = [
-    { key: 'antiSpamEnabled', name: 'Anti-Spam', icon: 'fa-shield-alt', desc: 'منع السبام — 5 رسائل/5ث ← إيقاف 60ث' },
-    { key: 'antiLinkEnabled', name: 'Anti-Link', icon: 'fa-link', desc: 'منع الروابط التلقائية' },
-    { key: 'antiMentionEnabled', name: 'Anti-Mention', icon: 'fa-at', desc: 'منع 5+ منشنات في رسالة' },
-    { key: 'antiNukeEnabled', name: 'Anti-Nuke', icon: 'fa-bomb', desc: 'منع حذف القنوات والحظر الجماعي' },
-    { key: 'antiRaidEnabled', name: 'Anti-Raid', icon: 'fa-users-slash', desc: 'منع الانضمام الجماعي المفاجئ' },
+    { key: 'antiSpamEnabled', name: 'Anti-Spam', icon: 'fa-shield-halved', tint: '#ed4245', desc: 'منع السبام — 5 رسائل لكل 5 ثوانٍ ← إيقاف 60 ثانية' },
+    { key: 'antiLinkEnabled', name: 'Anti-Link', icon: 'fa-link', tint: '#5a9bff', desc: 'منع الروابط التلقائية في الرسائل' },
+    { key: 'antiMentionEnabled', name: 'Anti-Mention', icon: 'fa-at', tint: '#a855f7', desc: 'منع 5+ منشنات في رسالة واحدة' },
+    { key: 'antiNukeEnabled', name: 'Anti-Nuke', icon: 'fa-bomb', tint: '#ffa63e', desc: 'منع حذف القنوات والحظر الجماعي المفاجئ' },
+    { key: 'antiRaidEnabled', name: 'Anti-Raid', icon: 'fa-users-slash', tint: '#4dd6e0', desc: 'منع الانضمام الجماعي المفاجئ للسيرفر' },
   ] %>
 
   <div class="card glass">
-    <div class="card-header"><h3><i class="fas fa-shield-alt"></i> أنظمة الحماية</h3></div>
-    <div class="protection-grid">
+    <div class="card-header"><h3><i class="fas fa-shield-halved"></i> أنظمة الحماية</h3></div>
+    <div class="protection-grid pr-grid">
       <% systems.forEach(sys => { %>
-        <div class="protection-card">
-          <div class="protection-header">
-            <i class="fas <%= sys.icon %>"></i>
+        <div class="pr-card <%= protection[sys.key] === 'true' ? 'is-on' : '' %>">
+          <div class="pr-head">
+            <span class="pr-ic" style="--pr-tint:<%= sys.tint %>"><i class="fas <%= sys.icon %>" aria-hidden="true"></i></span>
             <h4><%= sys.name %></h4>
             <label class="toggle">
               <input type="checkbox" name="<%= sys.key %>" <%= protection[sys.key] === 'true' ? 'checked' : '' %>>
@@ -77,44 +116,82 @@
 </form>
 
 <!-- ─── الرومات المحضورة ────────────────────────────────────────────── -->
-<div class="card glass" style="margin-top:20px">
+<div class="card glass pr-restricted">
   <div class="card-header"><h3><i class="fas fa-ban"></i> الرومات المحضورة</h3></div>
-  <p class="card-desc" style="margin:0 20px 16px;color:var(--text-muted);font-size:.85rem">
-    أي شخص يرسل في هذه الرومات (حتى الإدارة) يتم طرده لمدة يوم — باستثناء المالك والبوت والمبرمج
+  <p class="pr-rest-desc">
+    أي شخص يرسل في هذه الرومات (حتى الإدارة) يُطرد لمدة يوم — باستثناء المالك والبوت والمبرمج
   </p>
 
-  <div style="display:flex;gap:10px;padding:0 20px 16px;flex-wrap:wrap">
-    <select id="restrictedChannelSelect" style="flex:1;min-width:200px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);font-family:inherit">
+  <div class="pr-add-row">
+    <select id="restrictedChannelSelect">
       <option value="">-- اختر رومًا --</option>
       <% (guildChannels || []).forEach(ch => { %>
         <option value="<%= ch.id %>"><%= ch.name %></option>
       <% }) %>
     </select>
-    <button onclick="addRestrictedChannel()" class="btn-primary" style="display:flex;align-items:center;gap:6px;padding:10px 20px">
+    <button onclick="addRestrictedChannel()" class="btn-primary">
       <i class="fas fa-plus"></i> إضافة روم محضور
     </button>
   </div>
 
-  <div style="padding:0 20px 20px">
-    <% if (restrictedChannels && restrictedChannels.length > 0) { %>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <% restrictedChannels.forEach(ch => { %>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-glass);border-radius:10px;border:1px solid var(--border)">
-            <span><i class="fas fa-hashtag" style="color:var(--text-muted);margin-left:8px"></i> <strong><%= ch.name || ch.id %></strong></span>
-            <button onclick="removeRestrictedChannel('<%= ch.id %>')" class="btn-sm" style="background:rgba(237,66,69,.15);color:#ed4245;border:1px solid rgba(237,66,69,.3);padding:6px 14px;border-radius:8px;cursor:pointer">
-              <i class="fas fa-trash"></i> حذف
-            </button>
-          </div>
-        <% }) %>
-      </div>
+  <div class="pr-rest-list">
+    <% if (restrictedCount > 0) { %>
+      <% restrictedChannels.forEach(ch => { %>
+        <div class="pr-rest-item">
+          <span class="pr-rest-name"><i class="fas fa-hashtag" aria-hidden="true"></i> <strong><%= ch.name || ch.id %></strong></span>
+          <button onclick="removeRestrictedChannel('<%= ch.id %>')" class="btn-sm pr-rest-del">
+            <i class="fas fa-trash"></i> حذف
+          </button>
+        </div>
+      <% }) %>
     <% } else { %>
-      <div style="text-align:center;padding:30px 20px;color:var(--text-muted)">
-        <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:8px"></i>
-        لا توجد رومات محضورة — أضف رومًا من القائمة أعلاه
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>لا توجد رومات محضورة — أضف رومًا من القائمة أعلاه</p>
       </div>
     <% } %>
   </div>
 </div>
+
+<style>
+  .pr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .pr-card {
+    padding: 15px; border-radius: var(--radius, 12px);
+    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
+    background: rgba(255, 255, 255, .015);
+    transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
+  }
+  .pr-card:hover { transform: translateY(-1px); }
+  .pr-card.is-on { border-color: rgba(87, 242, 135, .28); }
+  .pr-head { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .pr-head h4 { font-size: .9rem; font-weight: 700; flex: 1; }
+  .pr-ic {
+    width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center;
+    border-radius: 10px; font-size: .9rem;
+    background: color-mix(in srgb, var(--pr-tint) 14%, transparent); color: var(--pr-tint);
+  }
+  .pr-card p { color: var(--text-muted); font-size: .76rem; line-height: 1.65; margin: 0; }
+  .pr-rest-desc { color: var(--text-muted); font-size: .82rem; line-height: 1.7; margin: 0 0 16px; }
+  .pr-add-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pr-add-row select {
+    flex: 1; min-width: 210px; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid var(--nx-line, rgba(255, 255, 255, .1));
+    background: var(--bg-secondary, #1e1e2e); color: var(--text, #eee); font-family: inherit; outline: none;
+  }
+  .pr-add-row select:focus { border-color: var(--primary, #a855f7); }
+  .pr-rest-list { display: flex; flex-direction: column; gap: 8px; }
+  .pr-rest-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 11px 14px; border-radius: 11px;
+    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07)); background: rgba(237, 66, 69, .04);
+  }
+  .pr-rest-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .pr-rest-name i { color: var(--text-muted); }
+  .pr-rest-name strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pr-rest-del { background: rgba(237, 66, 69, .15); color: #ed4245; border: 1px solid rgba(237, 66, 69, .3); cursor: pointer; }
+  .pr-rest-del:hover { background: rgba(237, 66, 69, .28); color: #ff8b8b; }
+  @media (max-width: 620px) { .pr-add-row select { min-width: 100%; } }
+</style>
 
 <script>
 async function updateProtection(e) {

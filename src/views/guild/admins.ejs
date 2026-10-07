@@ -1,12 +1,49 @@
 <% currentPage = 'admins' %>
 <% const LV = { manager: 'مدير', admin: 'مبرمج', moderator: 'آدمن', support: 'دعم' }; %>
+<%
+  const activeRoles = (adminRoles || []).length;
+  const totalRoles = (guildRoles || []).length;
+  const linkedMembers = (adminRoleMembers || []).length;
+%>
+
 <div class="page-header">
-  <h1><i class="fas fa-users-cog"></i> إدارة المدراء — <%= guild.name %></h1>
-  <p>المدراء: <%= admins.length %> • الرتب الإدارية: <%= adminRoles.length %> • الأعضاء المرتبطون: <%= adminRoleMembers.length %></p>
+  <h1><i class="fas fa-users-gear"></i> المدراء والصلاحيات</h1>
+  <p>التحكم بالمدراء والرتب الإدارية — في سيرفر <strong><%= guild.name %></strong></p>
   <div class="header-actions" style="margin-top:8px">
     <button class="btn-sm btn-primary" onclick="syncAdmins(event)">
       <i class="fas fa-sync-alt"></i> مزامنة المدراء
     </button>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-users-gear" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= admins.length %></span>
+      <span class="stat-label">مدير مسجّل</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-user-tag" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= activeRoles %>/<%= totalRoles %></span>
+      <span class="stat-label">رتب إدارية مفعّلة</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-user-check" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= linkedMembers %></span>
+      <span class="stat-label">عضو مرتبط برتب إدارية</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: var(--nx-gold)"><i class="fas fa-bolt" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value" style="font-size:1.05rem"><%= admins.filter(a => a.addedBy === 'role_sync').length %> تلقائي</span>
+      <span class="stat-label">من إجمالي المدراء</span>
+    </div>
   </div>
 </div>
 
@@ -19,11 +56,11 @@
       <input type="text" id="roleSearch" placeholder="بحث عن رتبة..." oninput="filterRoles()">
     </div>
   </div>
-  <div style="padding:0 18px;font-size:0.85rem;color:var(--text-muted);line-height:1.8">
-    <i class="fas fa-info-circle" style="color:var(--primary)"></i>
+  <p class="ad-roles-note">
+    <i class="fas fa-info-circle"></i>
     تفعيل أي رتبة يجعل كل أعضائها مدراء داخل لوحة التحكم بصلاحيات الرتبة المختارة.
     القائمة تتحدث تلقائياً عند منح/سحب الرتبة لأي عضو — اضغط على الرتبة لتحديد صلاحياتها داخل الموقع.
-  </div>
+  </p>
   <div class="roles-grid">
     <% (guildRoles || []).forEach(r => {
       const ar = (adminRoles || []).find(a => a.roleId === r.id);
@@ -209,6 +246,25 @@
     </div>
   </div>
 </div>
+
+<style>
+  .ad-roles-note {
+    color: var(--text-muted); font-size: .82rem; line-height: 1.8;
+    margin: -4px 0 16px; padding: 10px 14px; border-radius: 10px;
+    background: rgba(168, 85, 247, .06); border: 1px solid rgba(168, 85, 247, .18);
+  }
+  .ad-roles-note i { color: var(--primary); margin-inline-end: 4px; }
+  .admin-role-card { transition: border-color .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease); }
+  .admin-role-card:hover { transform: translateY(-1px); }
+  .admin-add-form .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .admin-add-form .form-group { flex: 1; min-width: 200px; }
+  .admin-add-form input, .admin-add-form select {
+    width: 100%; padding: 11px 14px; border-radius: 10px; box-sizing: border-box;
+    border: 1px solid var(--nx-line, rgba(255, 255, 255, .1));
+    background: rgba(255, 255, 255, .03); color: var(--text, #eee); font-family: inherit; outline: none;
+  }
+  .admin-add-form input:focus, .admin-add-form select:focus { border-color: var(--primary, #a855f7); }
+</style>
 
 <script>
 const GUILD_ID = '<%= guild.id %>';

@@ -1,7 +1,53 @@
 <% currentPage = 'settings' %>
+<%
+  const ticketReady = ['panel_channel', 'ticket_category', 'admin_category', 'log_channel_id'].filter(k => config[k]).length;
+  const logReady = ['log_channel', 'modlog_channel', 'botlog_channel'].filter(k => config[k]).length;
+  const statsReady = ['stats_total', 'stats_online', 'stats_bots'].filter(k => config[k]).length;
+  const welcomeSet = !!config.welcome_channel;
+  const supportCount = (supportRoleArray || []).length;
+%>
+
 <div class="page-header">
-  <h1><i class="fas fa-sliders-h"></i> إعدادات <%= guild.name %></h1>
-  <p>ضبط جميع إعدادات البوت في السيرفر بمزامنة فورية مع البوت</p>
+  <h1><i class="fas fa-sliders-h"></i> الإعدادات والترحيب والإحصائيات</h1>
+  <p>ضبط جميع إعدادات بوت سيرفر <strong><%= guild.name %></strong> بمزامنة فورية مع البوت</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-door-open" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value" style="font-size:1.05rem"><%= welcomeSet ? 'مفعّل' : 'متوقف' %></span>
+      <span class="stat-label">بطاقة الترحيب</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-clipboard-list" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= logReady %>/3</span>
+      <span class="stat-label">قناة سجلات</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= statsReady %>/3</span>
+      <span class="stat-label">روم إحصائيات</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ffa63e"><i class="fas fa-ticket" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= ticketReady %>/4</span>
+      <span class="stat-label">خطوات التذاكر</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #4dd6e0"><i class="fas fa-headset" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= supportCount %></span>
+      <span class="stat-label">رتبة دعم</span>
+    </div>
+  </div>
 </div>
 
 <div class="card glass sync-bar">

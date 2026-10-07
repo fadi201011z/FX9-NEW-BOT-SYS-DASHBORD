@@ -6,163 +6,267 @@ const platformLogos = {
   kick:    'https://www.google.com/s2/favicons?domain=kick.com&sz=64',
   twitter: 'https://www.google.com/s2/favicons?domain=twitter.com&sz=64',
 };
+const subs = subscriptions || [];
+const platCount = new Set(subs.map(s => s.platform).filter(Boolean)).size;
+const platNames = { youtube: 'YouTube', kick: 'Kick', twitter: 'Twitter/X' };
+const activeCh = new Set(subs.map(s => s.discordChannelId).filter(Boolean)).size;
 %>
 <div class="page-header fade-in-up">
-  <div>
-    <h1><i class="fas fa-bell"></i> الإشعارات</h1>
-    <p>إشتراكات إشعارات يوتيوب، كيك، وتويتر — يراقبها البوت تلقائياً</p>
+  <h1><i class="fas fa-bell"></i> الإشعارات والإعلانات</h1>
+  <p>إشتراكات يوتيوب وكيك وتويتر يراقبها البوت تلقائياً + إرسال إعلانات احترافية — في سيرفر <strong><%= guild.name %></strong></p>
+</div>
+
+<div class="stats-grid fade-in-up">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-bell" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= subs.length %></span>
+      <span class="stat-label">إشتراك نشط</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-tower-broadcast" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= platCount %></span>
+      <span class="stat-label">منصات مراقَبة</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-hashtag" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= activeCh %></span>
+      <span class="stat-label">قناة إشعارات</span>
+    </div>
   </div>
 </div>
 
-<div class="glass-card fade-in-up" style="padding:24px;margin-bottom:20px">
-  <h3 style="margin:0 0 16px">➕ إضافة إشتراك جديد</h3>
-  <form id="addForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-    <div style="position:relative">
-      <select id="platform" required style="padding:10px 14px 10px 40px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);appearance:none;width:100%">
+<div class="nt-card glass fade-in-up">
+  <div class="nt-card-head">
+    <h3><i class="fas fa-plus-circle"></i> إضافة إشتراك جديد</h3>
+  </div>
+  <form id="addForm" class="nt-add-grid">
+    <div class="nt-field">
+      <select id="platform" required>
         <option value="">— المنصة —</option>
         <option value="youtube">YouTube</option>
         <option value="kick">Kick</option>
         <option value="twitter">Twitter/X</option>
       </select>
-      <img id="platformIcon" src="" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:20px;height:20px;display:none;pointer-events:none">
+      <img id="platformIcon" src="" alt="" class="nt-plat-icon">
     </div>
     <input type="url" id="url" required placeholder="رابط القناة (مثل https://youtube.com/@...)">
-    <select id="discordChannelId" required style="padding:10px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text)">
+    <select id="discordChannelId" required>
       <option value="">— قناة الإشعارات —</option>
       <% (guildChannels || []).forEach(ch => { %>
         <option value="<%= ch.id %>">#<%= ch.name %></option>
       <% }) %>
     </select>
     <input type="text" id="customMessage" placeholder="رسالة إضافية (اختياري)">
-    <button type="submit" class="btn-primary" style="grid-column:1/-1">➕ إضافة</button>
+    <button type="submit" class="btn-primary nt-add-submit"><i class="fas fa-plus"></i> إضافة</button>
   </form>
 </div>
 
-<div class="glass-card fade-in-up" style="padding:0;margin-bottom:20px;overflow:hidden">
-  <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark, #0d47a1));padding:20px 24px">
-    <div style="display:flex;align-items:center;gap:12px">
-      <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem">📢</div>
-      <div>
-        <h3 style="margin:0;color:#fff;font-size:1rem">إرسال إعلان</h3>
-        <p style="margin:2px 0 0;color:rgba(255,255,255,.7);font-size:.78rem">أنشئ وأرسل إعلاناً احترافياً لأعضاء السيرفر</p>
-      </div>
+<div class="nt-card glass fade-in-up nt-announce">
+  <div class="nt-announce-head">
+    <span class="nt-announce-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span>
+    <div>
+      <h3>إرسال إعلان</h3>
+      <p>أنشئ وأرسل إعلاناً احترافياً لأعضاء السيرفر</p>
     </div>
   </div>
-  <div style="padding:20px 24px">
-    <form id="announceForm">
-      <div style="margin-bottom:16px">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">عنوان الإعلان</label>
-        <input type="text" id="announceTitle" required placeholder="اكتب عنواناً واضحاً للإعلان..." style="width:100%;padding:12px 16px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.9rem;box-sizing:border-box">
-      </div>
-      <div style="margin-bottom:16px">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">نص الإعلان</label>
-        <textarea id="announceMessage" required placeholder="اكتب محتوى الإعلان هنا..." style="width:100%;padding:12px 16px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);min-height:140px;resize:vertical;font-size:.9rem;box-sizing:border-box;line-height:1.7"></textarea>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-        <div>
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
-            <span style="display:inline-flex;align-items:center;gap:4px">📣 القناة المستهدفة</span>
-          </label>
-          <select id="announceChannel" required style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.85rem;box-sizing:border-box">
-            <option value="">اختر القناة...</option>
-            <% (guildChannels || []).forEach(ch => { %>
-              <option value="<%= ch.id %>">#<%= ch.name %></option>
-            <% }) %>
-          </select>
-        </div>
-        <div>
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
-            <span style="display:inline-flex;align-items:center;gap:4px">📢 المنشن</span>
-          </label>
-          <select id="announceMention" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.85rem;box-sizing:border-box">
-            <option value="none">بدون منشن</option>
-            <option value="everyone">@everyone</option>
-            <option value="here">@here</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-        <div>
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
-            <span style="display:inline-flex;align-items:center;gap:4px">🏷️ نوع الإعلان</span>
-          </label>
-          <select id="announceType" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.85rem;box-sizing:border-box">
-            <option value="general">📢 إعلان عام</option>
-            <option value="maintenance">🔧 صيانة</option>
-            <option value="update">✅ تحديث</option>
-            <option value="warning">🚨 تحذير</option>
-            <option value="rules">📋 قواعد</option>
-          </select>
-        </div>
-        <div>
-          <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">
-            <span style="display:inline-flex;align-items:center;gap:4px">🎨 لون الإعلان</span>
-          </label>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <% const colorOpts = {blue:'#1a6fff',red:'#e53935',gold:'#ffd700',green:'#00c853',purple:'#7c4dff',orange:'#ff9800',black:'#333'}; %>
-            <% Object.entries(colorOpts).forEach(([k,v]) => { %>
-              <label style="width:32px;height:32px;border-radius:8px;background:<%= v %>;cursor:pointer;border:2px solid transparent;display:flex;align-items:center;justify-content:center;transition:.2s" class="color-option" data-value="<%= k %>">
-                <input type="radio" name="announceColor" value="<%= k %>" style="display:none" <%= k === 'blue' ? 'checked' : '' %>>
-                <span style="font-size:.6rem;color:<%= ['gold','orange'].includes(k) ? '#333' : '#fff' %>;opacity:0">✓</span>
-              </label>
-            <% }) %>
-          </div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-        <input type="url" id="announceImage" placeholder="رابط صورة (اختياري)" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.85rem;box-sizing:border-box">
-        <input type="text" id="announceFooter" placeholder="نص التذييل (اختياري)" style="width:100%;padding:12px 14px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);font-size:.85rem;box-sizing:border-box">
-      </div>
-      <div style="display:flex;gap:12px;align-items:stretch">
-        <button type="submit" class="btn-primary" style="flex:1;padding:14px 24px;font-size:.9rem;border:none;border-radius:10px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--primary),var(--primary-dark, #0d47a1));color:#fff">
-          📢 إرسال الإعلان
-        </button>
-        <button type="button" id="previewBtn" style="padding:14px 20px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px;font-size:.85rem">
-          👁️ معاينة
-        </button>
-      </div>
-    </form>
-    <div id="announcePreview" style="display:none;margin-top:20px;padding:20px;background:var(--bg-primary);border-radius:12px;border:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);font-size:.82rem;color:var(--text-muted)">
-        <span>👁️</span>
-        <span>معاينة الإعلان — كيف سيظهر في ديسكورد</span>
-      </div>
-      <div id="previewContent"></div>
+  <form id="announceForm" class="nt-ann-body">
+    <div class="nt-field">
+      <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">عنوان الإعلان</label>
+      <input type="text" id="announceTitle" required placeholder="اكتب عنواناً واضحاً للإعلان...">
     </div>
+    <div class="nt-field">
+      <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">نص الإعلان</label>
+      <textarea id="announceMessage" required placeholder="اكتب محتوى الإعلان هنا..."></textarea>
+    </div>
+    <div class="nt-grid-2">
+      <div class="nt-field">
+        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">📣 القناة المستهدفة</label>
+        <select id="announceChannel" required>
+          <option value="">اختر القناة...</option>
+          <% (guildChannels || []).forEach(ch => { %>
+            <option value="<%= ch.id %>">#<%= ch.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="nt-field">
+        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">📢 المنشن</label>
+        <select id="announceMention">
+          <option value="none">بدون منشن</option>
+          <option value="everyone">@everyone</option>
+          <option value="here">@here</option>
+        </select>
+      </div>
+    </div>
+    <div class="nt-grid-2">
+      <div class="nt-field">
+        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">🏷️ نوع الإعلان</label>
+        <select id="announceType">
+          <option value="general">📢 إعلان عام</option>
+          <option value="maintenance">🔧 صيانة</option>
+          <option value="update">✅ تحديث</option>
+          <option value="warning">🚨 تحذير</option>
+          <option value="rules">📋 قواعد</option>
+        </select>
+      </div>
+      <div class="nt-field">
+        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">🎨 لون الإعلان</label>
+        <div class="nt-colors">
+          <% const colorOpts = {blue:'#1a6fff',red:'#e53935',gold:'#ffd700',green:'#00c853',purple:'#7c4dff',orange:'#ff9800',black:'#333'}; %>
+          <% Object.entries(colorOpts).forEach(([k,v]) => { %>
+            <label class="color-option" data-value="<%= k %>" style="background:<%= v %>">
+              <input type="radio" name="announceColor" value="<%= k %>" style="display:none" <%= k === 'blue' ? 'checked' : '' %>>
+              <span style="font-size:.6rem;color:<%= ['gold','orange'].includes(k) ? '#333' : '#fff' %>;opacity:0">✓</span>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+    <div class="nt-grid-2">
+      <input type="url" id="announceImage" placeholder="رابط صورة (اختياري)">
+      <input type="text" id="announceFooter" placeholder="نص التذييل (اختياري)">
+    </div>
+    <div class="nt-ann-actions">
+      <button type="submit" class="btn-primary nt-send"><i class="fas fa-bullhorn"></i> إرسال الإعلان</button>
+      <button type="button" id="previewBtn" class="nt-preview"><i class="fas fa-eye"></i> معاينة</button>
+    </div>
+  </form>
+  <div id="announcePreview" class="nt-preview-box" style="display:none">
+    <div class="nt-preview-bar">
+      <span>👁️</span>
+      <span>معاينة الإعلان — كيف سيظهر في ديسكورد</span>
+    </div>
+    <div id="previewContent"></div>
   </div>
 </div>
 
-<div class="glass-card fade-in-up" style="padding:24px">
-  <h3 style="margin:0 0 16px">📋 الإشتراكات الحالية (<%= subscriptions.length %>)</h3>
+<div class="nt-card glass fade-in-up">
+  <div class="nt-card-head">
+    <h3><i class="fas fa-list"></i> الإشتراكات الحالية <span class="nt-count">(<%= subs.length %>)</span></h3>
+  </div>
 
-  <% if (subscriptions.length === 0) { %>
-    <p style="color:var(--text-muted);text-align:center;padding:40px 0">لا يوجد أي إشتراكات بعد. أضف واحداً من الأعلى.</p>
+  <% if (subs.length === 0) { %>
+    <div class="empty-state">
+      <i class="fas fa-bell-slash"></i>
+      <p>لا يوجد أي إشتراكات بعد — أضف واحداً من الأعلى</p>
+    </div>
   <% } else { %>
-    <div style="display:grid;gap:12px">
-      <% subscriptions.forEach(sub => { %>
-        <div class="sub-item" style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--bg-secondary);border-radius:12px;border:1px solid var(--border)">
-          <img src="https://www.google.com/s2/favicons?domain=<%= sub.platform === 'youtube' ? 'youtube.com' : sub.platform === 'kick' ? 'kick.com' : 'twitter.com' %>&sz=64" alt="<%= sub.platform %>" style="width:22px;height:22px;border-radius:4px;flex-shrink:0">
-          <div class="channel-avatar-wrap" style="width:34px;height:34px;border-radius:50%;flex-shrink:0;overflow:hidden;background:var(--bg-primary);display:flex;align-items:center;justify-content:center">
-            <img class="channel-avatar" data-channelid="<%= sub.channelId %>" data-platform="<%= sub.platform %>" src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(sub.channelName || sub.channelId || '?') %>&size=32&background=random&color=fff" style="width:32px;height:32px;border-radius:50%;object-fit:cover" onerror="this.parentElement.innerHTML='<span style=font-size:14px;color:var(--text-muted)>?</span>'">
+    <div class="nt-subs-list">
+      <% subs.forEach(sub => { %>
+        <div class="sub-item nt-sub-item">
+          <img src="https://www.google.com/s2/favicons?domain=<%= sub.platform === 'youtube' ? 'youtube.com' : sub.platform === 'kick' ? 'kick.com' : 'twitter.com' %>&sz=64" alt="<%= sub.platform %>" class="nt-sub-fav" title="<%= platNames[sub.platform] || sub.platform %>">
+          <div class="nt-sub-avatar-wrap">
+            <img class="channel-avatar" data-channelid="<%= sub.channelId %>" data-platform="<%= sub.platform %>" src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(sub.channelName || sub.channelId || '?') %>&size=32&background=random&color=fff" alt="" onerror="this.parentElement.innerHTML='<span style=font-size:14px;color:var(--text-muted)>?</span>'">
           </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;font-size:.9rem"><%= sub.channelName || sub.channelId || '—' %></div>
-            <div style="font-size:.78rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-              <a href="<%= sub.channelUrl %>" target="_blank" style="color:var(--primary)"><%= sub.channelUrl %></a>
-              &nbsp;→&nbsp; <code style="font-size:.75rem"><%= guildChannels.find(c => c.id === sub.discordChannelId)?.name || '#' + sub.discordChannelId %></code>
+          <div class="nt-sub-info">
+            <div class="nt-sub-name"><%= sub.channelName || sub.channelId || '—' %></div>
+            <div class="nt-sub-url">
+              <a href="<%= sub.channelUrl %>" target="_blank"><%= sub.channelUrl %></a>
+              <span>→</span>
+              <code><%= (guildChannels && guildChannels.find(c => c.id === sub.discordChannelId)) ? '#' + guildChannels.find(c => c.id === sub.discordChannelId).name : '#' + sub.discordChannelId %></code>
             </div>
           </div>
           <% if (sub.customMessage) { %>
-            <span style="font-size:.78rem;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"<%= sub.customMessage %>"</span>
+            <span class="nt-sub-msg" title="<%= sub.customMessage %>">"<%= sub.customMessage %>"</span>
           <% } %>
-          <button class="checknow-btn" data-id="<%= sub._id %>" style="background:var(--primary);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">🔍 فحص الآن</button>
-          <button class="resend-btn" data-id="<%= sub._id %>" style="background:#fbbf24;color:#000;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">🔄 إعادة إرسال</button>
-          <button class="delete-btn" data-id="<%= sub._id %>" style="background:var(--danger);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.78rem">✕ حذف</button>
+          <div class="nt-sub-actions">
+            <button class="checknow-btn nt-check" data-id="<%= sub._id %>">🔍 فحص الآن</button>
+            <button class="resend-btn nt-resend" data-id="<%= sub._id %>">🔄 إعادة إرسال</button>
+            <button class="delete-btn nt-delete" data-id="<%= sub._id %>"><i class="fas fa-xmark"></i></button>
+          </div>
         </div>
       <% }) %>
     </div>
   <% } %>
 </div>
+
+<style>
+  .nt-card { padding: 22px; border-radius: var(--radius, 12px); margin-bottom: 20px; }
+  .nt-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .nt-card-head h3 { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .nt-count { color: var(--text-muted); font-size: .8rem; }
+
+  .nt-add-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: center; }
+  .nt-field { position: relative; }
+  .nt-plat-icon { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; display: none; pointer-events: none; }
+  .nt-add-grid select { padding-inline-start: 40px; }
+  .nt-add-submit { justify-self: start; }
+
+  .nt-card select, .nt-card input[type="text"], .nt-card input[type="url"], .nt-card textarea {
+    width: 100%; padding: 12px 14px; box-sizing: border-box;
+    border-radius: 10px; border: 1px solid var(--nx-line, rgba(255, 255, 255, .1));
+    background: rgba(255, 255, 255, .03); color: var(--text, #eee);
+    font-family: inherit; font-size: .88rem; outline: none;
+    transition: border-color .18s var(--nx-ease, ease), box-shadow .18s var(--nx-ease, ease);
+  }
+  .nt-card textarea { min-height: 140px; resize: vertical; line-height: 1.7; }
+  .nt-card select:focus, .nt-card input:focus, .nt-card textarea:focus {
+    border-color: var(--primary, #a855f7); box-shadow: 0 0 0 3px rgba(168, 85, 247, .14);
+  }
+
+  .nt-announce { overflow: hidden; }
+  .nt-announce-head {
+    display: flex; align-items: center; gap: 12px; margin: -22px -22px 18px; padding: 18px 22px;
+    background: linear-gradient(135deg, var(--primary), #0d47a1); color: #fff;
+  }
+  .nt-announce-icon {
+    width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
+    border-radius: 10px; background: rgba(255, 255, 255, .2); font-size: 1.15rem;
+  }
+  .nt-announce-head h3 { margin: 0; font-size: 1rem; color: #fff; }
+  .nt-announce-head p { margin: 2px 0 0; color: rgba(255, 255, 255, .75); font-size: .78rem; }
+  .nt-ann-body { display: flex; flex-direction: column; gap: 16px; }
+  .nt-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .nt-colors { display: flex; gap: 6px; flex-wrap: wrap; }
+  .color-option {
+    width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
+    border: 2px solid transparent; display: flex; align-items: center; justify-content: center;
+    transition: border-color .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
+  }
+  .color-option:hover { transform: scale(1.08); }
+  .nt-ann-actions { display: flex; gap: 12px; }
+  .nt-send { flex: 1; padding: 13px 24px; font-size: .9rem; cursor: pointer; }
+  .nt-preview {
+    padding: 13px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: .85rem;
+    background: rgba(255, 255, 255, .05); border: 1px solid var(--nx-line, rgba(255, 255, 255, .12)); color: var(--text, #eee);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .nt-preview-box {
+    margin-top: 20px; padding: 18px; background: rgba(255, 255, 255, .02);
+    border-radius: 12px; border: 1px solid var(--nx-line, rgba(255, 255, 255, .09));
+  }
+  .nt-preview-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--nx-line, rgba(255,255,255,.08)); font-size: .8rem; color: var(--text-muted); }
+
+  .nt-subs-list { display: flex; flex-direction: column; gap: 10px; }
+  .nt-sub-item {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 16px; border-radius: 12px;
+    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07)); background: rgba(255, 255, 255, .015);
+    transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
+  }
+  .nt-sub-item:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .04); }
+  .nt-sub-fav { width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0; }
+  .nt-sub-avatar-wrap { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: rgba(255, 255, 255, .06); display: flex; align-items: center; justify-content: center; }
+  .nt-sub-avatar-wrap img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+  .nt-sub-info { flex: 1; min-width: 0; }
+  .nt-sub-name { font-weight: 600; font-size: .9rem; }
+  .nt-sub-url { font-size: .77rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; }
+  .nt-sub-url a { color: var(--primary); overflow: hidden; text-overflow: ellipsis; }
+  .nt-sub-url code { direction: ltr; unicode-bidi: isolate; font-size: .74rem; background: rgba(255,255,255,.05); padding: 1px 7px; border-radius: 6px; color: var(--text-muted); flex-shrink: 0; }
+  .nt-sub-msg { font-size: .76rem; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nt-sub-actions { display: flex; gap: 8px; }
+  .nt-check, .nt-resend, .nt-delete {
+    border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: .75rem; font-weight: 600;
+  }
+  .nt-check { background: var(--primary, #a855f7); color: #fff; }
+  .nt-resend { background: #fbbf24; color: #000; }
+  .nt-delete { background: var(--danger, #ed4245); color: #fff; }
+  @media (max-width: 620px) { .nt-grid-2 { grid-template-columns: 1fr; } .nt-ann-actions { flex-direction: column; } }
+</style>
 
 <script>
 // Show platform logo next to select
