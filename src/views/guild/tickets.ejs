@@ -1,32 +1,83 @@
 <% currentPage = 'tickets' %>
+<%
+  // — نظام التذاكر: مفتوحة/مغلقة مع بحث فوري وتقييمات.
+  const oList = tickets.open || [];
+  const cList = tickets.closed || [];
+  const total = ticketCount || (oList.length + cList.length);
+  const rated = cList.filter(t => t.rating);
+  const avg = rated.length ? Math.round((rated.reduce((s, t) => s + t.rating, 0) / rated.length) * 10) / 10 : 0;
+  const closedPct = total > 0 ? Math.round((cList.length / total) * 100) : 0;
+  const statusIcon = (t) => t.claimedBy ? 'fa-headset' : 'fa-message';
+%>
+
 <div class="page-header">
-  <h1><i class="fas fa-ticket-alt"></i> إدارة التذاكر — <%= guild.name %></h1>
-  <p>إجمالي التذاكر: <%= ticketCount %></p>
+  <h1><i class="fas fa-ticket"></i> التذاكر</h1>
+  <p>دعم الأعضاء عبر التذاكر — في سيرفر <strong><%= guild.name %></strong></p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-layer-group" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= total %></span>
+      <span class="stat-label">إجمالي التذاكر</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-inbox" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= oList.length %></span>
+      <span class="stat-label">مفتوحة الآن</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-check-double" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= cList.length %></span>
+      <span class="stat-label">مغلقة</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: var(--nx-gold)"><i class="fas fa-star" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= rated.length ? avg + '/' + 5 : '—' %></span>
+      <span class="stat-label">متوسط التقييم (<%= rated.length %> تقييم)</span>
+    </div>
+  </div>
+</div>
+
+<div class="tk-progress card glass">
+  <div class="tk-progress-info">
+    <span><i class="fas fa-circle-check" style="color:#57f287"></i> مغلقة <strong><%= closedPct %>%</strong></span>
+    <span><i class="fas fa-hourglass-half" style="color:#57f287"></i> مفتوحة <strong><%= total ? 100 - closedPct : 0 %>%</strong></span>
+  </div>
+  <div class="tk-bar"><div class="tk-bar-fill" style="width:<%= closedPct %>%"></div></div>
 </div>
 
 <div class="ticket-search">
   <i class="fas fa-search search-icon"></i>
-  <input type="text" id="ticketSearch" placeholder="🔍 بحث برقم التذكرة، اسم العضو، المعرف، القسم، العنوان..."
+  <input type="text" id="ticketSearch" placeholder="بحث برقم التذكرة، اسم العضو، المعرف، القسم، العنوان..."
          oninput="filterTickets()" class="search-input">
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="switchTab(this, 'open')">مفتوحة (<span id="openCount"><%= tickets.open?.length || 0 %></span>)</button>
-  <button class="tab" onclick="switchTab(this, 'closed')">مغلقة (<span id="closedCount"><%= tickets.closed?.length || 0 %></span>)</button>
+  <button class="tab active" onclick="switchTab(this, 'open')"><i class="fas fa-inbox"></i> مفتوحة (<span id="openCount"><%= oList.length %></span>)</button>
+  <button class="tab" onclick="switchTab(this, 'closed')"><i class="fas fa-folder-closed"></i> مغلقة (<span id="closedCount"><%= cList.length %></span>)</button>
 </div>
 
 <div class="tab-content active" id="tab-open">
   <div class="card glass">
-    <div class="card-header"><h3>📩 التذاكر المفتوحة</h3></div>
+    <div class="card-header"><h3><i class="fas fa-inbox"></i> التذاكر المفتوحة</h3></div>
     <div class="ticket-list" id="openList">
-      <% if (tickets.open && tickets.open.length > 0) { %>
-        <% tickets.open.forEach(t => { %>
-          <div class="ticket-acc" data-search="<%= (t.ticketId+' '+t.username+' '+t.userId+' '+t.category+' '+t.title+' '+(t.claimedByUsername||'')).toLowerCase() %>">
+      <% if (oList.length > 0) { %>
+        <% oList.forEach(t => { %>
+          <div class="ticket-acc" data-search="<%= (t.ticketId+' '+t.username+' '+t.userId+' '+t.category+' '+(t.title||'')+' '+(t.claimedByUsername||'')).toLowerCase() %>">
             <div class="ticket-acc-header" onclick="toggleTicket(this)">
               <div class="ticket-acc-info">
                 <span class="ticket-id">#<%= t.ticketId %></span>
                 <span class="ticket-acc-user"><%= t.username || t.userId || '—' %></span>
                 <span class="ticket-status open">مفتوحة</span>
+                <span class="ticket-acc-cat"><i class="fas fa-folder"></i> <%= t.category || 'عام' %></span>
                 <% if (t.claimedBy) { %>
                   <span class="ticket-acc-claimed"><i class="fas fa-headset"></i> <%= t.claimedByUsername || t.claimedBy %></span>
                 <% } %>
@@ -82,16 +133,17 @@
 
 <div class="tab-content" id="tab-closed">
   <div class="card glass">
-    <div class="card-header"><h3>📁 التذاكر المغلقة</h3></div>
+    <div class="card-header"><h3><i class="fas fa-folder-closed"></i> التذاكر المغلقة</h3></div>
     <div class="ticket-list" id="closedList">
-      <% if (tickets.closed && tickets.closed.length > 0) { %>
-        <% tickets.closed.forEach(t => { %>
-          <div class="ticket-acc closed" data-search="<%= (t.ticketId+' '+t.username+' '+t.userId+' '+t.category+' '+t.title+' '+(t.claimedByUsername||'')+' '+(t.rating||'')).toLowerCase() %>">
+      <% if (cList.length > 0) { %>
+        <% cList.forEach(t => { %>
+          <div class="ticket-acc closed" data-search="<%= (t.ticketId+' '+t.username+' '+t.userId+' '+t.category+' '+(t.title||'')+' '+(t.claimedByUsername||'')+' '+(t.rating||'')).toLowerCase() %>">
             <div class="ticket-acc-header" onclick="toggleTicket(this)">
               <div class="ticket-acc-info">
                 <span class="ticket-id">#<%= t.ticketId %></span>
                 <span class="ticket-acc-user"><%= t.username || t.userId || '—' %></span>
                 <span class="ticket-status closed">مغلقة</span>
+                <span class="ticket-acc-cat"><i class="fas fa-folder"></i> <%= t.category || 'عام' %></span>
                 <% if (t.rating) { %>
                   <span class="ticket-acc-rating"><%= '⭐'.repeat(t.rating) %> <%= t.rating %>/5</span>
                 <% } else { %>
@@ -163,162 +215,59 @@
 </div>
 
 <style>
-.ticket-search {
-  margin-bottom: 16px;
-  position: relative;
-}
+.ticket-search { margin-bottom: 16px; position: relative; max-width: 560px; }
 .search-input {
-  width: 100%;
-  padding: 12px 16px 12px 44px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color, #2a2a3e);
-  background: var(--bg-secondary, #1e1e2e);
-  color: var(--text, #eee);
-  font-size: 0.95rem;
-  outline: none;
-  transition: all 0.2s;
-  box-sizing: border-box;
+  width: 100%; padding: 13px 16px 13px 44px;
+  border-radius: 12px; border: 1px solid var(--nx-line, rgba(255,255,255,.09));
+  background: rgba(255,255,255,.03); color: var(--text, #eee);
+  font-size: .92rem; outline: none; box-sizing: border-box;
+  transition: border-color .18s var(--nx-ease, ease), box-shadow .18s var(--nx-ease, ease);
 }
 .search-input:focus {
-  border-color: var(--accent, #a855f7);
-  box-shadow: 0 0 0 3px rgba(168,85,247,0.2);
+  border-color: var(--primary, #a855f7);
+  box-shadow: 0 0 0 3px rgba(168,85,247,.18);
 }
-.search-icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted, #666);
-  font-size: 1rem;
-  z-index: 1;
-}
+.search-icon { position: absolute; inset-inline-start: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .95rem; z-index: 1; }
+
+.tk-progress { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.tk-progress-info { display: flex; gap: 20px; font-size: .82rem; color: var(--text-muted); }
+.tk-progress-info strong { color: var(--text); }
+.tk-bar { height: 8px; border-radius: 20px; background: rgba(255,255,255,.05); overflow: hidden; }
+.tk-bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #57f287, #2ecc71); transition: width .5s ease; }
+
 .ticket-acc {
-  background: var(--bg-secondary, #1e1e2e);
-  border: 1px solid var(--border-color, #2a2a3e);
-  border-radius: 12px;
-  margin-bottom: 8px;
-  overflow: hidden;
-  transition: all 0.2s;
+  background: rgba(255,255,255,.02);
+  border: 1px solid var(--nx-line, rgba(255,255,255,.08));
+  border-radius: 12px; margin-bottom: 9px; overflow: hidden;
+  transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
 }
-.ticket-acc:hover {
-  border-color: var(--accent, #a855f7);
-}
-.ticket-acc.closed {
-  opacity: 0.85;
-}
+.ticket-acc:hover { border-color: rgba(168,85,247,.45); }
+.ticket-acc.closed { opacity: .78; }
+.ticket-acc.closed .ticket-id { color: var(--text-muted); }
 .ticket-acc-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  cursor: pointer;
-  user-select: none;
-  gap: 8px;
-  transition: background 0.15s;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 16px; cursor: pointer; user-select: none; gap: 8px;
 }
-.ticket-acc-header:hover {
-  background: rgba(168,85,247,0.05);
-}
-.ticket-acc-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  flex: 1;
-  min-width: 0;
-}
-.ticket-acc-user {
-  font-size: 0.9rem;
-  color: var(--text, #eee);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px;
-}
-.ticket-acc-claimed {
-  font-size: 0.8rem;
-  color: var(--text-muted, #888);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.ticket-acc-rating {
-  font-size: 0.85rem;
-}
-.ticket-acc-rating.no-rate {
-  color: var(--text-muted, #666);
-  font-size: 0.75rem;
-}
-.ticket-acc-arrow {
-  color: var(--text-muted, #666);
-  transition: transform 0.2s;
-  font-size: 0.85rem;
-}
-.ticket-acc.open .ticket-acc-arrow {
-  transform: rotate(180deg);
-}
-.ticket-acc-body {
-  display: none;
-  padding: 0 16px 16px;
-  border-top: 1px solid var(--border-color, #2a2a3e);
-  padding-top: 12px;
-}
-.ticket-acc.open .ticket-acc-body {
-  display: block;
-}
-.ticket-acc-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 0.9rem;
-  padding: 4px 0;
-  flex-wrap: wrap;
-}
-.ticket-acc-row .ticket-label {
-  color: var(--text-muted, #888);
-  min-width: 110px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.85rem;
-  flex-shrink: 0;
-}
-.ticket-label i {
-  width: 16px;
-  text-align: center;
-}
-.ticket-id {
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--accent, #a855f7);
-  direction: ltr;
-  display: inline-block;
-  white-space: nowrap;
-}
-.ticket-status {
-  font-size: 0.7rem;
-  padding: 2px 10px;
-  border-radius: 20px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.ticket-status.open {
-  background: rgba(46, 204, 113, 0.15);
-  color: #2ecc71;
-  border: 1px solid rgba(46, 204, 113, 0.3);
-}
-.ticket-status.closed {
-  background: rgba(231, 76, 60, 0.15);
-  color: #e74c3c;
-  border: 1px solid rgba(231, 76, 60, 0.3);
-}
-code {
-  background: rgba(255,255,255,0.06);
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  color: var(--text-muted, #aaa);
-}
+.ticket-acc-header:hover { background: rgba(168,85,247,.05); }
+.ticket-acc-info { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.ticket-acc-user { font-size: .9rem; color: var(--text, #eee); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.ticket-acc-cat { font-size: .74rem; color: var(--text-muted); background: rgba(255,255,255,.04); padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
+.ticket-acc-claimed { font-size: .78rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+.ticket-acc-claimed i { color: var(--primary); }
+.ticket-acc-rating { font-size: .82rem; color: var(--nx-gold, #ffcc4d); }
+.ticket-acc-rating.no-rate { color: var(--text-muted); font-size: .72rem; }
+.ticket-acc-arrow { color: var(--text-muted); transition: transform .2s ease; font-size: .8rem; }
+.ticket-acc.open .ticket-acc-arrow { transform: rotate(180deg); }
+.ticket-acc-body { display: none; padding: 12px 16px 16px; border-top: 1px solid var(--nx-line, rgba(255,255,255,.07)); }
+.ticket-acc.open .ticket-acc-body { display: block; }
+.ticket-acc-row { display: flex; align-items: flex-start; gap: 8px; font-size: .88rem; padding: 4px 0; flex-wrap: wrap; }
+.ticket-acc-row .ticket-label { color: var(--text-muted); min-width: 110px; display: flex; align-items: center; gap: 5px; font-size: .82rem; flex-shrink: 0; }
+.ticket-label i { width: 16px; text-align: center; }
+.ticket-id { font-weight: 700; font-size: 1rem; color: var(--primary, #a855f7); direction: ltr; display: inline-block; white-space: nowrap; }
+.ticket-status { font-size: .68rem; padding: 2px 11px; border-radius: 20px; font-weight: 700; white-space: nowrap; }
+.ticket-status.open { background: rgba(46,204,113,.14); color: #2ecc71; border: 1px solid rgba(46,204,113,.3); }
+.ticket-status.closed { background: rgba(231,76,60,.14); color: #e74c3c; border: 1px solid rgba(231,76,60,.3); }
+.ticket-acc code { background: rgba(255,255,255,.06); padding: 1px 6px; border-radius: 5px; font-size: .78rem; color: var(--text-muted); }
 </style>
 
 <script>

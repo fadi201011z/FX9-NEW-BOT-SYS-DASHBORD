@@ -1,7 +1,38 @@
 <% currentPage = 'backup' %>
+<%
+  // — النسخ الاحتياطي: إنشاء/استعادة نسخ JSON لإعدادات السيرفر.
+  const bks = backups || [];
+  const totalMB = bks.reduce((s, b) => s + (Number(b.size) || 0), 0) / (1024 * 1024);
+  const last = bks[0] || null;
+%>
+
 <div class="page-header">
-  <h1><i class="fas fa-database"></i> النسخ الاحتياطي — <%= guild.name %></h1>
-  <p>إنشاء واستعادة النسخ الاحتياطية لإعدادات البوت</p>
+  <h1><i class="fas fa-database"></i> النسخ الاحتياطي</h1>
+  <p>إنشاء واستعادة نسخ احتياطية لإعدادات بوت سيرفر <strong><%= guild.name %></strong></p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-box-archive" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= bks.length %></span>
+      <span class="stat-label">نسخة محفوظة</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-weight-hanging" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= totalMB.toFixed(2) %></span>
+      <span class="stat-label">إجمالي الحجم (MB)</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-label" style="display:block;margin-top:6px"><%= last ? new Date(last.createdAt || last.created_at || Date.now()).toLocaleString('ar-SA') : 'لا توجد نسخ' %></span>
+      <span class="stat-label">آخر نسخة</span>
+    </div>
+  </div>
 </div>
 
 <div class="dashboard-grid">
@@ -9,10 +40,11 @@
     <div class="card-header">
       <h3><i class="fas fa-plus-circle"></i> إنشاء نسخة احتياطية</h3>
     </div>
-    <div class="backup-create">
-      <p>سيتم حفظ جميع إعدادات السيرفر الحالية في ملف JSON</p>
+    <div class="backup-create bk-create">
+      <span class="bk-create-icon"><i class="fas fa-file-zipper" aria-hidden="true"></i></span>
+      <p>سيتم حفظ جميع إعدادات السيرفر الحالية في ملف <code>JSON</code> — يمكنك استعادته في أي وقت أو تحميله.</p>
       <button class="btn-primary" onclick="createBackup()">
-        <i class="fas fa-database"></i> إنشاء نسخة احتياطية
+        <i class="fas fa-database"></i> إنشاء نسخة احتياطية الآن
       </button>
     </div>
   </div>
@@ -20,23 +52,22 @@
   <div class="card glass">
     <div class="card-header">
       <h3><i class="fas fa-history"></i> النسخ السابقة</h3>
+      <span class="bk-note">الأحدث أولاً</span>
     </div>
-    <div class="backup-list">
-      <% if (backups && backups.length > 0) { %>
-        <% backups.forEach(b => { %>
-          <div class="backup-item">
-            <div class="backup-info">
-              <i class="fas fa-file-archive"></i>
-              <div>
-                <strong><%= b.filename %></strong>
-                <span><%= ((Number(b.size) || 0) / 1024).toFixed(1) %> KB • <%= new Date(b.createdAt || b.created_at || Date.now()).toLocaleString('ar-SA') %></span>
-              </div>
+    <div class="backup-list bk-list">
+      <% if (bks.length > 0) { %>
+        <% bks.forEach(b => { %>
+          <div class="bk-item">
+            <span class="bk-file"><i class="fas fa-file-archive" aria-hidden="true"></i></span>
+            <div class="bk-info">
+              <strong><%= b.filename %></strong>
+              <span><%= ((Number(b.size) || 0) / 1024).toFixed(1) %> KB • <%= new Date(b.createdAt || b.created_at || Date.now()).toLocaleString('ar-SA') %></span>
             </div>
-            <div class="backup-actions">
+            <div class="bk-actions">
               <button class="btn-sm" onclick="restoreBackup('<%= b.filename %>')">
                 <i class="fas fa-undo"></i> استعادة
               </button>
-              <a href="/backup/<%= guild.id %>/download/<%= b.filename %>" class="btn-sm">
+              <a href="/backup/<%= guild.id %>/download/<%= b.filename %>" class="btn-sm" title="تحميل النسخة">
                 <i class="fas fa-download"></i>
               </a>
             </div>
@@ -46,11 +77,40 @@
         <div class="empty-state">
           <i class="fas fa-database"></i>
           <p>لا توجد نسخ احتياطية بعد</p>
+          <small>أنشئ أول نسخة الآن لتأمين إعدادات سيرفرك</small>
         </div>
       <% } %>
     </div>
   </div>
 </div>
+
+<style>
+  .bk-note { color: var(--text-muted); font-size: .75rem; }
+  .bk-create { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 14px 4px; }
+  .bk-create-icon {
+    width: 64px; height: 64px; display: grid; place-items: center; border-radius: 18px;
+    background: rgba(168, 85, 247, .12); color: var(--primary); font-size: 1.6rem;
+  }
+  .bk-create p { color: var(--text-muted); font-size: .86rem; max-width: 330px; line-height: 1.7; }
+  .bk-create code { direction: ltr; unicode-bidi: isolate; background: rgba(255, 255, 255, .06); padding: 1px 8px; border-radius: 6px; }
+  .bk-list { display: flex; flex-direction: column; gap: 10px; }
+  .bk-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    border-radius: var(--radius, 12px); border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
+    background: rgba(255, 255, 255, .015);
+    transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
+  }
+  .bk-item:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .05); }
+  .bk-file {
+    width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
+    border-radius: 11px; background: rgba(90, 155, 255, .12); color: #5a9bff; font-size: 1rem;
+  }
+  .bk-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .bk-info strong { direction: ltr; unicode-bidi: isolate; text-align: right; font-size: .82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--nx-mono, Consolas, monospace); }
+  .bk-info span { color: var(--text-muted); font-size: .74rem; }
+  .bk-actions { display: flex; gap: 8px; }
+  @media (max-width: 620px) { .bk-info strong { max-width: 140px; } }
+</style>
 
 <script>
 async function createBackup() {

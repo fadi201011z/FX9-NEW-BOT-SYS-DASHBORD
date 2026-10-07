@@ -1,31 +1,80 @@
 <% currentPage = 'logs' %>
+<%
+  // — سجل النشاط: نشاطات المدراء + سجل التدقيق (old → new) في تبويبين.
+  const acts = activity || [];
+  const audits = auditLogs || [];
+  const actIcon = (a) => {
+    const s = String(a.action || '').toLowerCase();
+    if (s.includes('admin')) return 'fa-users-gear';
+    if (s.includes('ticket')) return 'fa-ticket';
+    if (s.includes('backup')) return 'fa-database';
+    if (s.includes('command') || s.includes('cmd')) return 'fa-terminal';
+    if (s.includes('role')) return 'fa-user-tag';
+    if (s.includes('channel')) return 'fa-hashtag';
+    if (s.includes('create') || s.includes('add')) return 'fa-plus';
+    if (s.includes('delete') || s.includes('remove')) return 'fa-trash';
+    if (s.includes('join')) return 'fa-right-to-bracket';
+    if (s.includes('leave')) return 'fa-right-from-bracket';
+    if (s.includes('config') || s.includes('save') || s.includes('update') || s.includes('set')) return 'fa-sliders-h';
+    return 'fa-circle-dot';
+  };
+%>
+
 <div class="page-header">
-  <h1><i class="fas fa-history"></i> سجل النشاط — <%= guild.name %></h1>
+  <h1><i class="fas fa-clock-rotate-left"></i> السجلات</h1>
+  <p>نشاطات الفريق وسجل التدقيق — في سيرفر <strong><%= guild.name %></strong></p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-list" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= acts.length %></span>
+      <span class="stat-label">نشاط مسجّل</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= audits.length %></span>
+      <span class="stat-label">سجل تدقيق</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-user-shield" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= new Set(acts.map(a => a.userId).filter(Boolean)).size %></span>
+      <span class="stat-label">أعضاء الفريق النشط</span>
+    </div>
+  </div>
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="switchTab(this, 'activity')">📋 سجل النشاطات</button>
-  <button class="tab" onclick="switchTab(this, 'audit')">🔍 سجل التدقيق</button>
+  <button class="tab active" onclick="switchTab(this, 'activity')"><i class="fas fa-list"></i> سجل النشاطات (<%= acts.length %>)</button>
+  <button class="tab" onclick="switchTab(this, 'audit')"><i class="fas fa-clipboard-check"></i> سجل التدقيق (<%= audits.length %>)</button>
 </div>
 
 <div class="tab-content active" id="tab-activity">
   <div class="card glass">
-    <div class="card-header"><h3><i class="fas fa-list"></i> النشاطات</h3></div>
+    <div class="card-header">
+      <h3><i class="fas fa-list"></i> النشاطات</h3>
+      <span class="lg-count">آخر التحديثات أولاً</span>
+    </div>
     <div class="logs-list">
-      <% if (activity && activity.length > 0) { %>
-        <% activity.forEach(a => { %>
+      <% if (acts.length > 0) { %>
+        <% acts.forEach(a => { %>
           <div class="log-item">
             <img src="https://cdn.discordapp.com/avatars/<%= a.userId %>/<%= a.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
             <div class="log-info">
               <strong><%= a.username || a.userId %></strong>
-              <span><%= a.action %></span>
+              <span><i class="fas <%= actIcon(a) %>" aria-hidden="true"></i> <%= a.action %></span>
               <small><%= a.details || '' %></small>
             </div>
             <span class="log-time"><%= new Date(a.timestamp).toLocaleString('ar-SA') %></span>
           </div>
         <% }) %>
       <% } else { %>
-        <div class="empty-state"><i class="fas fa-history"></i><p>لا توجد نشاطات</p></div>
+        <div class="empty-state"><i class="fas fa-history"></i><p>لا توجد نشاطات بعد</p></div>
       <% } %>
     </div>
   </div>
@@ -33,23 +82,46 @@
 
 <div class="tab-content" id="tab-audit">
   <div class="card glass">
-    <div class="card-header"><h3><i class="fas fa-search"></i> سجل التدقيق</h3></div>
+    <div class="card-header">
+      <h3><i class="fas fa-clipboard-check"></i> سجل التدقيق</h3>
+      <span class="lg-count">تغيّرات الإعدادات</span>
+    </div>
     <div class="logs-list">
-      <% if (auditLogs && auditLogs.length > 0) { %>
-        <% auditLogs.forEach(l => { %>
+      <% if (audits.length > 0) { %>
+        <% audits.forEach(l => { %>
           <div class="log-item audit-item">
-            <i class="fas fa-clipboard-check"></i>
+            <span class="lg-audit-ic"><i class="fas fa-clipboard-check" aria-hidden="true"></i></span>
             <div class="log-info">
               <strong><%= l.username || l.userId %></strong>
               <span><%= l.action %> → <code><%= l.field %></code></span>
-              <small>من: <%= l.oldValue || 'فارغ' %> → إلى: <%= l.newValue || 'فارغ' %></small>
+              <small>
+                من: <span class="lg-chip lg-old"><%= l.oldValue || 'فارغ' %></span>
+                ← إلى: <span class="lg-chip lg-new"><%= l.newValue || 'فارغ' %></span>
+              </small>
             </div>
             <span class="log-time"><%= new Date(l.timestamp).toLocaleString('ar-SA') %></span>
           </div>
         <% }) %>
       <% } else { %>
-        <div class="empty-state"><i class="fas fa-search"></i><p>لا توجد سجلات تدقيق</p></div>
+        <div class="empty-state"><i class="fas fa-clipboard-check"></i><p>لا توجد سجلات تدقيق بعد</p></div>
       <% } %>
     </div>
   </div>
 </div>
+
+<style>
+  .lg-count { color: var(--text-muted); font-size: .75rem; }
+  .lg-audit-ic {
+    width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center;
+    border-radius: 10px; background: rgba(168, 85, 247, .1); color: var(--primary);
+  }
+  .log-info .fa-circle-dot, .log-info .fa-list { margin-inline-end: 4px; }
+  .lg-chip {
+    display: inline-block; direction: ltr; unicode-bidi: isolate;
+    padding: 1px 8px; border-radius: 7px; font-size: .72rem; font-family: var(--nx-mono, Consolas, monospace);
+    max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;
+  }
+  .lg-old { background: rgba(237, 66, 69, .1); color: #ff6b6b; }
+  .lg-new { background: rgba(87, 242, 135, .1); color: #57f287; }
+  @media (max-width: 600px) { .log-time { display: none; } }
+</style>

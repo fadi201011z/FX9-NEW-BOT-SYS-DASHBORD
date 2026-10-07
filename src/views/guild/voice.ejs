@@ -1,25 +1,73 @@
 <% currentPage = 'voice' %>
+<%
+  // — الرومات المؤقتة: قائمة القنوات الصوتية التي أنشأها الأعضاء في السيرفر.
+  const vcs = voiceChannels || [];
+  const ownersN = new Set(vcs.map(v => v.ownerId).filter(Boolean)).size;
+  const lockedN = vcs.filter(v => v.locked === true).length;
+  const hiddenN = vcs.filter(v => v.hidden === true).length;
+%>
+
 <div class="page-header">
-  <h1><i class="fas fa-microphone"></i> القنوات الصوتية المؤقتة — <%= guild.name %></h1>
-  <p>عدد القنوات النشطة: <%= voiceChannels.length %></p>
+  <h1><i class="fas fa-microphone"></i> الرومات المؤقتة</h1>
+  <p>القنوات الصوتية التي أنشأها أعضاء سيرفر <strong><%= guild.name %></strong> — تُحذف تلقائياً عند خلوّها</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-microphone" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= vcs.length %></span>
+      <span class="stat-label">قناة نشطة الآن</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-crown" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= ownersN %></span>
+      <span class="stat-label">مالك قناة</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #ffa63e"><i class="fas fa-lock" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= lockedN %></span>
+      <span class="stat-label">مقفلة</span>
+    </div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon" style="--stat-color: #4dd6e0"><i class="fas fa-eye-slash" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= hiddenN %></span>
+      <span class="stat-label">مخفية</span>
+    </div>
+  </div>
 </div>
 
 <div class="card glass">
-  <div class="card-header"><h3><i class="fas fa-list"></i> القنوات النشطة حالياً</h3></div>
-  <div class="voice-list">
-    <% if (voiceChannels && voiceChannels.length > 0) { %>
-      <% voiceChannels.forEach(vc => { %>
-        <div class="voice-item">
-          <div class="voice-info">
-            <i class="fas fa-microphone"></i>
-            <div>
+  <div class="card-header">
+    <h3><i class="fas fa-list"></i> القنوات النشطة حالياً</h3>
+    <span class="vc-note">يمكن للمالك إدارة قناته بالكامل</span>
+  </div>
+  <div class="voice-list vc-list">
+    <% if (vcs.length > 0) { %>
+      <% vcs.forEach(vc => { %>
+        <div class="vc-item">
+          <div class="vc-main">
+            <span class="vc-icon"><i class="fas fa-microphone" aria-hidden="true"></i></span>
+            <div class="vc-info">
               <strong><%= vc.name || vc.vcId %></strong>
               <span class="voice-owner">👑 المالك: <%- vc.ownerId ? `<@${vc.ownerId}>` : 'غير معروف' %></span>
             </div>
           </div>
-          <div class="voice-meta">
-            <span><i class="fas fa-clock"></i> <%= new Date(vc.createdAt || Date.now()).toLocaleString('ar-SA') %></span>
-            <button class="btn-sm btn-danger" onclick="deleteVoice('<%= vc.vcId %>', '<%= vc.name || vc.vcId %>')" title="حذف القناة من السيرفر">
+          <div class="vc-meta">
+            <span class="vc-badges">
+              <% if (vc.locked === true) { %><span class="vc-badge vc-locked"><i class="fas fa-lock" aria-hidden="true"></i> مقفلة</span><% } %>
+              <% if (vc.hidden === true) { %><span class="vc-badge vc-hidden"><i class="fas fa-eye-slash" aria-hidden="true"></i> مخفية</span><% } %>
+              <% if (vc.userLimit) { %><span class="vc-badge vc-limit"><i class="fas fa-users" aria-hidden="true"></i> <%= vc.userLimit %></span><% } %>
+              <% if (vc.bitrate) { %><span class="vc-badge vc-bit"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> <%= Math.round(vc.bitrate / 1000) %>kbps</span><% } %>
+            </span>
+            <span class="vc-time"><i class="fas fa-clock" aria-hidden="true"></i> <%= new Date(vc.createdAt || Date.now()).toLocaleString('ar-SA') %></span>
+            <button class="btn-sm btn-danger" onclick="deleteVoice('<%= vc.vcId %>', '<%= (vc.name || vc.vcId).replace(/'/g, "\\'") %>')" title="حذف القناة من السيرفر">
               <i class="fas fa-trash"></i> حذف
             </button>
           </div>
@@ -29,10 +77,44 @@
       <div class="empty-state">
         <i class="fas fa-microphone-slash"></i>
         <p>لا توجد قنوات صوتية مؤقتة نشطة حالياً</p>
+        <small>عندما ينضم عضو إلى قناة الإطلاق «+ إنشاء روم» تُنشأ الروم تلقائياً</small>
       </div>
     <% } %>
   </div>
 </div>
+
+<style>
+  .vc-note { color: var(--text-muted); font-size: .75rem; }
+  .vc-list { display: flex; flex-direction: column; gap: 10px; }
+  .vc-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+    padding: 14px 16px; border-radius: var(--radius, 12px);
+    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
+    background: rgba(255, 255, 255, .015);
+    transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
+  }
+  .vc-item:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .05); }
+  .vc-main { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+  .vc-icon {
+    width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
+    border-radius: 11px; background: rgba(168, 85, 247, .12); color: var(--primary); font-size: 1rem;
+  }
+  .vc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .vc-info strong { color: var(--text, #fff); font-size: .95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .voice-owner { color: var(--text-muted); font-size: .78rem; }
+  .vc-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .vc-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .vc-badge {
+    display: inline-flex; align-items: center; gap: 4px; font-size: .68rem; font-weight: 600;
+    padding: 2px 9px; border-radius: 20px; white-space: nowrap;
+  }
+  .vc-locked { background: rgba(255, 166, 62, .12); color: #ffa63e; }
+  .vc-hidden { background: rgba(77, 214, 224, .12); color: #4dd6e0; }
+  .vc-limit { background: rgba(87, 242, 135, .1); color: #57f287; }
+  .vc-bit { background: rgba(90, 155, 255, .1); color: #5a9bff; }
+  .vc-time { color: var(--text-muted); font-size: .74rem; display: inline-flex; align-items: center; gap: 5px; }
+  @media (max-width: 680px) { .vc-time { display: none; } }
+</style>
 
 <script>
 async function deleteVoice(channelId, name) {
