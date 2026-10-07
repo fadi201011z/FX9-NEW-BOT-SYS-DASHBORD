@@ -1,0 +1,428 @@
+<% currentPage = 'dev-settings' %>
+<%
+  /* الإعدادات — the developer section's settings home. Its one real control is
+     who may enter /dev: the owner plus the developer list (add/remove). The top
+     of the page is a brief board that links to the control pages that already
+     exist (maintenance, features, status) so this page needs no duplicated
+     switches. Developer accounts are resolved server-side from the bot; when an
+     account cannot be fetched the row falls back to the stored username. */
+  const devs = Array.isArray(developers) ? developers : [];
+  const accts = accounts || {};
+  const m = maintenance || { bot: { enabled: false }, site: { enabled: false } };
+  const fsum = features || { total: 0, on: 0, maintenance: 0, off: 0 };
+  const dateFmt = (ms) => {
+    try { return new Intl.DateTimeFormat('ar-EG', { dateStyle: 'medium' }).format(new Date(ms)); }
+    catch (e) { return ''; }
+  };
+  const acct = (id) => accts[id] || null;
+  const dispName = (d) => {
+    const a = accts[d.userId];
+    return (a && (a.globalName || a.username)) || d.username || '';
+  };
+  const avaUrl = (id) => {
+    const a = accts[id];
+    return (a && a.id && a.avatar) ? ('https://cdn.discordapp.com/avatars/' + a.id + '/' + a.avatar + '.png?size=64') : '';
+  };
+  const initial = (d) => {
+    const n = dispName(d) || d.userId || '';
+    return n ? String(n).charAt(0).toUpperCase() : '?';
+  };
+%>
+
+<div class="dst">
+
+  <!-- ── الهيرو ── -->
+  <section class="dst-hero">
+    <span class="dst-hero-glow" aria-hidden="true"></span>
+    <div class="dst-orb" aria-hidden="true"><i class="fas fa-sliders"></i></div>
+    <div class="dst-hero-body">
+      <span class="dst-eyebrow"><span class="dst-eyebrow-dot" aria-hidden="true"></span> لوحة المطوّر — الإعدادات</span>
+      <h1 class="dst-title">إعدادات النظام والمطوّرين</h1>
+      <p class="dst-sub">أضف مطوّري البوت أو أزلهم واطّلع على حساباتهم من مكان واحد، مع وصول سريع إلى أنظمة التحكم. مطوّرو البوت يدخلون <strong>لوحة المطوّر فقط</strong> ولا يملكون أي صلاحية على سيرفرات الناس.</p>
+    </div>
+    <div class="dst-hero-side">
+      <div class="dst-count" id="dstCount"><%= devs.length %></div>
+      <div class="dst-count-lbl">مطوّر مسجّل</div>
+      <button type="button" class="dst-btn dst-btn-ghost" id="dstRefresh"><i class="fas fa-rotate"></i> تحديث</button>
+      <span class="dst-sync" id="dstSync" data-state="unknown"><i class="fas fa-circle-notch fa-spin"></i> جارٍ التحقق من البوت…</span>
+    </div>
+  </section>
+
+  <% if (notice) { %>
+    <div class="dst-banner <%= notice.kind %>">
+      <i class="fas <%= notice.kind === 'ok' ? 'fa-circle-check' : 'fa-triangle-exclamation' %>"></i>
+      <%= notice.text %>
+    </div>
+  <% } %>
+
+  <!-- ── المؤشرات ── -->
+  <section class="dst-metrics">
+    <div class="dst-metric">
+      <div class="dst-mic ic-owner"><i class="fas fa-crown"></i></div>
+      <div><b><%= ownerId ? '1' : '—' %></b><span><%= ownerId ? 'مالك النظام' : 'لا يوجد مالك' %></span></div>
+    </div>
+    <div class="dst-metric">
+      <div class="dst-mic ic-dev"><i class="fas fa-user-astronaut"></i></div>
+      <div><b id="dstMDevs"><%= devs.length %></b><span>مطوّرون مُضافون</span></div>
+    </div>
+    <div class="dst-metric">
+      <div class="dst-mic ic-bot"><i class="fas fa-robot"></i></div>
+      <div><b id="dstMBot" class="<%= m.bot.enabled ? 'warn' : 'ok' %>"><%= m.bot.enabled ? 'صيانة' : 'يعمل' %></b><span>حالة البوت</span></div>
+    </div>
+    <div class="dst-metric">
+      <div class="dst-mic ic-site"><i class="fas fa-globe"></i></div>
+      <div><b id="dstMSite" class="<%= m.site.enabled ? 'warn' : 'ok' %>"><%= m.site.enabled ? 'صيانة' : 'يعمل' %></b><span>حالة الموقع</span></div>
+    </div>
+  </section>
+
+  <!-- ── الوصول السريع ── -->
+  <div class="dst-sec-head">
+    <h2><i class="fas fa-gauge-high"></i> وصول سريع</h2>
+    <span>أدوات التحكم وحالة الأنظمة في نقرة واحدة</span>
+  </div>
+
+  <section class="dst-links">
+    <a class="dst-link" href="/dev/maintenance" id="dstLinkMaint" data-on="<%= (m.bot.enabled || m.site.enabled) ? '1' : '0' %>">
+      <span class="dst-link-ic"><i class="fas fa-shield-halved"></i></span>
+      <div class="dst-link-body">
+        <b>وضع الصيانة</b>
+        <span id="dstLinkMaintTxt">البوت: <%= m.bot.enabled ? 'صيانة' : 'يعمل' %> · الموقع: <%= m.site.enabled ? 'صيانة' : 'يعمل' %></span>
+      </div>
+      <i class="fas fa-arrow-left dst-link-go" aria-hidden="true"></i>
+    </a>
+    <a class="dst-link" href="/dev/features">
+      <span class="dst-link-ic ic-feat"><i class="fas fa-toggle-on"></i></span>
+      <div class="dst-link-body">
+        <b>حالة الخصائص</b>
+        <span><%= fsum.on %> تعمل · <%= fsum.maintenance %> صيانة · <%= fsum.off %> معطّلة</span>
+      </div>
+      <i class="fas fa-arrow-left dst-link-go" aria-hidden="true"></i>
+    </a>
+    <a class="dst-link" href="/dev/status">
+      <span class="dst-link-ic ic-stat"><i class="fas fa-gauge-simple-high"></i></span>
+      <div class="dst-link-body"><b>حالة البوت</b><span>الاستقرار والأداء والموارد</span></div>
+      <i class="fas fa-arrow-left dst-link-go"></i>
+    </a>
+    <a class="dst-link" href="/dev/bot">
+      <span class="dst-link-ic ic-bot2"><i class="fas fa-robot"></i></span>
+      <div class="dst-link-body"><b>إدارة البوت</b><span>الهوية، رابط الدعوة، والتشخيص</span></div>
+      <i class="fas fa-arrow-left dst-link-go"></i>
+    </a>
+    <a class="dst-link" href="/dev/guilds">
+      <span class="dst-link-ic ic-srv"><i class="fas fa-network-wired"></i></span>
+      <div class="dst-link-body"><b>السيرفرات المتصلة</b><span>روابط انضمام لكل سيرفر</span></div>
+      <i class="fas fa-arrow-left dst-link-go"></i>
+    </a>
+  </section>
+
+  <!-- ── المطوّرون ── -->
+  <div class="dst-sec-head">
+    <h2><i class="fas fa-user-astronaut"></i> مطوّرو البوت</h2>
+    <span class="dst-count-pill"><%= devs.length %></span>
+  </div>
+
+  <div class="dst-note">
+    <i class="fas fa-circle-info"></i>
+    <div>
+      مطوّرو البوت يدخلون <b>لوحة المطوّر</b> فقط — أدوات النظام والصيانة وإدارة المطوّرين.
+      هذا <b>لا يمنحهم أي صلاحية على سيرفرات الناس</b>؛ صلاحيات السيرفر تبقى منفصلة تماماً.
+    </div>
+  </div>
+
+  <div class="dst-list">
+    <% if (ownerId) { %>
+      <article class="dst-row">
+        <div class="dst-ava owner"><i class="fas fa-crown"></i></div>
+        <div class="dst-info">
+          <div class="dst-name-row">
+            <b class="dst-name">مالك النظام</b>
+            <span class="dst-tag tag-owner">المالك</span>
+          </div>
+          <button type="button" class="dst-id" data-copy="<%= ownerId %>" title="نسخ المعرّف"><code><%= ownerId %></code><i class="fas fa-copy"></i></button>
+        </div>
+      </article>
+    <% } %>
+
+    <% devs.forEach(function (d) { var url = avaUrl(d.userId); var nm = dispName(d); %>
+      <article class="dst-row">
+        <div class="dst-ava">
+          <% if (url) { %>
+            <img src="<%= url %>" alt="" loading="lazy">
+          <% } else { %>
+            <span><%= initial(d) %></span>
+          <% } %>
+        </div>
+        <div class="dst-info">
+          <div class="dst-name-row">
+            <b class="dst-name"><%= nm || 'مطوّر' %></b>
+            <span class="dst-tag tag-dev">مطوّر</span>
+          </div>
+          <button type="button" class="dst-id" data-copy="<%= d.userId %>" title="نسخ المعرّف"><code><%= d.userId %></code><i class="fas fa-copy"></i></button>
+          <div class="dst-meta">
+            <% if (d.note) { %><span><i class="fas fa-note-sticky"></i> <%= d.note %></span><% } %>
+            <span><i class="fas fa-calendar-plus"></i> أُضيف <%= dateFmt(d.addedAt || d.createdAt) %></span>
+          </div>
+        </div>
+        <% if (isOwner) { %>
+          <form method="POST" action="/dev/developers/remove" class="dst-del-form" onsubmit="return confirm('إزالة هذا المطور؟ سيفقد الوصول للوحة المطور فوراً.');">
+            <input type="hidden" name="userId" value="<%= d.userId %>">
+            <button type="submit" class="dst-del" title="إزالة المطوّر" aria-label="إزالة المطوّر"><i class="fas fa-user-minus"></i></button>
+          </form>
+        <% } %>
+      </article>
+    <% }); %>
+
+    <% if (!devs.length) { %>
+      <div class="dst-empty">
+        <i class="fas fa-user-astronaut"></i>
+        <p>لا يوجد مطوّرون مُضافون بعد<%= ownerId ? '' : ' — ولا مالك مضبوط' %>.</p>
+      </div>
+    <% } %>
+  </div>
+
+  <% if (isOwner) { %>
+    <form class="dst-add" method="POST" action="/dev/developers">
+      <div class="dst-add-head">
+        <span class="dst-add-ic"><i class="fas fa-user-plus"></i></span>
+        <div><h3>إضافة مطوّر جديد</h3><p>انسخ Discord ID بضغط كليك يمين على صورة الشخص ← نسخ معرّف المستخدم.</p></div>
+      </div>
+      <div class="dst-fields">
+        <div class="dst-f">
+          <label for="dstUserId">Discord ID <span class="req">*</span></label>
+          <input id="dstUserId" name="userId" class="ltr" required pattern="[0-9]{17,20}" inputmode="numeric" maxlength="20" placeholder="123456789012345678" autocomplete="off">
+        </div>
+        <div class="dst-f">
+          <label for="dstUsername">الاسم (اختياري)</label>
+          <input id="dstUsername" name="username" maxlength="64" placeholder="مثال: FAdiX9" autocomplete="off">
+        </div>
+        <div class="dst-f">
+          <label for="dstNote">ملاحظة (اختياري)</label>
+          <input id="dstNote" name="note" maxlength="200" placeholder="مثال: مسؤول البوت" autocomplete="off">
+        </div>
+      </div>
+      <button type="submit" class="dst-submit"><i class="fas fa-user-plus"></i> إضافة المطوّر</button>
+    </form>
+  <% } else { %>
+    <div class="dst-locked">
+      <i class="fas fa-lock"></i>
+      إضافة المطوّرين وإزالتهم متاحة للمالك فقط. يمكنك الاطلاع على القائمة وحساباتهم أعلاه.
+    </div>
+  <% } %>
+
+  <p class="dst-note-foot">
+    <i class="fas fa-circle-info"></i>
+    كل عملية إضافة أو إزالة تُسجَّل في سجل النشاط باسمك وتُطبَّق فوراً؛ من يُزال يفقد الوصول لصفحات المطوّر في الحال.
+  </p>
+</div>
+
+<div class="dst-toast" id="dstToast" role="status" aria-live="polite"></div>
+
+<style>
+.dst{
+  --ok:#57f287; --bad:#ff6b6b; --warn:#ffd93d;
+  --dst-a:#a855f7; --dst-a-ink:#c9a4ff; --dst-a-soft:rgba(168,85,247,.12);
+  --dst-line:var(--border); --dst-card:var(--bg-card); --dst-muted:var(--text-muted);
+  display:flex; flex-direction:column; gap:8px; max-width:1120px; margin:0 auto; position:relative; padding-bottom:30px;
+}
+[data-theme="light"] .dst{--dst-a-ink:#6d28d9; --dst-a-soft:rgba(124,58,237,.10)}
+@keyframes dstRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.dst > *{animation:dstRise .45s ease both}
+
+/* ── Hero ── */
+.dst-hero{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;gap:22px;padding:25px;border-radius:22px;border:1px solid var(--dst-line);background:radial-gradient(120% 190% at 92% -45%,var(--dst-a-soft),transparent 60%),var(--dst-card);box-shadow:var(--shadow);margin-bottom:8px}
+.dst-hero-glow{position:absolute;z-index:-1;top:-45%;inset-inline-end:-6%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.30),transparent 70%);filter:blur(30px);pointer-events:none}
+.dst-orb{flex-shrink:0;width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--dst-a-ink);background:var(--dst-a-soft);border:1px solid rgba(168,85,247,.3)}
+.dst-hero-body{flex:1;min-width:0}
+.dst-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;font-weight:700;color:var(--dst-muted)}
+.dst-eyebrow-dot{width:7px;height:7px;border-radius:50%;background:var(--dst-a);box-shadow:0 0 0 4px var(--dst-a-soft)}
+.dst-title{font-size:1.4rem;font-weight:900;margin:8px 0 6px;line-height:1.25}
+.dst-sub{font-size:.82rem;color:var(--dst-muted);line-height:1.85;margin:0;max-width:660px}
+.dst-hero-side{display:flex;flex-direction:column;align-items:flex-end;gap:9px;flex-shrink:0}
+.dst-count{font-size:1.55rem;font-weight:900;font-variant-numeric:tabular-nums}
+.dst-count-lbl{font-size:.72rem;color:var(--dst-muted);margin-top:-6px}
+.dst-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;border:none;cursor:pointer;font-family:inherit;font-size:.79rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 6px 20px rgba(124,58,237,.32);transition:transform .2s,box-shadow .2s}
+.dst-btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(124,58,237,.42)}
+.dst-btn:disabled{opacity:.6;cursor:default;transform:none}
+.dst-btn-ghost{background:var(--bg-glass);color:var(--text);border:1px solid var(--dst-line);box-shadow:none}
+.dst-btn-ghost:hover{box-shadow:var(--shadow)}
+.dst-sync{display:inline-flex;align-items:center;gap:7px;font-size:.73rem;font-weight:700;color:var(--dst-muted);padding:6px 11px;border-radius:999px;background:var(--bg-glass);border:1px solid var(--dst-line)}
+.dst-sync[data-state="ok"]{color:#3ddc84;border-color:rgba(87,242,133,.34);background:rgba(87,242,133,.08)}
+.dst-sync[data-state="warn"]{color:#b98900;border-color:rgba(255,217,61,.34);background:rgba(255,217,61,.08)}
+[data-theme="light"] .dst-sync[data-state="ok"]{color:#116b39}
+
+/* ── Notice ── */
+.dst-banner{display:flex;align-items:center;gap:9px;padding:11px 15px;border-radius:12px;font-size:.8rem;font-weight:600;margin-top:6px}
+.dst-banner.ok{background:rgba(87,242,135,.08);border:1px solid rgba(87,242,135,.24);color:#3ddc84}
+.dst-banner.err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.24);color:#ff7a7a}
+[data-theme="light"] .dst-banner.ok{color:#116b39}
+[data-theme="light"] .dst-banner.err{color:#b42323}
+
+/* ── Metrics ── */
+.dst-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.dst-metric{display:flex;align-items:center;gap:12px;padding:15px;border-radius:15px;background:var(--dst-card);border:1px solid var(--dst-line);transition:transform .25s,border-color .25s}
+.dst-metric:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.35)}
+.dst-mic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.ic-owner{background:rgba(245,214,37,.14);color:#d4a900}
+.ic-dev{background:var(--dst-a-soft);color:var(--dst-a-ink)}
+.ic-bot,.ic-bot2{background:rgba(88,101,242,.16);color:#5865f2}
+.ic-stat{background:rgba(87,242,135,.14);color:#2fb45f}
+.ic-srv{background:rgba(56,189,248,.14);color:#0ea5e9}
+.dst-metric b{display:block;font-size:1.05rem;font-weight:900;line-height:1.3;font-variant-numeric:tabular-nums}
+.dst-metric b.ok{color:#2fb45f}
+.dst-metric b.warn{color:#b98900}
+.dst-metric span{font-size:.68rem;color:var(--dst-muted)}
+
+/* ── Section heads ── */
+.dst-sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 4px;padding-inline:4px}
+.dst-sec-head h2{font-size:.98rem;font-weight:800;margin:0;display:flex;align-items:center;gap:9px}
+.dst-sec-head h2 i{color:var(--dst-a-ink);font-size:.9rem}
+.dst-sec-head > span{font-size:.72rem;color:var(--dst-muted)}
+.dst-count-pill{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:23px;padding:0 9px;border-radius:100px;font-size:.7rem;font-weight:800;background:var(--dst-a-soft);border:1px solid rgba(168,85,247,.24);color:var(--dst-a-ink);font-variant-numeric:tabular-nums}
+
+/* ── Quick links ── */
+.dst-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:12px;margin-top:8px}
+.dst-link{display:flex;align-items:center;gap:13px;padding:15px 16px;border-radius:15px;background:var(--dst-card);border:1px solid var(--dst-line);text-decoration:none;color:inherit;transition:transform .25s,border-color .25s}
+.dst-link:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.4)}
+.dst-link.is-warn{border-color:rgba(255,217,61,.34)}
+.dst-link-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;background:var(--bg-glass);color:var(--dst-a-ink)}
+.ic-owner-soft{background:rgba(245,214,37,.14);color:#d4a900}
+.dst-link-body{flex:1;min-width:0}
+.dst-link-body b{display:block;font-size:.86rem;font-weight:800}
+.dst-link-body span{font-size:.71rem;color:var(--dst-muted)}
+.dst-link-body .on{color:#b98900;font-weight:700}
+.dst-link-body .off{color:#2fb45f;font-weight:700}
+.dst-link > i{color:var(--dst-muted);font-size:.72rem;flex-shrink:0}
+
+/* ── Developer list ── */
+.dst-note{display:flex;gap:10px;align-items:flex-start;padding:12px 15px;border-radius:12px;background:var(--dst-a-soft);border:1px solid rgba(168,85,247,.18);font-size:.78rem;line-height:1.85;color:var(--dst-muted)}
+.dst-note i{color:var(--dst-a-ink);margin-top:5px;flex-shrink:0}
+.dst-note b{color:var(--text);font-weight:700}
+.dst-list{display:flex;flex-direction:column;gap:9px}
+.dst-row{display:flex;align-items:center;gap:13px;padding:13px 15px;border-radius:14px;background:var(--dst-card);border:1px solid var(--dst-line);transition:border-color .2s}
+.dst-row:hover{border-color:rgba(168,85,247,.32)}
+.dst-ava{width:42px;height:42px;flex-shrink:0;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:700;color:var(--dst-a-ink);background:var(--dst-a-soft);border:1px solid rgba(168,85,247,.22)}
+.dst-ava img{width:100%;height:100%;object-fit:cover}
+.dst-ava.owner{color:#d4a900;background:rgba(245,214,37,.12);border-color:rgba(245,214,37,.26)}
+.dst-info{flex:1;min-width:0}
+.dst-name-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.dst-name{font-size:.88rem;font-weight:800}
+.dst-tag{font-size:.63rem;font-weight:700;padding:3px 10px;border-radius:100px;white-space:nowrap}
+.tag-owner{background:rgba(245,214,37,.1);border:1px solid rgba(245,214,37,.26);color:#d4a900}
+.tag-dev{background:var(--dst-a-soft);border:1px solid rgba(168,85,247,.26);color:var(--dst-a-ink)}
+.dst-id{display:inline-flex;align-items:center;gap:7px;margin-top:4px;padding:0;background:none;border:none;cursor:pointer;color:var(--dst-muted);font-family:inherit}
+.dst-id code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.74rem;direction:ltr;letter-spacing:.02em}
+.dst-id i{font-size:.66rem;opacity:.6}
+.dst-id:hover{color:var(--dst-a-ink)}
+.dst-meta{display:flex;gap:13px;flex-wrap:wrap;margin-top:5px;font-size:.68rem;color:var(--dst-muted)}
+.dst-meta i{color:var(--dst-a-ink);margin-inline-end:3px}
+.dst-del-form{flex-shrink:0}
+.dst-del{width:34px;height:34px;flex-shrink:0;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.22);color:#ff7a7a;cursor:pointer;font-size:.8rem;transition:all .2s}
+.dst-del:hover{background:rgba(248,113,113,.18);border-color:rgba(248,113,113,.42)}
+.dst-empty{padding:30px 18px;text-align:center;border-radius:14px;background:var(--bg-glass);border:1px dashed var(--dst-line)}
+.dst-empty i{font-size:1.5rem;color:var(--dst-muted);opacity:.5;margin-bottom:11px;display:block}
+.dst-empty p{margin:0;font-size:.8rem;color:var(--dst-muted);line-height:1.85}
+
+/* ── Add form ── */
+.dst-add{margin-top:14px;padding:18px;border-radius:16px;background:var(--dst-card);border:1px solid var(--dst-line)}
+.dst-add-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.dst-add-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--dst-a-soft);color:var(--dst-a-ink);font-size:.95rem;flex-shrink:0}
+.dst-add-head h3{font-size:.9rem;font-weight:800;margin:0 0 3px}
+.dst-add-head p{margin:0;font-size:.73rem;color:var(--dst-muted);line-height:1.7}
+.dst-fields{display:flex;flex-wrap:wrap;gap:10px}
+.dst-f{display:flex;flex-direction:column;gap:6px;flex:1;min-width:180px}
+.dst-f label{font-size:.7rem;font-weight:600;color:var(--dst-muted)}
+.dst-f .req{color:#ff6b6b}
+.dst-f input{padding:10px 13px;border-radius:10px;background:var(--bg-glass);border:1px solid var(--dst-line);color:var(--text);font-family:inherit;font-size:.82rem;outline:none;transition:border-color .2s,box-shadow .2s}
+.dst-f input:focus{border-color:rgba(168,85,247,.5);box-shadow:0 0 0 3px var(--dst-a-soft)}
+.dst-f input.ltr{direction:ltr;text-align:right;font-family:'JetBrains Mono',ui-monospace,monospace}
+.dst-submit{width:100%;margin-top:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:11px;border:none;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#a855f7,#7c3aed);box-shadow:0 6px 20px rgba(168,85,247,.28);transition:transform .22s,box-shadow .22s}
+.dst-submit:hover{transform:translateY(-2px);box-shadow:0 11px 30px rgba(168,85,247,.4)}
+.dst-locked{display:flex;align-items:center;gap:12px;padding:16px;border-radius:14px;background:var(--bg-glass);border:1px dashed var(--dst-line);font-size:.8rem;color:var(--dst-muted);line-height:1.8}
+.dst-locked i{font-size:1.1rem;color:var(--dst-a-ink);flex-shrink:0}
+.dst-note-foot{display:flex;gap:9px;align-items:flex-start;margin:18px 0 0;padding:12px 15px;border-radius:12px;font-size:.75rem;line-height:1.85;color:var(--dst-muted);background:var(--bg-glass);border:1px solid var(--dst-line)}
+.dst-note-foot i{color:var(--dst-a-ink);margin-top:4px}
+
+/* ── Toast ── */
+.dst-toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,140%);z-index:1200;display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:13px;background:var(--dst-card);border:1px solid var(--dst-line);box-shadow:var(--shadow);font-size:.8rem;font-weight:700;transition:transform .35s cubic-bezier(.2,.9,.3,1.2);max-width:90vw}
+.dst-toast.is-show{transform:translate(-50%,0)}
+.dst-toast[data-kind="ok"]{border-color:rgba(87,242,133,.4)}
+.dst-toast[data-kind="err"]{border-color:rgba(255,107,107,.4)}
+
+@media(max-width:900px){.dst-metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.dst-hero{flex-direction:column;align-items:flex-start;padding:22px}.dst-hero-side{flex-direction:row;flex-wrap:wrap;align-items:center;width:100%}.dst-count-lbl{margin:0}}
+@media(prefers-reduced-motion:reduce){.dst > *{animation:none}.dst-toast{transition:none}}
+</style>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+
+  var toastEl = $('dstToast');
+  var toastTimer = null;
+  function toast(text, kind) {
+    if (!toastEl) return;
+    toastEl.textContent = text;
+    toastEl.dataset.kind = kind || 'ok';
+    toastEl.classList.add('is-show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('is-show'); }, 3000);
+  }
+
+  /* ── Copy a Discord id to the clipboard ── */
+  function copyText(value) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(value);
+    }
+    return new Promise(function (resolve, reject) {
+      var t = document.createElement('textarea');
+      t.value = value; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); resolve(); } catch (e) { reject(e); }
+      document.body.removeChild(t);
+    });
+  }
+  document.addEventListener('click', function (ev) {
+    var btn = ev.target.closest && ev.target.closest('[data-copy]');
+    if (!btn) return;
+    copyText(btn.dataset.copy).then(
+      function () { toast('تم نسخ المعرّف'); },
+      function () { toast('تعذّر النسخ', 'err'); }
+    );
+  });
+
+  /* ── Live: is the bot reachable? (badge only) ── */
+  function refreshLive() {
+    var sync = $('dstSync');
+    return fetch('/dev/features/live', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!sync) return;
+        if (d && d.online) {
+          sync.dataset.state = 'ok';
+          sync.innerHTML = '<i class="fas fa-plug-circle-check"></i> البوت متصل';
+        } else {
+          sync.dataset.state = 'warn';
+          sync.innerHTML = '<i class="fas fa-plug-circle-xmark"></i> تعذّر الوصول للبوت';
+        }
+      })
+      .catch(function () {
+        if (!sync) return;
+        sync.dataset.state = 'warn';
+        sync.innerHTML = '<i class="fas fa-plug-circle-xmark"></i> تعذّر الوصول للبوت';
+      });
+  }
+
+  var refreshBtn = $('dstRefresh');
+  if (refreshBtn) refreshBtn.addEventListener('click', function () {
+    refreshBtn.disabled = true;
+    var prev = refreshBtn.innerHTML;
+    refreshBtn.innerHTML = '<i class="fas fa-rotate fa-spin"></i> تحديث';
+    refreshLive().then(function () {
+      refreshBtn.disabled = false;
+      refreshBtn.innerHTML = prev;
+    });
+  });
+
+  refreshLive();
+  setInterval(function () { if (!document.hidden) refreshLive(); }, 20000);
+})();
+</script>

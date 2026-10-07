@@ -138,6 +138,69 @@ router.get('/bot', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
   });
 });
 
+// ── Settings (/dev/settings) ────────────────────────────────────────────
+// The section's settings home. Its one control surface is who may enter /dev
+// (the owner plus the developer list); the rest is a brief board that links to
+// the control pages already built (maintenance, features, status). Managing
+// developers is owner-only, so a non-owner reads the same page with the add
+// form and the remove buttons hidden.
+//
+// Accounts are resolved live from the bot (its Discord cache) with a short
+// timeout. When the bot is unreachable a row falls back to the stored username,
+// so a developer never vanishes from the list because the bot blinked.
+async function resolveAccounts(ids) {
+  const map = {};
+  await Promise.all(ids.map(async (id) => {
+    try {
+      const r = await botFetch(`${config.botApiUrl}/api/users/${id}`, { signal: AbortSignal.timeout(2500) });
+      if (r.ok) map[id] = await r.json();
+    } catch {}
+  }));
+  return map;
+}
+
+router.get('/settings', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {
+  const ownerId = config.discord.ownerId || '';
+
+  let developers = [];
+  try {
+    developers = await BotDeveloper.find({}).sort({ addedAt: -1 }).lean();
+  } catch {}
+
+  const accounts = await resolveAccounts(developers.map((d) => d.userId).filter(Boolean));
+
+  // A compact snapshot for the quick-access cards. Both halves are best-effort:
+  // an empty board is still a readable page.
+  let maintenance = maintenanceState(null);
+  try {
+    const doc = await getOrCreateMaintenance();
+    await expireMaintenance(doc);
+    maintenance = maintenanceState(doc);
+  } catch {}
+
+  let features = { total: 0, on: 0, maintenance: 0, off: 0 };
+  try {
+    const list = await readFeatureState();
+    features = { total: list.length, ...countFeatureStates(list) };
+  } catch {}
+
+  let notice = null;
+  if (req.query.ok && DEV_OK[req.query.ok]) notice = { kind: 'ok', text: DEV_OK[req.query.ok] };
+  else if (req.query.err && DEV_ERR[req.query.err]) notice = { kind: 'err', text: DEV_ERR[req.query.err] };
+
+  res.render('dev/settings', {
+    user: req.session.user,
+    title: 'الإعدادات',
+    ownerId,
+    developers,
+    accounts,
+    notice,
+    isOwner: req.perms?.isOwner || false,
+    maintenance,
+    features,
+  });
+});
+
 // ── Developer status (a superset of the public /status) ──────────────────
 // Every number on the page comes from the routes that already serve it
 // (status, diagnostics, bot info, commands, tickets) plus the maintenance
@@ -552,7 +615,7 @@ router.post('/features/:key', isAuthenticated, isOwnerOrDeveloper, async (req, r
 // scripting turned off and nothing here depends on a toast helper.
 
 function devRedirect(res, param, key) {
-  res.redirect('/dev?' + param + '=' + encodeURIComponent(key));
+  res.redirect('/dev/settings?' + param + '=' + encodeURIComponent(key));
 }
 
 router.post('/developers', isAuthenticated, isOwnerOrDeveloper, async (req, res) => {

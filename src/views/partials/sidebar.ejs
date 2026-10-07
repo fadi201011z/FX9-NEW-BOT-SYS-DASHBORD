@@ -194,6 +194,10 @@
         <i class="fas fa-screwdriver-wrench" aria-hidden="true"></i>
         <span>وضع الصيانة</span>
       </a>
+      <a href="/dev/settings" class="nav-link <%= currentPage === 'dev-settings' ? 'active' : '' %>" data-tip="الإعدادات" aria-label="الإعدادات"<% if (currentPage === 'dev-settings') { %> aria-current="page"<% } %>>
+        <i class="fas fa-gear" aria-hidden="true"></i>
+        <span>الإعدادات</span>
+      </a>
     </div>
     <% } %>
   </nav>

@@ -174,7 +174,29 @@
   @media(max-width:640px){.dv-mnt-summary{grid-template-columns:1fr}}
   </style>
 
-  <%- include('partials/dev-developers') %>
+  <!-- ── إعدادات المطوّرين — بطاقة موجزة تقود إلى الصفحة المخصصة ── -->
+  <div class="dv-sec-head">
+    <h2><i class="fas fa-gear"></i> إعدادات المطوّرين</h2>
+    <a class="dv-mnt-open" href="/dev/settings">فتح الإعدادات <i class="fas fa-arrow-left"></i></a>
+  </div>
+  <section class="dv-panel">
+    <div class="dv-set-row">
+      <span class="dv-set-ic"><i class="fas fa-user-astronaut"></i></span>
+      <div class="dv-set-body">
+        <b><%= (developers || []).length %> مطوّر مُضاف</b>
+        <small>إضافة المطوّرين وإزالتهم ومعرفة حساباتهم من صفحة الإعدادات</small>
+      </div>
+      <a class="dv-btn dv-btn-primary" href="/dev/settings"><i class="fas fa-sliders"></i> إدارة المطوّرين</a>
+    </div>
+  </section>
+  <style>
+  .dv-set-row{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+  .dv-set-ic{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(168,85,247,0.1);color:#c9a4ff;font-size:1.02rem;flex-shrink:0}
+  .dv-set-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .dv-set-body b{font-size:.9rem;font-weight:800}
+  .dv-set-body small{font-size:.72rem;color:rgba(255,255,255,0.4)}
+  @media(max-width:640px){.dv-set-row{flex-wrap:wrap}}
+  </style>
 
   <style>
   .dv{max-width:1120px;margin:0 auto;position:relative;padding-bottom:28px}
