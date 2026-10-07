@@ -17,7 +17,11 @@ export default {
 
   session: {
     secret: process.env.SESSION_SECRET || 'krs-dashboard-secret',
-    maxAge: 24 * 60 * 60 * 1000,
+    // Rolling lifetime. The cookie and the Mongo session row are refreshed on
+    // every request, so someone stays signed in for as long as they keep using
+    // the site — a year, by default — and only pressing تسجيل الخروج ends it.
+    // Override with SESSION_MAX_AGE_DAYS (e.g. 30) for a shorter window.
+    maxAge: Math.max(1, parseInt(process.env.SESSION_MAX_AGE_DAYS, 10) || 365) * 24 * 60 * 60 * 1000,
   },
 
   botApiUrl: process.env.BOT_API_URL || 'http://localhost:10001',

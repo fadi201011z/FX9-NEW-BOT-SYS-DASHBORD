@@ -345,6 +345,12 @@ button { font-family: inherit; }
   display: flex; align-items: flex-end; justify-content: center;
   gap: 16px; flex-wrap: wrap; margin-top: 40px;
 }
+/* The signed-in-only dashboard button. It sits in a row of its own directly
+   under the two public actions, so those two stay untouched for everyone who
+   is not logged in, and the row above keeps its measured 40px. */
+.nx-hero__dash {
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; margin-top: 14px;
+}
 
 /* ─── Dashboard showcase ───────────────────────────────────────────────────
    novax drops a screenshot of their dashboard in here. Measured off their
@@ -1348,6 +1354,7 @@ button { font-family: inherit; }
 @media (max-width: 639.98px) {
   .nx-hero__acts { flex-direction: column; align-items: stretch; }
   .nx-hero__acts .nx-btn { width: 100%; }
+  .nx-hero__dash .nx-btn { width: 100%; }
   .nx-header__bar { height: 62px; }
   .nx-logo { width: 42px; height: 42px; }
   .nx-features__grid { grid-template-columns: 1fr; }

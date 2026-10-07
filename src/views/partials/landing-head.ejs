@@ -31,8 +31,13 @@
       </div>
       <div class="nx-header__right">
         <button class="nx-lang" type="button"><i class="fas fa-globe"></i> العربية <i class="fas fa-chevron-down language-chevron"></i></button>
+        <%# The landing pages are reachable while signed in (see the note on the
+            `/` route), so this button has two states: the unauthenticated
+            invitation to log in, and the one a signed-in visitor actually wants
+            — the panel. The destination matches the route's own rule: the
+            dashboard for anyone who may open it, /home otherwise. %>
         <% if (locals.user) { %>
-          <a href="/home" class="nx-btn nx-btn-p"><i class="fas fa-gauge-high nx-sico"></i> لوحة التحكم</a>
+          <a href="<%-(locals.perms && locals.perms.can && locals.perms.can.dashboard) ? '/dashboard' : '/home' %>" class="nx-btn nx-btn-p"><i class="fas fa-gauge-high nx-sico"></i> الانتقال إلى الداشبورد</a>
         <% } else { %>
           <a href="/auth/discord" class="nx-btn nx-btn-p"><i class="fas fa-right-to-bracket nx-sico"></i> دخول</a>
         <% } %>

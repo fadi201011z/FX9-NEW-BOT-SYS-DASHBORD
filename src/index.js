@@ -73,9 +73,12 @@ function buildSessionStore() {
       collectionName: 'sessions',
       ttl: Math.floor(config.session.maxAge / 1000),
       autoRemove: 'native',
-      // Expire idle sessions immediately rather than on write, so the TTL
-      // index stays authoritative even if a session is never touched again.
-      touchAfter: 0,
+      // The session is rolling now (see below), so its expiry has to move on
+      // every visit or a year-long cookie would still die when the Mongo row
+      // behind it ran out. The window is one hour: a session that changes is
+      // written anyway, and one that only needs its deadline pushed back is
+      // worth one write an hour rather than one per request.
+      touchAfter: 3600,
     });
   } catch (err) {
     // Keep login working if Mongo is unreachable at boot. MemoryStore is worse
@@ -90,6 +93,11 @@ app.use(session({
   secret: config.session.secret,
   resave: false,
   saveUninitialized: false,
+  // Reissue the cookie on every response, so the browser's deadline slides
+  // forward with each visit instead of running out a fixed time after login.
+  // Together with the store's `touchAfter` above this is what makes a signed-in
+  // user stay signed in until they press تسجيل الخروج.
+  rolling: true,
   cookie: {
     secure: !config.isDev,
     maxAge: config.session.maxAge,
@@ -125,6 +133,21 @@ app.use(async (req, res, next) => {
   req.perms = perms;
   res.locals.perms = perms;
   res.locals.isDeveloper = perms.isDeveloper;
+
+  // `user` for every view, so a header or a hero button does not depend on each
+  // route remembering to pass it. Stripped down to display fields: the OAuth
+  // tokens live in the session and nothing in a template needs them.
+  res.locals.user = user
+    ? {
+        id: user.id,
+        username: user.username,
+        globalName: user.globalName,
+        avatar: user.avatar,
+        discriminator: user.discriminator,
+        dashboardRole: user.dashboardRole,
+        isOwner: user.isOwner,
+      }
+    : null;
   // Still consumed by the older templates. Same number, now per-guild by
   // construction instead of by a second, disagreeing calculation.
   res.locals.roleLevel = perms.level;
@@ -226,9 +249,9 @@ app.get('/docs', async (req, res) => {
   try {
     const { getDocumentation } = await import('./services/syncService.js');
     const commands = await getDocumentation();
-    res.render('docs', { user: req.session?.user || null, commands, title: 'التوثيق' });
+    res.render('docs', { user: res.locals.user || null, commands, title: 'التوثيق' });
   } catch {
-    res.render('docs', { user: req.session?.user || null, commands: [], title: 'التوثيق' });
+    res.render('docs', { user: res.locals.user || null, commands: [], title: 'التوثيق' });
   }
 });
 
@@ -237,14 +260,14 @@ app.get('/docs/:category', async (req, res) => {
     const { getDocumentation } = await import('./services/syncService.js');
     const all = await getDocumentation();
     const commands = all.filter(c => c.category === req.params.category);
-    res.render('docs', { user: req.session?.user || null, commands, category: req.params.category, title: `التوثيق — ${req.params.category}` });
+    res.render('docs', { user: res.locals.user || null, commands, category: req.params.category, title: `التوثيق — ${req.params.category}` });
   } catch {
-    res.render('docs', { user: req.session?.user || null, commands: [], title: 'التوثيق' });
+    res.render('docs', { user: res.locals.user || null, commands: [], title: 'التوثيق' });
   }
 });
 
 app.get('/status', (req, res) => {
-  res.render('status', { user: req.session?.user || null, title: 'حالة البوت' });
+  res.render('status', { user: res.locals.user || null, title: 'حالة البوت' });
 });
 
 // ─── About ────────────────────────────────────────────────────────────────
@@ -263,12 +286,12 @@ app.get('/about', async (req, res) => {
     const { getCommandStats } = await import('./services/syncService.js');
     stats = getCommandStats();
   } catch { /* leave stats null: the hero simply omits the two number tiles */ }
-  res.render('about', { user: req.session?.user || null, title: 'نبذة عنا', stats });
+  res.render('about', { user: res.locals.user || null, title: 'نبذة عنا', stats });
 });
 
 // ─── Access Denied ───────────────────────────────────────────────────────
 app.get('/access-denied', (req, res) => {
-  res.status(403).render('access-denied', { layout: false, user: req.session?.user || null, title: 'لا يمكنك الدخول', clientId: config.discord.clientId, reason: req.query.reason || 'owner' });
+  res.status(403).render('access-denied', { layout: false, user: res.locals.user || null, title: 'لا يمكنك الدخول', clientId: config.discord.clientId, reason: req.query.reason || 'owner' });
 });
 
 // ─── Maintenance ─────────────────────────────────────────────────────────
@@ -334,7 +357,7 @@ app.get('/invite', (req, res) => {
   res.status(200).render('invite', {
     layout: false,
     page: 'invite',
-    user: req.session?.user || null,
+    user: res.locals.user || null,
     title: 'دعوة البوت — قيد التطوير',
   });
 });
@@ -353,7 +376,7 @@ app.get('/premium', (req, res) => {
   res.status(200).render('premium', {
     layout: false,
     page: 'premium',
-    user: req.session?.user || null,
+    user: res.locals.user || null,
     title: 'البريميوم — قريباً',
   });
 });
@@ -385,10 +408,11 @@ app.get('/', async (req, res) => {
     return res.redirect(`/auth/discord/callback?${qs}`);
   }
 
-  if (req.session?.user) {
-    const perms = await resolve(req.session.user, null);
-    return res.redirect(perms.can.dashboard ? '/dashboard' : '/home');
-  }
+  // Signed-in visitors used to be thrown straight at the dashboard from here,
+  // which meant they never saw the landing page again — no hero, and no way to
+  // tell the header's "دخول" from "الانتقال إلى الداشبورد". The landing stays
+  // reachable now; the two dashboard buttons on it are what a signed-in user
+  // reaches the panel with.
   const errorMap = {
     auth_failed: 'auth_failed',
     no_code: 'no_code',
@@ -408,7 +432,7 @@ app.get('/', async (req, res) => {
 
   res.render('index', {
     layout: false,
-    user: req.session?.user || null,
+    user: res.locals.user || null,
     page: 'home',
     title: 'Kratos Dashboard — لوحة تحكم البوت',
     supportUrl: '#',
