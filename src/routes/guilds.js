@@ -312,6 +312,41 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
     const botInGuild = botGuildIds ? botGuildIds.has(guildId) : false;
     let memberCount = 'N/A';
 
+    // عدّادات خلفية خفيفة: كلها countDocuments/flat — تُغذّي "صحة الأنظمة" بنفس
+    // المصدر الذي تعتمده صفحة "حالة سيرفرك"، فلا يمكن للصفحتين أن تختلفا على رقم.
+    const [tickets, voiceRooms, notifCount, backupCount, disabledCmds] = await Promise.all([
+      getGuildTickets(guildId),
+      getGuildVoiceChannels(guildId),
+      Notification.countDocuments({ guildId }),
+      Backup.countDocuments({ guildId }),
+      CommandConfig.countDocuments({ guildId, enabled: false }),
+    ]);
+
+    // أسماء القنوات والرتب لعرضها بدل المعرّفات الخام في الإعدادات المهمة.
+    // فشل أيّ من الطلبين يُبتلع — صفحة النظرة العامة تستحق أن تنجو من بوت نائم.
+    let channelsMap = {};
+    let rolesMap = {};
+    if (botInGuild) {
+      const [chRes, rolesRes] = await Promise.all([
+        botFetch(`${config.botApiUrl}/api/guilds/${guildId}/channels`, { signal: AbortSignal.timeout(3500) }).catch(() => null),
+        botFetch(`${config.botApiUrl}/api/guilds/${guildId}/roles`, { signal: AbortSignal.timeout(3500) }).catch(() => null),
+      ]);
+      try {
+        if (chRes && chRes.ok) {
+          for (const c of await chRes.json()) {
+            if (c && c.id != null) channelsMap[String(c.id)] = c.name || String(c.id);
+          }
+        }
+      } catch {}
+      try {
+        if (rolesRes && rolesRes.ok) {
+          for (const r of await rolesRes.json()) {
+            if (r && r.id != null) rolesMap[String(r.id)] = r.name || String(r.id);
+          }
+        }
+      } catch {}
+    }
+
     if (botInGuild) {
       try {
         const botRes = await botFetch(`${config.botApiUrl}/api/guilds/${guildId}/info`, {
@@ -338,7 +373,24 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
       }
     }
 
-    const tickets = await getGuildTickets(guildId);
+    let features = [];
+    try { features = await Feature.find({}).lean(); } catch {}
+
+    let premium = null;
+    const premiumExpires = Number(guildConfig.premium_expires_at) || 0;
+    if (guildConfig.premium_plan && premiumExpires > Date.now()) {
+      premium = {
+        plan: guildConfig.premium_plan,
+        expiresAt: premiumExpires,
+        daysLeft: Math.max(1, Math.ceil((premiumExpires - Date.now()) / 86400000)),
+      };
+    }
+
+    const protectionCount = PROTECTION_KEYS.filter(k => guildConfig[k] !== 'false').length;
+    const systems = buildSystems({
+      guildId, guildConfig, admins, tickets, voiceRooms,
+      notifCount, backupCount, disabledCmds, premium, features,
+    });
 
     res.render('guild/overview', {
       user: req.session.user,
@@ -350,6 +402,11 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, async (req, res) => {
       botInGuild,
       memberCount,
       tickets,
+      channelsMap,
+      rolesMap,
+      premium,
+      protectionCount,
+      systems,
       title: guild.name,
     });
   } catch (err) {

@@ -1,27 +1,45 @@
 <% currentPage = 'guild-overview' %>
 <%
-  // — لوحة السيرفر: ملخص واحد سريع، كل بطاقة رابط، وما تحتاجه "حالة سيرفرك"
-  //   لا يُكرَّر هنا بل يُشار إليه — هذه الصفحة للملاحة، وذاك للوقوف عندها.
+  // — لوحة السيرفر: ملخص واحد سريع، كل بطاقة رابط.
+  //   صحة الأنظمة هنا تُبنى بنفس buildSystems التي تستخدمها "حالة سيرفرك"،
+  //   فمصدر الرقم واحد ولا يمكن للصفحتين أن تختلفا عليه.
   const protectionKeys = ['anti_spam', 'anti_link', 'anti_mention', 'anti_nuke', 'anti_raid'];
   const protectionCount = protectionKeys.filter(k => guildConfig[k] !== 'false').length;
   const hasKey = (k) => !!guildConfig[k];
   const unreadAlerts = (alerts || []).filter(a => !a.read).length;
   const curKey = (k) => guildConfig[k] !== undefined && guildConfig[k] !== '';
+  const gChannels = (typeof channelsMap !== 'undefined' && channelsMap) ? channelsMap : {};
+  const gRoles = (typeof rolesMap !== 'undefined' && rolesMap) ? rolesMap : {};
+  const nameFor = (v) => {
+    if (v === undefined || v === null || v === '') return '—';
+    const id = String(v).trim();
+    if (!id) return '—';
+    if (gChannels[id]) return '#' + gChannels[id];
+    if (gRoles[id]) return '@' + gRoles[id];
+    return v;
+  };
   const curatedKeys = [
-    ['welcome_channel', 'قناة الترحيب'],
-    ['log_channel', 'قناة السجل'],
-    ['modlog_channel', 'قناة سجل الإشراف'],
-    ['stats_total', 'قناة الإحصائية'],
-    ['premium_plan', 'البريميوم'],
-    ['ticket_category', 'فئة التذاكر'],
+    ['welcome_channel', 'قناة الترحيب', 'fa-door-open'],
+    ['log_channel', 'قناة السجل', 'fa-clock-rotate-left'],
+    ['modlog_channel', 'قناة سجل الإشراف', 'fa-user-shield'],
+    ['stats_total', 'قناة الإحصائية', 'fa-signal'],
+    ['premium_plan', 'الباقة الحالية', 'fa-gem'],
+    ['ticket_category', 'فئة التذاكر', 'fa-ticket'],
   ].filter(([k]) => curKey(k));
-  const sysRows = [
-    { label: 'الترحيب', icon: 'fa-door-open', href: `/settings/${guild.id}`, ok: hasKey('welcome_channel'), text: hasKey('welcome_channel') ? 'قناة الترحيب مضبوطة' : 'لم تُضبط قناة الترحيب' },
-    { label: 'الإحصائيات', icon: 'fa-signal', href: `/settings/${guild.id}`, ok: hasKey('stats_total') || hasKey('stats_online') || hasKey('stats_bots'), text: hasKey('stats_total') || hasKey('stats_online') || hasKey('stats_bots') ? 'قنوات الإحصائية تعمل' : 'لا قنوات إحصائية' },
-    { label: 'السجلات', icon: 'fa-clock-rotate-left', href: `/settings/${guild.id}`, ok: hasKey('log_channel') || hasKey('modlog_channel') || hasKey('botlog_channel'), text: hasKey('log_channel') || hasKey('modlog_channel') || hasKey('botlog_channel') ? 'قنوات السجل مضبوطة' : 'لم تُضبط قنوات السجل' },
-    { label: 'التذاكر', icon: 'fa-ticket', href: `/tickets/${guild.id}`, ok: (tickets ? tickets.total : 0) > 0, text: tickets ? `${tickets.open.length} مفتوحة من ${tickets.total}` : 'لا تذاكر' },
-    { label: 'الحماية', icon: 'fa-shield-halved', href: `/protection/${guild.id}`, ok: protectionCount > 0, text: `${protectionCount}/5 أنظمة مفعّلة` },
-    { label: 'المدراء', icon: 'fa-users-gear', href: `/admins/${guild.id}`, ok: admins.length > 0, text: admins.length ? `${admins.length} مدير ورتبة` : 'لا مدراء بعد' },
+  const ticketData = tickets || { open: [], closed: [], total: 0 };
+  const adminList = admins || [];
+  const navTiles = [
+    ['/guilds/' + guild.id + '/status', 'fa-heart-pulse', 'حالة سيرفرك'],
+    ['/settings/' + guild.id, 'fa-sliders', 'الإعدادات'],
+    ['/commands/' + guild.id, 'fa-terminal', 'الأوامر'],
+    ['/tickets/' + guild.id, 'fa-ticket', 'التذاكر'],
+    ['/voice/' + guild.id, 'fa-microphone', 'الرومات المؤقتة'],
+    ['/notifications/' + guild.id, 'fa-bell', 'الإشعارات'],
+    ['/protection/' + guild.id, 'fa-shield-halved', 'الحماية'],
+    ['/premium/' + guild.id, 'fa-gem', 'البريميوم'],
+    ['/admins/' + guild.id, 'fa-users-gear', 'المدراء'],
+    ['/backup/' + guild.id, 'fa-database', 'النسخ الاحتياطي'],
+    ['/logs/' + guild.id, 'fa-clock-rotate-left', 'السجلات'],
   ];
 %>
 
@@ -45,22 +63,44 @@
   </div>
 <% } else { %>
 
-<div class="guild-header">
+<div class="guild-header ov-hero <%= premium ? 'is-premium' : '' %>">
   <div class="guild-header-info">
-    <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" alt="" class="guild-header-icon" onerror="this.style.display='none'">
+    <div class="ov-avatar">
+      <% if (guild.icon) { %>
+        <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png?size=128" alt="" class="guild-header-icon ov-avatar-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="ov-avatar-fallback" style="display:none"><span><%= (guild.name || '?').charAt(0) %></span></div>
+      <% } else { %>
+        <div class="ov-avatar-fallback"><span><%= (guild.name || '?').charAt(0) %></span></div>
+      <% } %>
+      <span class="ov-bot-dot"></span>
+    </div>
     <div>
       <h1><%= guild.name %></h1>
-      <p>
-        <i class="fas fa-users" aria-hidden="true"></i> <%= memberCount %> عضو •
-        <i class="fas fa-shield-halved" aria-hidden="true"></i> <%= protectionCount %>/5 حماية
+      <p class="ov-meta">
+        <span class="ov-meta-pill"><i class="fas fa-users" aria-hidden="true"></i> <%= memberCount %> عضو</span>
+        <span class="ov-meta-pill"><i class="fas fa-shield-halved" aria-hidden="true"></i> <%= protectionCount %>/5 حماية</span>
+        <span class="ov-meta-pill"><i class="fas fa-ticket" aria-hidden="true"></i> <%= ticketData.open.length %> تذاكر مفتوحة</span>
+        <% if (premium) { %><span class="ov-meta-pill is-gold"><i class="fas fa-gem" aria-hidden="true"></i> باقة <%= premium.plan %></span><% } %>
       </p>
     </div>
   </div>
   <div class="guild-header-actions">
-    <span class="badge badge-success"><i class="fas fa-check"></i> البوت متصل</span>
-    <a href="/guilds/<%= guild.id %>/status" class="btn-sm"><i class="fas fa-chart-line"></i> حالة سيرفرك</a>
+    <span class="badge badge-success"><i class="fas fa-check" aria-hidden="true"></i> البوت متصل</span>
+    <a href="/guilds/<%= guild.id %>/status" class="btn-sm"><i class="fas fa-heart-pulse" aria-hidden="true"></i> حالة سيرفرك</a>
+    <a href="/guilds/<%= guild.id %>" class="btn-sm" title="تحديث الآن"><i class="fas fa-rotate" aria-hidden="true"></i></a>
   </div>
 </div>
+
+<% if (premium) { %>
+  <div class="ov-premium">
+    <div class="ov-premium-icon"><i class="fas fa-gem" aria-hidden="true"></i></div>
+    <div class="ov-premium-text">
+      <strong>باقة <span><%= premium.plan %></span> مفعّلة <span class="ov-premium-days"><%= premium.daysLeft %> يوم</span> متبقية</strong>
+      <span>سيرفرك يستفيد من كل مزايا النظام حتى الآن — أدر الباقة من صفحة البريميوم.</span>
+    </div>
+    <a href="/premium/<%= guild.id %>" class="btn-sm">إدارة الباقة <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
+  </div>
+<% } %>
 
 <div class="stats-grid ov-kpis">
   <a class="stat-card glass" href="/guilds/<%= guild.id %>/status">
@@ -68,15 +108,17 @@
     <div class="stat-info">
       <span class="stat-value"><%= memberCount %></span>
       <span class="stat-label">الأعضاء</span>
+      <span class="ov-sub">عدد أعضاء السيرفر</span>
     </div>
     <span class="stat-link"><i class="fas fa-arrow-left" aria-hidden="true"></i></span>
   </a>
 
-  <a class="stat-card glass" href="/settings/<%= guild.id %>">
-    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-sliders-h" aria-hidden="true"></i></div>
+  <a class="stat-card glass" href="/tickets/<%= guild.id %>">
+    <div class="stat-icon" style="--stat-color: var(--nx-gold)"><i class="fas fa-ticket" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <span class="stat-value"><%= Object.keys(guildConfig).length %></span>
-      <span class="stat-label">إعدادات محفوظة</span>
+      <span class="stat-value" id="ticketCountOverview"><%= ticketData.open.length %></span>
+      <span class="stat-label">تذاكر مفتوحة</span>
+      <span class="ov-sub">من أصل <%= ticketData.total %> تذكرة</span>
     </div>
     <span class="stat-link"><i class="fas fa-arrow-left" aria-hidden="true"></i></span>
   </a>
@@ -86,15 +128,7 @@
     <div class="stat-info">
       <span class="stat-value"><%= protectionCount %>/5</span>
       <span class="stat-label">أنظمة حماية</span>
-    </div>
-    <span class="stat-link"><i class="fas fa-arrow-left" aria-hidden="true"></i></span>
-  </a>
-
-  <a class="stat-card glass" href="/tickets/<%= guild.id %>">
-    <div class="stat-icon" style="--stat-color: var(--nx-gold)"><i class="fas fa-ticket" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value" id="ticketCountOverview"><%= tickets ? tickets.total : '—' %></span>
-      <span class="stat-label">تذاكر (<%= tickets ? tickets.open.length : 0 %> مفتوحة)</span>
+      <span class="ov-sub"><%= protectionCount > 0 ? 'مفعّلة عبر الحماية' : 'لم تُفعّل بعد' %></span>
     </div>
     <span class="stat-link"><i class="fas fa-arrow-left" aria-hidden="true"></i></span>
   </a>
@@ -102,8 +136,19 @@
   <a class="stat-card glass" href="/admins/<%= guild.id %>">
     <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-users-gear" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <span class="stat-value"><%= admins.length %></span>
+      <span class="stat-value"><%= adminList.length %></span>
       <span class="stat-label">المدراء</span>
+      <span class="ov-sub"><%= adminList.length > 0 ? 'مدير ورتبة معتمدون' : 'لا مدراء بعد' %></span>
+    </div>
+    <span class="stat-link"><i class="fas fa-arrow-left" aria-hidden="true"></i></span>
+  </a>
+
+  <a class="stat-card glass" href="/settings/<%= guild.id %>">
+    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-sliders" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= Object.keys(guildConfig).length %></span>
+      <span class="stat-label">إعدادات محفوظة</span>
+      <span class="ov-sub">مفتاح في قاعدة البيانات</span>
     </div>
     <span class="stat-link"><i class="fas fa-arrow-left" aria-hidden="true"></i></span>
   </a>
@@ -113,37 +158,40 @@
     <div class="stat-info">
       <span class="stat-value"><%= unreadAlerts %></span>
       <span class="stat-label">تنبيهات غير مقروءة</span>
+      <span class="ov-sub"><%= (alerts || []).length %> من آخر التنبيهات</span>
     </div>
     <span class="stat-link"><i class="fas fa-arrow-left" aria-hidden="true"></i></span>
   </a>
 </div>
 
+<div class="card glass">
+  <div class="card-header">
+    <h3><i class="fas fa-heart-pulse" aria-hidden="true"></i> صحة الأنظمة</h3>
+    <span class="badge badge-default"><%= systems.length %> نظاماً</span>
+  </div>
+  <div class="ov-systems">
+    <% systems.forEach(s => { %>
+      <a class="ov-system" href="<%= s.href %>">
+        <span class="ov-system-icon"><i class="fas <%= s.icon %>" aria-hidden="true"></i></span>
+        <span class="ov-system-text">
+          <strong><%= s.name %></strong>
+          <span><%= s.detail %></span>
+        </span>
+        <span class="ov-pill-state is-<%= s.state %>">
+          <%= s.state === 'maintenance' ? 'صيانة' : (s.state === 'off' ? 'موقوف' : 'مفعّل') %>
+        </span>
+      </a>
+    <% }) %>
+  </div>
+</div>
+
 <div class="dashboard-grid">
   <div class="card glass">
     <div class="card-header">
-      <h3><i class="fas fa-heart-pulse"></i> صحة الأنظمة</h3>
-      <a href="/guilds/<%= guild.id %>/status" class="btn-sm">حالة سيرفرك <i class="fas fa-arrow-left"></i></a>
+      <h3><i class="fas fa-flag" aria-hidden="true"></i> التنبيهات</h3>
+      <a href="/logs/<%= guild.id %>" class="btn-sm">سجل النشاط <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
     </div>
-    <div class="ov-systems">
-      <% sysRows.forEach(r => { %>
-        <a class="ov-system <%= r.ok ? 'is-ok' : 'is-off' %>" href="<%= r.href %>">
-          <span class="ov-system-icon"><i class="fas <%= r.icon %>" aria-hidden="true"></i></span>
-          <span class="ov-system-text">
-            <strong><%= r.label %></strong>
-            <span><%= r.text %></span>
-          </span>
-          <span class="ov-system-dot" aria-hidden="true"></span>
-        </a>
-      <% }) %>
-    </div>
-  </div>
-
-  <div class="card glass">
-    <div class="card-header">
-      <h3><i class="fas fa-flag"></i> التنبيهات</h3>
-      <a href="/logs/<%= guild.id %>" class="btn-sm">سجل النشاط <i class="fas fa-arrow-left"></i></a>
-    </div>
-    <div class="alerts-list">
+    <div class="ov-alerts">
       <% if (alerts && alerts.length > 0) { %>
         <% alerts.slice(0, 5).forEach(a => { %>
           <div class="alert-item severity-<%= a.severity || 'info' %>">
@@ -157,44 +205,17 @@
         <% }) %>
       <% } else { %>
         <div class="empty-state">
-          <i class="fas fa-flag"></i>
+          <i class="fas fa-flag" aria-hidden="true"></i>
           <p>لا توجد تنبيهات — السيرفر هادئ</p>
         </div>
       <% } %>
     </div>
   </div>
-</div>
-
-<div class="dashboard-grid">
-  <div class="card glass">
-    <div class="card-header">
-      <h3><i class="fas fa-sliders"></i> الإعدادات المهمة</h3>
-      <a href="/settings/<%= guild.id %>" class="btn-sm">إدارة <i class="fas fa-arrow-left"></i></a>
-    </div>
-    <div class="config-list">
-      <% if (curatedKeys.length > 0) { %>
-        <% curatedKeys.forEach(([key, label]) => { %>
-          <div class="config-item">
-            <span class="config-key"><%= label %></span>
-            <span class="config-value ov-trunc"><%= guildConfig[key] %></span>
-          </div>
-        <% }) %>
-        <% if (Object.keys(guildConfig).length > curatedKeys.length) { %>
-          <div class="config-more">و <%= Object.keys(guildConfig).length - curatedKeys.length %> إعدادات أخرى...</div>
-        <% } %>
-      <% } else { %>
-        <div class="empty-state">
-          <i class="fas fa-cog"></i>
-          <p>لا توجد إعدادات محفوظة بعد — ابدأ من صفحة الإعدادات</p>
-        </div>
-      <% } %>
-    </div>
-  </div>
 
   <div class="card glass">
     <div class="card-header">
-      <h3><i class="fas fa-clock-rotate-left"></i> آخر النشاطات</h3>
-      <a href="/logs/<%= guild.id %>" class="btn-sm">عرض الكل <i class="fas fa-arrow-left"></i></a>
+      <h3><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> آخر النشاطات</h3>
+      <a href="/logs/<%= guild.id %>" class="btn-sm">عرض الكل <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
     </div>
     <div class="activity-list">
       <% if (activity && activity.length > 0) { %>
@@ -210,7 +231,7 @@
         <% }) %>
       <% } else { %>
         <div class="empty-state">
-          <i class="fas fa-history"></i>
+          <i class="fas fa-history" aria-hidden="true"></i>
           <p>لا توجد نشاطات بعد</p>
         </div>
       <% } %>
@@ -218,49 +239,144 @@
   </div>
 </div>
 
-<div class="quick-nav glass">
-  <h3><i class="fas fa-bolt"></i> التنقل السريع</h3>
-  <div class="quick-nav-grid">
-    <a href="/guilds/<%= guild.id %>/status" class="quick-nav-item"><i class="fas fa-chart-line"></i> حالة سيرفرك</a>
-    <a href="/settings/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-sliders-h"></i> الإعدادات</a>
-    <a href="/commands/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-terminal"></i> الأوامر</a>
-    <a href="/tickets/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-ticket"></i> التذاكر</a>
-    <a href="/voice/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-microphone"></i> الرومات المؤقتة</a>
-    <a href="/notifications/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-bell"></i> الإشعارات</a>
-    <a href="/protection/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-shield-halved"></i> الحماية</a>
-    <a href="/premium/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-gem"></i> نظام البريميوم</a>
-    <a href="/admins/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-users-gear"></i> المدراء</a>
-    <a href="/backup/<%= guild.id %>" class="quick-nav-item"><i class="fas fa-database"></i> النسخ الاحتياطي</a>
+<div class="dashboard-grid">
+  <div class="card glass">
+    <div class="card-header">
+      <h3><i class="fas fa-sliders" aria-hidden="true"></i> الإعدادات المهمة</h3>
+      <a href="/settings/<%= guild.id %>" class="btn-sm">إدارة <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
+    </div>
+    <div class="config-list">
+      <% if (curatedKeys.length > 0) { %>
+        <% curatedKeys.forEach(([key, label, icon]) => { %>
+          <div class="config-item ov-config-item">
+            <span class="config-key"><i class="fas <%= icon %> ov-config-icon" aria-hidden="true"></i> <%= label %></span>
+            <span class="config-value ov-trunc"><%= nameFor(guildConfig[key]) %></span>
+          </div>
+        <% }) %>
+        <% if (Object.keys(guildConfig).length > curatedKeys.length) { %>
+          <div class="config-more">و <%= Object.keys(guildConfig).length - curatedKeys.length %> إعدادات أخرى...</div>
+        <% } %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-cog" aria-hidden="true"></i>
+          <p>لا توجد إعدادات محفوظة بعد — ابدأ من صفحة الإعدادات</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card glass">
+    <div class="card-header">
+      <h3><i class="fas fa-bolt" aria-hidden="true"></i> وصول سريع</h3>
+      <span class="badge badge-default"><%= navTiles.length %> صفحة</span>
+    </div>
+    <div class="ov-tiles">
+      <% navTiles.forEach(t => { %>
+        <a class="ov-tile" href="<%= t[0] %>">
+          <span class="ov-tile-icon"><i class="fas <%= t[1] %>" aria-hidden="true"></i></span>
+          <span class="ov-tile-label"><%= t[2] %></span>
+        </a>
+      <% }) %>
+    </div>
   </div>
 </div>
 
 <style>
+  /* ═══ البطل (Hero) ═══ */
+  .ov-hero { position: relative; overflow: hidden; }
+  .ov-hero::after {
+    content: ''; position: absolute; inset-inline-end: -80px; top: -80px;
+    width: 240px; height: 240px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(168, 85, 247, .16), transparent 70%);
+    pointer-events: none;
+  }
+  .ov-hero.is-premium::after {
+    background: radial-gradient(circle, rgba(245, 179, 1, .14), transparent 70%);
+  }
+  .ov-avatar { position: relative; flex: 0 0 auto; }
+  .ov-avatar-img, .ov-avatar-fallback {
+    width: 64px; height: 64px; border-radius: 16px;
+    border: 2px solid rgba(168, 85, 247, .35);
+    box-shadow: 0 0 24px rgba(168, 85, 247, .18);
+  }
+  .ov-avatar-fallback {
+    background: linear-gradient(135deg, var(--primary, #8c5aff), #a855f7);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; font-weight: 800; color: #fff;
+  }
+  .ov-bot-dot {
+    position: absolute; bottom: -2px; inset-inline-start: -2px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--success, #57f287);
+    border: 3px solid var(--bg-card, #0d0d14);
+    box-shadow: 0 0 10px rgba(87, 242, 135, .6);
+  }
+  .ov-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .ov-meta-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .76rem; font-weight: 600; color: var(--text-muted);
+    background: var(--bg-glass-hover); border: 1px solid var(--border);
+    padding: 4px 11px; border-radius: 999px;
+  }
+  .ov-meta-pill i { color: var(--primary, #8c5aff); font-size: .72rem; }
+  .ov-meta-pill.is-gold { color: #ffd93d; border-color: rgba(255, 217, 61, .3); background: rgba(255, 217, 61, .08); }
+  .ov-meta-pill.is-gold i { color: #ffd93d; }
+
+  /* ═══ شريط بريميوم ═══ */
+  .ov-premium {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 14px 18px; margin-bottom: 20px;
+    border-radius: var(--radius);
+    background:
+      radial-gradient(ellipse 60% 50% at 15% 0%, rgba(245, 179, 1, .14), transparent 60%),
+      linear-gradient(160deg, rgba(20, 16, 4, .7), rgba(12, 12, 26, .85));
+    border: 1px solid rgba(245, 179, 1, .35);
+  }
+  .ov-premium-icon {
+    width: 42px; height: 42px; border-radius: 12px; flex: 0 0 42px;
+    display: grid; place-items: center; font-size: 1.05rem; color: #ffd93d;
+    background: rgba(245, 179, 1, .12); border: 1px solid rgba(245, 179, 1, .3);
+  }
+  .ov-premium-text { flex: 1; min-width: 200px; }
+  .ov-premium-text strong { font-size: .95rem; color: #ffe08a; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ov-premium-text span { color: var(--text-muted); font-size: .8rem; }
+  .ov-premium-text strong span { color: #ffd93d; }
+  .ov-premium-days {
+    background: rgba(245, 179, 1, .16); color: #ffe08a !important;
+    padding: 2px 10px; border-radius: 999px; font-size: .72rem;
+  }
+
+  /* ═══ بطاقات المؤشرات ═══ */
+  .ov-kpis { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
   .ov-kpis .stat-card { text-decoration: none; transition: border-color .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease); }
   .ov-kpis .stat-card:hover { border-color: rgba(168, 85, 247, .45); transform: translateY(-2px); }
+  .ov-sub { font-size: .72rem; color: var(--text-muted); margin-top: 2px; display: block; }
 
-  .ov-systems { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 9px; }
+  /* ═══ صحة الأنظمة ═══ */
+  .ov-systems { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
   .ov-system {
-    display: flex; align-items: center; gap: 11px; text-decoration: none;
-    padding: 11px 13px; border-radius: var(--nx-radius, 11px);
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
-    background: rgba(255, 255, 255, .015);
+    display: flex; align-items: center; gap: 12px; text-decoration: none;
+    padding: 12px 14px; border-radius: var(--nx-radius, 11px);
+    border: 1px solid var(--nx-line, rgba(255, 255, 255, .08));
+    background: rgba(255, 255, 255, .02);
     transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
   }
-  .ov-system:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .06); transform: translateY(-1px); }
+  .ov-system:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .07); transform: translateY(-1px); }
   .ov-system-icon {
-    width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center;
-    border-radius: 10px; font-size: .85rem;
+    width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center;
+    border-radius: 10px; background: rgba(168, 85, 247, .12); color: #c4a2ff; font-size: .92rem;
   }
-  .ov-system.is-ok .ov-system-icon { background: rgba(87, 242, 135, .1); color: #57f287; }
   .ov-system.is-off .ov-system-icon { background: rgba(255, 255, 255, .05); color: var(--text-muted); }
   .ov-system-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-  .ov-system-text strong { color: var(--text, #fff); font-size: .85rem; font-weight: 600; }
-  .ov-system-text span { color: var(--text-muted); font-size: .73rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ov-system-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; }
-  .ov-system.is-ok .ov-system-dot { background: #57f287; box-shadow: 0 0 10px rgba(87, 242, 135, .55); }
-  .ov-system.is-off .ov-system-dot { background: rgba(255, 255, 255, .22); }
+  .ov-system-text strong { color: var(--text, #fff); font-size: .88rem; font-weight: 600; }
+  .ov-system-text span { color: var(--text-muted); font-size: .76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ov-pill-state { font-size: .7rem; padding: 4px 9px; border-radius: 999px; white-space: nowrap; border: 1px solid transparent; }
+  .ov-pill-state.is-on { color: #57f287; background: rgba(87, 242, 135, .1); border-color: rgba(87, 242, 135, .3); }
+  .ov-pill-state.is-maintenance { color: #ffd93d; background: rgba(255, 217, 61, .1); border-color: rgba(255, 217, 61, .3); }
+  .ov-pill-state.is-off { color: #ed4245; background: rgba(237, 66, 69, .1); border-color: rgba(237, 66, 69, .3); }
 
-  .alerts-list { display: flex; flex-direction: column; gap: 4px; }
+  /* ═══ التنبيهات ═══ */
+  .ov-alerts { display: flex; flex-direction: column; gap: 4px; }
   .alert-item {
     display: flex; align-items: center; gap: 12px; padding: 11px 12px;
     border-radius: var(--nx-radius, 11px); border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
@@ -276,11 +392,33 @@
   .alert-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
   .alert-body strong { font-size: .84rem; }
   .alert-body span { color: var(--text-muted); font-size: .77rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .activity-time { color: var(--text-muted); font-size: .7rem; white-space: nowrap; }
 
-  .ov-trunc { max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: ltr; text-align: right; font-size: .78rem; }
+  /* ═══ الإعدادات المهمة ═══ */
+  .ov-config-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 12px; }
+  .ov-config-icon { color: var(--primary, #8c5aff); width: 16px; margin-inline-end: 6px; font-size: .8rem; }
+  .ov-trunc { max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: ltr; text-align: right; font-size: .78rem; font-family: monospace; }
 
-  @media (max-width: 560px) {
+  /* ═══ الوصول السريع ═══ */
+  .ov-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .ov-tile {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none;
+    padding: 14px 8px; border-radius: var(--radius-sm, 11px);
+    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
+    background: rgba(255, 255, 255, .02);
+    transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
+  }
+  .ov-tile:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .07); transform: translateY(-2px); }
+  .ov-tile-icon {
+    width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
+    font-size: .95rem; color: #c4a2ff; background: rgba(168, 85, 247, .12);
+  }
+  .ov-tile-label { font-size: .78rem; font-weight: 600; color: var(--text-muted); text-align: center; }
+  .ov-tile:hover .ov-tile-label { color: var(--text); }
+
+  @media (max-width: 767.98px) {
     .ov-systems { grid-template-columns: 1fr; }
+    .ov-tiles { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
   }
 </style>
 
