@@ -9,6 +9,8 @@ import Feature from '../models/Feature.js';
 import Notification from '../models/Notification.js';
 import CommandConfig from '../models/CommandConfig.js';
 import Backup from '../models/Backup.js';
+import GuildConfig from '../models/GuildConfig.js';
+import Ticket from '../models/Ticket.js';
 
 let botGuildCache = { ids: null, lastFetch: 0 };
 const CACHE_TTL = 300000;
@@ -74,10 +76,61 @@ router.get('/', isAuthenticated, async (req, res) => {
     })
     .map(g => ({ ...g, hasBot: botGuildIds.has(g.id) }));
 
+  // ─── تخصيب خفيف لبطاقات السيرفرات (قراءة فقط — لا يغيّر أي مسار أو حفظ) ──
+  // memberCount قادم من /api/guilds/full: طلب واحد للبوت لكل القائمة بدل طلب لكل
+  // سيرفر على حدة. GuildConfig والتذاكر بقراءة مجمّعة ($in) فكلفة القاعدة ثابتة مهما
+  // كان عدد السيرفرات. كل فشل يُبتلع: تعطّل البوت أو بطء القاعدة يجب أن يُضعف
+  // المحتوى فقط، ولا يُسقط الصفحة.
+  const ids = guilds.map(g => String(g.id));
+  const [fullGuildsRes, configRows, openTickets] = await Promise.all([
+    botFetch(`${config.botApiUrl}/api/guilds/full`, { signal: AbortSignal.timeout(3500) }).catch(() => null),
+    ids.length ? GuildConfig.find({ guildId: { $in: ids } }).lean().catch(() => []) : Promise.resolve([]),
+    ids.length ? Ticket.find({ guildId: { $in: ids }, status: 'open' }).select('guildId').lean().catch(() => []) : Promise.resolve([]),
+  ]);
+
+  const memberCounts = {};
+  if (fullGuildsRes && fullGuildsRes.ok) {
+    try {
+      const data = await fullGuildsRes.json();
+      const arr = Array.isArray(data) ? data : (Array.isArray(data?.guilds) ? data.guilds : []);
+      for (const row of arr) {
+        if (row && row.id != null && Number.isFinite(Number(row.memberCount))) {
+          memberCounts[String(row.id)] = Number(row.memberCount);
+        }
+      }
+    } catch {}
+  }
+
+  const configsByGuild = {};
+  for (const row of configRows) {
+    if (!configsByGuild[row.guildId]) configsByGuild[row.guildId] = {};
+    configsByGuild[row.guildId][row.key] = row.value;
+  }
+
+  const openTicketCounts = {};
+  for (const t of openTickets) {
+    openTicketCounts[t.guildId] = (openTicketCounts[t.guildId] || 0) + 1;
+  }
+
+  const premiumNow = Date.now();
+  for (const g of guilds) {
+    const cfg = configsByGuild[g.id] || {};
+    const protectionOn = PROTECTION_KEYS.filter(k => cfg[k] !== 'false').length;
+    g.pulse = {
+      memberCount: Number.isFinite(memberCounts[g.id]) ? memberCounts[g.id] : null,
+      premium: cfg.premium_plan && Number(cfg.premium_expires_at) > premiumNow ? { plan: cfg.premium_plan } : null,
+      protectionOn,
+      welcomeOn: !!cfg.welcome_channel,
+      statsOn: !!(cfg.stats_total || cfg.stats_online || cfg.stats_bots),
+      logsOn: !!(cfg.log_channel || cfg.modlog_channel || cfg.botlog_channel),
+      openTickets: openTicketCounts[g.id] || 0,
+    };
+  }
+
   res.render('guilds', {
     user: req.session.user,
     guilds,
-    title: 'اختر السيرفر',
+    title: 'سيرفراتك',
   });
 });
 

@@ -1,95 +1,351 @@
 <% currentPage = 'guilds' %>
 
-<div class="page-header">
-  <h1><i class="fas fa-server"></i> اختر السيرفر</h1>
-  <p>اختر السيرفر الذي تريد إدارته من القائمة</p>
+<%
+  const list = Array.isArray(guilds) ? guilds : [];
+  const num = (n) => (n == null ? '—' : Number(n).toLocaleString('en-US'));
+  const withBot = list.filter(g => g.hasBot);
+  const owned = list.filter(g => g.owner);
+  const premiumGuilds = list.filter(g => g.pulse && g.pulse.premium);
+  const totalMembers = withBot.reduce((sum, g) => sum + ((g.pulse && g.pulse.memberCount) || 0), 0);
+  const hasBotless = list.some(g => !g.hasBot);
+%>
+
+<div class="page-header guilds-header">
+  <div>
+    <h1><i class="fas fa-layer-group"></i> سيرفراتك</h1>
+    <p>اختر سيرفراً لإدارته — ونظرة سريعة على حالة البوت وأنظمته الفعّالة في كل سيرفر.</p>
+  </div>
+  <div class="header-actions">
+    <a href="/guilds" class="btn-refresh"><i class="fas fa-rotate"></i> تحديث القائمة</a>
+    <% if (hasBotless) { %>
+      <a href="/invite" class="btn-discord"><i class="fab fa-discord"></i> أضِف البوت لسيرفر</a>
+    <% } %>
+  </div>
 </div>
 
-<div class="guild-grid">
-  <% if (guilds && guilds.length > 0) { %>
-    <% guilds.forEach(g => { %>
-      <div class="guild-card glass" data-hasbot="<%= g.hasBot %>" data-guildname="<%= g.name %>" data-guildid="<%= g.id %>">
-        <div class="guild-icon-wrapper">
-          <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png" alt="" class="guild-icon" onerror="this.style.display='none'">
-          <div class="guild-icon-fallback" style="display:none">
-            <span><%= (g.name || '?').charAt(0).toUpperCase() %></span>
+<div class="stats-grid guilds-stats">
+  <div class="stat-card glass" style="--stat-color:#a855f7">
+    <div class="stat-icon" style="--stat-color:#a855f7"><i class="fas fa-server"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= list.length %></span>
+      <span class="stat-label">سيرفرات تديرها</span>
+    </div>
+  </div>
+  <div class="stat-card glass" style="--stat-color:#57f287">
+    <div class="stat-icon" style="--stat-color:#57f287"><i class="fas fa-robot"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= withBot.length %></span>
+      <span class="stat-label">فيها البوت وجاهزة</span>
+    </div>
+  </div>
+  <div class="stat-card glass" style="--stat-color:#f0c040">
+    <div class="stat-icon" style="--stat-color:#f0c040"><i class="fas fa-crown"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= owned.length %></span>
+      <span class="stat-label">سيرفرات تملكها</span>
+    </div>
+  </div>
+  <div class="stat-card glass" style="--stat-color:#fe5f75">
+    <div class="stat-icon" style="--stat-color:#fe5f75"><i class="fas fa-gem"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= premiumGuilds.length %></span>
+      <span class="stat-label">سيرفرات بريميوم</span>
+    </div>
+  </div>
+  <div class="stat-card glass" style="--stat-color:#4cc9f0">
+    <div class="stat-icon" style="--stat-color:#4cc9f0"><i class="fas fa-users"></i></div>
+    <div class="stat-info">
+      <span class="stat-value"><%= num(totalMembers) %></span>
+      <span class="stat-label">إجمالي الأعضاء المتتبَّعين</span>
+    </div>
+  </div>
+</div>
+
+<% if (list.length > 0) { %>
+  <div class="guilds-toolbar">
+    <div class="guilds-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="guildsSearch" placeholder="ابحث باسم السيرفر…" autocomplete="off" aria-label="بحث">
+    </div>
+    <div class="guilds-filters" id="guildsFilters">
+      <button type="button" class="filter-chip active" data-filter="all">الكل</button>
+      <button type="button" class="filter-chip" data-filter="with-bot">فيها البوت</button>
+      <button type="button" class="filter-chip" data-filter="no-bot">بدون البوت</button>
+      <button type="button" class="filter-chip" data-filter="premium"><i class="fas fa-gem"></i> بريميوم</button>
+    </div>
+  </div>
+<% } %>
+
+<div class="guild-grid" id="guildsGrid">
+  <% if (list.length > 0) { %>
+    <% list.forEach(g => { %>
+      <% const pulse = g.pulse || {}; %>
+      <div class="guild-card glass" data-hasbot="<%= g.hasBot %>" data-guildname="<%= g.name || '' %>" data-guildid="<%= g.id %>" data-premium="<%= !!pulse.premium %>">
+        <div class="guild-card-head">
+          <div class="guild-icon-wrapper">
+            <% if (g.icon) { %>
+              <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" class="guild-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <div class="guild-icon-fallback" style="display:none"><span><%= (g.name || '?').charAt(0) %></span></div>
+            <% } else { %>
+              <div class="guild-icon-fallback"><span><%= (g.name || '?').charAt(0) %></span></div>
+            <% } %>
+            <span class="guild-pulse-dot <%= g.hasBot ? 'on' : 'off' %>" title="<%= g.hasBot ? 'البوت متصل بهذا السيرفر' : 'البوت غير مضاف' %>"></span>
           </div>
-        </div>
-        <div class="guild-card-info">
-          <h3><%= g.name %></h3>
-          <div class="guild-meta">
-            <span class="guild-bot-status"><%= g.hasBot ? 'البوت متصل ✅' : 'البوت غير موجود ⚠️' %></span>
+          <div class="guild-card-info">
+            <div class="guild-name-row">
+              <h3 title="<%= g.name || '' %>"><%= g.name %></h3>
+              <% if (g.owner) { %><i class="fas fa-crown guild-crown" title="أنت مالك هذا السيرفر"></i><% } %>
+            </div>
+            <div class="guild-meta">
+              <span class="guild-status-pill <%= g.hasBot ? 'good' : 'warn' %>">
+                <i class="fas <%= g.hasBot ? 'fa-circle-check' : 'fa-circle-xmark' %>"></i>
+                <%= g.hasBot ? 'البوت جاهز' : 'البوت غير مضاف' %>
+              </span>
+              <% if (pulse.premium) { %>
+                <span class="guild-premium-pill"><i class="fas fa-gem"></i> بريميوم<%= pulse.premium.plan ? ' • ' + pulse.premium.plan : '' %></span>
+              <% } %>
+            </div>
           </div>
+          <% if (g.hasBot) { %><div class="guild-card-chevron"><i class="fas fa-chevron-left"></i></div><% } %>
         </div>
-        <div class="guild-card-action">
+
+        <div class="guild-chip-row">
+          <span class="guild-chip"><i class="fas fa-users"></i> <%= num(pulse.memberCount) %> عضو</span>
+          <span class="guild-chip"><i class="fas fa-shield-halved"></i> <%= (pulse.protectionOn != null ? pulse.protectionOn : 0) %>/5 حماية</span>
+          <span class="guild-chip"><i class="fas fa-ticket"></i> <%= (pulse.openTickets || 0) %> تذكرة مفتوحة</span>
+        </div>
+
+        <div class="guild-sys-row" title="الأنظمة المهيّأة في هذا السيرفر">
+          <span class="sys-dot <%= pulse.welcomeOn ? 'on' : '' %>" title="الترحيب"><i class="fas fa-door-open"></i></span>
+          <span class="sys-dot <%= pulse.statsOn ? 'on' : '' %>" title="الإحصائيات"><i class="fas fa-signal"></i></span>
+          <span class="sys-dot <%= pulse.logsOn ? 'on' : '' %>" title="السجلات"><i class="fas fa-clock-rotate-left"></i></span>
+          <span class="sys-dot <%= (pulse.protectionOn || 0) > 0 ? 'on' : '' %>" title="الحماية"><i class="fas fa-shield-halved"></i></span>
+          <span class="sys-dot <%= pulse.premium ? 'on' : '' %>" title="البريميوم"><i class="fas fa-gem"></i></span>
+        </div>
+
+        <div class="guild-card-actions">
           <% if (g.hasBot) { %>
-            <i class="fas fa-chevron-left"></i>
+            <a href="/guilds/<%= g.id %>" class="btn-primary btn-sm guild-open-btn"><i class="fas fa-gauge-high"></i> لوحة التحكم</a>
+            <a href="/guilds/<%= g.id %>/status" class="btn-sm guild-status-link"><i class="fas fa-heart-pulse"></i> الحالة</a>
           <% } else { %>
-            <span class="guild-no-bot-label">البوت غير موجود</span>
+            <a href="/invite" class="btn-secondary btn-sm guild-add-btn"><i class="fab fa-discord"></i> إضافة البوت</a>
           <% } %>
         </div>
       </div>
     <% }) %>
   <% } else { %>
     <div class="empty-state-full">
-      <i class="fas fa-exclamation-triangle"></i>
+      <i class="fas fa-server"></i>
       <h3>لا توجد سيرفرات</h3>
-      <p>يبدو أنك لا تملك صلاحيات إدارة في أي سيرفر أو أن البوت غير مضاف إلى سيرفراتك.</p>
+      <p>يبدو أنك لا تملك صلاحيات إدارة في أي سيرفر، أو أن البوت غير مضاف إلى سيرفراتك بعد.</p>
       <a href="/invite" class="btn-primary">
-        <i class="fas fa-code-branch"></i>
-        الإضافة قيد التطوير
+        <i class="fab fa-discord"></i>
+        أضِف البوت إلى سيرفرك
       </a>
     </div>
   <% } %>
 </div>
 
+<div class="guilds-no-results" id="guildsEmptyFilter" style="display:none">
+  <i class="fas fa-magnifying-glass"></i>
+  <h3>لا توجد نتائج مطابقة</h3>
+  <p>جرّب اسماً آخر أو غيّر عامل التصفية.</p>
+</div>
+
 <div id="guildWarningModal" class="modal-overlay" style="display:none">
   <div class="modal-box glass">
-    <div class="modal-icon"><i class="fas fa-exclamation-triangle" style="color:#f0c040;font-size:2.5rem"></i></div>
-    <h3>البوت غير موجود</h3>
-    <p id="guildWarningText">البوت غير مضاف إلى هذا السيرفر. خاصية إضافة البوت قيد التطوير حالياً.</p>
-    <button class="btn-primary" id="guildWarningCloseBtn">حسناً</button>
+    <div class="modal-icon"><i class="fas fa-robot" style="color:#f0c040;font-size:2.5rem"></i></div>
+    <h3>البوت غير مضاف</h3>
+    <p id="guildWarningText">البوت غير مضاف إلى هذا السيرفر. يمكنك إضافته من صفحة الدعوة.</p>
+    <div class="modal-box-actions">
+      <a href="/invite" class="btn-primary"><i class="fab fa-discord"></i> صفحة الدعوة</a>
+      <button class="btn-secondary" id="guildWarningCloseBtn">حسناً</button>
+    </div>
   </div>
 </div>
 
 <style>
+/* ═══ رأس الصفحة ═══ */
+.guilds-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.guilds-header .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ═══ شريط المؤشرات ═══ */
+.guilds-stats { grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); }
+.guilds-stats .stat-card { position: relative; overflow: hidden; }
+.guilds-stats .stat-card::after {
+  content: ''; position: absolute; inset-inline-end: -30px; top: -30px;
+  width: 90px; height: 90px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--stat-color, var(--primary)) 22%, transparent), transparent 70%);
+  opacity: .6; pointer-events: none;
+}
+
+/* ═══ أدوات البحث والتصفية ═══ */
+.guilds-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.guilds-search { position: relative; flex: 1 1 260px; max-width: 420px; }
+.guilds-search i { position: absolute; inset-inline-start: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .85rem; pointer-events: none; }
+.guilds-search input {
+  width: 100%; padding: 11px 42px; border-radius: 999px;
+  background: var(--bg-glass); border: 1px solid var(--border); color: var(--text);
+  font-family: var(--font); font-size: .85rem; transition: all var(--transition);
+}
+.guilds-search input::placeholder { color: var(--text-muted); }
+.guilds-search input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+.guilds-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg-glass); border: 1px solid var(--border); color: var(--text-muted);
+  padding: 9px 16px; border-radius: 999px; font-family: var(--font);
+  font-size: .8rem; font-weight: 600; cursor: pointer; transition: all var(--transition);
+}
+.filter-chip:hover { color: var(--text); background: var(--bg-glass-hover); }
+.filter-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 0 18px var(--primary-glow); }
+
+/* ═══ شبكة البطاقات ═══ */
+.guild-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.guild-grid .guild-card { flex-direction: column; align-items: stretch; gap: 0; padding: 18px; cursor: pointer; position: relative; overflow: hidden; }
+.guild-card::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: linear-gradient(90deg, var(--primary), transparent);
+  opacity: 0; transition: opacity var(--transition);
+}
+.guild-card:hover::before { opacity: 1; }
+.guild-card-head { display: flex; align-items: center; gap: 14px; }
+.guild-icon-wrapper { position: relative; flex: 0 0 auto; }
+.guild-icon-wrapper .guild-icon,
+.guild-icon-wrapper .guild-icon-fallback { width: 52px; height: 52px; border-radius: 14px; }
+.guild-icon-wrapper .guild-icon-fallback { font-size: 1.35rem; }
+.guild-pulse-dot {
+  position: absolute; bottom: -3px; inset-inline-start: -3px;
+  width: 15px; height: 15px; border-radius: 50%;
+  border: 3px solid var(--bg-card, #15121f);
+}
+.guild-pulse-dot.on { background: var(--success); box-shadow: 0 0 10px var(--success); }
+.guild-pulse-dot.off { background: var(--danger); }
+.guild-card-info { flex: 1; min-width: 0; }
+.guild-name-row { display: flex; align-items: center; gap: 8px; }
+.guild-name-row h3 { font-size: 1rem; font-weight: 800; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.guild-crown { color: #f0c040; font-size: .8rem; flex: 0 0 auto; }
+.guild-meta { display: flex; align-items: center; gap: 8px; margin-top: 7px; flex-wrap: wrap; }
+.guild-status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+.guild-status-pill.good { background: rgba(87, 242, 135, .12); color: var(--success); }
+.guild-status-pill.warn { background: rgba(240, 192, 64, .12); color: #f0c040; }
+.guild-premium-pill {
+  display: inline-flex; align-items: center; gap: 5px; font-size: .72rem; font-weight: 700;
+  padding: 3px 9px; border-radius: 999px; color: #ffd479;
+  background: linear-gradient(135deg, rgba(254, 95, 117, .18), rgba(240, 192, 64, .18));
+}
+.guild-card-chevron { color: var(--text-muted); flex: 0 0 auto; transition: transform var(--transition); }
+.guild-card:hover .guild-card-chevron { color: var(--primary); transform: translateX(-3px); }
+
+.guild-chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
+.guild-chip {
+  display: inline-flex; align-items: center; gap: 6px; font-size: .74rem; font-weight: 600;
+  color: var(--text-muted); background: var(--bg-glass-hover);
+  border: 1px solid var(--border); padding: 5px 10px; border-radius: 8px;
+}
+.guild-chip i { color: var(--primary); font-size: .72rem; }
+
+.guild-sys-row { display: flex; gap: 8px; margin-top: 12px; }
+.sys-dot {
+  width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  font-size: .78rem; background: var(--bg-glass-hover); color: var(--text-muted);
+  border: 1px solid var(--border); opacity: .45; transition: all var(--transition);
+}
+.sys-dot.on { opacity: 1; color: var(--success); border-color: rgba(87, 242, 135, .3); background: rgba(87, 242, 135, .08); }
+
+.guild-card-actions { display: flex; gap: 8px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); }
+.guild-open-btn { flex: 1; justify-content: center; }
+.guild-status-link, .guild-add-btn { justify-content: center; }
+
+/* ═══ لا نتائج للتصفية ═══ */
+.guilds-no-results { flex-direction: column; align-items: center; text-align: center; padding: 48px 20px; color: var(--text-muted); }
+.guilds-no-results i { font-size: 2.4rem; margin-bottom: 14px; opacity: .5; }
+.guilds-no-results h3 { font-size: 1.15rem; color: var(--text); margin-bottom: 6px; }
+.guilds-no-results p { font-size: .85rem; }
+
+/* ═══ المودال ═══ */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999;
-  display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(4px);
+  position: fixed; inset: 0; background: rgba(0, 0, 0, .6); z-index: 9999;
+  display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
 }
 .modal-box {
   max-width: 400px; width: 90%; padding: 32px; text-align: center;
   border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 16px;
 }
 .modal-box h3 { margin: 0; font-size: 1.2rem; }
-.modal-box p { margin: 0; opacity: 0.8; line-height: 1.6; }
-.guild-bot-status { font-size: 0.8rem; opacity: 0.8; }
+.modal-box p { margin: 0; opacity: .8; line-height: 1.6; }
+.modal-box-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+@media (max-width: 560px) {
+  .guilds-header { flex-direction: column; }
+  .guilds-header .header-actions { width: 100%; }
+  .guilds-search { max-width: none; }
+}
 </style>
 
 <script>
-(function(){
-var modal = document.getElementById('guildWarningModal');
-var text = document.getElementById('guildWarningText');
-var closeBtn = document.getElementById('guildWarningCloseBtn');
+(function () {
+  var modal = document.getElementById('guildWarningModal');
+  var text = document.getElementById('guildWarningText');
+  var closeBtn = document.getElementById('guildWarningCloseBtn');
+  var grid = document.getElementById('guildsGrid');
+  var searchInput = document.getElementById('guildsSearch');
+  var filterWrap = document.getElementById('guildsFilters');
+  var emptyFilter = document.getElementById('guildsEmptyFilter');
+  var cards = grid ? Array.prototype.slice.call(grid.querySelectorAll('.guild-card')) : [];
 
-document.querySelectorAll('.guild-card').forEach(function(card) {
-  card.addEventListener('click', function(e) {
-    var hasBot = this.dataset.hasbot === 'true';
-    var name = this.dataset.guildname;
-    if (!hasBot) {
-      e.preventDefault();
-      text.textContent = 'البوت غير مضاف إلى "' + name + '". خاصية إضافة البوت قيد التطوير حالياً.';
-      modal.style.display = 'flex';
-    } else {
-      window.location.href = '/guilds/' + (this.dataset.guildid || '');
-    }
+  function openWarning(name) {
+    if (text) text.textContent = 'البوت غير مضاف إلى "' + name + '". يمكنك إضافته من صفحة الدعوة.';
+    if (modal) modal.style.display = 'flex';
+  }
+  function closeModal() { if (modal) modal.style.display = 'none'; }
+
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (modal) modal.addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+  // نقر البطاقة: فيها البوت → لوحة التحكم، غيرها → تنبيه.
+  // النقر على رابط أو زر داخل البطاقة لا يُعترض أبداً.
+  cards.forEach(function (card) {
+    card.addEventListener('click', function (e) {
+      if (e.target.closest('a, button')) return;
+      var hasBot = this.dataset.hasbot === 'true';
+      if (!hasBot) { e.preventDefault(); openWarning(this.dataset.guildname || ''); }
+      else { window.location.href = '/guilds/' + (this.dataset.guildid || ''); }
+    });
   });
-});
 
-function closeModal() { modal.style.display = 'none'; }
-closeBtn.addEventListener('click', closeModal);
-modal.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+  // بحث + تصفية على جهة العميل.
+  function applyFilters() {
+    var q = (searchInput && searchInput.value ? searchInput.value : '').trim().toLowerCase();
+    var activeChip = filterWrap ? filterWrap.querySelector('.filter-chip.active') : null;
+    var f = activeChip ? activeChip.dataset.filter : 'all';
+    var visible = 0;
+    cards.forEach(function (card) {
+      var name = (card.dataset.guildname || '').toLowerCase();
+      var inBot = card.dataset.hasbot === 'true';
+      var prem = card.dataset.premium === 'true';
+      var ok = (!q || name.indexOf(q) !== -1) && (
+        f === 'all' ||
+        (f === 'with-bot' && inBot) ||
+        (f === 'no-bot' && !inBot) ||
+        (f === 'premium' && prem)
+      );
+      card.style.display = ok ? '' : 'none';
+      if (ok) visible++;
+    });
+    if (emptyFilter) emptyFilter.style.display = (visible === 0 && cards.length > 0) ? 'flex' : 'none';
+  }
+
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  if (filterWrap) {
+    filterWrap.addEventListener('click', function (e) {
+      var chip = e.target.closest('.filter-chip');
+      if (!chip) return;
+      filterWrap.querySelectorAll('.filter-chip').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      applyFilters();
+    });
+  }
 })();
 </script>
