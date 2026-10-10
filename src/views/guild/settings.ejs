@@ -1,53 +1,84 @@
 <% currentPage = 'settings' %>
 <%
+  // — مركز الإعدادات: دليل موجّه يشرح كل خاصية ومتى/كيف تستخدمها،
+  //   مع الحفاظ على كل خطافات الحفظ والتفاعل كما هي.
   const ticketReady = ['panel_channel', 'ticket_category', 'admin_category', 'log_channel_id'].filter(k => config[k]).length;
   const logReady = ['log_channel', 'modlog_channel', 'botlog_channel'].filter(k => config[k]).length;
   const statsReady = ['stats_total', 'stats_online', 'stats_bots'].filter(k => config[k]).length;
   const welcomeSet = !!config.welcome_channel;
   const supportCount = (supportRoleArray || []).length;
+  const premExp = Number(config.premium_expires_at) || 0;
+  const premium = (config.premium_plan && premExp > Date.now())
+    ? { plan: config.premium_plan, daysLeft: Math.max(1, Math.ceil((premExp - Date.now()) / 86400000)) }
+    : null;
+  const imgCustom = ['welcome_image', 'ticket_panel_image', 'voice_panel_image'].filter(k => config[k]).length;
+
+  // خطوات دليل البدء: ما تفعله كل خاصية ولماذا تفيدك — مبنية من نفس الإعدادات.
+  const stSteps = [
+    { id: 'st-welcome', icon: 'fa-door-open', name: 'تفعيل بطاقة الترحيب', desc: 'بطاقة باسم العضو وصورته ورقمه تُرسل تلقائياً عند دخوله السيرفر', done: welcomeSet, label: welcomeSet ? 'مفعّلة' : 'لم تُفعّل بعد' },
+    { id: 'st-logs', icon: 'fa-clipboard-list', name: 'توجيه قنوات السجلات', desc: 'السجلات العامة والإشراف والبوت — لكل نوع قناة خاصة به (أو واحدة للجميع)', done: logReady >= 1, label: logReady + ' من 3 قنوات' },
+    { id: 'st-stats', icon: 'fa-chart-line', name: 'إنشاء رومات الإحصائيات', desc: 'رومات صوتية تعرض الأعداد في الاسم وتتحدث تلقائياً كل دقيقة', done: statsReady >= 1, label: statsReady + ' من 3 رومات' },
+    { id: 'st-tickets', icon: 'fa-ticket', name: 'استكمال نظام التذاكر', desc: 'بنل + تصنيف التذاكر + تصنيفها الداخلي + سجلها — أربع خطوات مرتبطة', done: ticketReady >= 3, label: ticketReady + ' من 4 خطوات' },
+    { id: 'st-support', icon: 'fa-headset', name: 'اختيار فريق الدعم', desc: 'الرتب التي تتسلم التذاكر الجديدة وترد عليها وتديرها', done: supportCount > 0, label: supportCount > 0 ? supportCount + ' رتبة' : 'لا رتب بعد' },
+    { id: 'st-images', icon: 'fa-images', name: 'تخصيص صور النظام', desc: 'خلفية الترحيب وبنل التذاكر وبنل الصوتيات — صور افتراضية تصلك فوراً', done: imgCustom > 0, label: imgCustom > 0 ? imgCustom + ' مخصصة' : 'الافتراضية' },
+  ];
+  const statusCells = [
+    { icon: 'fa-door-open', name: 'الترحيب', v: welcomeSet, sub: welcomeSet ? 'مفعّل' : 'متوقف' },
+    { icon: 'fa-clipboard-list', name: 'السجلات', v: logReady, max: 3, sub: logReady + '/3' },
+    { icon: 'fa-chart-line', name: 'الإحصائيات', v: statsReady, max: 3, sub: statsReady + '/3' },
+    { icon: 'fa-ticket', name: 'التذاكر', v: ticketReady, max: 4, sub: ticketReady + '/4' },
+    { icon: 'fa-headset', name: 'الدعم', v: supportCount, sub: supportCount + (supportCount === 1 ? ' رتبة' : ' رتب') },
+  ];
+  const sysTiles = [
+    ['/protection/' + guild.id, 'fa-shield-halved', 'نظام الحماية', '5 أنظمة ضد الهجمات وسبام'],
+    ['/commands/' + guild.id, 'fa-terminal', 'الأوامر', 'إدارة وتفعيل أوامر البوت'],
+    ['/voice/' + guild.id, 'fa-microphone', 'الرومات المؤقتة', 'غرف صوتية تُنشأ عند دخول العضو'],
+    ['/notifications/' + guild.id, 'fa-bell', 'الإشعارات', 'إشعارات تنبيه صوت نصي للمتابعة'],
+    ['/backup/' + guild.id, 'fa-database', 'النسخ الاحتياطي', 'نسخ احتياطية لإعدادات السيرفر'],
+    ['/admins/' + guild.id, 'fa-users-gear', 'المدراء', 'من يستطيع التحكم في اللوحة'],
+  ];
 %>
 
-<div class="page-header">
-  <h1><i class="fas fa-sliders-h"></i> الإعدادات والترحيب والإحصائيات</h1>
-  <p>ضبط جميع إعدادات بوت سيرفر <strong><%= guild.name %></strong> بمزامنة فورية مع البوت</p>
+<div class="page-header st-header">
+  <div>
+    <h1><i class="fas fa-sliders"></i> إعدادات سيرفر <span class="st-guild"><%= guild.name %></span></h1>
+    <p>المركز الذي تُدار منه كل أنظمة البوت — كل تعديل يُحفظ في القاعدة ويُطبَّق على البوت خلال ثوانٍ.</p>
+  </div>
+  <% if (premium) { %>
+    <a href="/premium/<%= guild.id %>" class="st-prem-chip"><i class="fas fa-gem" aria-hidden="true"></i> باقة <%= premium.plan %> — متبقي <%= premium.daysLeft %> يوم</a>
+  <% } %>
 </div>
 
-<div class="stats-grid">
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-door-open" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value" style="font-size:1.05rem"><%= welcomeSet ? 'مفعّل' : 'متوقف' %></span>
-      <span class="stat-label">بطاقة الترحيب</span>
-    </div>
+<!-- ─── دليل البدء السريع: فهم الصفحة قبل الضبط ─── -->
+<div class="card glass st-guide">
+  <div class="card-header">
+    <h3><i class="fas fa-route"></i> كيف تبدأ؟ — دليل تفعيل الأنظمة خطوة بخطوة</h3>
+    <span class="badge badge-default"><%= stSteps.filter(s => s.done).length %>/<%= stSteps.length %> مكتملة</span>
   </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-clipboard-list" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= logReady %>/3</span>
-      <span class="stat-label">قناة سجلات</span>
-    </div>
+  <p class="card-desc">اضغط أي خطوة للانتقال إلى إعدادها بالأسفل — كل خطوة تشرح ما تفعله الخاصية لماذا تستخدمها.</p>
+  <div class="st-guide-grid">
+    <% stSteps.forEach((s, i) => { %>
+      <a class="st-guide-step <%= s.done ? 'is-done' : '' %>" href="#<%= s.id %>">
+        <span class="st-guide-num"><i class="fas <%= s.icon %>" aria-hidden="true"></i></span>
+        <span class="st-guide-body">
+          <strong><%= s.name %></strong>
+          <span><%= s.desc %></span>
+        </span>
+        <span class="st-guide-pill <%= s.done ? 'ok' : '' %>"><i class="fas <%= s.done ? 'fa-check' : 'fa-hourglass-half' %>" aria-hidden="true"></i> <%= s.label %></span>
+      </a>
+    <% }) %>
   </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= statsReady %>/3</span>
-      <span class="stat-label">روم إحصائيات</span>
+</div>
+
+<!-- ─── شريط الحالة السريعة ─── -->
+<div class="st-status-strip">
+  <% statusCells.forEach(c => { %>
+    <div class="st-status-cell <%= (c.v && c.v >= (c.max || 1)) ? 'ok' : (c.v > 0 ? 'mid' : 'no') %>">
+      <i class="fas <%= c.icon %>" aria-hidden="true"></i>
+      <span class="st-status-name"><%= c.name %></span>
+      <span class="st-status-sub"><%= c.sub %></span>
     </div>
-  </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ffa63e"><i class="fas fa-ticket" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= ticketReady %>/4</span>
-      <span class="stat-label">خطوات التذاكر</span>
-    </div>
-  </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #4dd6e0"><i class="fas fa-headset" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= supportCount %></span>
-      <span class="stat-label">رتبة دعم</span>
-    </div>
-  </div>
+  <% }) %>
 </div>
 
 <div class="card glass sync-bar">
@@ -67,18 +98,27 @@
 </div>
 
 <form id="settingsForm" onsubmit="saveSettings(event)">
-  <div class="card glass welcome-card">
-    <div class="card-header">
-      <h3><i class="fas fa-door-open"></i> الترحيب بالسيرفر</h3>
+
+  <!-- ① الترحيب -->
+  <div class="card glass welcome-card st-section" id="st-welcome">
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">1</span>
+      <h3><i class="fas fa-door-open"></i> نظام الترحيب</h3>
       <span class="ticket-status" id="welcomeStatusBadge"><span class="ticket-status-dot"></span><span id="welcomeStatusText">—</span></span>
     </div>
-    <p class="card-desc">بطاقة ترحيب مخصصة (صورة) تُرسل تلقائياً عند انضمام كل عضو جديد</p>
+    <p class="card-desc">بطاقة ترحيب مخصصة (صورة) تُرسل تلقائياً عند انضمام كل عضو جديد إلى السيرفر.</p>
+
+    <div class="st-steps">
+      <span><b>1</b>اختر قناة الترحيب من القائمة</span>
+      <span><b>2</b>احفظ — تُرسل بطاقة فورية لكل عضو جديد</span>
+      <span><b>3</b>الترحيب يكتشف موجات الانضمام والحسابات الجديدة</span>
+    </div>
 
     <div class="welcome-main">
       <div class="welcome-preview">
         <div class="preview-card">
           <div class="preview-banner">
-            <span class="preview-badge">FAdiX9</span>
+            <span class="preview-badge"><%= guild.name %></span>
             <i class="fas fa-camera preview-cam"></i>
             <div class="maint-glass maint-glass--sm maint-glass--banner">
               <i class="fas fa-wrench"></i><span>تحت الصيانة</span>
@@ -91,7 +131,7 @@
               <span>أنت العضو رقم <b>#500</b></span>
             </div>
           </div>
-          <div class="preview-footer">✦ Welcome <b>Nyaorox</b> To FAdiX9 Server ✨</div>
+          <div class="preview-footer">✦ Welcome <b>Nyaorox</b> To <%= guild.name %> ✨</div>
         </div>
       </div>
 
@@ -100,7 +140,7 @@
           <div class="stat-voice-icon"><i class="fas fa-paper-plane"></i></div>
           <div class="stat-voice-info">
             <strong>قناة الترحيب</strong>
-            <small>القناة التي تُرسل إليها بطاقة الترحيب</small>
+            <small>القناة التي تُرسل إليها بطاقة الترحيب — اختر قناة نصية ظاهرة للأعضاء</small>
           </div>
           <div class="stat-voice-control">
             <select data-key="welcome_channel" class="ticket-select">
@@ -123,115 +163,27 @@
             <span>باسم العضو وصورته ورقمه التسلسلي — مع كشف موجات الانضمام (Raid) وحسابات جديدة</span>
           </div>
         </div>
+        <small class="field-hint st-ex"><i class="fas fa-lightbulb"></i> مثال: اختر قناة «الترحيب» — سيرى كل عضو جديد بطاقة باسمه وصورته عند دخوله أول مرة.</small>
       </div>
     </div>
   </div>
 
-  <div class="card glass custom-images-card">
-    <div class="card-header">
-      <h3><i class="fas fa-images"></i> الصور المخصصة</h3>
-      <span class="ticket-status" id="imagesStatusBadge"><span class="ticket-status-dot"></span><span id="imagesStatusText">—</span></span>
-    </div>
-    <p class="card-desc">غيّر صور البوت في سيرفرك: بطاقة الترحيب، بنل التذاكر، وبنل الرومات الصوتية — ارفع صورة أو ألصق رابطاً مباشراً، وتُطبق على البوت فوراً</p>
-
-    <div class="custom-images-grid">
-      <!-- صورة الترحيب -->
-      <div class="stat-voice-item item-lg-general" data-for="welcome_image">
-        <div class="stat-voice-icon"><i class="fas fa-door-open"></i></div>
-        <div class="stat-voice-info">
-          <strong>صورة الترحيب</strong>
-          <small>خلفية بطاقة الترحيب عند انضمام عضو جديد</small>
-        </div>
-        <div class="custom-img-body">
-          <div class="custom-img-preview" id="preview-welcome_image">
-            <i class="fas fa-image preview-ph"></i>
-          </div>
-          <div class="custom-img-controls">
-            <div class="maint-notice"><i class="fas fa-wrench"></i><span>هذه الخاصية تحت الصيانة والتعديل — لا يمكن رفع أو حفظ أو حذف صورة الترحيب حالياً</span></div>
-            <label class="img-upload-btn is-disabled" title="الميزة تحت الصيانة حالياً">
-              <i class="fas fa-upload"></i> رفع صورة
-              <input type="file" accept="image/*" hidden data-img-key="welcome_image" disabled />
-            </label>
-            <input type="text" class="ticket-select img-url-input" data-img-url="welcome_image" placeholder="أو ألصق رابط صورة مباشر https://..." disabled title="الميزة تحت الصيانة حالياً" />
-            <div class="img-actions">
-              <button type="button" class="btn-sm btn-save-img" data-img-save="welcome_image" disabled title="الميزة تحت الصيانة حالياً"><i class="fas fa-save"></i> حفظ</button>
-              <button type="button" class="btn-sm btn-view-img" data-img-view="welcome_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
-              <button type="button" class="btn-delete-sm" data-img-delete="welcome_image" disabled title="الميزة تحت الصيانة حالياً"><i class="fas fa-trash"></i></button>
-              <span class="ticket-field-state" data-state-of="welcome_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- صورة بنل التذاكر -->
-      <div class="stat-voice-item item-lg-general" data-for="ticket_panel_image">
-        <div class="stat-voice-icon"><i class="fas fa-ticket-alt"></i></div>
-        <div class="stat-voice-info">
-          <strong>صورة بنل التذاكر</strong>
-          <small>الصورة العلوية لبنل فتح التذاكر</small>
-        </div>
-        <div class="custom-img-body">
-          <div class="custom-img-preview" id="preview-ticket_panel_image">
-            <i class="fas fa-image preview-ph"></i>
-          </div>
-          <div class="custom-img-controls">
-            <label class="img-upload-btn">
-              <i class="fas fa-upload"></i> رفع صورة
-              <input type="file" accept="image/*" hidden data-img-key="ticket_panel_image" />
-            </label>
-            <input type="text" class="ticket-select img-url-input" data-img-url="ticket_panel_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
-            <div class="img-actions">
-              <button type="button" class="btn-sm btn-save-img" data-img-save="ticket_panel_image"><i class="fas fa-save"></i> حفظ</button>
-              <button type="button" class="btn-sm btn-view-img" data-img-view="ticket_panel_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
-              <button type="button" class="btn-delete-sm" data-img-delete="ticket_panel_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
-              <span class="ticket-field-state" data-state-of="ticket_panel_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- صورة بنل الصوتيات -->
-      <div class="stat-voice-item item-lg-general" data-for="voice_panel_image">
-        <div class="stat-voice-icon"><i class="fas fa-microphone"></i></div>
-        <div class="stat-voice-info">
-          <strong>صورة بنل الصوتيات</strong>
-          <small>الصورة العلوية لبنل القنوات الصوتية المؤقتة</small>
-        </div>
-        <div class="custom-img-body">
-          <div class="custom-img-preview" id="preview-voice_panel_image">
-            <i class="fas fa-image preview-ph"></i>
-          </div>
-          <div class="custom-img-controls">
-            <label class="img-upload-btn">
-              <i class="fas fa-upload"></i> رفع صورة
-              <input type="file" accept="image/*" hidden data-img-key="voice_panel_image" />
-            </label>
-            <input type="text" class="ticket-select img-url-input" data-img-url="voice_panel_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
-            <div class="img-actions">
-              <button type="button" class="btn-sm btn-save-img" data-img-save="voice_panel_image"><i class="fas fa-save"></i> حفظ</button>
-              <button type="button" class="btn-sm btn-view-img" data-img-view="voice_panel_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
-              <button type="button" class="btn-delete-sm" data-img-delete="voice_panel_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
-              <span class="ticket-field-state" data-state-of="voice_panel_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card glass log-card">
-    <div class="card-header">
+  <!-- ② قنوات السجلات -->
+  <div class="card glass log-card st-section" id="st-logs">
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">2</span>
       <h3><i class="fas fa-clipboard-list"></i> قنوات السجلات</h3>
       <span class="ticket-status" id="logStatusBadge"><span class="ticket-status-dot"></span><span id="logStatusText">—</span></span>
     </div>
-    <p class="card-desc">سجلات النشاط العام والإشراف وحالة البوت — كل نوع سجل وجهته إلى قناة مخصصة</p>
+    <p class="card-desc">ثلاثة أنواع من السجلات، ولكل نوع أحداثه الخاصة — اختر قناة لكل نوع، أو استخدم قناة واحدة للثلاثة معاً.</p>
 
     <div class="stats-voice-grid log-grid">
       <div class="stat-voice-item item-lg-general" data-for="log_channel">
         <div class="stat-voice-icon"><i class="fas fa-list"></i></div>
         <div class="stat-voice-info">
           <strong>السجلات العامة</strong>
-          <small>انضمام / مغادرة / رسائل / صوت</small>
+          <small>كل حركة النشاط في السيرفر</small>
+          <span class="st-events"><i>انضمام</i><i>مغادرة</i><i>رسائل</i><i>صوت</i></span>
         </div>
         <div class="stat-voice-control">
           <select data-key="log_channel" class="ticket-select">
@@ -251,7 +203,8 @@
         <div class="stat-voice-icon"><i class="fas fa-gavel"></i></div>
         <div class="stat-voice-info">
           <strong>سجلات الإشراف</strong>
-          <small>ban / kick / timeout / warn وتغيير الأدوار</small>
+          <small>كل إجراءات فريق الإشراف</small>
+          <span class="st-events"><i>Ban</i><i>Kick</i><i>Timeout</i><i>Warn</i><i>الأدوار</i></span>
         </div>
         <div class="stat-voice-control">
           <select data-key="modlog_channel" class="ticket-select">
@@ -271,7 +224,8 @@
         <div class="stat-voice-icon"><i class="fas fa-heartbeat"></i></div>
         <div class="stat-voice-info">
           <strong>سجل البوت</strong>
-          <small>تشغيل / إيقاف / أخطاء / نبض البوت</small>
+          <small>حالة البوت نفسه وتشخيصه</small>
+          <span class="st-events"><i>تشغيل</i><i>إيقاف</i><i>أخطاء</i><i>تقرير دوري</i></span>
         </div>
         <div class="stat-voice-control">
           <select data-key="botlog_channel" class="ticket-select">
@@ -290,16 +244,18 @@
 
     <small class="field-hint role-picker-hint">
       <i class="fas fa-info-circle"></i>
-      يمكنك إرسال جميع السجلات إلى قناة واحدة باستخدام نفس القناة في الأنواع الثلاثة
+      يمكنك إرسال جميع السجلات إلى قناة واحدة باستخدام نفس القناة في الأنواع الثلاثة — خيار مثالي للسيرفرات الصغيرة.
     </small>
   </div>
 
-  <div class="card glass stats-card">
-    <div class="card-header">
+  <!-- ③ الإحصائيات الصوتية -->
+  <div class="card glass stats-card st-section" id="st-stats">
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">3</span>
       <h3><i class="fas fa-chart-line"></i> الإحصائيات الصوتية</h3>
       <span class="ticket-status" id="statsStatusBadge"><span class="ticket-status-dot"></span><span id="statsStatusText">—</span></span>
     </div>
-    <p class="card-desc">رومات صوتية تعرض الأعداد مباشرة في اسم الروم وتتحدث تلقائياً كل دقيقة</p>
+    <p class="card-desc">رومات صوتية تعرض الأعداد مباشرة في اسم الروم وتتحدث تلقائياً كل دقيقة — أنشئ روم صوتياً واختره هنا.</p>
 
     <div class="stats-voice-grid voice-grid">
       <div class="stat-voice-item" data-for="stats_total">
@@ -363,17 +319,20 @@
       </div>
     </div>
 
-    <small class="field-hint role-picker-hint">
-      <i class="fas fa-sync-alt"></i>
-      تُحدَّث الأعداد تلقائياً كل دقيقة ويعيد البوت تسمية الروم — يمكنك استخدام روم واحد لأكثر من إحصائية أو رومات منفصلة
+    <small class="field-hint role-picker-hint st-ex">
+      <i class="fas fa-lightbulb"></i>
+      مثال: أنشئ روم صوتي باسم «👥 الأعضاء» واختره في «روم العدد الكلي» — سيسميه البوت تلقائياً «👥 الأعضاء: 1,234» ويحدّثه كل دقيقة.
     </small>
   </div>
 
-  <div class="card glass ticket-card">
-    <div class="card-header">
+  <!-- ④ نظام التذاكر -->
+  <div class="card glass ticket-card st-section" id="st-tickets">
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">4</span>
       <h3><i class="fas fa-ticket-alt"></i> نظام التذاكر</h3>
       <span class="ticket-status" id="ticketStatusBadge"><span class="ticket-status-dot"></span><span id="ticketStatusText">—</span></span>
     </div>
+    <p class="card-desc">التذاكر نظام متكامل من 4 خطوات مرتبطة: بنل الطلبات، تصنيف لتذاكر الأعضاء، تصنيف داخلي للمشرفين، وسجل لكل الأحداث.</p>
 
     <div class="ticket-progress">
       <div class="ticket-progress-item" data-for="panel_channel">
@@ -408,7 +367,7 @@
             <i class="fas fa-clipboard-list"></i>
             <div>
               <strong>بنل التذاكر</strong>
-              <small>القناة التي يُعرض فيها بنل إنشاء التذاكر</small>
+              <small>القناة التي يُعرض فيها بنل إنشاء التذاكر — زر فتح تذكرة يظهر أمام كل عضو</small>
             </div>
           </div>
           <div class="ticket-field-tools">
@@ -430,7 +389,7 @@
             <i class="fas fa-scroll"></i>
             <div>
               <strong>سجل التذاكر</strong>
-              <small>قناة تُسجل فيها أحداث التذاكر (فتح/إغلاق/سحب...) </small>
+              <small>قناة تُسجل فيها أحداث التذاكر (فتح / إغلاق / سحب / نقل) لأرشفة كاملة</small>
             </div>
           </div>
           <div class="ticket-field-tools">
@@ -452,7 +411,7 @@
             <i class="fas fa-folder-open"></i>
             <div>
               <strong>تصنيف التذاكر</strong>
-              <small>التصنيف الذي تُنشأ فيه تذاكر الأعضاء</small>
+              <small>التصنيف الذي تُنشأ فيه تذاكر الأعضاء — تُظهر التذكرة نفسها داخل هذا التصنيف</small>
             </div>
           </div>
           <div class="ticket-field-tools">
@@ -474,7 +433,7 @@
             <i class="fas fa-folder-tree"></i>
             <div>
               <strong>التصنيف الداخلي</strong>
-              <small>تصنيف خاص بالتذاكر الداخلية (المشرفون)</small>
+              <small>تصنيف خاص بالتذاكر الداخلية — يفتحه فقط فريق الدعم للطلبات الداخلية بين الإدارة</small>
             </div>
           </div>
           <div class="ticket-field-tools">
@@ -493,15 +452,18 @@
 
     <small class="field-hint role-picker-hint">
       <i class="fas fa-info-circle"></i>
-      الجاهزية الكاملة للبوت تتطلب: <b>تصنيف التذاكر</b> + <b>رتبة دعم واحدة على الأقل</b> (من قسم فريق الدعم بالأسفل)
+      الجاهزية الكاملة للبوت تتطلب: <b>بنل التذاكر</b> + <b>تصنيف التذاكر</b> + <b>رتبة دعم واحدة على الأقل</b> (من قسم فريق الدعم بالأسفل).
     </small>
   </div>
 
-  <div class="card glass support-card">
-    <div class="card-header">
+  <!-- ⑤ فريق الدعم والعدادات -->
+  <div class="card glass support-card st-section" id="st-support">
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">5</span>
       <h3><i class="fas fa-headset"></i> فريق الدعم والعدادات</h3>
       <span class="card-badge" id="supportCountBadge">0 رتب</span>
     </div>
+    <p class="card-desc">الرتب المحددة هنا تُعتبر «فريق دعم»: تتسلم التذاكر الجديدة تلقائياً، وترى التذاكر الخاصة، وتستطيع الرد عليها وإغلاقها.</p>
 
     <div class="support-summary">
       <div class="summary-item">
@@ -566,6 +528,139 @@
     <input type="hidden" id="supportRoleState">
   </div>
 
+  <!-- ⑥ الصور المخصصة -->
+  <div class="card glass custom-images-card st-section" id="st-images">
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">6</span>
+      <h3><i class="fas fa-images"></i> الصور المخصصة</h3>
+      <span class="ticket-status" id="imagesStatusBadge"><span class="ticket-status-dot"></span><span id="imagesStatusText">—</span></span>
+    </div>
+    <p class="card-desc">غيّر صور البوت في سيرفرك: بطاقة الترحيب، بنل التذاكر، وبنل الرومات الصوتية — ارفع صورة أو ألصق رابطاً مباشراً، وتُطبق على البوت فوراً</p>
+
+    <div class="custom-images-grid">
+      <!-- صورة الترحيب -->
+      <div class="stat-voice-item item-lg-general" data-for="welcome_image">
+        <div class="stat-voice-icon"><i class="fas fa-door-open"></i></div>
+        <div class="stat-voice-info">
+          <strong>صورة الترحيب</strong>
+          <small>خلفية بطاقة الترحيب عند انضمام عضو جديد — بحجم 1600×900 يناسب البطاقة</small>
+        </div>
+        <div class="custom-img-body">
+          <div class="custom-img-preview" id="preview-welcome_image">
+            <i class="fas fa-image preview-ph"></i>
+          </div>
+          <div class="custom-img-controls">
+            <div class="maint-notice"><i class="fas fa-wrench"></i><span>هذه الخاصية تحت الصيانة والتعديل — لا يمكن رفع أو حفظ أو حذف صورة الترحيب حالياً</span></div>
+            <label class="img-upload-btn is-disabled" title="الميزة تحت الصيانة حالياً">
+              <i class="fas fa-upload"></i> رفع صورة
+              <input type="file" accept="image/*" hidden data-img-key="welcome_image" disabled />
+            </label>
+            <input type="text" class="ticket-select img-url-input" data-img-url="welcome_image" placeholder="أو ألصق رابط صورة مباشر https://..." disabled title="الميزة تحت الصيانة حالياً" />
+            <div class="img-actions">
+              <button type="button" class="btn-sm btn-save-img" data-img-save="welcome_image" disabled title="الميزة تحت الصيانة حالياً"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-sm btn-view-img" data-img-view="welcome_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
+              <button type="button" class="btn-delete-sm" data-img-delete="welcome_image" disabled title="الميزة تحت الصيانة حالياً"><i class="fas fa-trash"></i></button>
+              <span class="ticket-field-state" data-state-of="welcome_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- صورة بنل التذاكر -->
+      <div class="stat-voice-item item-lg-general" data-for="ticket_panel_image">
+        <div class="stat-voice-icon"><i class="fas fa-ticket-alt"></i></div>
+        <div class="stat-voice-info">
+          <strong>صورة بنل التذاكر</strong>
+          <small>الصورة العلوية لبنل فتح التذاكر — أول ما يراه العضو قبل فتح التذكرة</small>
+        </div>
+        <div class="custom-img-body">
+          <div class="custom-img-preview" id="preview-ticket_panel_image">
+            <i class="fas fa-image preview-ph"></i>
+          </div>
+          <div class="custom-img-controls">
+            <label class="img-upload-btn">
+              <i class="fas fa-upload"></i> رفع صورة
+              <input type="file" accept="image/*" hidden data-img-key="ticket_panel_image" />
+            </label>
+            <input type="text" class="ticket-select img-url-input" data-img-url="ticket_panel_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
+            <div class="img-actions">
+              <button type="button" class="btn-sm btn-save-img" data-img-save="ticket_panel_image"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-sm btn-view-img" data-img-view="ticket_panel_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
+              <button type="button" class="btn-delete-sm" data-img-delete="ticket_panel_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
+              <span class="ticket-field-state" data-state-of="ticket_panel_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- صورة بنل الصوتيات -->
+      <div class="stat-voice-item item-lg-general" data-for="voice_panel_image">
+        <div class="stat-voice-icon"><i class="fas fa-microphone"></i></div>
+        <div class="stat-voice-info">
+          <strong>صورة بنل الصوتيات</strong>
+          <small>الصورة العلوية لبنل القنوات الصوتية المؤقتة — تظهر لمن يريد إنشاء غرفة</small>
+        </div>
+        <div class="custom-img-body">
+          <div class="custom-img-preview" id="preview-voice_panel_image">
+            <i class="fas fa-image preview-ph"></i>
+          </div>
+          <div class="custom-img-controls">
+            <label class="img-upload-btn">
+              <i class="fas fa-upload"></i> رفع صورة
+              <input type="file" accept="image/*" hidden data-img-key="voice_panel_image" />
+            </label>
+            <input type="text" class="ticket-select img-url-input" data-img-url="voice_panel_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
+            <div class="img-actions">
+              <button type="button" class="btn-sm btn-save-img" data-img-save="voice_panel_image"><i class="fas fa-save"></i> حفظ</button>
+              <button type="button" class="btn-sm btn-view-img" data-img-view="voice_panel_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
+              <button type="button" class="btn-delete-sm" data-img-delete="voice_panel_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
+              <span class="ticket-field-state" data-state-of="voice_panel_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑦ البريميوم -->
+  <% if (premium) { %>
+    <div class="card glass st-prem">
+      <div class="st-prem-icon"><i class="fas fa-gem"></i></div>
+      <div class="st-prem-text">
+        <strong>باقة <span><%= premium.plan %></span> مفعّلة <span class="st-prem-days"><%= premium.daysLeft %> يوم</span> متبقية</strong>
+        <span>سيرفرك يستفيد من كل مزايا النظام — أدر الباقة أو جدّدها من صفحة البريميوم.</span>
+      </div>
+      <a href="/premium/<%= guild.id %>" class="btn-sm">إدارة الباقة <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
+    </div>
+  <% } else { %>
+    <div class="card glass st-prem is-cta">
+      <div class="st-prem-icon"><i class="fas fa-gem"></i></div>
+      <div class="st-prem-text">
+        <strong>فعّل البريميوم لفتح كل الأنظمة</strong>
+        <span>إحصائيات متقدمة وأولوية معالجة وتخصيص أعمق — اكتشف الباقات المتاحة.</span>
+      </div>
+      <a href="/premium/<%= guild.id %>" class="btn-sm">تصفح البريميوم <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
+    </div>
+  <% } %>
+
+  <!-- ⑧ أنظمة أخرى تُدار من هنا -->
+  <div class="card glass st-sys">
+    <div class="card-header">
+      <h3><i class="fas fa-layer-group"></i> أنظمة أخرى لسيرفرك</h3>
+      <span class="badge badge-default">6 أنظمة</span>
+    </div>
+    <p class="card-desc">هذه الصفحة هي مركز الإعدادات — وبقية الأنظمة تُضبط في صفحاتها المخصصة:</p>
+    <div class="st-sysgrid">
+      <% sysTiles.forEach(t => { %>
+        <a class="st-systile" href="<%= t[0] %>">
+          <span class="st-systile-icon"><i class="fas <%= t[1] %>" aria-hidden="true"></i></span>
+          <span class="st-systile-body"><strong><%= t[2] %></strong><small><%= t[3] %></small></span>
+          <i class="fas fa-arrow-left st-systile-go" aria-hidden="true"></i>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+
   <div class="actions-bar">
     <button type="submit" class="btn-primary" id="saveBtn">
       <i class="fas fa-save"></i> حفظ جميع الإعدادات
@@ -577,6 +672,123 @@
 </form>
 
 <style>
+  .st-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .st-guild { color: var(--primary); font-weight: 700; }
+  .st-prem-chip {
+    display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+    padding: 8px 16px; border-radius: 999px; font-size: .82rem; font-weight: 700; color: #ffd93d;
+    background: rgba(245, 179, 1, .1); border: 1px solid rgba(245, 179, 1, .35);
+  }
+  .st-prem-chip:hover { background: rgba(245, 179, 1, .18); }
+
+  /* ─── دليل البدء ─── */
+  .st-guide { margin-bottom: 16px; }
+  .st-guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; padding: 0 20px 22px; }
+  .st-guide-step {
+    display: flex; align-items: center; gap: 12px; text-decoration: none;
+    padding: 13px 14px; border-radius: 13px;
+    background: rgba(255, 255, 255, .02); border: 1px solid var(--border);
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+  }
+  .st-guide-step:hover { border-color: rgba(168, 85, 247, .45); background: rgba(168, 85, 247, .06); transform: translateY(-1px); }
+  .st-guide-step.is-done { border-color: rgba(87, 242, 135, .25); }
+  .st-guide-num {
+    width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
+    border-radius: 12px; font-size: 1rem; color: #c4a2ff;
+    background: rgba(168, 85, 247, .12); border: 1px solid rgba(168, 85, 247, .22);
+  }
+  .st-guide-step.is-done .st-guide-num { color: #57f287; background: rgba(87, 242, 135, .1); border-color: rgba(87, 242, 135, .3); }
+  .st-guide-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .st-guide-body strong { font-size: .86rem; color: var(--text); }
+  .st-guide-body span { font-size: .74rem; color: var(--text-muted); line-height: 1.5; }
+  .st-guide-pill { font-size: .7rem; font-weight: 700; white-space: nowrap; color: var(--text-muted); }
+  .st-guide-pill.ok { color: #57f287; }
+
+  /* ─── شريط الحالة السريعة ─── */
+  .st-status-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .st-status-cell {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 14px 10px; border-radius: 14px; text-align: center;
+    background: rgba(255, 255, 255, .02); border: 1px solid var(--border);
+  }
+  .st-status-cell i { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 4px; }
+  .st-status-name { font-size: .78rem; font-weight: 700; }
+  .st-status-sub { font-size: .72rem; color: var(--text-muted); }
+  .st-status-cell.ok { border-color: rgba(87, 242, 135, .35); }
+  .st-status-cell.ok i, .st-status-cell.ok .st-status-sub { color: #57f287; }
+  .st-status-cell.mid { border-color: rgba(254, 231, 92, .3); }
+  .st-status-cell.mid i, .st-status-cell.mid .st-status-sub { color: #fee75c; }
+  .st-status-cell.no { border-color: rgba(237, 66, 69, .28); }
+  .st-status-cell.no i, .st-status-cell.no .st-status-sub { color: #ed4245; }
+
+  /* ─── أقسام موجّهة ─── */
+  .st-section { scroll-margin-top: 22px; }
+  .st-sec-head { gap: 10px; flex-wrap: wrap; }
+  .st-sec-num {
+    width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center;
+    font-size: .82rem; font-weight: 800; color: var(--primary);
+    background: rgba(168, 85, 247, .12); border: 1px solid rgba(168, 85, 247, .25);
+    flex-shrink: 0;
+  }
+  .st-steps { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 20px 16px; }
+  .st-steps span {
+    display: inline-flex; align-items: center; gap: 8px; font-size: .76rem; color: var(--text-muted);
+    background: var(--bg-glass-hover); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px;
+  }
+  .st-steps b {
+    width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
+    background: rgba(168, 85, 247, .18); color: #c4a2ff; font-size: .72rem;
+  }
+  .st-events { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .st-events i {
+    font-style: normal; font-size: .68rem; color: var(--text-muted);
+    background: rgba(255, 255, 255, .04); border: 1px solid var(--border);
+    padding: 2px 8px; border-radius: 999px;
+  }
+  .st-ex { display: flex; align-items: flex-start; gap: 6px; line-height: 1.6; }
+  .st-ex i { color: var(--warning); margin-top: 2px; }
+
+  /* ─── بطاقة البريميوم ─── */
+  .st-prem {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 18px 22px;
+    background:
+      radial-gradient(ellipse 60% 50% at 15% 0%, rgba(245, 179, 1, .14), transparent 60%),
+      linear-gradient(160deg, rgba(20, 16, 4, .7), rgba(12, 12, 26, .85));
+    border: 1px solid rgba(245, 179, 1, .35);
+  }
+  .st-prem.is-cta { background: linear-gradient(160deg, rgba(12, 12, 26, .85), rgba(20, 10, 40, .8)); border-color: rgba(168, 85, 247, .3); }
+  .st-prem-icon {
+    width: 46px; height: 46px; border-radius: 13px; flex: 0 0 46px; display: grid; place-items: center;
+    font-size: 1.1rem; color: #ffd93d; background: rgba(245, 179, 1, .12); border: 1px solid rgba(245, 179, 1, .3);
+  }
+  .st-prem.is-cta .st-prem-icon { color: #c4a2ff; background: rgba(168, 85, 247, .12); border-color: rgba(168, 85, 247, .3); }
+  .st-prem-text { flex: 1; min-width: 220px; }
+  .st-prem-text strong { font-size: .95rem; color: #ffe08a; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .st-prem.is-cta .st-prem-text strong { color: #fff; }
+  .st-prem-text strong span { color: #ffd93d; }
+  .st-prem-text span { display: block; color: var(--text-muted); font-size: .8rem; margin-top: 2px; }
+  .st-prem-days { background: rgba(245, 179, 1, .16); color: #ffe08a !important; padding: 2px 10px; border-radius: 999px; font-size: .72rem; }
+
+  /* ─── أنظمة أخرى ─── */
+  .st-sysgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; padding: 0 20px 22px; }
+  .st-systile {
+    display: flex; align-items: center; gap: 12px; text-decoration: none;
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, .02); border: 1px solid var(--border);
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+  }
+  .st-systile:hover { border-color: rgba(168, 85, 247, .45); background: rgba(168, 85, 247, .06); transform: translateY(-1px); }
+  .st-systile-icon {
+    width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center;
+    border-radius: 11px; background: rgba(168, 85, 247, .12); color: #c4a2ff; font-size: .92rem;
+  }
+  .st-systile-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .st-systile-body strong { font-size: .84rem; }
+  .st-systile-body small { font-size: .72rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st-systile-go { color: var(--text-muted); font-size: .8rem; }
+
+  /* ═══ (محفوظ) الأنماط المطلوبة من جافاسكربت الصفحة ═══ */
   .sync-bar {
     display: flex;
     align-items: center;
@@ -869,7 +1081,6 @@
     font-size: 14px;
     animation: maintSpin 7s linear infinite;
   }
-  /* وميض بسيط: نبض ناعم للشفافية مع توهج ضوئي */
   @keyframes maintPulse {
     0%, 100% { opacity: 1; box-shadow: 0 4px 16px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .28); }
     50% { opacity: .72; box-shadow: 0 4px 24px rgba(255, 209, 102, .25), 0 0 14px rgba(255, 209, 102, .35); }
@@ -880,10 +1091,8 @@
   .maint-glass--lg { padding: 10px 18px; font-size: 15px; gap: 9px; inset-inline-start: 16px; top: 16px; }
   .maint-glass--lg .fa-wrench { font-size: 17px; }
   .maint-glass--banner { inset-inline-start: auto; left: 50%; transform: translateX(-50%); top: 10px; }
-  /* إخفاء الشارة فعلياً عند استخدام سمة hidden (تظهر لصورة الترحيب فقط) */
   .maint-glass[hidden] { display: none; }
 
-  /* تعطيل ضوابط صورة الترحيب (الميزة تحت الصيانة) */
   .maint-notice {
     display: inline-flex; align-items: flex-start; gap: 8px;
     padding: 8px 12px; border-radius: 10px;
@@ -1231,7 +1440,6 @@ function imgIsUrl(v) { return typeof v === 'string' && /^https?:\/\//i.test(v); 
 function setImagePreview(key, value) {
   const prev = document.getElementById('preview-' + key);
   if (!prev) return;
-  // إعادة بناء المحتوى (معاينة أو placeholder)
   prev.innerHTML = '';
   if (imgIsDataUri(value) || imgIsUrl(value)) {
     const img = document.createElement('img');
@@ -1253,7 +1461,6 @@ function setImagePreview(key, value) {
     ph.className = 'fas fa-image preview-ph';
     prev.appendChild(ph);
   }
-  // شارة زجاجية «تحت الصيانة» على مصغّرة صورة الترحيب (الداشبورد فقط — صورة ديسكورد لا تتغير)
   if (key === 'welcome_image') {
     const b = document.createElement('div');
     b.className = 'maint-glass maint-glass--sm';
@@ -1336,7 +1543,6 @@ function initCustomImages() {
     })
     .catch(() => {});
 
-  // ربط أحداث رفع الصور
   document.querySelectorAll('input[type=file][data-img-key]').forEach(input => {
     input.addEventListener('change', () => {
       const key = input.dataset.imgKey;
@@ -1362,7 +1568,6 @@ function initCustomImages() {
     });
   });
 
-  // أزرار الحفظ (من رابط أو معاينة حاليّة)
   document.querySelectorAll('[data-img-save]').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.imgSave;
@@ -1371,7 +1576,6 @@ function initCustomImages() {
     });
   });
 
-  // أزرار الحذف (استعادة الافتراضية)
   document.querySelectorAll('[data-img-delete]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const key = btn.dataset.imgDelete;
@@ -1382,9 +1586,6 @@ function initCustomImages() {
     });
   });
 }
-
-// ─── عرض الصورة الحالية (نافذة منبثقة) ────────────────────────────────────
-// الصورة الحالية = المخصصة إن وُجدت، وإلا يُجلب الافتراضي من البوت عبر وكيل الداشبورد
 
 const customImageValues = {};
 
@@ -1410,7 +1611,6 @@ function openImgViewer(key) {
 
   const isCustom = !!(customImageValues[key] || '').trim();
   const src = isCustom ? customImageValues[key] : DEFAULT_IMG_ENDPOINT[key];
-  // شارة «تحت الصيانة والتعديل» تظهر فوق صورة الترحيب فقط داخل نافذة العرض
   const maint = document.getElementById('imgViewerMaint');
   if (maint) maint.hidden = key !== 'welcome_image';
   img.style.display = 'none';
