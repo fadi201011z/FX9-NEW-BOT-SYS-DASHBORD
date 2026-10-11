@@ -1,27 +1,36 @@
 import { Router } from 'express';
 import { isAuthenticated, refreshSessionGuilds } from '../middleware/auth.js';
-import config from '../config.js';
-import { botFetch, botPost } from '../services/botApi.js';
+import { manageableGuilds, botGuildIds } from '../services/guildRail.js';
+import { roleTokenFromLevel, ROLE_LABELS } from '../services/capabilities.js';
 
 const router = Router();
 
 router.get('/', isAuthenticated, async (req, res) => {
   // حدّث قائمة السيرفرات من Discord ليعكس أي سيرفر جديد أُضيف له البوت
   await refreshSessionGuilds(req);
-  const guilds = req.session.user?.guilds || [];
-  let managedGuilds = guilds.filter(g => (g.permissions & 0x8) === 0x8 || (g.permissions & 0x20) === 0x20);
 
-  // إظهار السيرفرات التي يتواجد فيها البوت فقط
-  try {
-    const botRes = await botFetch(`${config.botApiUrl}/api/guilds`, { signal: AbortSignal.timeout(4000) });
-    if (botRes.ok) {
-      const data = await botRes.json();
-      if (Array.isArray(data.guilds)) {
-        const botGuildIds = new Set(data.guilds.map(String));
-        managedGuilds = managedGuilds.filter(g => botGuildIds.has(String(g.id)));
-      }
-    }
-  } catch {}
+  // نفس الفلتر الذي يستخدمه السايد بار: إدارة ديسكورد (0x8/0x20) أو رتبة
+  // مُعيّنة من قسم المدراء. قبل ذلك كان هذا السطر يقرأ بتّات ديسكورد وحدها، فمن
+  // أُعطي رتبة كان يرى السيرفر في /guilds ولا يراه هنا ولا في السايد بار.
+  const mine = await manageableGuilds(req.session.user);
+
+  // حالة البوت من نفس المصدر المخزَّن مؤقتاً الذي يقرأه السايد بار، فلا يمكن
+  // أن تختلف الصفحتان على "هل البوت داخل السيرفر". null تعني أن البوت لم يُجب،
+  // فتُقرأ "نعم" ولا يُقفل كل شيء بسبب تعطّل مؤقت (نفس منطق السايد بار).
+  const botIds = await botGuildIds();
+  const managedGuilds = mine.map(g => ({
+    ...g,
+    hasBot: botIds === null ? true : botIds.has(String(g.id)),
+    myRoleLabel: ROLE_LABELS[roleTokenFromLevel(g.myLevel)] || 'إدارة',
+  }));
+
+  // الترتيب: السيرفر الذي فيه البوت وصاحب أعلى صلاحية أولاً، ثم الباقي.
+  // الاسم كسر تعادل أخير حتى لا يتغيّر الترتيب مع ترتيب ديسكورد.
+  managedGuilds.sort((a, b) => {
+    if (a.hasBot !== b.hasBot) return a.hasBot ? -1 : 1;
+    if (b.myLevel !== a.myLevel) return b.myLevel - a.myLevel;
+    return String(a.name || '').localeCompare(String(b.name || ''), 'ar');
+  });
 
   res.render('home', {
     user: req.session.user,

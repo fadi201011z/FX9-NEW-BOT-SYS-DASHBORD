@@ -51,12 +51,11 @@
   // where the menu spells it "آدمن" -- two vocabularies for one word.
   const roleName = perms.roleLabel;
 
-  // The bit that decides what the home page is allowed to show at all. The route
-  // has already filtered managedGuilds down to servers where you hold one of
-  // 0x8 (ADMINISTRATOR) or 0x20 (MANAGE_GUILD); the card says which one, because
-  // "you can manage this server" and "this server put you in charge of
-  // everything" are not the same sentence, and only the session can tell us.
-  const isFullAdmin = g => (Number(g.permissions) & 0x8) === 0x8;
+  // The route has already filtered managedGuilds down to servers where you hold a
+  // Discord admin bit OR a rank handed out in المدراء, and already ordered them
+  // bot-first then by that rank. The card only repeats what the route decided --
+  // myRoleLabel is that rank in words -- so the view can never re-derive a
+  // permission and disagree with the guard that let the server onto the page.
 
   // The eleven rows a server's rail carries, in the rail's order and the rail's
   // wording. Declared as data so the catalogue and the menu cannot drift: the
@@ -200,10 +199,21 @@
     </div>
   </section>
 
-  <!-- ── سيرفراتك ── -->
+  <!-- ── سيرفراتك ──
+       The route hands this list over already filtered (a Discord admin bit OR a
+       rank from المدراء) and already ordered: the server that has the bot and the
+       highest rank you hold comes first, the rest follow. So the first card
+       always answers "which server do I actually run", and it is marked, because
+       an order nobody can see is indistinguishable from no order at all.
+
+       A server the bot is not in is drawn and not linked, the same call the rail
+       makes: there is nowhere to go yet, so it says so and offers the one action
+       that fixes it. It keeps the .hd-g-card class on purpose -- the search box
+       and the fold count rows by that class, and a second kind of row would be a
+       second thing to keep in step. -->
   <div class="hd-sec-head hd-sec-row">
     <h2><i class="fas fa-server"></i> سيرفراتك <span class="hd-count"><%= managed.length %></span></h2>
-    <span>اختر سيرفاً لفتح لوحته</span>
+    <span>سيرفر البوت بأعلى رتبة أولاً</span>
     <% if (managed.length > 1) { %>
     <div class="hd-search"><i class="fas fa-search"></i><input id="hdSearch" type="text" placeholder="بحث عن سيرفر..." aria-label="ابحث عن سيرفر بالاسم" autocomplete="off"></div>
     <% } %>
@@ -212,7 +222,7 @@
   <section class="hd-empty">
     <div class="hd-empty-ic"><i class="fas fa-rocket"></i></div>
     <h4>لا يوجد سيرفر تديره هنا بعد</h4>
-    <p>هذه الصفحة تسرد السيرفرات التي عندك فيها صلاحية إدارة <b>و</b> التي دخلها كراتوس. إن كان البوت في سيرفرك ولم يظهر، فصلاحيتك عليه أقل من إدارة.</p>
+    <p>هذه الصفحة تسرد السيرفرات التي عندك فيها صلاحية إدارة على ديسكورد <b>أو</b> رتبة أُعطيت لك من قسم المدراء. إن كان البوت في سيرفرك ولم يظهر، فاطلب من مدير اللوحة أن يمنحك رتبة فيه.</p>
     <a href="/invite" class="hd-btn hd-btn-primary"><i class="fas fa-code-branch"></i> صفحة الدعوة</a>
     <a href="https://discord.gg/ENQut4HHKb" class="hd-btn hd-btn-ghost" target="_blank" rel="noopener"><i class="fab fa-discord"></i> ديسكورد</a>
   </section>
@@ -220,7 +230,13 @@
   <section class="hd-g-wrap">
     <div class="hd-g-grid" id="hdGGrid">
       <% managed.forEach((g, gi) => { %>
-      <a href="/guilds/<%= g.id %>" class="hd-g-card" data-name="<%= g.name %>"<%= gi >= GUILD_CAP ? ' hidden' : '' %>>
+      <% const inBot = g.hasBot !== false; %>
+      <% const rank = g.myRoleLabel || 'إدارة'; %>
+      <% if (inBot) { %>
+      <a href="/guilds/<%= g.id %>" class="hd-g-card<%= gi === 0 ? ' is-primary' : '' %>" data-name="<%= g.name %>"<%= gi >= GUILD_CAP ? ' hidden' : '' %>>
+      <% } else { %>
+      <div class="hd-g-card is-off" data-name="<%= g.name %>"<%= gi >= GUILD_CAP ? ' hidden' : '' %>>
+      <% } %>
         <div class="hd-g-ava <%= g.icon ? '' : 'noimg' %>">
           <% if (g.icon) { %>
           <%# The parent is read BEFORE the node is detached. "this.remove(); this.parentNode.classList..." 
@@ -229,12 +245,26 @@
           <img src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.png?size=128" alt="" onerror="var p=this.parentNode;this.remove();p.classList.add('noimg')">
           <% } %>
           <span class="hd-g-letter"><%= g.name.charAt(0) %></span>
+          <span class="hd-g-dot <%= inBot ? 'on' : 'off' %>" aria-hidden="true"></span>
         </div>
         <div class="hd-g-info">
           <b><%= g.name %></b>
-          <span><em class="hd-g-badge"><%= isFullAdmin(g) ? 'صلاحية كاملة' : 'إدارة السيرفر' %></em><i class="fas fa-arrow-left" aria-hidden="true"></i></span>
+          <div class="hd-g-tags">
+            <em class="hd-g-badge <%= inBot ? 'ok' : 'no' %>"><i class="fas <%= inBot ? 'fa-circle-check' : 'fa-circle-xmark' %>" aria-hidden="true"></i><%= inBot ? 'البوت جاهز' : 'البوت غير مضاف' %></em>
+            <em class="hd-g-badge lvl"><i class="fas fa-user-shield" aria-hidden="true"></i><%= rank %></em>
+            <% if (gi === 0) { %><em class="hd-g-badge star"><i class="fas fa-star" aria-hidden="true"></i>الرئيسي</em><% } %>
+          </div>
         </div>
+        <% if (inBot) { %>
+        <i class="fas fa-arrow-left hd-g-go" aria-hidden="true"></i>
+        <% } else { %>
+        <a href="/invite" class="hd-g-add"><i class="fas fa-plus" aria-hidden="true"></i>أضِف البوت</a>
+        <% } %>
+      <% if (inBot) { %>
       </a>
+      <% } else { %>
+      </div>
+      <% } %>
       <% }) %>
     </div>
     <%# Two rows, then a button. Not a scroller -- a scroller is how the third
@@ -505,22 +535,44 @@
    min-width:0 is not optional here: the default min-width:auto lets a long server
    name push a card wider than its share, and the row stops being full. */
 .hd-g-grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:12px}
-.hd-g-card{display:flex;flex:1 1 calc(33.3333% - 8px);align-items:center;gap:12px;min-width:0;padding:13px 14px;border-radius:14px;background:rgba(14,14,30,0.62);border:1px solid rgba(255,255,255,0.1);transition:all 0.25s}
+.hd-g-card{position:relative;display:flex;flex:1 1 calc(33.3333% - 8px);align-items:center;gap:12px;min-width:0;padding:13px 14px;border-radius:14px;background:rgba(14,14,30,0.62);border:1px solid rgba(255,255,255,0.1);transition:all 0.25s}
 .hd-g-card:hover{transform:translateY(-3px);border-color:rgba(168,85,247,0.42);background:rgba(16,16,36,0.86);box-shadow:0 14px 40px rgba(0,0,0,0.35)}
 .hd-g-ava{position:relative;width:44px;height:44px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,rgba(168,85,247,0.16),rgba(139,92,246,0.16));flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .hd-g-ava img{width:100%;height:100%;object-fit:cover}
 .hd-g-letter{display:none;font-size:1.1rem;font-weight:800;color:#d8b4fe}
 .hd-g-ava.noimg .hd-g-letter{display:block}
-.hd-g-info{min-width:0}
-.hd-g-info b{display:block;font-size:0.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
-.hd-g-info span{display:inline-flex;align-items:center;gap:7px;font-size:0.66rem;color:var(--text-muted)}
-.hd-g-info span i{font-size:0.7rem;color:#a855f7;transition:transform 0.25s}
-.hd-g-card:hover .hd-g-info span{color:#a855f7}
-.hd-g-card:hover .hd-g-info span i{transform:translateX(-3px)}
-/* Which of the two Discord bits put this server on the page. The route only kept
-   servers where you hold one of them, so this is a fact, not a permission. */
-.hd-g-badge{font-style:normal;font-size:0.6rem;font-weight:700;color:#d8b4fe;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.18);padding:1px 8px;border-radius:100px;transition:color 0.25s}
-.hd-g-card:hover .hd-g-badge{color:#e9d5ff}
+.hd-g-info{flex:1 1 auto;min-width:0}
+.hd-g-info b{display:block;font-size:0.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+/* The row of facts under the name. Three pills, each a different kind of claim:
+   the bot is here / which rank put this server on the page / this is the one the
+   order put first. They are facts the route decided, drawn and not re-derived. */
+.hd-g-tags{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.hd-g-badge{display:inline-flex;align-items:center;gap:4px;font-style:normal;font-size:0.58rem;font-weight:700;color:#d8b4fe;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.18);padding:2px 8px;border-radius:100px;white-space:nowrap;transition:color 0.25s}
+.hd-g-badge i{font-size:0.55rem}
+.hd-g-badge.ok{color:#86efac;background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.22)}
+.hd-g-badge.no{color:#fca5a5;background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.22)}
+.hd-g-badge.lvl{color:#93c5fd;background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.22)}
+.hd-g-badge.star{color:#fde68a;background:rgba(250,204,21,0.1);border-color:rgba(250,204,21,0.22)}
+/* Bot presence, drawn on the avatar the way /guilds draws it on the server card,
+   so the same fact does not need two different shapes on two pages. */
+.hd-g-dot{position:absolute;inset-inline-end:3px;bottom:3px;width:11px;height:11px;border-radius:50%;border:2px solid rgba(14,14,30,0.92);background:#6b7280}
+.hd-g-dot.on{background:#22c55e;animation:hddot 2.4s ease-in-out infinite}
+.hd-g-dot.off{background:#f87171}
+/* The first row, and the reason it is first. The bar is the same accent the rail
+   uses for "you are here", so the eye reads it before the badges. */
+.hd-g-card.is-primary{border-color:rgba(168,85,247,0.5);background:linear-gradient(135deg,rgba(168,85,247,0.13),rgba(14,14,30,0.62))}
+.hd-g-card.is-primary::before{content:'';position:absolute;inset-inline-start:0;top:11px;bottom:11px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#a855f7,#7c3aed)}
+/* A server the bot is not in is drawn, not linked: there is nowhere to go yet.
+   Dashed border says "this is not the same kind of thing" without a second card. */
+.hd-g-card.is-off{opacity:0.86;border-style:dashed}
+.hd-g-card.is-off:hover{transform:none;box-shadow:none;border-color:rgba(248,113,113,0.35);background:rgba(14,14,30,0.62)}
+/* The way in, and the way to fix a server with no way in. Both sit at the end of
+   the row. The invite link only exists on cards that are not themselves links --
+   a nested <a> inside <a> is not a link, it is invalid markup. */
+.hd-g-go{margin-inline-start:auto;flex-shrink:0;font-size:0.78rem;color:#a855f7;transition:transform 0.25s}
+.hd-g-card:hover .hd-g-go{transform:translateX(-3px)}
+.hd-g-add{margin-inline-start:auto;flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-size:0.62rem;font-weight:700;color:#fca5a5;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);padding:5px 11px;border-radius:100px;white-space:nowrap;transition:all 0.25s}
+.hd-g-add:hover{background:rgba(248,113,113,0.16);border-color:rgba(248,113,113,0.42);color:#fecaca}
 .hd-empty{position:relative;z-index:1;text-align:center;padding:38px 20px;border-radius:16px;background:rgba(14,14,30,0.5);border:1px dashed rgba(255,255,255,0.1)}
 .hd-empty-ic{width:56px;height:56px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;background:rgba(168,85,247,0.1);color:#a855f7}
 .hd-empty h4{font-size:0.95rem;font-weight:800;margin:0 0 6px}
@@ -612,7 +664,7 @@ section.hd-grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px
 [data-theme="light"] .hd-sys-k,
 [data-theme="light"] .hd-role,
 [data-theme="light"] .hd-pills span,
-[data-theme="light"] .hd-g-info span,
+[data-theme="light"] .hd-g-tags,
 [data-theme="light"] .hd-card p,
 [data-theme="light"] .hd-sys-list li,
 [data-theme="light"] .hd-ribbon-sub,
@@ -650,13 +702,23 @@ section.hd-grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px
 [data-theme="light"] .hd-count,
 [data-theme="light"] .hd-g-info b{color:#7c3aed}
 [data-theme="light"] .hd-ribbon-go:hover{color:#5b21b6}
-[data-theme="light"] .hd-g-card:hover .hd-g-info span{color:#7c3aed}
-/* The badge sits on a purple wash, so it takes the darker step. */
+/* The badge sits on a purple wash, so it takes the darker step; each variant
+   keeps its own hue, because a green "البوت جاهز" that turns lilac on hover
+   stops being a status and becomes decoration. */
 [data-theme="light"] .hd-role b,
 [data-theme="light"] .hd-role i,
 [data-theme="light"] .hd-g-letter{color:#6d28d9}
 [data-theme="light"] .hd-g-badge{color:#6d28d9}
-[data-theme="light"] .hd-g-card:hover .hd-g-badge{color:#5b21b6}
+[data-theme="light"] .hd-g-badge.ok{color:#047857;background:rgba(4,120,87,0.08);border-color:rgba(4,120,87,0.22)}
+[data-theme="light"] .hd-g-badge.no{color:#b91c1c;background:rgba(185,28,28,0.08);border-color:rgba(185,28,28,0.22)}
+[data-theme="light"] .hd-g-badge.lvl{color:#1d4ed8;background:rgba(29,78,216,0.08);border-color:rgba(29,78,216,0.22)}
+[data-theme="light"] .hd-g-badge.star{color:#a16207;background:rgba(161,98,7,0.08);border-color:rgba(161,98,7,0.22)}
+[data-theme="light"] .hd-g-dot{border-color:#fff}
+[data-theme="light"] .hd-g-card.is-primary{background:linear-gradient(135deg,rgba(124,58,237,0.1),var(--bg-glass))}
+[data-theme="light"] .hd-g-card.is-off:hover{background:var(--bg-glass)}
+[data-theme="light"] .hd-g-go{color:#7c3aed}
+[data-theme="light"] .hd-g-add{color:#b91c1c;background:rgba(185,28,28,0.06);border-color:rgba(185,28,28,0.18)}
+[data-theme="light"] .hd-g-add:hover{color:#991b1b;background:rgba(185,28,28,0.12);border-color:rgba(185,28,28,0.38)}
 /* The name is filled with a gradient, so its colour is never in the computed style
    and no text-contrast tool can see it. The gradient ran to #d8b4fe, so the second
    half of the user's own name would have been the invisible half. */

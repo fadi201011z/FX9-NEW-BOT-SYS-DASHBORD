@@ -1,14 +1,18 @@
 /**
- * The server rail's rows.
+ * The server rail's rows, and the list /home shares with them.
  *
  * One rule decides who appears in the rail and whether their row is a link, and
  * it lives here rather than in the template so the rail and /home cannot end up
- * disagreeing about which servers exist. /home ran this same filter inline --
- * `permissions & 0x8 || permissions & 0x20` -- and it is now levelFromDiscord
- * Permissions, the one Discord permission reader the guards also use.
+ * disagreeing about which servers exist. That rule is the one `hasGuildAccess`
+ * applies to a server path: a Discord administrator or guild manager (0x8/0x20)
+ * OR an Admin record appointed from /admins. The record half used to be dropped
+ * here, which is why someone handed a rank in المدراء could open the server from
+ * /guilds and /home but never saw a row for it in the rail.
  */
+import config from '../config.js';
 import { botFetch } from './botApi.js';
-import { levelFromDiscordPermissions, LEVEL } from './capabilities.js';
+import { getUserAdminGuilds } from '../database.js';
+import { levelFromDiscordPermissions, ROLE_LEVEL, LEVEL } from './capabilities.js';
 
 /* The bot's guild set is the same for everyone, so it is cached once for the
    process instead of per user. 30s because a server being added, or the bot
@@ -45,31 +49,53 @@ export async function botGuildIds() {
 }
 
 /**
- * Every server this person administers, flagged with whether the bot is in it.
+ * Every server this person administers, as the session sees them, each one
+ * carrying the level they hold in it.
  *
- * One filter, and it is the same one `resolve()` ends up applying to a server
- * path: a Discord administrator (0x8) or a guild manager (0x20) is at least
- * LEVEL.MANAGER, which is what /guilds/<id> asks for. The rail therefore lists
- * exactly the servers a row in it would let you open, and never one that would
- * bounce.
+ * "Administers" is the same answer `hasGuildAccess` gives for a single server:
+ * a Discord administrator (0x8) or guild manager (0x20), OR an Admin record
+ * appointed from /admins. /guilds already reads both halves; the rail and /home
+ * run that same pair of tests here so neither can answer it more weakly.
  *
- * No exemption for `perms.isOwner`, which is the whole point of the last change.
- * resolve() does grant the bot's owner LEVEL.OWNER everywhere, so the exemption
- * was defensible as a guard input -- but the owner of a bot is not an
- * administrator of every server they happen to be a member of, and a switcher
- * that answers "everything I am in" for one person and "what I administer" for
- * everyone else is not a filter, it is two filters wearing one column. It was
- * also the only thing widening this rail past the guard's own set.
- *
- * Session guild order is kept rather than sorted -- /guilds and /home present
- * the same list in the same order, and a rail that reorders on its own makes the
- * same server sit in three different places.
+ * The owner is exempt from the record half only, exactly like /guilds. resolve()
+ * grants the owner LEVEL.OWNER everywhere, but that is a statement about the
+ * bot, not about the servers they merely happen to be a member of -- and a rail
+ * with two different filters in it is not a filter.
  */
-export function railGuilds(user, botIds) {
+export async function manageableGuilds(user) {
   if (!user) return [];
 
-  const list = (user.guilds || [])
-    .filter(g => levelFromDiscordPermissions(g.permissions) >= LEVEL.MANAGER);
+  const adminRoles = new Map();
+  if (user.id !== config.discord.ownerId) {
+    try {
+      const rows = await getUserAdminGuilds(user.id);
+      for (const row of rows || []) adminRoles.set(String(row.guildId), row.role);
+    } catch {}
+  }
+
+  return (user.guilds || [])
+    .filter(g => {
+      const id = String(g.id);
+      return levelFromDiscordPermissions(g.permissions) >= LEVEL.MANAGER || adminRoles.has(id);
+    })
+    .map(g => {
+      const id = String(g.id);
+      const fromDiscord = levelFromDiscordPermissions(g.permissions);
+      const fromRecord = ROLE_LEVEL[adminRoles.get(id)] ?? LEVEL.NONE;
+      return { ...g, myLevel: Math.max(fromDiscord, fromRecord) };
+    });
+}
+
+/**
+ * The rail's rows: the same set, narrowed to what a row needs.
+ *
+ * The order is the session's, not sorted. /home sorts its own copy by bot-first
+ * then rank, because it is a page whose first card is an answer; a rail is a
+ * switcher, and a switcher that reorders itself between pages makes the same
+ * server sit in a different place each time with no reason the eye can find.
+ */
+export async function railGuilds(user, botIds) {
+  const list = await manageableGuilds(user);
 
   return list.map(g => {
     const id = String(g.id);
@@ -82,4 +108,4 @@ export function railGuilds(user, botIds) {
   });
 }
 
-export default { botGuildIds, railGuilds };
+export default { botGuildIds, manageableGuilds, railGuilds };

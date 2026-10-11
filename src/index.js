@@ -164,19 +164,24 @@ app.use(async (req, res, next) => {
 
 // ─── The server rail's rows ───────────────────────────────────────────────
 // Set for every request the layout renders, because the rail is in the layout.
-// The row list comes entirely off the session's own guilds and their Discord
-// permission bits -- nothing here reads res.locals.perms any more, and that is the
+// The row list comes off the session's own guilds, narrowed by the same filter
+// the guard applies -- Discord admin bits OR an Admin record -- and that is the
 // fix rather than an accident: reading isOwner is what made the rail list every
 // server the bot's owner happened to be a member of. resolve() does grant them
 // LEVEL.OWNER everywhere, so it agreed with the guard, but being the owner of a
 // bot is not being an administrator of every server you are in, and a switcher
-// with two different filters in it is not a filter.
+// with two different filters in it is not a filter. Reading Admin records, on
+// the other hand, is what makes a rank handed out in المدراء appear here.
 app.use(async (req, res, next) => {
   res.locals.railGuilds = [];
   const user = req.session?.user;
   if (!user) return next();
+  // The rail is drawn by the layout, so only an HTML GET can need it. Reading
+  // Admin records is a real query now, and it has no business running for /api
+  // polling or a POST that will never render a rail.
+  if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
   try {
-    res.locals.railGuilds = railGuilds(user, await botGuildIds());
+    res.locals.railGuilds = await railGuilds(user, await botGuildIds());
   } catch {
     // A rail with no rows is the same as having no rail -- it collapses to zero
     // width and the shell closes up. Losing the rail beats not rendering at all.
