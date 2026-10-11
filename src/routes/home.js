@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { isAuthenticated, refreshSessionGuilds } from '../middleware/auth.js';
-import { manageableGuilds, botGuildIds } from '../services/guildRail.js';
+import { manageableGuilds, botGuildIds, compareManaged } from '../services/guildRail.js';
 import { roleTokenFromLevel, ROLE_LABELS } from '../services/capabilities.js';
 
 const router = Router();
@@ -25,12 +25,8 @@ router.get('/', isAuthenticated, async (req, res) => {
   }));
 
   // الترتيب: السيرفر الذي فيه البوت وصاحب أعلى صلاحية أولاً، ثم الباقي.
-  // الاسم كسر تعادل أخير حتى لا يتغيّر الترتيب مع ترتيب ديسكورد.
-  managedGuilds.sort((a, b) => {
-    if (a.hasBot !== b.hasBot) return a.hasBot ? -1 : 1;
-    if (b.myLevel !== a.myLevel) return b.myLevel - a.myLevel;
-    return String(a.name || '').localeCompare(String(b.name || ''), 'ar');
-  });
+  // نفس المقارنة المستخدمة في السايد بار (compareManaged) فلا تختلف القائمتان.
+  managedGuilds.sort(compareManaged);
 
   res.render('home', {
     user: req.session.user,

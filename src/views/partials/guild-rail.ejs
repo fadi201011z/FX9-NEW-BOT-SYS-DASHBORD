@@ -19,9 +19,10 @@
     carries the accessible name, data-tip the one string that is not always the
     same thing as the name.
 
-    Row order is the session's, not alphabetical: /guilds and /home present the
-    same list in the same order, and a rail that reorders on its own puts the same
-    server in three different places.
+    Row order is /home's order -- a server the bot is in first, then the highest
+    rank you hold, then the name -- so the row drawn first is the card /home marks
+    الرئيسي. /guilds keeps its own order; the rail and the front door agree, and
+    both read that order from the one comparator in services/guildRail.js.
 
     The first row is not a server. It is the way back out, drawn above them and
     always present, because the rail is the only column that survives entering a

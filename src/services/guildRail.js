@@ -89,23 +89,45 @@ export async function manageableGuilds(user) {
 /**
  * The rail's rows: the same set, narrowed to what a row needs.
  *
- * The order is the session's, not sorted. /home sorts its own copy by bot-first
- * then rank, because it is a page whose first card is an answer; a rail is a
- * switcher, and a switcher that reorders itself between pages makes the same
- * server sit in a different place each time with no reason the eye can find.
+ * Ordered with the same comparator /home uses -- bot first, then the highest
+ * rank you hold, then the name -- so the row the rail draws first is the card
+ * /home marks الرئيسي, and the two never disagree about which server leads.
  */
 export async function railGuilds(user, botIds) {
   const list = await manageableGuilds(user);
 
-  return list.map(g => {
+  const rows = list.map(g => {
     const id = String(g.id);
     return {
       id,
       name: g.name || 'سيرفر',
       icon: g.icon || null,
       inBot: botIds === null ? true : botIds.has(id),
+      myLevel: g.myLevel,
     };
   });
+
+  rows.sort(compareManaged);
+  // The row shape is the template's; the sort-only level does not leak into it.
+  return rows.map(({ id, name, icon, inBot }) => ({ id, name, icon, inBot }));
 }
 
-export default { botGuildIds, manageableGuilds, railGuilds };
+/**
+ * The one order the rail and /home both apply: a server the bot is in before one
+ * it is not, then the higher rank first, then the name. It reads `hasBot` (the
+ * /home row) or `inBot` (the rail row), so both callers can pass their own shape
+ * and still come out in the same order.
+ */
+export function compareManaged(a, b) {
+  const aBot = a.hasBot ?? a.inBot ?? false;
+  const bBot = b.hasBot ?? b.inBot ?? false;
+  if (aBot !== bBot) return aBot ? -1 : 1;
+
+  const al = a.myLevel ?? -1;
+  const bl = b.myLevel ?? -1;
+  if (bl !== al) return bl - al;
+
+  return String(a.name || '').localeCompare(String(b.name || ''), 'ar');
+}
+
+export default { botGuildIds, manageableGuilds, railGuilds, compareManaged };
