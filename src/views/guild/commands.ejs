@@ -1,332 +1,669 @@
 <% currentPage = 'commands' %>
 <%
-  // — الأوامر: تفعيل/تعطيل، تعديل الوصف، وصلاحيات الرتب لكل أمر.
-  const enabledCount = commands.filter(c => { const cfg = configMap[c.name]; return cfg ? cfg.enabled !== false : true; }).length;
-  const catsCount = new Set(commands.map(c => c.category).filter(Boolean)).size;
-  const metaCount = Object.values(configMap || {}).filter(cfg => cfg && cfg.allowedRoles?.length).length;
+  // — لوحة الأوامر: تفعيل/تعطيل، وصف، وصلاحيات الرتب لكل أمر.
+  const byCat = {};
+  commands.forEach(c => { const k = c.category || 'أخرى'; (byCat[k] = byCat[k] || []).push(c); });
+  const cats = Object.keys(byCat);
+  const total = commands.length;
+  const enabledOf = c => { const cfg = configMap[c.name]; return cfg ? cfg.enabled !== false : true; };
+  const enabledCount = commands.filter(enabledOf).length;
+  const customPerms = Object.values(configMap || {}).filter(cfg => cfg && (((cfg.allowedRoles || []).length) || ((cfg.blockedRoles || []).length))).length;
 %>
 
-<div class="page-header">
-  <h1><i class="fas fa-terminal"></i> الأوامر</h1>
-  <p>تفعيل وتعطيل أوامر سيرفر <strong><%= guild.name %></strong> والتحكم بصلاحياتها</p>
-</div>
-
-<div class="stats-grid">
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-terminal" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= commands.length %></span>
-      <span class="stat-label">إجمالي الأوامر</span>
-    </div>
-  </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-toggle-on" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= enabledCount %></span>
-      <span class="stat-label">مفعّلة</span>
-    </div>
-  </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-toggle-off" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= commands.length - enabledCount %></span>
-      <span class="stat-label">معطّلة</span>
-    </div>
-  </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ff8088"><i class="fas fa-folder-tree" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= catsCount %></span>
-      <span class="stat-label">قسم أوامر</span>
-    </div>
-  </div>
-</div>
-
-<div class="commands-filter cmd-search">
-  <i class="fas fa-search" aria-hidden="true"></i>
-  <input type="text" id="commandSearch" placeholder="بحث عن أمر..." oninput="filterCommands()">
-  <select id="categoryFilter" onchange="filterCommands()">
-    <option value="all">جميع الأقسام</option>
-    <% const cats = [...new Set(commands.map(c => c.category))] %>
-    <% cats.forEach(cat => { %>
-      <option value="<%= cat %>"><%= cat %></option>
-    <% }) %>
-  </select>
-</div>
-
-<div class="commands-grid cmd-grid" id="commandsGrid">
-  <% commands.forEach(cmd => { %>
-    <% const cfg = configMap[cmd.name] %>
-    <div class="command-card cmd-card glass" data-name="<%= cmd.name %>" data-category="<%= cmd.category %>">
-      <div class="command-header cmd-head">
-        <span class="cmd-cat"><%= cmd.category %></span>
-        <label class="toggle">
-          <input type="checkbox" <%= cfg ? (cfg.enabled ? 'checked' : '') : 'checked' %> onchange="toggleCommand('<%= cmd.name %>', this.checked)">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="command-body cmd-body">
-        <h3 class="cmd-name">/<%= cmd.name %></h3>
-        <p class="command-desc cmd-desc" id="desc-<%= cmd.name %>">
-          <%= cmd.description || 'بدون وصف' %>
-          <i class="fas fa-pen edit-desc-btn" onclick="openEditDesc('<%= cmd.name %>')" title="تعديل الوصف"></i>
-        </p>
-        <div class="command-meta cmd-meta">
-          <span><i class="fas fa-folder"></i> <%= cmd.category %></span>
-          <span><i class="fas fa-file"></i> <%= cmd.file %></span>
-        </div>
-        <div class="command-roles cmd-roles" id="roles-<%= cmd.name %>">
-          <% if (cfg && cfg.allowedRoles && cfg.allowedRoles.length) { %>
-            <div class="cmd-role-row is-allowed"><i class="fas fa-check-circle"></i> مسموح: <span dir="ltr"><%= cfg.allowedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
-          <% } %>
-          <% if (cfg && cfg.blockedRoles && cfg.blockedRoles.length) { %>
-            <div class="cmd-role-row is-blocked"><i class="fas fa-ban"></i> ممنوع: <span dir="ltr"><%= cfg.blockedRoles.map(id => `<@&${id}>`).join(', ') %></span></div>
-          <% } %>
-        </div>
-        <button class="btn btn-sm btn-secondary cmd-perms-btn" onclick="openPermsModal('<%= cmd.name %>')">
-          <i class="fas fa-shield-alt"></i> صلاحيات
-        </button>
-      </div>
-    </div>
-  <% }) %>
-</div>
-
-<div class="empty-state cmd-nores" id="noCommands" style="display:none">
-  <i class="fas fa-search"></i>
-  <p>لا توجد نتائج للبحث</p>
-</div>
-
 <style>
-  .cmd-search { position: relative; display: flex; gap: 10px; align-items: center; margin-bottom: 18px; max-width: 640px; }
-  .cmd-search > i { position: absolute; inset-inline-start: 14px; color: var(--text-muted); font-size: .85rem; }
-  .cmd-search input {
-    flex: 1; min-width: 0; padding: 11px 14px 11px 40px;
-    border-radius: 11px; border: 1px solid var(--nx-line, rgba(237,240,255,0.09));
-    background: rgba(237,240,255,0.03); color: var(--text, #edf0ff); font-family: inherit; outline: none;
-    transition: border-color .18s var(--nx-ease, ease), box-shadow .18s var(--nx-ease, ease);
-  }
-  .cmd-search input:focus { border-color: var(--primary, #d000ff); box-shadow: 0 0 0 3px rgba(208,0,255,0.16); }
-  .cmd-search select {
-    padding: 11px 12px; border-radius: 11px; border: 1px solid var(--nx-line, rgba(237,240,255,0.09));
-    background: rgba(237,240,255,0.03); color: var(--text, #edf0ff); font-family: inherit; outline: none; cursor: pointer;
-  }
-  @media (max-width: 560px) { .cmd-search { flex-wrap: wrap; } .cmd-search select { flex: 1; } }
+  /* ═══ لوحة الأوامر — تصميم مزدوج (قائمة + محرّر) ═══ */
+  .cmds-page { --ok: #00c8ff; --no: #ff3545; --acc: #d000ff; --acc2: #8700ff; }
 
-  .cmd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-  .cmd-card { display: flex; flex-direction: column; padding: 16px; transition: border-color .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease); }
-  .cmd-card:hover { border-color: rgba(208,0,255,0.4); transform: translateY(-2px); }
-  .cmd-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .cmd-cat {
-    font-size: .68rem; font-weight: 700; padding: 2px 11px; border-radius: 20px;
-    background: rgba(208,0,255,0.14); color: var(--primary, #d000ff); letter-spacing: .2px;
+  .cmds-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .cmds-header h1 i { color: var(--acc); }
+  .cmds-kpis { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cmds-kpi { min-width: 76px; text-align: center; padding: 9px 13px; border-radius: 13px; background: rgba(237,240,255,0.03); border: 1px solid var(--border); }
+  .cmds-kpi b { display: block; font-size: 1.25rem; font-weight: 800; line-height: 1.2; }
+  .cmds-kpi span { font-size: 0.68rem; color: var(--text-muted); }
+  .cmds-kpi.is-on b { color: var(--ok); }
+  .cmds-kpi.is-off b { color: var(--no); }
+  .cmds-kpi.is-perm b { color: var(--acc); }
+
+  /* ── شريط الأدوات ── */
+  .cmds-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+  .cmds-search { position: relative; flex: 1 1 240px; max-width: 380px; }
+  .cmds-search > i { position: absolute; inset-inline-start: 13px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.82rem; pointer-events: none; }
+  .cmds-search input { width: 100%; padding-block: 10px; padding-inline: 37px 13px; border-radius: 11px; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text); font-family: inherit; font-size: 0.85rem; outline: none; transition: border-color .16s, box-shadow .16s; }
+  .cmds-search input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(208,0,255,0.15); }
+  .cmds-catfilter { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cmds-chip { padding: 7px 13px; border-radius: 999px; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text-muted); font-family: inherit; font-size: 0.78rem; cursor: pointer; transition: .15s; white-space: nowrap; }
+  .cmds-chip:hover { color: var(--text); border-color: rgba(208,0,255,0.4); }
+  .cmds-chip.is-active { background: rgba(208,0,255,0.16); border-color: rgba(208,0,255,0.5); color: #edf0ff; }
+
+  .cmds-bulkbar { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; padding: 5px 6px 5px 14px; border-radius: 11px; background: rgba(208,0,255,0.10); border: 1px solid rgba(208,0,255,0.32); }
+  .cmds-bulkbar[hidden] { display: none; }
+  .cmds-bulkcount { font-size: 0.76rem; color: var(--text-muted); }
+  .cmds-bulkcount b { color: var(--text); }
+
+  /* ── أزرار ── */
+  .cmds-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border); background: rgba(237,240,255,0.04); color: var(--text); font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: .15s; white-space: nowrap; }
+  .cmds-btn:hover { border-color: rgba(208,0,255,0.45); background: rgba(208,0,255,0.10); }
+  .cmds-btn:disabled { opacity: 0.55; cursor: default; }
+  .cmds-btn.is-primary { background: linear-gradient(135deg, var(--acc), var(--acc2)); border-color: transparent; color: #edf0ff; }
+  .cmds-btn.is-primary:hover { filter: brightness(1.08); }
+  .cmds-btn.is-on { border-color: rgba(0,200,255,0.4); color: var(--ok); background: rgba(0,200,255,0.08); }
+  .cmds-btn.is-off { border-color: rgba(255,53,69,0.4); color: var(--no); background: rgba(255,53,69,0.08); }
+  .cmds-btn.is-ghost { background: transparent; border-color: transparent; color: var(--text-muted); }
+  .cmds-btn.is-ghost:hover { color: var(--text); background: rgba(237,240,255,0.05); }
+  .cmds-mini { display: inline-flex; align-items: center; color: var(--text-muted); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 4px 7px; cursor: pointer; font-family: inherit; font-size: 0.74rem; transition: .15s; line-height: 1; }
+  .cmds-mini:hover { color: #edf0ff; background: rgba(237,240,255,0.06); border-color: var(--border); }
+
+  /* ── التخطيط ── */
+  .cmds-layout { display: grid; grid-template-columns: minmax(300px, 0.9fr) minmax(420px, 1.1fr); gap: 16px; align-items: start; }
+  @media (max-width: 1040px) { .cmds-layout { grid-template-columns: 1fr; } .cmds-editor { position: static !important; } }
+
+  /* ── لوحة القائمة ── */
+  .cmds-list-panel { padding: 0; overflow: hidden; }
+  .cmds-list-head { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border); }
+  .cmds-list-title { font-weight: 700; font-size: 0.88rem; flex: 1; }
+  .cmds-list-count { font-size: 0.72rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .cmds-list { max-height: calc(100vh - 300px); min-height: 260px; overflow: auto; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .cmds-list::-webkit-scrollbar, .ed-roles::-webkit-scrollbar { width: 8px; }
+  .cmds-list::-webkit-scrollbar-thumb, .ed-roles::-webkit-scrollbar-thumb { background: rgba(135,0,255,0.35); border-radius: 8px; }
+
+  .cmds-group { display: flex; flex-direction: column; }
+  .cmds-group[hidden] { display: none; }
+  .cmds-group-head { position: sticky; top: -8px; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(16,16,20,0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 9px; }
+  .cmds-group-name { font-size: 0.78rem; font-weight: 800; color: var(--text); }
+  .cmds-group-count { font-size: 0.68rem; color: var(--text-muted); background: rgba(237,240,255,0.05); border-radius: 999px; padding: 1px 8px; }
+  .cmds-group-actions { margin-inline-start: auto; display: flex; gap: 2px; opacity: 0; transition: .15s; }
+  .cmds-group:hover .cmds-group-actions { opacity: 1; }
+
+  .cmds-row { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .13s, border-color .13s; }
+  .cmds-row[hidden] { display: none; }
+  .cmds-row:hover { background: rgba(237,240,255,0.04); }
+  .cmds-row.is-active { background: rgba(208,0,255,0.12); border-color: rgba(208,0,255,0.4); }
+
+  .cmds-check { display: inline-flex; flex: 0 0 auto; position: relative; }
+  .cmds-check input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .cmds-check > span { display: inline-block; width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid #34343f; background: rgba(237,240,255,0.04); position: relative; transition: .15s; cursor: pointer; }
+  .cmds-check input:checked + span { background: linear-gradient(135deg, var(--acc), var(--acc2)); border-color: transparent; }
+  .cmds-check input:checked + span::after { content: ''; position: absolute; left: 4.5px; top: 1.5px; width: 4px; height: 8px; border: solid #edf0ff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .cmds-check input:focus-visible + span { box-shadow: 0 0 0 3px rgba(208,0,255,0.3); }
+
+  .cmds-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; background: var(--ok); box-shadow: 0 0 8px rgba(0,200,255,0.55); transition: .15s; }
+  .cmds-row.is-off .cmds-dot { background: #777d90; box-shadow: none; }
+  .cmds-name { flex: 1; min-width: 0; font-family: var(--nx-mono, Consolas, monospace); direction: ltr; unicode-bidi: isolate; font-weight: 700; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cmds-row.is-off .cmds-name { color: var(--text-muted); }
+  .cmds-rowcat { flex: 0 0 auto; font-size: 0.64rem; padding: 2px 8px; border-radius: 999px; background: rgba(208,0,255,0.12); color: #d000ff; }
+  .cmds-rowlock { flex: 0 0 auto; color: #ff8088; font-size: 0.72rem; }
+  .cmds-rowlock[hidden] { display: none; }
+
+  /* ── مفتاح التشغيل ── */
+  .cmds-switch { position: relative; flex: 0 0 auto; width: 40px; height: 22px; border-radius: 999px; background: #34343f; border: 1px solid rgba(237,240,255,0.08); cursor: pointer; transition: .18s; outline: none; }
+  .cmds-switch > span { position: absolute; top: 2px; inset-inline-start: 2px; width: 16px; height: 16px; border-radius: 50%; background: #c9d0e5; transition: .18s; }
+  .cmds-switch[data-on="true"] { background: linear-gradient(135deg, var(--acc), var(--acc2)); border-color: transparent; }
+  .cmds-switch[data-on="true"] > span { inset-inline-start: 20px; background: #edf0ff; }
+  .cmds-switch:focus-visible { box-shadow: 0 0 0 3px rgba(208,0,255,0.3); }
+
+  .cmds-nores { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 34px 16px; color: var(--text-muted); text-align: center; }
+  .cmds-nores[hidden] { display: none; }
+  .cmds-nores i { font-size: 1.6rem; }
+
+  /* ── لوحة المحرّر ── */
+  .cmds-editor { position: sticky; top: 16px; padding: 0; overflow: hidden; }
+  .cmds-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 58px 24px; color: var(--text-muted); }
+  .cmds-placeholder i { font-size: 1.9rem; color: var(--acc2); }
+  .cmds-placeholder h3 { color: var(--text); font-size: 1rem; margin-top: 4px; }
+  .cmds-placeholder p { font-size: 0.84rem; max-width: 320px; line-height: 1.7; }
+  .cmds-editor-inner { padding: 16px; }
+  .cmds-editor-inner[hidden] { display: none; }
+
+  .ed-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .ed-title { min-width: 0; }
+  .ed-cat { display: inline-block; font-size: 0.66rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: rgba(208,0,255,0.13); color: var(--acc); margin-bottom: 6px; }
+  .ed-name { font-family: var(--nx-mono, Consolas, monospace); direction: ltr; text-align: right; font-size: 1.3rem; font-weight: 800; line-height: 1.15; }
+  .ed-file { display: block; font-family: var(--nx-mono, Consolas, monospace); direction: ltr; text-align: right; font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; }
+  .ed-toggle { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 0 auto; }
+  .ed-toggle > span:first-child { font-size: 0.74rem; color: var(--ok); font-weight: 700; }
+  .ed-toggle > span:first-child.is-off { color: #777d90; }
+
+  .ed-block { padding: 15px 0; }
+  .ed-block + .ed-block { border-top: 1px solid var(--border); }
+  .ed-block-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+  .ed-block-head h3 { font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .ed-block-head h3 i { color: var(--acc); }
+  .ed-save-state { font-size: 0.74rem; color: var(--ok); }
+  .ed-desc { width: 100%; min-height: 54px; resize: vertical; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text); font-family: inherit; font-size: 0.85rem; line-height: 1.6; outline: none; transition: border-color .16s, box-shadow .16s; }
+  .ed-desc:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(208,0,255,0.15); }
+  .ed-block-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .ed-hint { font-size: 0.76rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 10px; }
+  .ed-perms-tools { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .ed-rolesearch { position: relative; flex: 1 1 180px; }
+  .ed-rolesearch > i { position: absolute; inset-inline-start: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.78rem; pointer-events: none; }
+  .ed-rolesearch input { width: 100%; padding-block: 8px; padding-inline: 32px 11px; border-radius: 9px; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; transition: border-color .16s, box-shadow .16s; }
+  .ed-rolesearch input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(208,0,255,0.15); }
+  .ed-onlyset { display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+  .ed-perms-chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .ed-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+  .ed-chip.is-allow { background: rgba(0,200,255,0.12); color: var(--ok); }
+  .ed-chip.is-block { background: rgba(255,53,69,0.12); color: var(--no); }
+  .ed-chip.is-def { background: rgba(237,240,255,0.05); color: var(--text-muted); }
+
+  .ed-roles { border: 1px solid var(--border); border-radius: 12px; padding: 6px; max-height: 320px; overflow: auto; }
+  .ed-role { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 9px; }
+  .ed-role[hidden] { display: none; }
+  .ed-role:hover { background: rgba(237,240,255,0.035); }
+  .ed-role-dot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35); }
+  .ed-role-name { flex: 1; min-width: 0; font-size: 0.84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ed-seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: rgba(237,240,255,0.04); border: 1px solid var(--border); flex: 0 0 auto; }
+  .ed-seg button { border: 0; background: transparent; color: var(--text-muted); font-family: inherit; font-size: 0.72rem; font-weight: 600; padding: 5px 10px; border-radius: 7px; cursor: pointer; transition: .14s; white-space: nowrap; }
+  .ed-seg button:hover { color: var(--text); }
+  .ed-seg button.is-allow { background: rgba(0,200,255,0.16); color: var(--ok); }
+  .ed-seg button.is-block { background: rgba(255,53,69,0.16); color: var(--no); }
+  .ed-seg button.is-def { background: rgba(52,52,63,0.9); color: #edf0ff; }
+  .ed-roles-loading, .ed-roles-empty { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 22px; color: var(--text-muted); font-size: 0.82rem; }
+  .ed-roles-error { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 22px; color: #ff8088; font-size: 0.82rem; }
+
+  @media (max-width: 520px) {
+    .ed-seg button { padding: 5px 8px; font-size: 0.68rem; }
+    .ed-role-name { font-size: 0.8rem; }
   }
-  .cmd-body { display: flex; flex-direction: column; flex: 1; }
-  .cmd-name { direction: ltr; unicode-bidi: isolate; text-align: right; font-family: var(--nx-mono, Consolas, monospace); font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
-  .cmd-desc { color: var(--text-muted); font-size: .82rem; line-height: 1.6; flex: 1; margin-bottom: 10px; min-height: 30px; }
-  .edit-desc-btn { cursor: pointer; color: var(--text-muted); margin-inline-start: 6px; font-size: .72rem; }
-  .edit-desc-btn:hover { color: var(--primary); }
-  .cmd-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: .72rem; color: var(--text-muted); margin-bottom: 8px; }
-  .cmd-roles { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: .74rem; }
-  .cmd-role-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .cmd-role-row span { direction: ltr; unicode-bidi: isolate; }
-  .cmd-role-row.is-allowed { color: #00c8ff; }
-  .cmd-role-row.is-blocked { color: #ff3545; }
-  .cmd-perms-btn { width: 100%; margin-top: auto; cursor: pointer; }
 </style>
 
-<script>
-function filterCommands() {
-  const search = document.getElementById('commandSearch').value.toLowerCase();
-  const cat = document.getElementById('categoryFilter').value;
-  const cards = document.querySelectorAll('.command-card');
-  let visible = 0;
-  cards.forEach(c => {
-    const name = c.dataset.name;
-    const category = c.dataset.category;
-    const match = name.includes(search) && (cat === 'all' || category === cat);
-    c.style.display = match ? '' : 'none';
-    if (match) visible++;
-  });
-  document.getElementById('noCommands').style.display = visible === 0 ? '' : 'none';
-}
-
-async function toggleCommand(name, enabled) {
-  const res = await fetch('/commands/<%= guild.id %>/update', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ command: name, enabled }),
-  });
-  if (res.ok) {
-    showToast(`${enabled ? '✅ تم التفعيل' : '❌ تم التعطيل'} ${name}`);
-    return;
-  }
-  try {
-    const data = await res.json();
-    alert(`خطأ: ${data.error || 'غير معروف'}\nالتفاصيل: ${data.detail || 'لا يوجد'}`);
-  } catch {
-    alert(`خطأ ${res.status}: ${res.statusText}`);
-  }
-}
-
-function openEditDesc(name) {
-  const el = document.getElementById('desc-' + name);
-  document.getElementById('editDescName').value = name;
-  document.getElementById('editDescInput').value = el.textContent.trim();
-  document.getElementById('editDescModal').style.display = 'flex';
-}
-
-async function saveEditDesc() {
-  const name = document.getElementById('editDescName').value;
-  const desc = document.getElementById('editDescInput').value;
-  const res = await fetch('/commands/<%= guild.id %>/update-description', {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ command: name, description: desc }),
-  });
-  if (res.ok) {
-    document.getElementById('desc-' + name).innerHTML = (desc || 'بدون وصف') + ' <i class="fas fa-pen edit-desc-btn" onclick="openEditDesc(\'' + name + '\')" title="تعديل الوصف"></i>';
-    closeEditDesc();
-    showToast('✅ تم تحديث الوصف');
-  } else {
-    showToast('❌ فشل التحديث');
-  }
-}
-
-function closeEditDesc() {
-  document.getElementById('editDescModal').style.display = 'none';
-}
-
-// ─── Command Permissions ──────────────────────────────────────────────────
-let allRoles = [];
-
-async function openPermsModal(name) {
-  document.getElementById('permsCommandName').value = name;
-  document.getElementById('permsModal').style.display = 'flex';
-  document.getElementById('permsLoading').style.display = 'block';
-  document.getElementById('permsContent').style.display = 'none';
-
-  try {
-    const roleRes = await fetch('/commands/<%= guild.id %>/roles');
-    allRoles = await roleRes.json();
-    document.getElementById('permsLoading').style.display = 'none';
-    document.getElementById('permsContent').style.display = 'block';
-    renderPermsCheckboxes(name);
-  } catch {
-    document.getElementById('permsLoading').textContent = '❌ فشل تحميل الرتب';
-  }
-}
-
-function renderPermsCheckboxes(name) {
-  const cfg = <%- JSON.stringify(configMap) %>;
-  const cmdCfg = cfg[name] || {};
-  const allowed = cmdCfg.allowedRoles || [];
-  const blocked = cmdCfg.blockedRoles || [];
-
-  const container = document.getElementById('permsCheckboxes');
-  container.innerHTML = '';
-
-  if (!allRoles.length) {
-    container.innerHTML = '<p style="color:var(--text-muted);text-align:center">لا توجد رتب في السيرفر</p>';
-    return;
-  }
-
-  for (const role of allRoles) {
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light)';
-    const color = role.color ? `#${role.color.toString(16).padStart(6,'0')}` : '#858b9d';
-    div.innerHTML = `
-      <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};flex-shrink:0"></span>
-      <span style="flex:1">${role.name}</span>
-      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem">
-        <input type="checkbox" class="perms-allowed" data-role="${role.id}" ${allowed.includes(role.id) ? 'checked' : ''}>
-        مسموح
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.8rem">
-        <input type="checkbox" class="perms-blocked" data-role="${role.id}" ${blocked.includes(role.id) ? 'checked' : ''}>
-        ممنوع
-      </label>
-    `;
-    // Mutual exclusion: uncheck blocked when allowed checked
-    div.querySelector('.perms-allowed').addEventListener('change', function() {
-      if (this.checked) div.querySelector('.perms-blocked').checked = false;
-    });
-    div.querySelector('.perms-blocked').addEventListener('change', function() {
-      if (this.checked) div.querySelector('.perms-allowed').checked = false;
-    });
-    container.appendChild(div);
-  }
-}
-
-async function savePerms() {
-  const name = document.getElementById('permsCommandName').value;
-  const allowed = [...document.querySelectorAll('.perms-allowed:checked')].map(el => el.dataset.role);
-  const blocked = [...document.querySelectorAll('.perms-blocked:checked')].map(el => el.dataset.role);
-
-  const res = await fetch('/commands/<%= guild.id %>/permissions', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ command: name, allowedRoles: allowed, blockedRoles: blocked }),
-  });
-  if (res.ok) {
-    closePermsModal();
-    updateRolesDisplay(name, allowed, blocked);
-    showToast('✅ تم حفظ الصلاحيات');
-  } else {
-    const data = await res.json().catch(() => ({}));
-    alert(`خطأ: ${data.error || 'فشل حفظ الصلاحيات'}`);
-  }
-}
-
-function updateRolesDisplay(name, allowed, blocked) {
-  const el = document.getElementById('roles-' + name);
-  if (!el) return;
-  const labels = [];
-  if (allowed.length) labels.push('<div class="cmd-role-row is-allowed"><i class="fas fa-check-circle"></i> مسموح: ' + allowed.map(id => '<@&' + id + '>').join(', ') + '</div>');
-  if (blocked.length) labels.push('<div class="cmd-role-row is-blocked"><i class="fas fa-ban"></i> ممنوع: ' + blocked.map(id => '<@&' + id + '>').join(', ') + '</div>');
-  el.innerHTML = labels.join('');
-}
-
-function closePermsModal() {
-  document.getElementById('permsModal').style.display = 'none';
-}
-</script>
-
-<div class="modal-overlay" id="editDescModal" style="display:none">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h3><i class="fas fa-pen"></i> تعديل وصف الأمر</h3>
-      <button class="modal-close" onclick="closeEditDesc()">&times;</button>
+<div class="cmds-page">
+  <div class="page-header cmds-header">
+    <div>
+      <h1><i class="fas fa-terminal"></i> الأوامر</h1>
+      <p>تحكّم كامل بأوامر سيرفر <strong><%= guild.name %></strong> — تفعيل، وصف، وصلاحيات</p>
     </div>
-    <div class="modal-body">
-      <input type="hidden" id="editDescName">
-      <label for="editDescInput">الوصف الجديد:</label>
-      <input type="text" id="editDescInput" class="modal-input" maxlength="100" placeholder="أدخل الوصف الجديد" style="width:100%;padding:8px;margin-top:8px;border-radius:var(--radius);background:var(--bg-glass);color:var(--text);border:1px solid var(--border);">
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeEditDesc()">إلغاء</button>
-      <button class="btn btn-primary" onclick="saveEditDesc()">حفظ</button>
+    <div class="cmds-kpis">
+      <div class="cmds-kpi"><b id="kpiTotal"><%= total %></b><span>إجمالي</span></div>
+      <div class="cmds-kpi is-on"><b id="kpiOn"><%= enabledCount %></b><span>مفعّلة</span></div>
+      <div class="cmds-kpi is-off"><b id="kpiOff"><%= total - enabledCount %></b><span>معطّلة</span></div>
+      <div class="cmds-kpi is-perm"><b id="kpiPerm"><%= customPerms %></b><span>بصلاحيات</span></div>
     </div>
   </div>
-</div>
 
-<div class="modal-overlay" id="permsModal" style="display:none">
-  <div class="modal-box" style="max-width:600px">
-    <div class="modal-header">
-      <h3><i class="fas fa-shield-alt"></i> صلاحيات الأمر — <span id="permsCmdTitle"></span></h3>
-      <button class="modal-close" onclick="closePermsModal()">&times;</button>
+  <div class="cmds-toolbar">
+    <div class="cmds-search">
+      <i class="fas fa-search" aria-hidden="true"></i>
+      <input type="search" id="cmdsSearch" placeholder="ابحث باسم الأمر…" autocomplete="off">
     </div>
-    <div class="modal-body">
-      <input type="hidden" id="permsCommandName">
-      <p style="margin-bottom:12px;font-size:0.85rem;color:var(--text-muted)">
-        <strong>مسموح</strong>: فقط الرتب المحددة تستطيع استخدام الأمر<br>
-        <strong>ممنوع</strong>: الرتب المحددة ممنوعة من استخدام الأمر<br>
-        <em>إذا كان كلا الخيارين فارغين، الكل يستطيع استخدام الأمر</em>
-      </p>
-      <div id="permsLoading" style="text-align:center;padding:20px">⏳ جاري تحميل الرتب...</div>
-      <div id="permsContent" style="display:none;max-height:400px;overflow-y:auto" id="permsCheckboxesContainer">
-        <div id="permsCheckboxes"></div>
+    <div class="cmds-catfilter" id="cmdsCats">
+      <button type="button" class="cmds-chip is-active" data-cat="all">الكل</button>
+      <% cats.forEach(cat => { %>
+        <button type="button" class="cmds-chip" data-cat="<%= cat %>"><%= cat %></button>
+      <% }) %>
+    </div>
+    <div class="cmds-bulkbar" id="cmdsBulkBar" hidden>
+      <span class="cmds-bulkcount"><b id="cmdsPickCount">0</b> محدد</span>
+      <button type="button" class="cmds-btn is-on" onclick="cmdsBulkSelected(true)"><i class="fas fa-toggle-on"></i> تفعيل</button>
+      <button type="button" class="cmds-btn is-off" onclick="cmdsBulkSelected(false)"><i class="fas fa-toggle-off"></i> تعطيل</button>
+      <button type="button" class="cmds-btn is-ghost" onclick="cmdsClearSelection()">مسح</button>
+    </div>
+  </div>
+
+  <div class="cmds-layout">
+    <aside class="cmds-list-panel glass">
+      <div class="cmds-list-head">
+        <label class="cmds-check" title="تحديد الكل">
+          <input type="checkbox" id="cmdsSelectAll">
+          <span></span>
+        </label>
+        <span class="cmds-list-title">قائمة الأوامر</span>
+        <span class="cmds-list-count" id="cmdsVisibleCount"><%= total %>/<%= total %></span>
+      </div>
+      <div class="cmds-list" id="cmdsList">
+        <% cats.forEach(cat => { %>
+          <div class="cmds-group" data-cat="<%= cat %>">
+            <div class="cmds-group-head">
+              <span class="cmds-group-name"><%= cat %></span>
+              <span class="cmds-group-count"><%= byCat[cat].length %></span>
+              <span class="cmds-group-actions">
+                <button type="button" class="cmds-mini" title="تفعيل كل أوامر القسم" onclick='cmdsBulkCategory(<%- JSON.stringify(cat) %>, true)'><i class="fas fa-toggle-on"></i></button>
+                <button type="button" class="cmds-mini" onclick='cmdsBulkCategory(<%- JSON.stringify(cat) %>, false)' title="تعطيل كل أوامر القسم"><i class="fas fa-toggle-off"></i></button>
+              </span>
+            </div>
+            <% byCat[cat].forEach(cmd => { %>
+              <% const cfg = configMap[cmd.name]; %>
+              <% const en = cfg ? cfg.enabled !== false : true; %>
+              <% const allowed = (cfg && cfg.allowedRoles) || []; %>
+              <% const blocked = (cfg && cfg.blockedRoles) || []; %>
+              <div class="cmds-row<%= enabledOf(cmd) ? '' : ' is-off' %>"
+                   data-name="<%= cmd.name %>" data-cat="<%= cat %>"
+                   data-enabled="<%= enabledOf(cmd) ? 'true' : 'false' %>"
+                   data-allowed="<%= JSON.stringify(allowed) %>" data-blocked="<%= JSON.stringify(blocked) %>"
+                   data-desc="<%= cmd.description || '' %>" data-file="<%= cmd.file || '' %>">
+                <label class="cmds-check" title="تحديد">
+                  <input type="checkbox" class="cmds-pick">
+                  <span></span>
+                </label>
+                <span class="cmds-dot" aria-hidden="true"></span>
+                <span class="cmds-name">/<%= cmd.name %></span>
+                <span class="cmds-rowcat"><%= cat %></span>
+                <i class="fas fa-lock cmds-rowlock" <%= (allowed.length + blocked.length) ? '' : 'hidden' %> title="صلاحيات مخصّصة"></i>
+                <span class="cmds-switch" role="switch" tabindex="0" data-on="<%= enabledOf(cmd) ? 'true' : 'false' %>" aria-label="تفعيل أو تعطيل <%= cmd.name %>"><span></span></span>
+              </div>
+        <% }) %>
+      </div>
+      <% }) %>
+      <div class="cmds-nores" id="cmdsNoRes" hidden>
+        <i class="fas fa-search"></i>
+        <p>لا توجد أوامر مطابقة</p>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closePermsModal()">إلغاء</button>
-      <button class="btn btn-primary" onclick="savePerms()">حفظ الصلاحيات</button>
+    </aside>
+
+  <section class="cmds-editor glass" id="cmdsEditor">
+    <div class="cmds-placeholder" id="cmdsPlaceholder">
+      <i class="fas fa-sliders"></i>
+      <h3>اختر أمراً لتخصيصه</h3>
+      <p>اضغط على أي أمر من القائمة لعرض خيارات التفعيل والوصف والصلاحيات هنا.</p>
     </div>
+    <div class="cmds-editor-inner" id="cmdsEditorInner" hidden>
+      <div class="ed-top">
+        <div class="ed-title">
+          <span class="ed-cat" id="edCat"></span>
+          <h2 class="ed-name" id="edName"></h2>
+          <span class="ed-file" id="edFile"></span>
+        </div>
+        <div class="ed-toggle">
+          <span id="edToggleLabel">مفعّل</span>
+          <span class="cmds-switch" id="edSwitch" role="switch" tabindex="0" data-on="true" aria-label="تفعيل أو تعطيل الأمر"><span></span></span>
+        </div>
+      </div>
+
+      <div class="ed-block">
+        <div class="ed-block-head">
+          <h3><i class="fas fa-pen"></i> الوصف</h3>
+          <span class="ed-save-state" id="edDescState"></span>
+        </div>
+        <textarea class="ed-desc" id="edDesc" maxlength="100" placeholder="وصف يظهر للأعضاء…"></textarea>
+        <div class="ed-block-foot">
+          <button type="button" class="cmds-btn is-primary" id="edDescSave"><i class="fas fa-floppy-disk"></i> حفظ الوصف</button>
+        </div>
+      </div>
+
+      <div class="ed-block">
+        <div class="ed-block-head">
+          <h3><i class="fas fa-shield-halved"></i> الصلاحيات</h3>
+          <span class="ed-perms-chips" id="edPermChips"></span>
+        </div>
+        <p class="ed-hint">افتراضياً الجميع مسموح. اختر <b>مسموح</b> لقصر الأمر على رتب محدّدة، أو <b>ممنوع</b> لاستثناء رتب.</p>
+        <div class="ed-perms-tools">
+          <div class="ed-rolesearch">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="search" id="edRoleSearch" placeholder="ابحث عن رتبة…" autocomplete="off">
+          </div>
+          <label class="ed-onlyset"><input type="checkbox" id="edOnlySet"> المحدّدة فقط</label>
+        </div>
+        <div class="ed-roles" id="edRoles">
+          <div class="ed-roles-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الرتب…</div>
+        </div>
+        <div class="ed-block-foot">
+          <button type="button" class="cmds-btn is-primary" id="edPermSave"><i class="fas fa-floppy-disk"></i> حفظ الصلاحيات</button>
+          <span class="ed-save-state" id="edPermState"></span>
+        </div>
+      </div>
+    </div>
+  </section>
   </div>
 </div>
+
+<script>
+(function () {
+  const GID = '<%= guild.id %>';
+  const TOTAL = <%= total %>;
+
+  const listEl = document.getElementById('cmdsList');
+  const placeholder = document.getElementById('cmdsPlaceholder');
+  const inner = document.getElementById('cmdsEditorInner');
+  const searchEl = document.getElementById('cmdsSearch');
+  const catsEl = document.getElementById('cmdsCats');
+  const bulkBar = document.getElementById('cmdsBulkBar');
+  const bulkCount = document.getElementById('cmdsPickCount');
+  const visCount = document.getElementById('cmdsVisibleCount');
+  const selectAll = document.getElementById('cmdsSelectAll');
+  const noRes = document.getElementById('cmdsNoRes');
+  const kpiOn = document.getElementById('kpiOn');
+  const kpiOff = document.getElementById('kpiOff');
+  const kpiPerm = document.getElementById('kpiPerm');
+
+  const edCat = document.getElementById('edCat');
+  const edName = document.getElementById('edName');
+  const edFile = document.getElementById('edFile');
+  const edToggleLabel = document.getElementById('edToggleLabel');
+  const edSwitch = document.getElementById('edSwitch');
+  const edDesc = document.getElementById('edDesc');
+  const edDescState = document.getElementById('edDescState');
+  const edDescSave = document.getElementById('edDescSave');
+  const edRoleSearch = document.getElementById('edRoleSearch');
+  const edOnlySet = document.getElementById('edOnlySet');
+  const edRoles = document.getElementById('edRoles');
+  const edPermChips = document.getElementById('edPermChips');
+  const edPermSave = document.getElementById('edPermSave');
+  const edPermState = document.getElementById('edPermState');
+
+  let activeCat = 'all';
+  let selected = null;
+  let roles = null;
+  let rolesPromise = null;
+  let rolesState = {};   // roleId -> 'allow' | 'block'
+
+  const qsa = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+  const rowOf = name => qsa('.cmds-row', listEl).find(r => r.dataset.name === name) || null;
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const toast = msg => { try { if (typeof showToast === 'function') showToast(msg); } catch (e) { /* noop */ } };
+
+  /* ── تفعيل / تعطيل ─────────────────────────────────────────── */
+  function paintRowEnabled(row, enabled) {
+    row.dataset.enabled = enabled ? 'true' : 'false';
+    row.classList.toggle('is-off', !enabled);
+    const sw = row.querySelector('.cmds-switch');
+    if (sw) sw.dataset.on = enabled ? 'true' : 'false';
+    if (selected === row.dataset.name) paintEditorEnabled(enabled);
+  }
+  function paintEditorEnabled(enabled) {
+    edSwitch.dataset.on = enabled ? 'true' : 'false';
+    edToggleLabel.textContent = enabled ? 'مفعّل' : 'معطّل';
+    edToggleLabel.classList.toggle('is-off', !enabled);
+  }
+  async function setEnabled(row, enabled, quiet) {
+    const name = row.dataset.name;
+    const prev = row.dataset.enabled === 'true';
+    if (prev === enabled) return true;
+    paintRowEnabled(row, enabled);
+    try {
+      const res = await fetch('/commands/' + GID + '/update', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: name, enabled })
+      });
+      if (!res.ok) throw new Error('bad');
+      updateKpis();
+      return true;
+    } catch (e) {
+      paintRowEnabled(row, prev);
+      if (!quiet) toast('❌ تعذّر تحديث «' + name + '»');
+      return false;
+    }
+  }
+
+  /* ── الاختيار والمحرّر ─────────────────────────────────────── */
+  function select(name) {
+    selected = name;
+    qsa('.cmds-row', listEl).forEach(r => r.classList.toggle('is-active', r.dataset.name === name));
+    if (!name) { placeholder.hidden = false; inner.hidden = true; return; }
+    fillEditor(rowOf(name));
+  }
+  function fillEditor(row) {
+    if (!row) return;
+    placeholder.hidden = true;
+    inner.hidden = false;
+    edCat.textContent = row.dataset.cat;
+    edName.textContent = '/' + row.dataset.name;
+    edFile.textContent = row.dataset.file || '';
+    edDesc.value = row.dataset.desc || '';
+    edDescState.textContent = '';
+    paintEditorEnabled(row.dataset.enabled === 'true');
+    edRoleSearch.value = '';
+    edOnlySet.checked = false;
+    rolesState = {};
+    try { JSON.parse(row.dataset.allowed || '[]').forEach(id => { rolesState[id] = 'allow'; }); } catch (e) { /* noop */ }
+    try { JSON.parse(row.dataset.blocked || '[]').forEach(id => { rolesState[id] = 'block'; }); } catch (e) { /* noop */ }
+    updateChips();
+    loadRoles();
+  }
+
+  /* ── تحميل الرتب ───────────────────────────────────────────── */
+  function fetchRoles() {
+    if (!rolesPromise) {
+      rolesPromise = fetch('/commands/' + GID + '/roles')
+        .then(r => { if (!r.ok) throw new Error('roles'); return r.json(); })
+        .catch(e => { rolesPromise = null; throw e; });
+    }
+    return rolesPromise;
+  }
+  async function loadRoles() {
+    edPermState.textContent = '';
+    if (roles) { renderRoles(); return; }
+    edRoles.innerHTML = '<div class="ed-roles-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الرتب…</div>';
+    try {
+      roles = await fetchRoles();
+      renderRoles();
+    } catch (e) {
+      edRoles.innerHTML = '<div class="ed-roles-error"><i class="fas fa-triangle-exclamation"></i> تعذّر تحميل الرتب. <button type="button" class="cmds-mini" id="edRolesRetry">إعادة المحاولة</button></div>';
+    }
+  }
+  function renderRoles() {
+    if (!roles || !roles.length) {
+      edRoles.innerHTML = '<div class="ed-roles-empty">لا توجد رتب في هذا السيرفر</div>';
+      return;
+    }
+    edRoles.innerHTML = roles.map(r => {
+      const color = r.color ? ('#' + Number(r.color).toString(16).padStart(6, '0')) : '#858b9d';
+      const st = rolesState[r.id] || 'def';
+      return '<div class="ed-role" data-id="' + esc(r.id) + '" data-name="' + esc(r.name) + '">'
+        + '<span class="ed-role-dot" style="background:' + color + '"></span>'
+        + '<span class="ed-role-name">' + esc(r.name) + '</span>'
+        + '<span class="ed-seg">'
+        + '<button type="button" data-st="allow" class="' + (st === 'allow' ? 'is-allow' : '') + '">مسموح</button>'
+        + '<button type="button" data-st="def" class="' + (st === 'def' ? 'is-def' : '') + '">افتراضي</button>'
+        + '<button type="button" data-st="block" class="' + (st === 'block' ? 'is-block' : '') + '">ممنوع</button>'
+        + '</span></div>';
+    }).join('');
+    filterRoles();
+  }
+  function paintRole(roleEl) {
+    const st = rolesState[roleEl.dataset.id] || 'def';
+    qsa('.ed-seg button', roleEl).forEach(b => {
+      b.classList.toggle('is-allow', b.dataset.st === 'allow' && st === 'allow');
+      b.classList.toggle('is-block', b.dataset.st === 'block' && st === 'block');
+      b.classList.toggle('is-def', b.dataset.st === 'def' && st === 'def');
+    });
+  }
+  function filterRoles() {
+    if (!edRoles) return;
+    const q = edRoleSearch.value.trim().toLowerCase();
+    const only = edOnlySet.checked;
+    qsa('.ed-role', edRoles).forEach(el => {
+      const nm = (el.querySelector('.ed-role-name').textContent || '').toLowerCase();
+      const set = !!rolesState[el.dataset.id];
+      el.hidden = !((!q || nm.indexOf(q) !== -1) && (!only || set));
+    });
+  }
+  function updateChips() {
+    let a = 0, b = 0;
+    Object.keys(rolesState).forEach(k => { if (rolesState[k] === 'allow') a++; else if (rolesState[k] === 'block') b++; });
+    const bits = [];
+    if (a) bits.push('<span class="ed-chip is-allow"><i class="fas fa-check"></i> ' + a + ' مسموح</span>');
+    if (b) bits.push('<span class="ed-chip is-block"><i class="fas fa-ban"></i> ' + b + ' ممنوع</span>');
+    if (!a && !b) bits.push('<span class="ed-chip is-def">الجميع مسموح</span>');
+    edPermChips.innerHTML = bits.join('');
+  }
+
+  /* ── الحفظ ─────────────────────────────────────────────────── */
+  async function saveDesc() {
+    if (!selected) return;
+    const row = rowOf(selected);
+    const desc = edDesc.value.trim();
+    edDescSave.disabled = true;
+    edDescState.textContent = '…جاري الحفظ';
+    try {
+      const res = await fetch('/commands/' + GID + '/update-description', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: selected, description: desc })
+      });
+      if (!res.ok) throw new Error('bad');
+      if (row) row.dataset.desc = desc;
+      edDescState.textContent = '✅ تم الحفظ';
+      toast('✅ تم تحديث الوصف');
+    } catch (e) {
+      edDescState.textContent = '';
+      toast('❌ فشل تحديث الوصف');
+    } finally {
+      edDescSave.disabled = false;
+    }
+  }
+  async function savePerms() {
+    if (!selected) return;
+    const allowed = [], blocked = [];
+    Object.keys(rolesState).forEach(id => {
+      if (rolesState[id] === 'allow') allowed.push(id);
+      else if (rolesState[id] === 'block') blocked.push(id);
+    });
+    edPermSave.disabled = true;
+    edPermState.textContent = '…جاري الحفظ';
+    try {
+      const res = await fetch('/commands/' + GID + '/permissions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: selected, allowedRoles: allowed, blockedRoles: blocked })
+      });
+      if (!res.ok) throw new Error('bad');
+      const row = rowOf(selected);
+      if (row) {
+        row.dataset.allowed = JSON.stringify(allowed);
+        row.dataset.blocked = JSON.stringify(blocked);
+        paintRowLock(row);
+      }
+      edPermState.textContent = '✅ تم الحفظ';
+      toast('✅ تم حفظ صلاحيات «' + selected + '»');
+      updateKpis();
+    } catch (e) {
+      edPermState.textContent = '';
+      toast('❌ فشل حفظ الصلاحيات');
+    } finally {
+      edPermSave.disabled = false;
+    }
+  }
+  function paintRowLock(row) {
+    const lock = row.querySelector('.cmds-rowlock');
+    if (!lock) return;
+    let n = 0;
+    try { n += JSON.parse(row.dataset.allowed || '[]').length; } catch (e) { /* noop */ }
+    try { n += JSON.parse(row.dataset.blocked || '[]').length; } catch (e) { /* noop */ }
+    lock.hidden = n === 0;
+  }
+
+  /* ── التصفية والإجراءات الجماعية ───────────────────────────── */
+  function applyFilter() {
+    const q = searchEl.value.trim().toLowerCase().replace(/^\//, '');
+    let visible = 0;
+    qsa('.cmds-group').forEach(g => {
+      let gv = 0;
+      qsa('.cmds-row', g).forEach(r => {
+        const match = (!q || r.dataset.name.toLowerCase().indexOf(q) !== -1) && (activeCat === 'all' || r.dataset.cat === activeCat);
+        r.hidden = !match;
+        if (match) { gv++; visible++; }
+      });
+      g.hidden = gv === 0;
+    });
+    noRes.hidden = visible !== 0;
+    visCount.textContent = visible + '/' + TOTAL;
+    syncBulkBar();
+  }
+  function syncBulkBar() {
+    const n = qsa('.cmds-pick:checked').length;
+    bulkCount.textContent = n;
+    bulkBar.hidden = n === 0;
+    syncSelectAll();
+  }
+  function syncSelectAll() {
+    const rows = qsa('.cmds-row', listEl).filter(r => !r.hidden);
+    const checked = rows.filter(r => r.querySelector('.cmds-pick').checked).length;
+    selectAll.checked = rows.length > 0 && checked === rows.length;
+    selectAll.indeterminate = checked > 0 && checked < rows.length;
+  }
+  async function bulkSet(rows, enabled) {
+    const targets = rows.filter(r => (r.dataset.enabled === 'true') !== enabled);
+    if (!targets.length) { toast('لا يوجد تغيير'); return; }
+    let failed = 0;
+    for (const row of targets) {
+      const ok = await setEnabled(row, enabled, true);
+      if (!ok) failed++;
+    }
+    updateKpis();
+    const done = targets.length - failed;
+    toast((failed ? '⚠️ ' : '✅ ') + (enabled ? 'تم تفعيل ' : 'تم تعطيل ') + done + ' أمر' + (failed ? ' — فشل ' + failed : ''));
+  }
+  window.cmdsBulkSelected = function (enabled) {
+    bulkSet(qsa('.cmds-pick:checked').map(p => p.closest('.cmds-row')), enabled);
+  };
+  window.cmdsBulkCategory = function (cat, enabled) {
+    const group = qsa('.cmds-group').find(g => g.dataset.cat === cat);
+    if (group) bulkSet(qsa('.cmds-row', group), enabled);
+  };
+  function updateKpis() {
+    const rows = qsa('.cmds-row', listEl);
+    let on = 0, perm = 0;
+    rows.forEach(r => {
+      if (r.dataset.enabled === 'true') on++;
+      let n = 0;
+      try { n += JSON.parse(r.dataset.allowed || '[]').length; } catch (e) { /* noop */ }
+      try { n += JSON.parse(r.dataset.blocked || '[]').length; } catch (e) { /* noop */ }
+      if (n > 0) perm++;
+    });
+    kpiOn.textContent = on;
+    kpiOff.textContent = rows.length - on;
+    kpiPerm.textContent = perm;
+  }
+
+  /* ── الأحداث ───────────────────────────────────────────────── */
+  listEl.addEventListener('click', e => {
+    const row = e.target.closest('.cmds-row');
+    if (!row) return;
+    if (e.target.closest('.cmds-switch')) { setEnabled(row, row.dataset.enabled !== 'true'); return; }
+    if (e.target.closest('.cmds-check')) return;
+    select(row.dataset.name);
+  });
+  listEl.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('cmds-switch')) {
+      e.preventDefault();
+      const row = e.target.closest('.cmds-row');
+      if (row) setEnabled(row, row.dataset.enabled !== 'true');
+    }
+  });
+  listEl.addEventListener('change', e => {
+    if (e.target.classList.contains('cmds-pick')) syncBulkBar();
+  });
+  edSwitch.addEventListener('click', () => {
+    if (!selected) return;
+    const row = rowOf(selected);
+    if (row) setEnabled(row, row.dataset.enabled !== 'true');
+  });
+  edSwitch.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); edSwitch.click(); }
+  });
+  edDescSave.addEventListener('click', saveDesc);
+  edPermSave.addEventListener('click', savePerms);
+  edRoleSearch.addEventListener('input', filterRoles);
+  edOnlySet.addEventListener('change', filterRoles);
+  edRoles.addEventListener('click', e => {
+    if (e.target.closest('#edRolesRetry')) { roles = null; rolesPromise = null; loadRoles(); return; }
+    const btn = e.target.closest('.ed-seg button');
+    if (!btn) return;
+    const roleEl = btn.closest('.ed-role');
+    const id = roleEl.dataset.id;
+    const st = btn.dataset.st;
+    if (st === 'def') delete rolesState[id]; else rolesState[id] = st;
+    paintRole(roleEl);
+    updateChips();
+    edPermState.textContent = '';
+    if (edOnlySet.checked) filterRoles();
+  });
+  searchEl.addEventListener('input', applyFilter);
+  catsEl.addEventListener('click', e => {
+    const b = e.target.closest('.cmds-chip');
+    if (!b) return;
+    activeCat = b.dataset.cat;
+    qsa('.cmds-chip', catsEl).forEach(c => c.classList.toggle('is-active', c === b));
+    applyFilter();
+  });
+  selectAll.addEventListener('change', () => {
+    const on = selectAll.checked;
+    qsa('.cmds-row', listEl).filter(r => !r.hidden).forEach(r => { r.querySelector('.cmds-pick').checked = on; });
+    syncBulkBar();
+  });
+
+  /* ── التهيئة ───────────────────────────────────────────────── */
+  qsa('.cmds-row', listEl).forEach(paintRowLock);
+  applyFilter();
+  const first = qsa('.cmds-row', listEl).find(r => !r.hidden);
+  if (first) select(first.dataset.name);
+})();
+</script>
