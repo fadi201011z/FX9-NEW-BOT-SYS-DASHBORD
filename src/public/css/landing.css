@@ -409,9 +409,9 @@ button { font-family: inherit; }
   border-block-end: 1px solid var(--nx-line-2);
 }
 .nx-dash__brand { display: flex; align-items: center; gap: 9px; font-size: .875rem; font-weight: 700; color: #edf0ff; }
-.nx-dash__brand i {
+.nx-dash__brand img {
   width: 26px; height: 26px; border-radius: 8px;
-  background: linear-gradient(150deg, var(--nx-purple-l), var(--nx-purple));
+  object-fit: cover; flex: none;
   box-shadow: 0 0 18px rgba(75,0,130,0.55);
 }
 .nx-dash__crumb { display: flex; align-items: center; gap: 8px; font-size: .75rem; color: var(--nx-muted); }
@@ -687,6 +687,7 @@ button { font-family: inherit; }
   background: radial-gradient(circle, rgba(75,0,130,0.42), rgba(75,0,130,0) 72%);
   color: var(--nx-violet-2); font-size: 1.5rem;
 }
+.nx-orbit__hub img { width: 44px; height: 44px; border-radius: 14px; display: block; box-shadow: 0 0 24px rgba(208,0,255,0.45); }
 /* translate and rotate are separate properties and translate is applied first,
    so the square is centred before it turns — putting both on `transform` would
    rotate the element and then shove it sideways along the rotated axes. */
@@ -752,6 +753,7 @@ button { font-family: inherit; }
   border: 2px solid var(--nx-panel-2);
 }
 .nx-av--lg { width: 38px; height: 38px; }
+.nx-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
 .nx-av--bot { background: linear-gradient(135deg, var(--nx-purple), #101014); display:flex; align-items:center; justify-content:center; font-size:.7rem; color:#edf0ff; }
 .nx-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--nx-green); flex-shrink: 0; }
 .nx-stack { display: flex; }
@@ -1190,7 +1192,7 @@ button { font-family: inherit; }
   position: relative; /* anchors the ::after divider */
   display: flex; align-items: center; gap: 5px; padding-bottom: 15px;
 }
-.nx-foot__head svg { width: 25px; height: 25px; flex: none; display: block; }
+.nx-foot__head img { width: 25px; height: 25px; border-radius: 7px; flex: none; display: block; }
 .nx-foot__about h3 {
   margin: 0; font-size: 1.25rem; font-weight: 700;
   line-height: 1.167; color: #edf0ff;
