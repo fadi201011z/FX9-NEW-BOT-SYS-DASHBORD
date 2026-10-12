@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kratos Dashboard — لوحة تحكم البوت</title>
 <meta name="description" content="لوحة تحكم متكاملة لإدارة سيرفرك على ديسكورد — إشراف، تذاكر، غرف صوتية، حماية، وأدوات.">
-<meta name="theme-color" content="#090713">
+<meta name="theme-color" content="#050507">
 <link rel="icon" href="/favicon.png" type="image/png">
 
 <meta property="og:type" content="website">
@@ -20,8 +20,13 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <link rel="stylesheet" href="/css/landing.css">
+<!-- Palette experiment for the homepage only. Loaded after landing.css so it
+     remaps the shared --nx-* tokens and the landing's hard-coded accents for
+     this page. No other page links it, so /premium, /invite and /commands are
+     untouched. -->
+<link rel="stylesheet" href="/css/home-theme.css">
 </head>
-<body>
+<body class="home-theme">
 
 <%- include('partials/landing-head') %>
 
@@ -215,8 +220,8 @@
         </div>
         <div class="nx-plugins__mark">
           <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
-            <path d="M20 22 L32 32 L20 42" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M34 42 L46 42" fill="none" stroke="#f5e625" stroke-width="6" stroke-linecap="round"/>
+            <path d="M20 22 L32 32 L20 42" fill="none" stroke="#edf0ff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M34 42 L46 42" fill="none" stroke="#00c8ff" stroke-width="6" stroke-linecap="round"/>
           </svg>
         </div>
       </div>
@@ -281,7 +286,7 @@
                   <div class="nx-meter__ring"><b>12</b></div>
                   <div class="nx-meter__meta">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-                      <span style="font-size:.8125rem;color:#d7dae0;">2,450 / 3,400 XP</span>
+                      <span style="font-size:.8125rem;color:#c9d0e5;">2,450 / 3,400 XP</span>
                       <span class="nx-pill">+250 XP</span>
                     </div>
                     <div class="nx-bar"><div class="nx-bar__fill" style="width:72%"></div></div>
@@ -306,7 +311,7 @@
                   <span class="nx-av nx-av--lg nx-av--bot"><i class="fas fa-robot"></i></span>
                   <div class="nx-msg__col">
                     <div class="nx-msg__hd"><b>Kratos</b><span class="nx-msg__bot">بوت</span><span>اليوم 2:30 م</span></div>
-                    <div style="font-size:.8125rem;color:#fff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">أهلًا بك في كراتوس! <span class="nx-pill">#4,201</span></div>
+                    <div style="font-size:.8125rem;color:#edf0ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">أهلًا بك في كراتوس! <span class="nx-pill">#4,201</span></div>
                     <div class="nx-line nx-line--w70"></div>
                     <div class="nx-line nx-line--w45"></div>
                   </div>
@@ -482,8 +487,8 @@
             <div style="font-size:.75rem;color:var(--nx-muted);">السبب: إزعاج</div>
             <div class="nx-chipset">
               <span class="nx-chip"><i class="fas fa-triangle-exclamation" style="color:var(--nx-gold)"></i> تحذير</span>
-              <span class="nx-chip"><i class="fas fa-lock" style="color:#ff5c6c"></i> سجن</span>
-              <span class="nx-chip"><i class="fas fa-volume-xmark" style="color:#ff5c6c"></i> كتم نصي</span>
+              <span class="nx-chip"><i class="fas fa-lock" style="color:#ff3545"></i> سجن</span>
+              <span class="nx-chip"><i class="fas fa-volume-xmark" style="color:#ff3545"></i> كتم نصي</span>
             </div>
           </div>
         </div>
@@ -539,30 +544,30 @@
               <div class="nx-mock__hd"><i class="fas fa-palette"></i><span>لون Embed</span></div>
               <div class="nx-mock__body">
                 <div class="nx-sw__preview">
-                  <span class="nx-sw__dot" style="background:#a855f7"></span>
+                  <span class="nx-sw__dot" style="background:#8700ff"></span>
                   <span>بنفسجي</span>
                   <i class="fas fa-check"></i>
                 </div>
                 <div class="nx-sw__list">
                   <div class="nx-sw__row nx-sw__row--on">
-                    <span class="nx-sw__dot" style="background:#a855f7"></span>
+                    <span class="nx-sw__dot" style="background:#8700ff"></span>
                     <span>بنفسجي</span>
                     <i class="fas fa-check"></i>
                   </div>
                   <div class="nx-sw__row">
-                    <span class="nx-sw__dot" style="background:#57f287"></span>
-                    <span>أخضر</span>
+                    <span class="nx-sw__dot" style="background:#00c8ff"></span>
+                    <span>سماوي</span>
                   </div>
                   <div class="nx-sw__row">
-                    <span class="nx-sw__dot" style="background:#fee75c"></span>
-                    <span>أصفر</span>
+                    <span class="nx-sw__dot" style="background:#0066ff"></span>
+                    <span>أزرق</span>
                   </div>
                   <div class="nx-sw__row">
-                    <span class="nx-sw__dot" style="background:#eb459e"></span>
+                    <span class="nx-sw__dot" style="background:#d000ff"></span>
                     <span>فوشيا</span>
                   </div>
                   <div class="nx-sw__row">
-                    <span class="nx-sw__dot" style="background:#ed4245"></span>
+                    <span class="nx-sw__dot" style="background:#ff1018"></span>
                     <span>أحمر</span>
                   </div>
                 </div>
@@ -825,16 +830,16 @@
         <svg class="nx-an__chart" viewBox="0 0 604 208" preserveAspectRatio="none" aria-label="رسم بياني لنشاط السيرفر">
           <defs>
             <linearGradient id="nxan" x1="0" y1="40" x2="0" y2="208" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#681fd1" stop-opacity=".34"/>
-              <stop offset="100%" stop-color="#681fd1" stop-opacity="0"/>
+              <stop offset="0%" stop-color="#8700ff" stop-opacity=".34"/>
+              <stop offset="100%" stop-color="#8700ff" stop-opacity="0"/>
             </linearGradient>
           </defs>
           <path d="M10 150 L88 128 L166 138 L244 96 L322 110 L400 66 L478 84 L556 44 L594 58 L594 208 L10 208 Z" fill="url(#nxan)"/>
           <path d="M10 168 L88 152 L166 160 L244 128 L322 140 L400 104 L478 120 L556 88 L594 96"
-                fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+                fill="none" stroke="#edf0ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
           <path d="M10 150 L88 128 L166 138 L244 96 L322 110 L400 66 L478 84 L556 44 L594 58"
-                fill="none" stroke="#681fd1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-          <g fill="#fff">
+                fill="none" stroke="#8700ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <g fill="#edf0ff">
             <circle cx="10" cy="150" r="4.45"/><circle cx="88" cy="128" r="4.45"/>
             <circle cx="166" cy="138" r="4.45"/><circle cx="244" cy="96" r="4.45"/>
             <circle cx="322" cy="110" r="4.45"/><circle cx="400" cy="66" r="4.45"/>
@@ -843,8 +848,8 @@
           </g>
         </svg>
         <div class="nx-an__legend">
-          <span><s style="background:#681fd1"></s> هذا الشهر</span>
-          <span><s style="background:#fff"></s> الشهر الماضي</span>
+          <span><s style="background:#8700ff"></s> هذا الشهر</span>
+          <span><s style="background:#edf0ff"></s> الشهر الماضي</span>
         </div>
       </div>
     </div>

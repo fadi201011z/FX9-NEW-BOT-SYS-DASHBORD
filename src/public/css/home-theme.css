@@ -1,0 +1,653 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Kratos System — homepage (/) palette  ·  local experiment, NOT committed
+   ---------------------------------------------------------------------------
+   Loaded ONLY by src/views/index.ejs, after landing.css, so it recolours the
+   landing page and nothing else. The pages that share landing.css (/premium,
+   /invite, /commands) never link this file.
+
+   1. body.home-theme — remaps the shared --nx-* tokens for this page.
+   2. the same selectors landing.css paints with hard-coded values, restated.
+   3. comfort polish — the spots that need a human decision.
+   4. footer polish — calmer halos, a hairline rule.
+
+   Palette: #050507 #101014 #34343F · purple ramp #4B0082 #8700FF #D000FF
+   #E000FF · blues/cyans #001A80 #0066FF #00A8FF #00C8FF · reds #8B0000
+   #FF1018 #FF3545 #FF8088 · greys/whites #777D90 #858B9D #C9D0E5 #EDF0FF
+   #FFFFFF
+
+   Comfort rules applied here: bright text is #EDF0FF not #FFFFFF; large fills
+   use the deep end of the purple ramp (#4B0082/#8700FF) and the brightest
+   magenta (#E000FF) is saved for small accents; glows are dialled back; and
+   caution is a warm pale red so it never collides with the blue family.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Tokens ──────────────────────────────────────────────────────────── */
+body.home-theme {
+  --nx-purple:   #4b0082;
+  --nx-purple-l: #8700ff;
+  --nx-glow:     #d000ff;
+  --nx-rim:      rgba(237,240,255,.59);
+  --nx-gold:     #00c8ff;
+  --nx-ink:      #050507;
+  --nx-bar:      #101014;
+  --nx-panel:    #101014;
+  --nx-panel-2:  #34343f;
+  --nx-muted:    #858b9d;
+  --nx-body:     #c9d0e5;
+  --nx-line:     rgba(255,255,255,.08);
+  --nx-line-2:   rgba(255,255,255,.06);
+  --nx-fill:     rgba(255,255,255,.03);
+  --nx-violet-2: #edf0ff;
+  --nx-green:    #00c8ff;
+  --nx-danger:   #ff1018;
+  --nx-glass:    rgba(16,16,20,.8);
+  --nx-glass-br: rgba(208,0,255,.2);
+  --nx-card-bg: linear-gradient(rgba(255,255,255,.035), rgba(255,255,255,0) 55%), var(--nx-panel);
+  --nx-panel-bg: linear-gradient(rgba(255,255,255,.03), rgba(255,255,255,0) 45%), var(--nx-panel);
+  --nx-shadow:    0 24px 70px rgba(0,0,0,.34);
+  --nx-shadow-sm: 0 8px 28px rgba(0,0,0,.24);
+  --nx-glow-shadow: 0 10px 34px rgba(208,0,255,.30);
+  --nx-hair:       rgba(255,255,255,.06);
+  --nx-nav-wash:   rgba(208,0,255,.10);
+  --nx-nav-on:     rgba(75,0,130,.30);
+  --nx-focus:      rgba(208,0,255,.55);
+}
+
+/* ── 2. Landing components ──────────────────────────────────────────────── */
+body {
+  color: #edf0ff;
+}
+
+::selection {
+  background-color: rgba(75,0,130,.4);
+  color: #edf0ff;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(75,0,130,.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(75,0,130,.65);
+}
+
+.nx-btn-p {
+  background-image: linear-gradient(180deg, #8700ff, #4b0082);
+  color: #edf0ff;
+  box-shadow: inset 0 -4px 10px 0 var(--nx-rim),
+    0 0 18px rgba(208,0,255, .35),
+    0 10px 30px rgba(75,0,130, .35);
+}
+
+.nx-btn-p:hover {
+  background-image: linear-gradient(180deg, #d000ff, #8700ff);
+  border-color: #d000ff;
+}
+
+.nx-btn-o {
+  background-color: #101014;
+  color: #edf0ff;
+  border-color: rgba(119,125,144,.26);
+}
+
+.nx-btn-o:hover {
+  background-color: #34343f;
+  border-color: rgba(119,125,144,.5);
+}
+
+.nx-btn-d {
+  background-color: #101014;
+  color: #edf0ff;
+}
+
+.nx-btn-d:hover {
+  background-color: #34343f;
+  border-color: #d000ff;
+}
+
+.nx-btn.is-off,
+.nx-btn.is-off:hover {
+  background-color: #101014;
+}
+
+.nx-btn-g::before {
+  background-image: linear-gradient(115deg, transparent, rgba(0,168,255,.35), transparent);
+}
+
+.nx-btn-g:hover {
+  background-color: rgba(0,102,255,.5);
+  box-shadow: 0 0 0 1px rgba(0,168,255,.25), 0 6px 18px rgba(0,168,255,.18);
+}
+
+.nx-header {
+  color: #edf0ff;
+}
+
+.nx-header.is-stuck .nx-header__bar {
+  background-color: rgba(52,52,63,.3);
+}
+
+.nx-nav a {
+  color: #edf0ff;
+}
+
+.nx-nav a:hover {
+  background-color: #34343f;
+}
+
+.nx-lang:hover {
+  color: #edf0ff;
+}
+
+.nx-hero__glow--1 {
+  background-image: radial-gradient(closest-side, rgba(75,0,130,.28), rgba(75,0,130,0) 70%);
+}
+
+.nx-hero__glow--2 {
+  background-image: radial-gradient(closest-side, rgba(135,0,255,.16), rgba(135,0,255,0) 70%);
+}
+
+.nx-spark {
+  color: #c9d0e5;
+}
+
+.nx-hero h1 {
+  background-image: linear-gradient(to top, #777d90, #edf0ff 42%, #edf0ff);
+}
+
+.nx-shot__bleed--a {
+  background-image: linear-gradient(in oklab, rgba(5,5,7,.14) 0, rgba(5,5,7,.08) 50%, rgba(5,5,7,.59) 100%);
+}
+
+.nx-shot__bleed--b {
+  background-image: linear-gradient(to right, rgba(5,5,7,.89) 0, #050507 50%, rgba(5,5,7,.91) 100%);
+}
+
+.nx-shot__bleed--c {
+  background-image: linear-gradient(to right, rgba(255,255,255,.2) 1px, transparent 1px) 0 0 / 60px 100%,
+    linear-gradient(to bottom, rgba(255,255,255,.2) 1px, transparent 1px) 0 0 / 100% 60px;
+}
+
+.nx-shot__vig {
+  background-image: radial-gradient(125% 125% at 50% 10%, rgba(0,0,0,0) 40%, #050507 100%);
+}
+
+.nx-dash {
+  background-color: #050507;
+}
+
+.nx-dash__bar {
+  background-color: #101014;
+}
+
+.nx-dash__brand {
+  color: #edf0ff;
+}
+
+.nx-dash__brand i {
+  box-shadow: 0 0 18px rgba(75,0,130,.55);
+}
+
+.nx-dash__crumb em {
+  box-shadow: 0 0 8px rgba(0,200,255,.8);
+}
+
+.nx-dash__acts s {
+  background-color: rgba(255,255,255,.07);
+}
+
+.nx-dash__side {
+  background-color: #050507;
+}
+
+.nx-dash__grp {
+  color: #777d90;
+}
+
+.nx-dash__link.is-on {
+  background-color: rgba(75,0,130,.2);
+  color: #edf0ff;
+}
+
+.nx-dash__head b {
+  color: #edf0ff;
+}
+
+.nx-dash__head span {
+  color: #777d90;
+}
+
+.nx-dash__row s {
+  background-image: linear-gradient(135deg, #34343f, #101014);
+}
+
+.nx-dash__row em {
+  background-color: rgba(255,255,255,.09);
+}
+
+.nx-dash__tile {
+  border: 1px solid rgba(135,0,255,.24);
+  background-image: linear-gradient(155deg, #4b0082 0, #001a80 52%, #101014 100%);
+}
+
+.nx-dash__tile u {
+  color: #c9d0e5;
+}
+
+.nx-dash__tile b {
+  color: #edf0ff;
+}
+
+.nx-dash__tile i {
+  background-color: rgba(135,0,255,.3);
+  border: 1px solid rgba(237,240,255,.35);
+  color: #edf0ff;
+}
+
+.nx-sec::before {
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.nx-sec__orb {
+  background-image: radial-gradient(closest-side, rgba(75,0,130,.16), rgba(75,0,130,0) 72%);
+}
+
+.nx-sec__title {
+  color: #edf0ff;
+}
+
+.nx-card__icon {
+  border: 1px solid rgba(237,240,255,.28);
+}
+
+.nx-card h3 {
+  color: #edf0ff;
+}
+
+.nx-mock__lbl {
+  color: #edf0ff;
+}
+
+.nx-inset__v {
+  color: #edf0ff;
+}
+
+.nx-inset__act {
+  background-color: rgba(75,0,130,.22);
+}
+
+.nx-arrow {
+  color: #858b9d;
+}
+
+.nx-out {
+  color: #edf0ff;
+}
+
+.nx-pairs {
+  color: #edf0ff;
+}
+
+.nx-tags {
+  color: #edf0ff;
+}
+
+.nx-trg__h h4 {
+  color: #edf0ff;
+}
+
+.nx-orbit__ring {
+  border: 1px solid rgba(208,0,255,.22);
+}
+
+.nx-orbit__ring--2 {
+  border-color: rgba(208,0,255,.3);
+}
+
+.nx-orbit__ring--1 {
+  border-color: rgba(208,0,255,.4);
+}
+
+.nx-orbit__hub {
+  background-image: radial-gradient(circle, rgba(75,0,130,.42), rgba(75,0,130,0) 72%);
+}
+
+.nx-orbit__dot i {
+  box-shadow: 0 0 0 4px rgba(208,0,255,.16);
+}
+
+.nx-mock__hd {
+  color: #edf0ff;
+}
+
+.nx-row-i {
+  color: #c9d0e5;
+}
+
+.nx-av {
+  background-image: linear-gradient(135deg, #4b0082, #101014);
+}
+
+.nx-av--bot {
+  background-image: linear-gradient(135deg, var(--nx-purple), #001a80);
+  color: #edf0ff;
+}
+
+.nx-pill {
+  background-color: rgba(75,0,130,.22);
+  border: 1px solid rgba(237,240,255,.32);
+}
+
+.nx-pill--dim {
+  background-color: rgba(255,255,255,.06);
+}
+
+.nx-pill--warn {
+  background-color: rgba(0,168,255,.14);
+  border-color: rgba(0,168,255,.32);
+}
+
+.nx-pill--ok {
+  background-color: rgba(0,200,255,.12);
+  border-color: rgba(0,200,255,.3);
+}
+
+.nx-bar {
+  background-color: rgba(255,255,255,.08);
+}
+
+.nx-line {
+  background-color: rgba(255,255,255,.12);
+}
+
+.nx-meter__ring {
+  background-image: conic-gradient(var(--nx-purple) 0 72%, rgba(255,255,255,.08) 72% 100%);
+}
+
+.nx-meter__ring b {
+  color: #edf0ff;
+}
+
+.nx-chip {
+  background-color: rgba(255,255,255,.03);
+  border: 1px solid rgba(237,240,255,.4);
+  color: #c9d0e5;
+}
+
+.nx-chip--on {
+  background-color: rgba(75,0,130,.16);
+}
+
+.nx-cmd__row--on {
+  background-color: rgba(75,0,130,.16);
+}
+
+.nx-cmd__name {
+  color: #edf0ff;
+}
+
+.nx-embed__t {
+  color: #edf0ff;
+}
+
+.nx-embed__f {
+  color: #858b9d;
+}
+
+.nx-msg__hd b {
+  color: #edf0ff;
+}
+
+.nx-msg__hd span {
+  color: #858b9d;
+}
+
+.nx-msg__bot {
+  background-color: rgba(75,0,130,.16);
+}
+
+.nx-sw__preview, .nx-sw__row {
+  background-color: rgba(255,255,255,.03);
+}
+
+.nx-sw__preview > span:nth-child(2) {
+  color: #c9d0e5;
+}
+
+.nx-sw__row--on {
+  background-color: rgba(75,0,130,.16);
+}
+
+.nx-sw__row--on > span:nth-child(2) {
+  color: #c9d0e5;
+}
+
+.nx-an__tile i {
+  color: #edf0ff;
+}
+
+.nx-fcard__icon {
+  background-image: radial-gradient(120% 120% at 30% 20%, rgba(237,240,255,.28), rgba(75,0,130,.08));
+  border: 1px solid rgba(237,240,255,.28);
+}
+
+.nx-fcard h3 {
+  color: #edf0ff;
+}
+
+.nx-plugins__box {
+  background-color: color-mix(in srgb, #101014 25%, transparent);
+  -webkit-mask-image: radial-gradient(50% 50%, #000 70%, transparent 100%);
+  mask-image: radial-gradient(50% 50%, #000 70%, transparent 100%);
+}
+
+.nx-plugins__track > i {
+  color: #777d90;
+}
+
+.nx-plugins__mark {
+  background-color: rgba(75,0,130, .6);
+}
+
+.nx-plugins h2 {
+  color: #edf0ff;
+}
+
+.nx-cta__title {
+  color: #edf0ff;
+}
+
+.nx-cta__title span {
+  background-image: linear-gradient(to top, #777d90, #edf0ff 42%, #edf0ff);
+}
+
+.nx-wave {
+  -webkit-mask-image: radial-gradient(70% 100% at 50% 100%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(70% 100% at 50% 100%, #000 40%, transparent 100%);
+}
+
+.nx-wave::before {
+  background-image: radial-gradient(closest-side, rgba(75,0,130,.42), rgba(75,0,130,0) 70%);
+}
+
+.nx-wave::after {
+  background-image: radial-gradient(closest-side, rgba(237,240,255,.22), rgba(237,240,255,0) 72%);
+}
+
+.nx-footer {
+  background-image: linear-gradient(rgba(75,0,130, .01) -52%, #101014 55%),
+    linear-gradient(#4b0082 -9%, rgba(0, 0, 0, 0) 47%);
+}
+
+.nx-foot__about {
+  box-shadow: 0 0 26px rgba(208,0,255, .22),
+    0 0 64px rgba(208,0,255, .12),
+    0 22px 50px rgba(0, 0, 0, .5),
+    inset 0 1px 0 rgba(255, 255, 255, .045);
+}
+
+.nx-foot__about::before {
+  background-image: radial-gradient(120% 62% at 82% -8%, rgba(135,0,255, .30), transparent 62%),
+    radial-gradient(110% 55% at 10% 108%, rgba(0,102,255, .20), transparent 64%);
+}
+
+.nx-foot__about h3 {
+  color: #edf0ff;
+}
+
+.nx-foot__mod h3 {
+  color: #edf0ff;
+}
+
+.nx-foot__mod a:hover {
+  color: #edf0ff;
+}
+
+.nx-lang__btn {
+  border: 1px solid rgba(135,0,255, .18);
+  background-color: rgba(255,255,255,.03);
+}
+
+.nx-lang__btn:hover, .nx-lang__btn[aria-expanded="true"] {
+  color: #edf0ff;
+  border-color: rgba(135,0,255, .45);
+  background-color: rgba(135,0,255, .1);
+}
+
+.nx-lang__menu {
+  border: 1px solid rgba(135,0,255, .22);
+  background-color: #101014;
+  box-shadow: 0 0 24px rgba(135,0,255, .3), 0 18px 40px rgba(0,0,0,.5);
+}
+
+.nx-lang__opt {
+  color: #858b9d;
+}
+
+.nx-lang__opt:hover {
+  background-color: rgba(255,255,255,.05);
+  color: #edf0ff;
+}
+
+.nx-foot__rule {
+  border-top: 2px solid #34343f;
+}
+
+.nx-foot__note {
+  color: #edf0ff;
+}
+
+.nx-foot__soc a {
+  color: #edf0ff;
+}
+
+.nx-foot__soc a:hover {
+  background-color: rgba(255,255,255,.08);
+}
+
+.nx-mnt {
+  background-image: linear-gradient(90deg, #4b0082, #001a80);
+  border-bottom: 1px solid rgba(0,168,255,.3);
+  color: #edf0ff;
+}
+
+/* ── 3. Comfort polish ─────────────────────────────────────────────────────
+   The touches the automatic colour swap cannot decide on its own. */
+/* Recessed mock panels. Surface-2 (#34343F) came out far too light against the
+   near-black cards and read as a washed grey in the member section, so the
+   nested mocks — and the avatar rings that sit on them — drop to the page
+   panel tone; the 1px hairline is what separates them now. */
+body.home-theme { --nx-panel-2: #101014; }
+
+/* The auto swap left the hero title reading flat white: its bottom stop was
+   only a light grey. Restore a real, on-brand fade. */
+.nx-hero h1 { background-image: linear-gradient(to top, #8700ff, #edf0ff 70%); }
+
+/* Re-assert the text clipping for both gradient titles. The generator now emits
+   background-image (never the shorthand), so this is belt-and-braces, but it
+   also guarantees the titles clip even if a future edit reintroduces a
+   shorthand somewhere. */
+.nx-hero h1,
+.nx-cta__title span {
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+.nx-pill--ok   { background: rgba(0,200,255,.12);   border-color: rgba(0,200,255,.30); }
+.nx-pill--warn { background: rgba(255,128,136,.13); border-color: rgba(255,128,136,.30); }
+.nx-spark      { color: rgba(201,208,229,.85); }
+
+.nx-btn-g::before { background: linear-gradient(115deg, transparent, rgba(0,168,255,.26), transparent); }
+.nx-btn-g:hover   { background: rgba(0,102,255,.20); box-shadow: 0 0 0 1px rgba(0,168,255,.20), 0 6px 16px rgba(0,102,255,.14); }
+
+.nx-btn-p { box-shadow: inset 0 -4px 10px 0 var(--nx-rim), 0 0 14px rgba(135,0,255,.20), 0 10px 26px rgba(75,0,130,.30); }
+
+/* Keep the dashboard mock's "online" dot calm cyan and nothing else blue. */
+.nx-dash__crumb em { box-shadow: 0 0 8px rgba(0,200,255,.65); }
+
+/* Slightly cooler hairlines so the frame reads as one surface, not white-on-black. */
+.nx-sec::before { border-top-color: rgba(201,208,229,.07); }
+
+/* ── 4. Footer ─────────────────────────────────────────────────────────────
+   The footer was the loudest block on the page: a hard magenta halo round the
+   about card, a saturated purple/blue wash inside it, and a heavy grey 2px
+   rule. Keep the accents, lose the glare, and let the rule read as a hairline
+   in the same cool tone as the section dividers. */
+.nx-foot__about {
+  border-color: rgba(135,0,255,.26);
+  box-shadow:
+    0 0 22px rgba(135,0,255,.16),
+    0 0 56px rgba(75,0,130,.14),
+    0 22px 50px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(237,240,255,.05);
+}
+.nx-foot__about::before {
+  background:
+    radial-gradient(120% 62% at 82% -8%, rgba(135,0,255,.22), transparent 62%),
+    radial-gradient(110% 55% at 10% 108%, rgba(0,102,255,.14), transparent 64%);
+}
+.nx-foot__rule { border-top-color: rgba(201,208,229,.14); opacity: 1; }
+
+/* ── 5. Brand marks (shared partials) ──────────────────────────────────────
+   The header and footer brand marks are drawn in landing-head/foot.ejs, which
+   every landing page shares, so they are recoloured here by attribute instead
+   of in the partial: /premium, /invite and /commands keep their own colours.
+   Two of their values sit outside the palette and were the loudest clash left
+   in the footer — the yellow sword accent and the green language globe. */
+body.home-theme svg [stroke="#a855f7"] { stroke: #8700ff; }   /* mark arrow  */
+body.home-theme svg [stroke="#f5e625"] { stroke: #00c8ff; }   /* mark accent */
+body.home-theme svg [fill="#12131c"]   { fill: #101014; }     /* mark plate  */
+body.home-theme svg [stroke="#34d399"] { stroke: #00c8ff; }   /* lang globe  */
+body.home-theme #nxlg stop:first-child,
+body.home-theme #nxlgf stop:first-child { stop-color: #d000ff; }
+body.home-theme #nxlg stop:last-child,
+body.home-theme #nxlgf stop:last-child { stop-color: #4b0082; }
+
+/* ── 6. Hover & press states ───────────────────────────────────────────────
+   The auto swap turned the outlined/dark buttons' hover into a flat light grey
+   (#34343F) and left the primary's brightness-boosted near white, so putting
+   the pointer on a button — or pressing it — flashed a colour that belonged to
+   neither the page nor the button. Every state now stays inside the purple
+   family, and the press gets its own quiet feedback. */
+.nx-btn-p:hover {
+  background-image: linear-gradient(180deg, #d000ff, #8700ff);
+  border-color: #d000ff;
+  filter: none;
+}
+.nx-btn-o:hover,
+.nx-btn-d:hover,
+.nx-nav a:hover {
+  background-color: rgba(135,0,255,.16);
+  border-color: rgba(135,0,255,.5);
+}
+.nx-btn:active,
+.nx-lang__btn:active,
+.nx-lang__opt:active {
+  transform: translateY(0) scale(.985);
+  filter: brightness(.94);
+}
+/* Text selection and the scrollbar thumb read as the page's own purple rather
+   than the deep indigo the auto swap produced. */
+::selection { background: rgba(135,0,255,.35); color: #edf0ff; }
+::-webkit-scrollbar-thumb { background: rgba(135,0,255,.4); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(135,0,255,.6); }
