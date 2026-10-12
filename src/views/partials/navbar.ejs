@@ -25,8 +25,8 @@
       <a href="/" class="nav-brand" aria-label="Kratos System — الصفحة الرئيسية">
         <span class="nav-brand-mark" aria-hidden="true">
           <svg viewBox="0 0 64 64" role="img">
-            <path d="M20 22 L32 32 L20 42" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M33 42 L45 42" fill="none" stroke="#f5e625" stroke-width="6" stroke-linecap="round"/>
+            <path d="M20 22 L32 32 L20 42" fill="none" stroke="#edf0ff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M33 42 L45 42" fill="none" stroke="#00c8ff" stroke-width="6" stroke-linecap="round"/>
           </svg>
         </span>
         <span class="nav-brand-text">
@@ -53,12 +53,8 @@
 
     <div class="nav-right">
       <% if (user) { %>
-        <%# No theme toggle here. It lived in this bar and it was the only control
-            in the shell with no bearing on the work in front of you, and beside
-            the bell and the account it read as a switch that mattered. The theme
-            is still stored and still applied -- theme.js reads krs-theme on load
-            and home.ejs still carries the toggle -- so nothing is lost, the
-            dashboard just is not where you change it. --%>
+        <%# No theme toggle here, and none on home.ejs either: the site is
+            dark-only, so there is no second theme to reach. --%>
 
         <div class="notifications-dropdown">
           <button class="icon-btn notif-btn" type="button" onclick="toggleNotif()"

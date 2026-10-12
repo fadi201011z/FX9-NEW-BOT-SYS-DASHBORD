@@ -15,15 +15,15 @@
   const catCount = s && Array.isArray(s.categories) ? s.categories.length : null;
 
   const SYS = [
-    { i: 'fa-shield-halved', c: '#f87171', t: 'الإشراف',            d: 'تحذير وكتم وحظر وطرد ومسح، مع قفل القنوات وفتحها وتغيير الأدوار والألقاب.' },
-    { i: 'fa-ticket',        c: '#fbbf24', t: 'التذاكر',            d: 'بنل تذاكر، وتقييمات للمشرفين، وتذكير بالرد، ومتابعة كاملة لكل تكت من فتحه لإغلاقه.' },
-    { i: 'fa-volume-high',   c: '#22d3ee', t: 'الرومات الصوتية المؤقتة', d: 'قناة صوتية تُنشأ لحظة ما يدخل عضو وتُحذف لحالها عند الفراغ.' },
-    { i: 'fa-hand-sparkles', c: '#34d399', t: 'الترحيب والإحصائيات', d: 'بطاقة ترحيب عند انضمام كل عضو، وقنوات إحصائيات تتحدّث لحالها.' },
-    { i: 'fa-shield',        c: '#a78bfa', t: 'الحماية',            d: 'منع الغارات والإزعاج والروابط، لحماية سيرفرك قبل ما يصير الضرر.' },
-    { i: 'fa-clipboard-list',c: '#38bdf8', t: 'السجلات',            d: 'سجل عام وسجل إشراف وسجل بوت يوثّقون كل حدث مهم يصير بالسيرفر.' },
-    { i: 'fa-bell',          c: '#f472b6', t: 'الإشعارات',          d: 'اشتراكات يوتيوب وكيك وتويتر، وتنبيه فوري عند كل جديد.' },
-    { i: 'fa-bullhorn',      c: '#fb923c', t: 'الإعلانات',          d: 'إرسال إعلانات رسمية بتنسيق احترافي لكل السيرفر.' },
-    { i: 'fa-sliders',       c: '#818cf8', t: 'الإعداد والأتمتة',   d: 'قائمة إعدادات مركزية، ردود تلقائية، ونسخ احتياطي لاستعادة سيرفرك.' },
+    { i: 'fa-shield-halved', c: '#ff3545', t: 'الإشراف',            d: 'تحذير وكتم وحظر وطرد ومسح، مع قفل القنوات وفتحها وتغيير الأدوار والألقاب.' },
+    { i: 'fa-ticket',        c: '#ff8088', t: 'التذاكر',            d: 'بنل تذاكر، وتقييمات للمشرفين، وتذكير بالرد، ومتابعة كاملة لكل تكت من فتحه لإغلاقه.' },
+    { i: 'fa-volume-high',   c: '#00c8ff', t: 'الرومات الصوتية المؤقتة', d: 'قناة صوتية تُنشأ لحظة ما يدخل عضو وتُحذف لحالها عند الفراغ.' },
+    { i: 'fa-hand-sparkles', c: '#00c8ff', t: 'الترحيب والإحصائيات', d: 'بطاقة ترحيب عند انضمام كل عضو، وقنوات إحصائيات تتحدّث لحالها.' },
+    { i: 'fa-shield',        c: '#d000ff', t: 'الحماية',            d: 'منع الغارات والإزعاج والروابط، لحماية سيرفرك قبل ما يصير الضرر.' },
+    { i: 'fa-clipboard-list',c: '#00c8ff', t: 'السجلات',            d: 'سجل عام وسجل إشراف وسجل بوت يوثّقون كل حدث مهم يصير بالسيرفر.' },
+    { i: 'fa-bell',          c: '#e000ff', t: 'الإشعارات',          d: 'اشتراكات يوتيوب وكيك وتويتر، وتنبيه فوري عند كل جديد.' },
+    { i: 'fa-bullhorn',      c: '#ff8088', t: 'الإعلانات',          d: 'إرسال إعلانات رسمية بتنسيق احترافي لكل السيرفر.' },
+    { i: 'fa-sliders',       c: '#00a8ff', t: 'الإعداد والأتمتة',   d: 'قائمة إعدادات مركزية، ردود تلقائية، ونسخ احتياطي لاستعادة سيرفرك.' },
   ];
 
   const TECH = [
@@ -94,8 +94,8 @@
   border:1px solid var(--border);
   border-radius:30px;
   background:
-    radial-gradient(120% 150% at 100% 0%, rgba(168,85,247,.20), transparent 55%),
-    radial-gradient(120% 150% at 0% 100%, rgba(56,189,248,.10), transparent 55%),
+    radial-gradient(120% 150% at 100% 0%, rgba(208,0,255,0.20), transparent 55%),
+    radial-gradient(120% 150% at 0% 100%, rgba(0,200,255,0.10), transparent 55%),
     var(--bg-card);
   box-shadow:var(--shadow);
 }
@@ -104,7 +104,7 @@
   padding:6px 14px; border-radius:999px; margin-bottom:18px;
   font-size:.78rem; font-weight:700; letter-spacing:.02em;
   color:var(--nx-violet-2);
-  background:rgba(168,85,247,.12);
+  background:rgba(208,0,255,0.12);
   border:1px solid var(--nx-glass-br);
 }
 .ab-hero h1{
@@ -112,7 +112,7 @@
   font-size:clamp(1.9rem, 4.6vw, 3rem); color:var(--text);
 }
 .ab-accent{
-  background:linear-gradient(100deg, var(--nx-violet-2), var(--nx-glow) 55%, #38bdf8);
+  background:linear-gradient(100deg, var(--nx-violet-2), var(--nx-glow) 55%, #00c8ff);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
 }
 .ab-lead{ margin:0; max-width:620px; color:var(--text-muted); font-size:1.05rem; line-height:1.95; }
@@ -127,14 +127,14 @@
 }
 .ab-btn i{ font-size:.95em; }
 .ab-btn-p{
-  color:#fff; background:linear-gradient(135deg, var(--nx-purple-l), var(--nx-purple));
+  color:#edf0ff; background:linear-gradient(135deg, var(--nx-purple-l), var(--nx-purple));
   box-shadow:var(--nx-glow-shadow);
 }
-.ab-btn-p:hover{ color:#fff; transform:translateY(-2px); box-shadow:0 14px 40px rgba(168,85,247,.42); }
+.ab-btn-p:hover{ color:#edf0ff; transform:translateY(-2px); box-shadow:0 14px 40px rgba(208,0,255,0.42); }
 .ab-btn-g{ color:var(--nx-violet-2); background:var(--bg-glass); border-color:var(--nx-glass-br); }
-.ab-btn-g:hover{ color:#fff; background:var(--nx-purple); border-color:var(--nx-purple); text-decoration:none; }
-.ab-btn-d{ background:#5865f2; color:#fff; box-shadow:0 8px 26px rgba(88,101,242,.32); }
-.ab-btn-d:hover{ color:#fff; filter:brightness(1.06); }
+.ab-btn-g:hover{ color:#edf0ff; background:var(--nx-purple); border-color:var(--nx-purple); text-decoration:none; }
+.ab-btn-d{ background:#00a8ff; color:#edf0ff; box-shadow:0 8px 26px rgba(0,168,255,0.32); }
+.ab-btn-d:hover{ color:#edf0ff; filter:brightness(1.06); }
 
 /* ── Counters ───────────────────────────────────────────────────────────── */
 .ab-stats{
@@ -150,7 +150,7 @@
 .ab-stat i{
   display:grid; place-items:center; flex:0 0 auto;
   width:40px; height:40px; border-radius:12px; font-size:1rem;
-  color:var(--nx-violet-2); background:rgba(168,85,247,.14);
+  color:var(--nx-violet-2); background:rgba(208,0,255,0.14);
 }
 .ab-stat b{ display:block; font-size:1.5rem; font-weight:800; color:var(--text); line-height:1; }
 .ab-stat span{ display:block; margin-top:5px; font-size:.8rem; color:var(--text-muted); }
@@ -184,7 +184,7 @@
   background:linear-gradient(90deg, transparent, var(--ab-c, var(--nx-glow)), transparent);
   opacity:.75;
 }
-.ab-sys:hover{ transform:translateY(-4px); border-color:rgba(168,85,247,.35); box-shadow:var(--nx-glow-shadow); }
+.ab-sys:hover{ transform:translateY(-4px); border-color:rgba(208,0,255,0.35); box-shadow:var(--nx-glow-shadow); }
 .ab-sys__i{
   display:grid; place-items:center; width:46px; height:46px; margin-bottom:15px;
   border-radius:14px; font-size:1.15rem; color:var(--ab-c, var(--nx-violet-2));
@@ -195,7 +195,7 @@
 
 /* color-mix is not everywhere yet; the fallback keeps the tile legible. */
 @supports not (color: color-mix(in srgb, red 10%, transparent)){
-  .ab-sys__i{ background:rgba(168,85,247,.14); }
+  .ab-sys__i{ background:rgba(208,0,255,0.14); }
 }
 
 /* ── Tech chips ─────────────────────────────────────────────────────────── */
@@ -205,7 +205,7 @@
   padding:12px 18px; border:1px solid var(--border); border-radius:999px;
   background:var(--bg-glass); transition:border-color .2s ease, transform .2s ease;
 }
-.ab-chip:hover{ border-color:rgba(168,85,247,.4); transform:translateY(-2px); }
+.ab-chip:hover{ border-color:rgba(208,0,255,0.4); transform:translateY(-2px); }
 .ab-chip i{ font-size:1.15rem; color:var(--nx-violet-2); }
 .ab-chip b{ font-size:.92rem; color:var(--text); font-weight:700; }
 .ab-chip small{ font-size:.78rem; color:var(--text-muted); }
@@ -218,7 +218,7 @@
 }
 .ab-step__n{
   display:grid; place-items:center; width:38px; height:38px; margin-bottom:15px;
-  border-radius:50%; font-weight:800; color:#090713;
+  border-radius:50%; font-weight:800; color:#050507;
   background:linear-gradient(135deg, var(--nx-violet-2), var(--nx-glow));
   box-shadow:var(--nx-glow-shadow);
 }
@@ -248,7 +248,7 @@
   padding:clamp(30px, 4vw, 46px);
   border:1px solid var(--nx-glass-br); border-radius:26px;
   background:
-    radial-gradient(80% 140% at 50% 0%, rgba(168,85,247,.24), transparent 60%),
+    radial-gradient(80% 140% at 50% 0%, rgba(208,0,255,0.24), transparent 60%),
     var(--bg-card);
 }
 .ab-cta h2{ margin:0 0 10px; font-size:clamp(1.3rem, 2.6vw, 1.7rem); color:var(--text); }
@@ -261,7 +261,7 @@
 .ab-hero::after{
   content:""; position:absolute; inset-block-start:-90px; inset-inline-start:-70px;
   width:280px; height:280px; border-radius:50%; pointer-events:none;
-  background:radial-gradient(circle, rgba(56,189,248,.28), transparent 65%);
+  background:radial-gradient(circle, rgba(0,200,255,0.28), transparent 65%);
   filter:blur(24px); animation:abOrb 11s ease-in-out infinite alternate;
 }
 @keyframes abOrb{ from{ transform:translate3d(0,0,0) scale(1); } to{ transform:translateY(24px) scale(1.08); } }
@@ -269,15 +269,15 @@
 /* ── Light theme ──────────────────────────────────────────────────────────
    The shell re-points --text/--border/--bg-card for its light sheet, so the
    body of the page follows for free. Only the purple accents carry no light
-   reading of their own: #d8b4fe on white is a ghost, so they step down to the
+   reading of their own: #edf0ff on white is a ghost, so they step down to the
    solid violet here. --nx-violet-2 is left as the resting ghost tint because
    it still reads on the dark card in the dark theme. */
 [data-theme="light"] .ab-accent{
-  background:linear-gradient(100deg, var(--nx-purple) 0%, var(--nx-purple-l) 55%, #2563eb 100%);
+  background:linear-gradient(100deg, var(--nx-purple) 0%, var(--nx-purple-l) 55%, #0066ff 100%);
   -webkit-background-clip:text; background-clip:text;
 }
-[data-theme="light"] .ab-btn-g{ color:var(--nx-purple); background:rgba(124,58,237,.06); border-color:rgba(124,58,237,.25); }
-[data-theme="light"] .ab-btn-g:hover{ color:#fff; background:var(--nx-purple); border-color:var(--nx-purple); }
+[data-theme="light"] .ab-btn-g{ color:var(--nx-purple); background:rgba(135,0,255,0.06); border-color:rgba(135,0,255,0.25); }
+[data-theme="light"] .ab-btn-g:hover{ color:#edf0ff; background:var(--nx-purple); border-color:var(--nx-purple); }
 [data-theme="light"] .ab-stat i,
 [data-theme="light"] .ab-chip i,
 [data-theme="light"] .ab-q summary i,

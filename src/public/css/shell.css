@@ -35,11 +35,11 @@
 
      the rail's colour   the landing hero draws the product's own dashboard in
                          CSS (.nx-dash__side), and its active row is violet at
-                         rgba(104,31,209,.2) behind a 1px rgba(255,255,255,.06)
+                         rgba(75,0,130,0.2) behind a 1px rgba(237,240,255,0.06)
                          edge -- those two are sampled rather than chosen, so the
                          marketing shot and the real thing agree. Its sidebar
-                         colour, #08090f, was sampled as well and then had to be
-                         dropped: it is a colder black than the page's #090713,
+                         colour, #050507, was sampled as well and then had to be
+                         dropped: it is a colder black than the page's #050507,
                          and at normal brightness the two read as a seam running
                          the full height of the window -- a different panel
                          bolted onto the page. The rail is the page surface now
@@ -199,7 +199,7 @@ body:has(.guild-rail-item) {
    the line was already there. What .is-stuck buys is depth: proof that the bar
    is floating above the page rather than printed on it. */
 .navbar.is-stuck .navbar__pill {
-  background: rgba(9,7,19,.30);
+  background: rgba(5,5,7,0.30);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   box-shadow: var(--nx-shadow-sm);
@@ -283,10 +283,10 @@ body:has(.guild-rail-item) {
   gap: 9px;
   padding: 5px 9px;
   border-radius: var(--nx-radius);
-  color: #fff;
+  color: #edf0ff;
   transition: background-color .2s var(--nx-ease-out);
 }
-.nav-brand:hover { background: rgba(255,255,255,.06); color: #fff; }
+.nav-brand:hover { background: rgba(237,240,255,0.06); color: #edf0ff; }
 
 .nav-brand-mark {
   display: grid;
@@ -296,13 +296,13 @@ body:has(.guild-rail-item) {
   flex: none;
   border-radius: 8px;
   background: linear-gradient(150deg, var(--nx-purple-l), var(--nx-purple));
-  box-shadow: 0 0 18px rgba(104,31,209,.5);
+  box-shadow: 0 0 18px rgba(75,0,130,0.5);
   transition: transform .3s var(--nx-ease), box-shadow .3s var(--nx-ease);
 }
 .nav-brand-mark svg { width: 22px; height: 22px; display: block; }
 .nav-brand:hover .nav-brand-mark {
   transform: translateY(-1px) scale(1.05);
-  box-shadow: 0 0 24px rgba(168,85,247,.7);
+  box-shadow: 0 0 24px rgba(208,0,255,0.7);
 }
 
 .nav-brand-text { display: flex; flex-direction: column; line-height: 1.15; }
@@ -335,8 +335,8 @@ body:has(.guild-rail-item) {
 }
 .icon-btn:hover {
   color: var(--text);
-  background: rgba(168,85,247,.12);
-  border-color: rgba(168,85,247,.24);
+  background: rgba(208,0,255,0.12);
+  border-color: rgba(208,0,255,0.24);
   transform: translateY(-1px);
 }
 .icon-btn:active { transform: translateY(0); }
@@ -365,7 +365,7 @@ body:has(.guild-rail-item) {
    should look like hover. */
 .search-hit {
   background: var(--nx-nav-wash);
-  box-shadow: inset 0 0 0 1px rgba(168,85,247,.34);
+  box-shadow: inset 0 0 0 1px rgba(208,0,255,0.34);
   color: var(--text);
 }
 .nav-search {
@@ -385,11 +385,11 @@ body:has(.guild-rail-item) {
   transition: border-color .2s var(--nx-ease-out), background-color .2s var(--nx-ease-out),
               box-shadow .2s var(--nx-ease-out);
 }
-.nav-search:hover { border-color: rgba(168,85,247,.3); }
+.nav-search:hover { border-color: rgba(208,0,255,0.3); }
 .nav-search:focus-within {
-  border-color: rgba(168,85,247,.55);
-  background: rgba(168,85,247,.07);
-  box-shadow: 0 0 0 3px rgba(168,85,247,.12);
+  border-color: rgba(208,0,255,0.55);
+  background: rgba(208,0,255,0.07);
+  box-shadow: 0 0 0 3px rgba(208,0,255,0.12);
 }
 .nav-search > i { color: var(--nx-muted); font-size: .82rem; transition: color .2s var(--nx-ease-out); }
 .nav-search:focus-within > i { color: var(--nx-glow); }
@@ -409,7 +409,7 @@ body:has(.guild-rail-item) {
   padding: 2px 7px;
   border-radius: 6px;
   border: 1px solid var(--nx-line);
-  background: rgba(255,255,255,.04);
+  background: rgba(237,240,255,0.04);
   color: var(--nx-muted);
   font-family: var(--font);
   font-size: .68rem;
@@ -429,12 +429,12 @@ body:has(.guild-rail-item) {
   padding: 0 5px;
   border-radius: 999px;
   background: var(--nx-danger);
-  color: #fff;
+  color: #edf0ff;
   font-size: .62rem;
   font-weight: 700;
   line-height: 17px;
   text-align: center;
-  box-shadow: 0 0 0 2px rgba(9,7,19,.9);
+  box-shadow: 0 0 0 2px rgba(5,5,7,0.9);
 }
 /* Only shout when there is something to shout about. The old dot was a hard 0
    in red on every page load, which reads as an error rather than a count. */
@@ -514,15 +514,15 @@ body:has(.guild-rail-item) {
   transition: background-color .2s var(--nx-ease-out), border-color .2s var(--nx-ease-out);
 }
 .user-btn:hover {
-  background: rgba(168,85,247,.12);
-  border-color: rgba(168,85,247,.24);
+  background: rgba(208,0,255,0.12);
+  border-color: rgba(208,0,255,0.24);
   color: var(--text);
 }
 .user-avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.12);
+  box-shadow: 0 0 0 1px rgba(237,240,255,0.12);
 }
 /* Capped, and it has to stay capped. The band's third grid track is `auto`, so
    it is sized by what is in it: a user with a 40-character globalName would
@@ -585,7 +585,7 @@ body:has(.guild-rail-item) {
 .user-menu-body a:hover i { color: var(--nx-glow); }
 .user-menu-body a.danger { color: var(--nx-danger); }
 .user-menu-body a.danger i { color: var(--nx-danger); }
-.user-menu-body a.danger:hover { background: rgba(237,66,69,.12); }
+.user-menu-body a.danger:hover { background: rgba(255,16,24,0.12); }
 .user-menu-body hr { border: none; border-block-start: 1px solid var(--nx-hair); margin: 6px 4px; }
 
 /* ═══ Rail ════════════════════════════════════════════════════════════════ */
@@ -594,7 +594,7 @@ body:has(.guild-rail-item) {
   position: fixed;
   inset: 0;
   z-index: 899;
-  background: rgba(5,3,12,.62);
+  background: rgba(5,5,7,0.62);
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   display: none;
@@ -676,7 +676,7 @@ body:has(.guild-rail-item) {
   inset-inline: 0;
   height: 220px;
   pointer-events: none;
-  background: radial-gradient(120% 100% at 100% 0%, rgba(104,31,209,.20), transparent 70%);
+  background: radial-gradient(120% 100% at 100% 0%, rgba(75,0,130,0.20), transparent 70%);
 }
 
 .sidebar.collapsed { width: var(--nx-rail-w); }
@@ -713,7 +713,7 @@ body:has(.guild-rail-item) {
   padding: 6px;
   border-radius: var(--nx-radius-sm);
 }
-.sidebar-close:hover { background: rgba(255,107,107,.12); color: #ff6b6b; }
+.sidebar-close:hover { background: rgba(255,53,69,0.12); color: #ff3545; }
 
 /* Collapse handle. It hangs off the middle of the rail's inner edge, because
    that is the only place the shell has an edge to hang from: the rail's
@@ -783,9 +783,9 @@ body:has(.guild-rail-item) {
    the rest of the time the pointer is anywhere near it. */
 .sidebar-collapse-btn:hover {
   background: var(--nx-panel-2);
-  border-color: rgba(168,85,247,.34);
+  border-color: rgba(208,0,255,0.34);
   color: var(--nx-glow);
-  box-shadow: 0 2px 10px rgba(0,0,0,.42), 0 0 14px rgba(104,31,209,.42);
+  box-shadow: 0 2px 10px rgba(0,0,0,.42), 0 0 14px rgba(75,0,130,0.42);
 }
 
 /* ─── The press ────────────────────────────────────────────────────────────
@@ -817,9 +817,9 @@ body:has(.guild-rail-item) {
 .sidebar-collapse-btn:active {
   transform: scaleX(.82);
   background: var(--nx-panel-2);
-  border-color: rgba(168,85,247,.62);
+  border-color: rgba(208,0,255,0.62);
   color: var(--nx-glow);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,.5), 0 0 12px rgba(104,31,209,.5);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.5), 0 0 12px rgba(75,0,130,0.5);
   transition-duration: .09s;
   transition-timing-function: cubic-bezier(.32,0,.67,0);
 }
@@ -856,8 +856,8 @@ body:has(.guild-rail-item) {
   font-size: .68rem;
   font-weight: 700;
   color: var(--nx-violet-2);
-  background: rgba(168,85,247,.16);
-  border: 1px solid rgba(168,85,247,.34);
+  background: rgba(208,0,255,0.16);
+  border: 1px solid rgba(208,0,255,0.34);
 }
 
 /* ─── Nav ──────────────────────────────────────────────────────────────────
@@ -962,7 +962,7 @@ body:has(.guild-rail-item) {
   border-start-start-radius: 3px;
   border-end-start-radius: 3px;
   background: var(--nx-glow);
-  box-shadow: 0 0 12px rgba(168,85,247,.85);
+  box-shadow: 0 0 12px rgba(208,0,255,0.85);
   opacity: 0;
   transform: scaleY(.25);
   transition: opacity .24s var(--nx-ease-out), transform .3s var(--nx-ease);
@@ -976,9 +976,9 @@ body:has(.guild-rail-item) {
 .nav-link:hover > i:first-child { color: var(--nx-violet-2); transform: scale(1.12); }
 
 .nav-link.active {
-  color: #fff;
+  color: #edf0ff;
   background: var(--nx-nav-on);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: inset 0 1px 0 rgba(237,240,255,0.06);
 }
 .nav-link.active::before { opacity: 1; transform: scaleY(1); }
 .nav-link.active > i:first-child { color: var(--nx-violet-2); }
@@ -987,18 +987,18 @@ body:has(.guild-rail-item) {
    the old rule which only turned the text red. */
 .nav-link.locked { opacity: .5; cursor: not-allowed; }
 .nav-link.locked:hover {
-  color: #ff8a8a;
-  background: rgba(237,66,69,.1);
+  color: #ff8088;
+  background: rgba(255,16,24,0.1);
   transform: none;
 }
-.nav-link.locked:hover > i:first-child { color: #ff8a8a; transform: none; }
+.nav-link.locked:hover > i:first-child { color: #ff8088; transform: none; }
 
 .nav-link .nav-lock {
   margin-inline-start: auto;
   width: auto;
   flex: none;
   font-size: .68rem;
-  color: #ff6b6b;
+  color: #ff3545;
   opacity: .9;
 }
 
@@ -1071,8 +1071,8 @@ body:has(.guild-rail-item) {
 .sidebar-logout {
   color: var(--nx-danger);
   text-decoration: none;
-  background: rgba(237,66,69,.06);
-  border-color: rgba(237,66,69,.2);
+  background: rgba(255,16,24,0.06);
+  border-color: rgba(255,16,24,0.2);
   cursor: pointer;
 }
 .sidebar-logout > i {
@@ -1084,12 +1084,12 @@ body:has(.guild-rail-item) {
 }
 .sidebar-logout > span { overflow: hidden; text-overflow: ellipsis; }
 .sidebar-logout:hover {
-  background: rgba(237,66,69,.15);
-  border-color: rgba(237,66,69,.42);
-  color: #ff8a8d;
+  background: rgba(255,16,24,0.15);
+  border-color: rgba(255,16,24,0.42);
+  color: #ff8088;
 }
 .sidebar-logout:hover > i { transform: translateX(-2px); }
-.sidebar-logout:active { background: rgba(237,66,69,.22); }
+.sidebar-logout:active { background: rgba(255,16,24,0.22); }
 
 /* ═══ Server rail ════════════════════════════════════════════════════════
    Beside the navigation rail, not inside it and not instead of it. One frame,
@@ -1172,7 +1172,7 @@ body:has(.guild-rail-item) {
 }
 .guild-rail-item:hover {
   background: var(--nx-panel-2);
-  border-color: rgba(168,85,247,.4);
+  border-color: rgba(208,0,255,0.4);
   box-shadow: 0 8px 22px rgba(0,0,0,.4);
   transform: translateY(-2px);
 }
@@ -1199,7 +1199,7 @@ body:has(.guild-rail-item) {
   overflow: hidden;
   display: grid;
   place-items: center;
-  background: linear-gradient(150deg, rgba(168,85,247,.22), rgba(139,92,246,.22));
+  background: linear-gradient(150deg, rgba(208,0,255,0.22), rgba(135,0,255,0.22));
 }
 .guild-rail-ava img { width: 100%; height: 100%; object-fit: cover; }
 .guild-rail-letter { display: none; font-size: 1.05rem; font-weight: 800; color: var(--nx-violet-2); }
@@ -1235,8 +1235,8 @@ body:has(.guild-rail-item) {
 }
 .guild-rail-item.is-current {
   background: var(--nx-panel-2);
-  border-color: rgba(168,85,247,.5);
-  box-shadow: 0 0 0 1px rgba(168,85,247,.18), 0 0 18px rgba(104,31,209,.28);
+  border-color: rgba(208,0,255,0.5);
+  box-shadow: 0 0 0 1px rgba(208,0,255,0.18), 0 0 18px rgba(75,0,130,0.28);
 }
 .guild-rail-item.is-current::before { opacity: 1; transform: scaleY(1); }
 
@@ -1471,9 +1471,8 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
    a 400px box over the content it is describing.
 
    --bg-card and --border rather than --nx-glass and --nx-glass-br, and this is
-   the second time that distinction has cost a tooltip: --nx-glass is rgba(18,
-   14,36,.8) and no light theme re-points it, so a tip painted with it is a dark
-   box carrying --text, which is #1c1533 in the light theme -- dark on dark. The
+   the second time that distinction has cost a tooltip: --nx-glass is rgba(16,16,20,0.8) and no light theme re-points it, so a tip painted with it is a dark
+   box carrying --text, which is #4b0082 in the light theme -- dark on dark. The
    --bg-* aliases are the ones style.css re-points per theme, and they are what
    the inherited [title] tooltip already uses. */
 .rail-tip {
@@ -1528,8 +1527,8 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
   to   { background-position: 150% 0, 0 0; }
 }
 @keyframes shellPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(87,242,135,.5); }
-  70%      { box-shadow: 0 0 0 6px rgba(87,242,135,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,200,255,0.5); }
+  70%      { box-shadow: 0 0 0 6px rgba(0,200,255,0); }
 }
 @keyframes shellMenuIn {
   from { opacity: 0; transform: translateY(-8px) scale(.97); }
@@ -1551,7 +1550,7 @@ body:has(#sidebar.hidden) .nav-brand { display: none; }
      clip themselves to the border-radius for free. */
   .nav-link.active {
     background-image:
-      linear-gradient(100deg, transparent, rgba(255,255,255,.17), transparent),
+      linear-gradient(100deg, transparent, rgba(237,240,255,0.17), transparent),
       linear-gradient(var(--nx-nav-on), var(--nx-nav-on));
     background-size: 45% 100%, 100% 100%;
     background-repeat: no-repeat;
@@ -1620,13 +1619,13 @@ html.no-arrival .nav-link.active { animation: none; }
    shorthand here would wipe the sweep out and only in the light theme.
 
    The rail's own surface is the third value that had to be re-pointed: it was
-   #fbfaff, which against a #f6f4fc page is the same seam the dark theme had,
+   #edf0ff, which against a #edf0ff page is the same seam the dark theme had,
    just harder to see. --nx-rail is a token precisely so this is one line. */
 
 [data-theme="light"] {
-  --nx-nav-on: rgba(124,58,237,.14);
-  --nx-nav-wash: rgba(124,58,237,.08);
-  --nx-rail: #f6f4fc;
+  --nx-nav-on: rgba(135,0,255,0.14);
+  --nx-nav-wash: rgba(135,0,255,0.08);
+  --nx-rail: #edf0ff;
 }
 
 /* Nothing to unfill at rest: the band's default background is transparent, and a
@@ -1635,49 +1634,49 @@ html.no-arrival .nav-link.active { animation: none; }
    dividers do need restating, because --nx-hair is a white on white -- it is the
    one value in the frame with no light-theme reading of its own. */
 [data-theme="light"] .navbar.is-stuck .navbar__pill {
-  background: rgba(255,255,255,.62);
-  box-shadow: 0 8px 28px rgba(60,40,120,.1);
+  background: rgba(237,240,255,0.62);
+  box-shadow: 0 8px 28px rgba(75,0,130,0.1);
 }
 [data-theme="light"] .navbar__pill,
 [data-theme="light"] .nav-left {
-  border-block-end-color: rgba(124,58,237,.14);
-  border-inline-end-color: rgba(124,58,237,.14);
+  border-block-end-color: rgba(135,0,255,0.14);
+  border-inline-end-color: rgba(135,0,255,0.14);
 }
 [data-theme="light"] .sidebar {
-  border-color: rgba(124,58,237,.14);
+  border-color: rgba(135,0,255,0.14);
 }
 [data-theme="light"] .sidebar::before {
-  background: radial-gradient(120% 100% at 100% 0%, rgba(124,58,237,.10), transparent 70%);
+  background: radial-gradient(120% 100% at 100% 0%, rgba(135,0,255,0.10), transparent 70%);
 }
-[data-theme="light"] .nav-link:hover { background: rgba(124,58,237,.08); }
-[data-theme="light"] .nav-link { color: #5c5470; }
+[data-theme="light"] .nav-link:hover { background: rgba(135,0,255,0.08); }
+[data-theme="light"] .nav-link { color: #777d90; }
 [data-theme="light"] .nav-link:hover,
-[data-theme="light"] .nav-link.active { color: #1c1533; }
-[data-theme="light"] .nav-link > i:first-child { color: #8b5cf6; }
-[data-theme="light"] .nav-section-title { color: #6b6382; }
-[data-theme="light"] .nav-search { background: rgba(124,58,237,.05); }
+[data-theme="light"] .nav-link.active { color: #4b0082; }
+[data-theme="light"] .nav-link > i:first-child { color: #8700ff; }
+[data-theme="light"] .nav-section-title { color: #777d90; }
+[data-theme="light"] .nav-search { background: rgba(135,0,255,0.05); }
 [data-theme="light"] .sidebar-footer,
 [data-theme="light"] .sidebar-header,
 [data-theme="light"] .nav-section-title,
-[data-theme="light"] .nav-link { border-color: rgba(124,58,237,.12); }
+[data-theme="light"] .nav-link { border-color: rgba(135,0,255,0.12); }
 /* The rail footer's own divider is the rule above. The two rows inside it need
    their own edges and washes, and nothing else reaches them: they sit on a
    surface whose background is set here, and a blanket border-color on a parent
    never touches a child's border. */
 [data-theme="light"] .bot-status {
-  background: rgba(124,58,237,.05);
-  border-color: rgba(124,58,237,.14);
-  color: #5c5470;
+  background: rgba(135,0,255,0.05);
+  border-color: rgba(135,0,255,0.14);
+  color: #777d90;
 }
 [data-theme="light"] .sidebar-logout {
-  background: rgba(237,66,69,.07);
-  border-color: rgba(237,66,69,.24);
-  color: #cf3340;
+  background: rgba(255,16,24,0.07);
+  border-color: rgba(255,16,24,0.24);
+  color: #ff1018;
 }
 [data-theme="light"] .sidebar-logout:hover {
-  background: rgba(237,66,69,.15);
-  border-color: rgba(237,66,69,.45);
-  color: #ad2733;
+  background: rgba(255,16,24,0.15);
+  border-color: rgba(255,16,24,0.45);
+  color: #ff1018;
 }
 
 /* The server rail is --nx-rail like the navigation rail, so its surface follows
@@ -1685,68 +1684,68 @@ html.no-arrival .nav-link.active { animation: none; }
    --nx-panel-2 are near-black and no light theme re-points them, so a dark tile
    would sit on a white column as a black square -- and the default avatar tile is
    a violet wash that needs a floor under it or the letter has nothing to sit on. */
-[data-theme="light"] .guild-rail { border-color: rgba(124,58,237,.14); }
+[data-theme="light"] .guild-rail { border-color: rgba(135,0,255,0.14); }
 [data-theme="light"] .guild-rail-item {
-  background: #fff;
-  border-color: rgba(124,58,237,.12);
+  background: #edf0ff;
+  border-color: rgba(135,0,255,0.12);
 }
 [data-theme="light"] .guild-rail-item:hover {
-  background: rgba(124,58,237,.07);
-  border-color: rgba(124,58,237,.34);
-  box-shadow: 0 8px 22px rgba(60,40,120,.14);
+  background: rgba(135,0,255,0.07);
+  border-color: rgba(135,0,255,0.34);
+  box-shadow: 0 8px 22px rgba(75,0,130,0.14);
 }
 [data-theme="light"] .guild-rail-item.is-current {
-  background: rgba(124,58,237,.09);
-  border-color: rgba(124,58,237,.45);
-  box-shadow: 0 0 0 1px rgba(124,58,237,.12);
+  background: rgba(135,0,255,0.09);
+  border-color: rgba(135,0,255,0.45);
+  box-shadow: 0 0 0 1px rgba(135,0,255,0.12);
 }
-[data-theme="light"] .guild-rail-ava { background: linear-gradient(150deg, rgba(124,58,237,.16), rgba(109,40,217,.16)); }
-[data-theme="light"] .guild-rail-letter { color: #5b21b6; }
-[data-theme="light"] .guild-rail-home .guild-rail-ava > i { color: #5b21b6; }
+[data-theme="light"] .guild-rail-ava { background: linear-gradient(150deg, rgba(135,0,255,0.16), rgba(75,0,130,0.16)); }
+[data-theme="light"] .guild-rail-letter { color: #4b0082; }
+[data-theme="light"] .guild-rail-home .guild-rail-ava > i { color: #4b0082; }
 /* --nx-hair is a white and no light theme re-points it, so the hairline under
    the home row would be white on a near-white column: present in the box model
    and invisible on screen. It is the one line in this rail with no dark-theme
    counterpart to fall back on, so it takes the violet every other divider in
    the frame takes. */
-[data-theme="light"] .guild-rail-home::after { background: rgba(124,58,237,.16); }
+[data-theme="light"] .guild-rail-home::after { background: rgba(135,0,255,0.16); }
 /* A shut row on white needs a dashed border that is actually visible: the dark
    theme's --nx-hair is a white on white, so it gets the violet line like every
    other divider in the frame. */
 /* Transparent, like the dark theme's: the shut row is meant to read as a slot
    the bot has not been given yet, not as a tile. Left at the white the open rows
-   get, it became a filled box on a #f6f4fc column and the two states differed in
+   get, it became a filled box on a #edf0ff column and the two states differed in
    two ways at once, neither of them the one that carries the meaning. */
-[data-theme="light"] .guild-rail-item.is-off { background: transparent; border-color: rgba(124,58,237,.2); }
+[data-theme="light"] .guild-rail-item.is-off { background: transparent; border-color: rgba(135,0,255,0.2); }
 [data-theme="light"] .guild-rail-item.is-off::after {
-  background: #fff;
-  border-color: rgba(124,58,237,.2);
-  color: #6b6382;
+  background: #edf0ff;
+  border-color: rgba(135,0,255,0.2);
+  color: #777d90;
 }
 /* The handle needs all three of its states restated, not just the resting one.
    --nx-panel-2 is a near-black that no light theme re-points, so the dark
    hover would put a black pill on a white page -- and --nx-muted is a grey that
    on white reads as disabled rather than as quiet. */
 [data-theme="light"] .sidebar-collapse-btn {
-  background: #fff;
-  border-color: rgba(124,58,237,.18);
-  color: #6b6382;
-  box-shadow: 0 2px 8px rgba(60,40,120,.14);
+  background: #edf0ff;
+  border-color: rgba(135,0,255,0.18);
+  color: #777d90;
+  box-shadow: 0 2px 8px rgba(75,0,130,0.14);
 }
 [data-theme="light"] .sidebar-collapse-btn:hover {
-  background: rgba(124,58,237,.07);
-  border-color: rgba(124,58,237,.38);
-  color: #7c3aed;
-  box-shadow: 0 2px 10px rgba(60,40,120,.18), 0 0 14px rgba(124,58,237,.28);
+  background: rgba(135,0,255,0.07);
+  border-color: rgba(135,0,255,0.38);
+  color: #8700ff;
+  box-shadow: 0 2px 10px rgba(75,0,130,0.18), 0 0 14px rgba(135,0,255,0.28);
 }
 /* The press needs restating here too, and it needs more than the other two: a
    white pill on a near-white page has no drop shadow to lose, so with only the
    colours changed the pressed state has no depth in it at all and reads as a
    tint. The concave shadow is what carries it. */
 [data-theme="light"] .sidebar-collapse-btn:active {
-  background: rgba(124,58,237,.11);
-  border-color: rgba(124,58,237,.55);
-  color: #5b21b6;
-  box-shadow: inset 0 1px 3px rgba(60,40,120,.24), 0 0 12px rgba(124,58,237,.42);
+  background: rgba(135,0,255,0.11);
+  border-color: rgba(135,0,255,0.55);
+  color: #4b0082;
+  box-shadow: inset 0 1px 3px rgba(75,0,130,0.24), 0 0 12px rgba(135,0,255,0.42);
 }
 
 /* ═══ Responsive ═══════════════════════════════════════════════════════════

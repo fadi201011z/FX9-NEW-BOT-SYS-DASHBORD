@@ -13,28 +13,28 @@
 
 <div class="stats-grid">
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-terminal" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-terminal" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= commands.length %></span>
       <span class="stat-label">إجمالي الأوامر</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-toggle-on" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-toggle-on" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= enabledCount %></span>
       <span class="stat-label">مفعّلة</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-toggle-off" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-toggle-off" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= commands.length - enabledCount %></span>
       <span class="stat-label">معطّلة</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ffa63e"><i class="fas fa-folder-tree" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff8088"><i class="fas fa-folder-tree" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= catsCount %></span>
       <span class="stat-label">قسم أوامر</span>
@@ -101,24 +101,24 @@
   .cmd-search > i { position: absolute; inset-inline-start: 14px; color: var(--text-muted); font-size: .85rem; }
   .cmd-search input {
     flex: 1; min-width: 0; padding: 11px 14px 11px 40px;
-    border-radius: 11px; border: 1px solid var(--nx-line, rgba(255,255,255,.09));
-    background: rgba(255,255,255,.03); color: var(--text, #eee); font-family: inherit; outline: none;
+    border-radius: 11px; border: 1px solid var(--nx-line, rgba(237,240,255,0.09));
+    background: rgba(237,240,255,0.03); color: var(--text, #edf0ff); font-family: inherit; outline: none;
     transition: border-color .18s var(--nx-ease, ease), box-shadow .18s var(--nx-ease, ease);
   }
-  .cmd-search input:focus { border-color: var(--primary, #a855f7); box-shadow: 0 0 0 3px rgba(168,85,247,.16); }
+  .cmd-search input:focus { border-color: var(--primary, #d000ff); box-shadow: 0 0 0 3px rgba(208,0,255,0.16); }
   .cmd-search select {
-    padding: 11px 12px; border-radius: 11px; border: 1px solid var(--nx-line, rgba(255,255,255,.09));
-    background: rgba(255,255,255,.03); color: var(--text, #eee); font-family: inherit; outline: none; cursor: pointer;
+    padding: 11px 12px; border-radius: 11px; border: 1px solid var(--nx-line, rgba(237,240,255,0.09));
+    background: rgba(237,240,255,0.03); color: var(--text, #edf0ff); font-family: inherit; outline: none; cursor: pointer;
   }
   @media (max-width: 560px) { .cmd-search { flex-wrap: wrap; } .cmd-search select { flex: 1; } }
 
   .cmd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
   .cmd-card { display: flex; flex-direction: column; padding: 16px; transition: border-color .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease); }
-  .cmd-card:hover { border-color: rgba(168, 85, 247, .4); transform: translateY(-2px); }
+  .cmd-card:hover { border-color: rgba(208,0,255,0.4); transform: translateY(-2px); }
   .cmd-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .cmd-cat {
     font-size: .68rem; font-weight: 700; padding: 2px 11px; border-radius: 20px;
-    background: rgba(168, 85, 247, .14); color: var(--primary, #a855f7); letter-spacing: .2px;
+    background: rgba(208,0,255,0.14); color: var(--primary, #d000ff); letter-spacing: .2px;
   }
   .cmd-body { display: flex; flex-direction: column; flex: 1; }
   .cmd-name { direction: ltr; unicode-bidi: isolate; text-align: right; font-family: var(--nx-mono, Consolas, monospace); font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
@@ -129,8 +129,8 @@
   .cmd-roles { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: .74rem; }
   .cmd-role-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .cmd-role-row span { direction: ltr; unicode-bidi: isolate; }
-  .cmd-role-row.is-allowed { color: #43b581; }
-  .cmd-role-row.is-blocked { color: #f04747; }
+  .cmd-role-row.is-allowed { color: #00c8ff; }
+  .cmd-role-row.is-blocked { color: #ff3545; }
   .cmd-perms-btn { width: 100%; margin-top: auto; cursor: pointer; }
 </style>
 
@@ -231,7 +231,7 @@ function renderPermsCheckboxes(name) {
   for (const role of allRoles) {
     const div = document.createElement('div');
     div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light)';
-    const color = role.color ? `#${role.color.toString(16).padStart(6,'0')}` : '#99aab5';
+    const color = role.color ? `#${role.color.toString(16).padStart(6,'0')}` : '#858b9d';
     div.innerHTML = `
       <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};flex-shrink:0"></span>
       <span style="flex:1">${role.name}</span>

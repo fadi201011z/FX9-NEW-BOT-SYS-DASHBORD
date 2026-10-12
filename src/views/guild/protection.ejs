@@ -14,28 +14,28 @@
 
 <div class="stats-grid">
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-shield-halved" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-shield-halved" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= prCount %>/<%= prKeys.length %></span>
       <span class="stat-label">أنظمة مفعّلة</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-ban" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-ban" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= restrictedCount %></span>
       <span class="stat-label">روم محضور</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ffa63e"><i class="fas fa-gavel" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff8088"><i class="fas fa-gavel" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value" style="font-size:1.15rem"><%= punishLabel %></span>
       <span class="stat-label">عقوبة السبام</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #4dd6e0"><i class="fas fa-users-slash" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-users-slash" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value" style="font-size:1.15rem"><%= protection.antiRaidEnabled === 'true' ? 'مفعّل' : 'متوقف' %></span>
       <span class="stat-label">حالة Anti-Raid</span>
@@ -45,11 +45,11 @@
 
 <form id="protectionForm" onsubmit="updateProtection(event)">
   <% const systems = [
-    { key: 'antiSpamEnabled', name: 'Anti-Spam', icon: 'fa-shield-halved', tint: '#ed4245', desc: 'منع السبام — 5 رسائل لكل 5 ثوانٍ ← إيقاف 60 ثانية' },
-    { key: 'antiLinkEnabled', name: 'Anti-Link', icon: 'fa-link', tint: '#5a9bff', desc: 'منع الروابط التلقائية في الرسائل' },
-    { key: 'antiMentionEnabled', name: 'Anti-Mention', icon: 'fa-at', tint: '#a855f7', desc: 'منع 5+ منشنات في رسالة واحدة' },
-    { key: 'antiNukeEnabled', name: 'Anti-Nuke', icon: 'fa-bomb', tint: '#ffa63e', desc: 'منع حذف القنوات والحظر الجماعي المفاجئ' },
-    { key: 'antiRaidEnabled', name: 'Anti-Raid', icon: 'fa-users-slash', tint: '#4dd6e0', desc: 'منع الانضمام الجماعي المفاجئ للسيرفر' },
+    { key: 'antiSpamEnabled', name: 'Anti-Spam', icon: 'fa-shield-halved', tint: '#ff1018', desc: 'منع السبام — 5 رسائل لكل 5 ثوانٍ ← إيقاف 60 ثانية' },
+    { key: 'antiLinkEnabled', name: 'Anti-Link', icon: 'fa-link', tint: '#00a8ff', desc: 'منع الروابط التلقائية في الرسائل' },
+    { key: 'antiMentionEnabled', name: 'Anti-Mention', icon: 'fa-at', tint: '#d000ff', desc: 'منع 5+ منشنات في رسالة واحدة' },
+    { key: 'antiNukeEnabled', name: 'Anti-Nuke', icon: 'fa-bomb', tint: '#ff8088', desc: 'منع حذف القنوات والحظر الجماعي المفاجئ' },
+    { key: 'antiRaidEnabled', name: 'Anti-Raid', icon: 'fa-users-slash', tint: '#00c8ff', desc: 'منع الانضمام الجماعي المفاجئ للسيرفر' },
   ] %>
 
   <div class="card glass">
@@ -157,12 +157,12 @@
   .pr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
   .pr-card {
     padding: 15px; border-radius: var(--radius, 12px);
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
-    background: rgba(255, 255, 255, .015);
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.07));
+    background: rgba(237,240,255,0.015);
     transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
   }
   .pr-card:hover { transform: translateY(-1px); }
-  .pr-card.is-on { border-color: rgba(87, 242, 135, .28); }
+  .pr-card.is-on { border-color: rgba(0,200,255,0.28); }
   .pr-head { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
   .pr-head h4 { font-size: .9rem; font-weight: 700; flex: 1; }
   .pr-ic {
@@ -175,21 +175,21 @@
   .pr-add-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
   .pr-add-row select {
     flex: 1; min-width: 210px; padding: 10px 14px; border-radius: 10px;
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .1));
-    background: var(--bg-secondary, #1e1e2e); color: var(--text, #eee); font-family: inherit; outline: none;
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.1));
+    background: var(--bg-secondary, #34343f); color: var(--text, #edf0ff); font-family: inherit; outline: none;
   }
-  .pr-add-row select:focus { border-color: var(--primary, #a855f7); }
+  .pr-add-row select:focus { border-color: var(--primary, #d000ff); }
   .pr-rest-list { display: flex; flex-direction: column; gap: 8px; }
   .pr-rest-item {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 11px 14px; border-radius: 11px;
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07)); background: rgba(237, 66, 69, .04);
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.07)); background: rgba(255,16,24,0.04);
   }
   .pr-rest-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .pr-rest-name i { color: var(--text-muted); }
   .pr-rest-name strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pr-rest-del { background: rgba(237, 66, 69, .15); color: #ed4245; border: 1px solid rgba(237, 66, 69, .3); cursor: pointer; }
-  .pr-rest-del:hover { background: rgba(237, 66, 69, .28); color: #ff8b8b; }
+  .pr-rest-del { background: rgba(255,16,24,0.15); color: #ff1018; border: 1px solid rgba(255,16,24,0.3); cursor: pointer; }
+  .pr-rest-del:hover { background: rgba(255,16,24,0.28); color: #ff8088; }
   @media (max-width: 620px) { .pr-add-row select { min-width: 100%; } }
 </style>
 

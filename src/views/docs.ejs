@@ -6,14 +6,14 @@
      grows that is not listed here still renders -- catInfo() falls back to the
      raw key with a neutral tint rather than dropping the command. */
   const CAT = {
-    setup:      { label: 'الإعداد',   icon: 'fa-sliders',       color: '#38bdf8' },
-    moderation: { label: 'الإدارة',   icon: 'fa-shield-halved', color: '#f87171' },
-    info:       { label: 'المعلومات', icon: 'fa-circle-info',   color: '#a78bfa' },
-    members:    { label: 'الأعضاء',   icon: 'fa-users',         color: '#34d399' },
-    ticket:     { label: 'التذاكر',   icon: 'fa-ticket',        color: '#fbbf24' },
-    voice:      { label: 'الصوت',     icon: 'fa-microphone',    color: '#22d3ee' },
+    setup:      { label: 'الإعداد',   icon: 'fa-sliders',       color: '#00c8ff' },
+    moderation: { label: 'الإدارة',   icon: 'fa-shield-halved', color: '#ff3545' },
+    info:       { label: 'المعلومات', icon: 'fa-circle-info',   color: '#d000ff' },
+    members:    { label: 'الأعضاء',   icon: 'fa-users',         color: '#00c8ff' },
+    ticket:     { label: 'التذاكر',   icon: 'fa-ticket',        color: '#ff8088' },
+    voice:      { label: 'الصوت',     icon: 'fa-microphone',    color: '#00c8ff' },
   };
-  const catInfo = c => CAT[c] || { label: c, icon: 'fa-terminal', color: '#a855f7' };
+  const catInfo = c => CAT[c] || { label: c, icon: 'fa-terminal', color: '#d000ff' };
 
   const all = Array.isArray(commands) ? commands : [];
   const activeCat = (typeof category !== 'undefined' && category) ? category : '';
@@ -47,14 +47,14 @@
   padding:30px 26px; margin-bottom:18px;
   border:1px solid var(--border); border-radius:20px;
   background:
-    radial-gradient(120% 170% at 88% -30%, rgba(168,85,247,.32), transparent 58%),
-    radial-gradient(90% 140% at -5% 130%, rgba(34,211,238,.16), transparent 55%),
+    radial-gradient(120% 170% at 88% -30%, rgba(208,0,255,0.32), transparent 58%),
+    radial-gradient(90% 140% at -5% 130%, rgba(0,200,255,0.16), transparent 55%),
     var(--bg-card);
 }
 .docs-hero-glow{
   position:absolute; z-index:-1; top:-45%; inset-inline-end:-8%;
   width:340px; height:340px; border-radius:50%;
-  background:radial-gradient(circle, rgba(168,85,247,.5), transparent 70%);
+  background:radial-gradient(circle, rgba(208,0,255,0.5), transparent 70%);
   filter:blur(26px); pointer-events:none;
   animation:docsFloat 7s ease-in-out infinite;
 }
@@ -67,16 +67,16 @@
   display:inline-flex; align-items:center; gap:8px;
   padding:5px 12px; border-radius:999px;
   font-size:.72rem; font-weight:700; letter-spacing:.01em;
-  color:#e9d9ff; background:rgba(168,85,247,.16); border:1px solid rgba(168,85,247,.35);
+  color:#edf0ff; background:rgba(208,0,255,0.16); border:1px solid rgba(208,0,255,0.35);
 }
-[data-theme="light"] .docs-eyebrow{ color:#6b21a8; }
+[data-theme="light"] .docs-eyebrow{ color:#4b0082; }
 .docs-hero-title{
   font-family:'Cairo', var(--font);
   font-size:clamp(1.6rem, 4vw, 2.4rem); font-weight:900; line-height:1.25;
   margin:14px 0 8px;
 }
 .docs-hero-accent{
-  background:linear-gradient(90deg, var(--primary), #22d3ee);
+  background:linear-gradient(90deg, var(--primary), #00c8ff);
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 .docs-hero-sub{ max-width:560px; color:var(--text-muted); font-size:.95rem; line-height:1.9; }
@@ -101,7 +101,7 @@
   background:color-mix(in srgb, var(--bg-secondary) 78%, transparent);
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
 }
-[data-theme="light"] .docs-toolbar{ background:color-mix(in srgb, #fff 82%, transparent); }
+[data-theme="light"] .docs-toolbar{ background:color-mix(in srgb, #edf0ff 82%, transparent); }
 
 .docs-search{ position:relative; display:flex; align-items:center; }
 .docs-search > i{
@@ -127,8 +127,8 @@
 }
 .docs-cat:hover{ color:var(--text); border-color:var(--primary); transform:translateY(-1px); }
 .docs-cat.active{
-  color:#fff; border-color:transparent;
-  background:linear-gradient(135deg,#7c3aed,#6d28d9);
+  color:#edf0ff; border-color:transparent;
+  background:linear-gradient(135deg,#8700ff,#4b0082);
   box-shadow:0 6px 18px var(--primary-glow);
 }
 
@@ -155,7 +155,7 @@
 }
 .doc-card::after{
   content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
-  background:linear-gradient(120deg, transparent 30%, rgba(255,255,255,.07) 46%, transparent 62%);
+  background:linear-gradient(120deg, transparent 30%, rgba(237,240,255,0.07) 46%, transparent 62%);
   opacity:0; transition:opacity var(--transition);
 }
 .doc-card:hover{
@@ -200,7 +200,7 @@
   margin-inline-start:auto; font-style:normal;
   padding:1px 7px; border-radius:999px;
   font-size:.65rem; font-weight:700;
-  color:#f87171; background:rgba(248,113,113,.14); border:1px solid rgba(248,113,113,.3);
+  color:#ff3545; background:rgba(255,53,69,0.14); border:1px solid rgba(255,53,69,0.3);
 }
 
 /* ── empty / no-results ─────────────────────────────────────────────────── */

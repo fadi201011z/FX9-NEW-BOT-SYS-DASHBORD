@@ -11,11 +11,12 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Kratos Dashboard" />
   <meta property="og:locale" content="ar_AR" />
-  <meta name="theme-color" content="#a855f7" />
+  <meta name="theme-color" content="#d000ff" />
   <meta name="twitter:card" content="summary" />
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/theme.css">
   <link rel="icon" href="/favicon.png" type="image/png">
 </head>
 <body>
@@ -80,7 +81,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%);
+      background: linear-gradient(135deg, #101014 0%, #34343f 50%, #101014 100%);
       direction: rtl;
       font-family: 'Tajawal', system-ui, sans-serif;
     }
@@ -103,7 +104,7 @@
       left: -60px;
       width: 140px;
       height: 140px;
-      background: radial-gradient(circle, rgba(237,66,69,0.12) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(255,16,24,0.12) 0%, transparent 70%);
       border-radius: 50%;
       pointer-events: none;
     }
@@ -114,7 +115,7 @@
       right: -80px;
       width: 200px;
       height: 200px;
-      background: radial-gradient(circle, rgba(237,66,69,0.08) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(255,16,24,0.08) 0%, transparent 70%);
       border-radius: 50%;
       pointer-events: none;
     }
@@ -128,13 +129,13 @@
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      background: linear-gradient(135deg, rgba(237,66,69,0.2), rgba(237,66,69,0.05));
-      border: 2px solid rgba(237,66,69,0.3);
+      background: linear-gradient(135deg, rgba(255,16,24,0.2), rgba(255,16,24,0.05));
+      border: 2px solid rgba(255,16,24,0.3);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 2rem;
-      color: #ed4245;
+      color: #ff1018;
       position: relative;
       z-index: 1;
     }
@@ -143,7 +144,7 @@
       position: absolute;
       top: -8px; left: -8px; right: -8px; bottom: -8px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(237,66,69,0.1) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(255,16,24,0.1) 0%, transparent 70%);
       animation: deniedPulse 2.5s ease-in-out infinite;
     }
     @keyframes deniedPulse {
@@ -159,9 +160,9 @@
       font-size: 0.75rem;
       font-weight: 700;
       letter-spacing: 0.3px;
-      background: rgba(237,66,69,0.12);
-      color: #ed4245;
-      border: 1px solid rgba(237,66,69,0.2);
+      background: rgba(255,16,24,0.12);
+      color: #ff1018;
+      border: 1px solid rgba(255,16,24,0.2);
       margin-bottom: 16px;
       text-transform: uppercase;
     }
@@ -169,12 +170,12 @@
       margin: 0 0 8px;
       font-size: 1.4rem;
       font-weight: 800;
-      color: var(--text, #eee);
+      color: var(--text, #edf0ff);
       letter-spacing: -0.3px;
     }
     .denied-subtitle {
       margin: 0 0 28px;
-      color: var(--text-secondary, #999);
+      color: var(--text-secondary, #777d90);
       font-size: 0.85rem;
       line-height: 1.6;
       max-width: 320px;
@@ -192,14 +193,14 @@
       align-items: flex-start;
       gap: 12px;
       padding: 14px 16px;
-      background: rgba(255,255,255,0.025);
+      background: rgba(237,240,255,0.025);
       border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid rgba(237,240,255,0.05);
       text-align: right;
       transition: background 0.2s;
     }
     .denied-feature:hover {
-      background: rgba(255,255,255,0.04);
+      background: rgba(237,240,255,0.04);
     }
     .denied-feature-icon {
       width: 36px;
@@ -208,8 +209,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(237,66,69,0.12);
-      color: #ed4245;
+      background: rgba(255,16,24,0.12);
+      color: #ff1018;
       font-size: 0.9rem;
       flex-shrink: 0;
       margin-top: 1px;
@@ -221,18 +222,18 @@
       display: block;
       font-size: 0.85rem;
       font-weight: 700;
-      color: var(--text, #ddd);
+      color: var(--text, #c9d0e5);
       margin-bottom: 2px;
     }
     .denied-feature-text span {
       display: block;
       font-size: 0.78rem;
-      color: var(--text-muted, #777);
+      color: var(--text-muted, #777d90);
       line-height: 1.5;
     }
     .denied-divider {
       height: 1px;
-      background: linear-gradient(to left, transparent, rgba(255,255,255,0.08), transparent);
+      background: linear-gradient(to left, transparent, rgba(237,240,255,0.08), transparent);
       margin: 24px 0 20px;
     }
     .denied-actions {
@@ -254,35 +255,35 @@
       cursor: pointer;
     }
     .denied-btn-primary {
-      background: linear-gradient(135deg, #a855f7, #7c3aed);
-      color: #fff;
-      box-shadow: 0 4px 20px rgba(168,85,247,0.25);
+      background: linear-gradient(135deg, #d000ff, #8700ff);
+      color: #edf0ff;
+      box-shadow: 0 4px 20px rgba(208,0,255,0.25);
     }
     .denied-btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(168,85,247,0.35);
+      box-shadow: 0 8px 30px rgba(208,0,255,0.35);
     }
     .denied-btn-primary:active {
       transform: translateY(0);
     }
     .denied-btn-secondary {
-      background: rgba(255,255,255,0.04);
-      color: var(--text, #ddd);
-      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(237,240,255,0.04);
+      color: var(--text, #c9d0e5);
+      border: 1px solid rgba(237,240,255,0.07);
     }
     .denied-btn-secondary:hover {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(255,255,255,0.12);
+      background: rgba(237,240,255,0.08);
+      border-color: rgba(237,240,255,0.12);
       transform: translateY(-1px);
     }
     .denied-btn-outline {
       background: transparent;
-      color: #ed4245;
-      border: 1px solid rgba(237,66,69,0.3);
+      color: #ff1018;
+      border: 1px solid rgba(255,16,24,0.3);
     }
     .denied-btn-outline:hover {
-      background: rgba(237,66,69,0.08);
-      border-color: rgba(237,66,69,0.5);
+      background: rgba(255,16,24,0.08);
+      border-color: rgba(255,16,24,0.5);
       transform: translateY(-1px);
     }
     .denied-footer {
@@ -291,7 +292,7 @@
     .denied-footer p {
       margin: 0;
       font-size: 0.7rem;
-      color: var(--text-muted, #555);
+      color: var(--text-muted, #777d90);
       letter-spacing: 0.5px;
     }
     .fade-in-up {

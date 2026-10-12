@@ -7,8 +7,8 @@
 
    It was lifted out of landing.css rather than copied from it. Two copies of a
    palette is exactly how a site ends up with two identities, which is what
-   this replaces -- the dashboard used to be Discord blurple on #0a0b1e while
-   the pages in front of it were purple on #090713.
+   this replaces -- the dashboard used to be Discord blurple on #101014 while
+   the pages in front of it were purple on #050507.
 
    Why tokens and not the whole of landing.css: landing.css sets bare `body`,
    `button`, `a` and `h1` rules for its own layout, so loading it on a
@@ -19,38 +19,38 @@
   /* Palette. Everything the design brief names is a token here; the values it
      does not name stay as sampled off novax.gg, because those were measured
      rather than chosen. --nx-ink is the one deliberate departure: the brief
-     asks for #07050E/#090713 and the source's #08080f is the same near-black
+     asks for #050507/#050507 and the source's #050507 is the same near-black
      purple, so the brief's second option wins. */
-  --nx-purple:   #681fd1;
-  --nx-purple-l: #8c5aff;
-  --nx-glow:     #a855f7;
-  --nx-rim:      rgba(188,146,253,.59);
-  --nx-gold:     #ffd93d;
-  --nx-ink:      #090713;
-  --nx-bar:      #12131c;
-  --nx-panel:    #0d0d14;
-  --nx-panel-2:  #14141d;
-  --nx-muted:    #8890a1;
-  /* Body copy and links: the brief's #9CA3AF / #A1A1AA pair, folded to one
+  --nx-purple:   #4b0082;
+  --nx-purple-l: #8700ff;
+  --nx-glow:     #d000ff;
+  --nx-rim:      rgba(208,0,255,0.59);
+  --nx-gold:     #00c8ff;
+  --nx-ink:      #050507;
+  --nx-bar:      #101014;
+  --nx-panel:    #101014;
+  --nx-panel-2:  #101014;
+  --nx-muted:    #858b9d;
+  /* Body copy and links: the brief's #c9d0e5 / #858b9d pair, folded to one
      value since nothing in the page needs them to differ. */
-  --nx-body:     #9ca3af;
-  --nx-line:     rgba(255,255,255,.08);
-  --nx-line-2:   rgba(255,255,255,.06);
-  --nx-fill:     rgba(255,255,255,.03);
-  --nx-violet-2: #d8b4fe;
-  --nx-green:    #57f287;
+  --nx-body:     #c9d0e5;
+  --nx-line:     rgba(237,240,255,0.08);
+  --nx-line-2:   rgba(237,240,255,0.06);
+  --nx-fill:     rgba(237,240,255,0.03);
+  --nx-violet-2: #edf0ff;
+  --nx-green:    #00c8ff;
   /* The one colour the landing palette does not have. Those pages have nothing
      destructive on them, so there was no red to sample; the dashboard does --
      logout, locked rows, the notification count -- and it had been carrying its
-     own #ed4245 inline. Lifted here so a red in the shell and a red in a card
+     own #ff1018 inline. Lifted here so a red in the shell and a red in a card
      are the same red. */
-  --nx-danger:   #ed4245;
-  /* Glass: #120E24 at 80%, per the brief. */
-  --nx-glass:    rgba(18,14,36,.8);
-  --nx-glass-br: rgba(168,85,247,.2);
+  --nx-danger:   #ff1018;
+  /* Glass: #101014 at 80%, per the brief. */
+  --nx-glass:    rgba(16,16,20,0.8);
+  --nx-glass-br: rgba(208,0,255,0.2);
 
-  --nx-card-bg: linear-gradient(rgba(255,255,255,.035), rgba(255,255,255,0) 55%), var(--nx-panel);
-  --nx-panel-bg: linear-gradient(rgba(255,255,255,.03), rgba(255,255,255,0) 45%), var(--nx-panel);
+  --nx-card-bg: linear-gradient(rgba(237,240,255,0.035), rgba(237,240,255,0) 55%), var(--nx-panel);
+  --nx-panel-bg: linear-gradient(rgba(237,240,255,0.03), rgba(237,240,255,0) 45%), var(--nx-panel);
 
   /* ── Measurements ──────────────────────────────────────────────────────
      Used by the dashboard shell. landing.css does not read these; they live
@@ -67,7 +67,7 @@
 
   --nx-shadow:    0 24px 70px rgba(0,0,0,.34);
   --nx-shadow-sm: 0 8px 28px rgba(0,0,0,.24);
-  --nx-glow-shadow: 0 10px 34px rgba(168,85,247,.30);
+  --nx-glow-shadow: 0 10px 34px rgba(208,0,255,0.30);
 
   /* The navigation rail's two widths. 236 is measured, not chosen: nothing in the
      rail needs more room than its own widest row, and 268 was 46px wider than the
@@ -147,19 +147,19 @@
   /* ── The rail, and the lines that divide the frame ──────────────────────
      Sampled off the dashboard drawing in the landing hero (.nx-dash__side and
      .nx-dash__bar), which is the only place the real shell is shown inside the
-     design. Its sidebar is #08090f -- and that value was wrong here. It is a
-     colder black than the page's #090713, and at normal brightness the two
+     design. Its sidebar is #050507 -- and that value was wrong here. It is a
+     colder black than the page's #050507, and at normal brightness the two
      read as a seam running the full height of the window, which is the one
      thing a navigation rail must not do: it looked like a different panel
      bolted onto the page rather than part of the same surface. So the rail is
      the page surface exactly and --nx-hair is the only thing separating them.
-     The light theme had the same fault, #fbfaff on a #f6f4fc page, and got the
+     The light theme had the same fault, #edf0ff on a #edf0ff page, and got the
      same fix; that one lives in shell.css, which owns the light overrides. */
   --nx-rail:       var(--nx-ink);
-  --nx-hair:       rgba(255,255,255,.06);
-  --nx-nav-wash:   rgba(168,85,247,.10);
-  --nx-nav-on:     rgba(104,31,209,.30);
-  --nx-focus:      rgba(168,85,247,.55);
+  --nx-hair:       rgba(237,240,255,0.06);
+  --nx-nav-wash:   rgba(208,0,255,0.10);
+  --nx-nav-on:     rgba(75,0,130,0.30);
+  --nx-focus:      rgba(208,0,255,0.55);
 }
 
 /* Registered so the server rail's two numbers interpolate rather than snap, which

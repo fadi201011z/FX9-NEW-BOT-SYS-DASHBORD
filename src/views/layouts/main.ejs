@@ -11,7 +11,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Kratos Dashboard" />
   <meta property="og:locale" content="ar_AR" />
-  <meta name="theme-color" content="#090713" />
+  <meta name="theme-color" content="#050507" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="<%= typeof ogTitle !== 'undefined' ? ogTitle : title + ' — Kratos Dashboard' %>" />
   <meta name="twitter:description" content="<%= typeof ogDesc !== 'undefined' ? ogDesc : 'Kratos Dashboard — لوحة تحكم متقدمة لإدارة بوت KRS على ديسكورد' %>" />
@@ -22,6 +22,7 @@
   <%# shell.css after style.css on purpose: it owns the bar, the rail and their
       menus, and wins on load order rather than on specificity. See its header. -%>
   <link rel="stylesheet" href="/css/shell.css">
+  <link rel="stylesheet" href="/css/theme.css">
   <link rel="icon" href="/favicon.png" type="image/png">
   <%# The shell introduces itself once per tab. See the note on html.no-arrival in
       css/shell.css for why the arrival has to be limited at all; this is why the

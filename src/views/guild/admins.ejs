@@ -18,21 +18,21 @@
 
 <div class="stats-grid">
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-users-gear" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #d000ff"><i class="fas fa-users-gear" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= admins.length %></span>
       <span class="stat-label">مدير مسجّل</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-user-tag" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-user-tag" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= activeRoles %>/<%= totalRoles %></span>
       <span class="stat-label">رتب إدارية مفعّلة</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-user-check" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-user-check" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= linkedMembers %></span>
       <span class="stat-label">عضو مرتبط برتب إدارية</span>
@@ -251,7 +251,7 @@
   .ad-roles-note {
     color: var(--text-muted); font-size: .82rem; line-height: 1.8;
     margin: -4px 0 16px; padding: 10px 14px; border-radius: 10px;
-    background: rgba(168, 85, 247, .06); border: 1px solid rgba(168, 85, 247, .18);
+    background: rgba(208,0,255,0.06); border: 1px solid rgba(208,0,255,0.18);
   }
   .ad-roles-note i { color: var(--primary); margin-inline-end: 4px; }
   .admin-role-card { transition: border-color .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease); }
@@ -260,10 +260,10 @@
   .admin-add-form .form-group { flex: 1; min-width: 200px; }
   .admin-add-form input, .admin-add-form select {
     width: 100%; padding: 11px 14px; border-radius: 10px; box-sizing: border-box;
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .1));
-    background: rgba(255, 255, 255, .03); color: var(--text, #eee); font-family: inherit; outline: none;
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.1));
+    background: rgba(237,240,255,0.03); color: var(--text, #edf0ff); font-family: inherit; outline: none;
   }
-  .admin-add-form input:focus, .admin-add-form select:focus { border-color: var(--primary, #a855f7); }
+  .admin-add-form input:focus, .admin-add-form select:focus { border-color: var(--primary, #d000ff); }
 </style>
 
 <script>

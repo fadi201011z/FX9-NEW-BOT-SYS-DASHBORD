@@ -175,7 +175,7 @@ function initGlobalSearch() {
       let found = false;
       for (const link of links) {
         /* A class, not link.style.background. The inline version wrote
-           rgba(88,101,242,.1) -- Discord blurple, the one colour the shared
+           rgba(0,168,255,0.1) -- Discord blurple, the one colour the shared
            palette had already retired -- and the `background` shorthand resets
            every background layer behind it, so typing in the search box wiped
            the active row's fill on the way past. */
@@ -429,9 +429,9 @@ function hideLoading(overlay) {
 
 function showConfetti() {
   // The brand's two violets plus its gold, green and red. The leading entry
-  // used to be #5865f2, Discord blurple, so the confetti on a premium purchase
+  // used to be #00a8ff, Discord blurple, so the confetti on a premium purchase
   // was a different colour from the site it was celebrating.
-  const colors = ['#a855f7', '#d8b4fe', '#ffd93d', '#57f287', '#ed4245', '#ffffff'];
+  const colors = ['#d000ff', '#edf0ff', '#ff8088', '#00c8ff', '#ff1018', '#edf0ff'];
   for (let i = 0; i < 50; i++) {
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';

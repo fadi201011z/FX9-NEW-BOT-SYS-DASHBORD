@@ -48,9 +48,9 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .st{
-  --ok:#57f287;
-  --bad:#ff6b6b;
-  --warn:#ffd93d;
+  --ok:#00c8ff;
+  --bad:#ff3545;
+  --warn:#ff8088;
   --accent:var(--nx-glow);
   display:flex;
   flex-direction:column;
@@ -80,7 +80,7 @@
   border:1px solid var(--border);
   background:
     radial-gradient(120% 190% at 92% -45%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 60%),
-    radial-gradient(90% 150% at -8% 140%, rgba(34,211,238,.09), transparent 55%),
+    radial-gradient(90% 150% at -8% 140%, rgba(0,200,255,0.09), transparent 55%),
     var(--bg-card);
   box-shadow:var(--shadow);
 }
@@ -202,10 +202,10 @@
   color:var(--text-muted); background:var(--bg-glass); border:1px solid var(--border);
 }
 .st-pill[data-state="up"]{
-  color:#39d97a; background:rgba(87,242,133,.10); border-color:rgba(87,242,133,.34);
+  color:#00c8ff; background:rgba(0,200,255,0.10); border-color:rgba(0,200,255,0.34);
 }
 .st-pill[data-state="down"]{
-  color:#ff7a7a; background:rgba(255,107,107,.10); border-color:rgba(255,107,107,.34);
+  color:#ff8088; background:rgba(255,53,69,0.10); border-color:rgba(255,53,69,0.34);
 }
 .st-dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
 .st-pill[data-state="up"] .st-dot,
@@ -256,8 +256,8 @@
 
 /* ── Pill status colours on the shared pill ────────────────────────────── */
 .st-pill{ background:var(--bg-glass); }
-.st-pill[data-state="up"]{ color:#3ddc84; background:rgba(87,242,133,.10); border-color:rgba(87,242,133,.34); }
-.st-pill[data-state="down"]{ color:#ff7a7a; background:rgba(255,107,107,.10); border-color:rgba(255,107,107,.34); }
+.st-pill[data-state="up"]{ color:#00c8ff; background:rgba(0,200,255,0.10); border-color:rgba(0,200,255,0.34); }
+.st-pill[data-state="down"]{ color:#ff8088; background:rgba(255,53,69,0.10); border-color:rgba(255,53,69,0.34); }
 .st-pill[data-state="unknown"]{ color:var(--text-muted); background:var(--bg-glass); border-color:var(--border); }
 .st-dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
 
@@ -290,13 +290,13 @@
    shell.css flips the shell's own tokens in light mode but not a page's
    content colours, so the two state tints get a darker value here to stay
    readable on white. */
-[data-theme="light"] .st-pill[data-state="up"]{ color:#116b39; background:rgba(17,107,57,.10); border-color:rgba(17,107,57,.30); }
-[data-theme="light"] .st-pill[data-state="down"]{ color:#b42323; background:rgba(180,35,35,.10); border-color:rgba(180,35,35,.30); }
-[data-theme="light"] .st-reason i{ color:#8a6300; }
+[data-theme="light"] .st-pill[data-state="up"]{ color:#00c8ff; background:rgba(0,200,255,0.10); border-color:rgba(0,200,255,0.30); }
+[data-theme="light"] .st-pill[data-state="down"]{ color:#ff1018; background:rgba(255,16,24,0.10); border-color:rgba(255,16,24,0.30); }
+[data-theme="light"] .st-reason i{ color:#ff8088; }
 [data-theme="light"] .st-hero{ --accent:var(--nx-purple); }
-[data-theme="light"] .st-hero[data-state="ok"]{ --accent:#116b39; }
-[data-theme="light"] .st-hero[data-state="warn"]{ --accent:#8a6300; }
-[data-theme="light"] .st-hero[data-state="off"]{ --accent:#b42323; }
+[data-theme="light"] .st-hero[data-state="ok"]{ --accent:#00c8ff; }
+[data-theme="light"] .st-hero[data-state="warn"]{ --accent:#ff8088; }
+[data-theme="light"] .st-hero[data-state="off"]{ --accent:#ff1018; }
 
 /* ── Small screens ─────────────────────────────────────────────────────── */
 @media (max-width:820px){ .st-cols{ grid-template-columns:1fr; } }
@@ -367,27 +367,27 @@
     </div>
     <div class="st-metrics">
       <div class="st-metric">
-        <span class="st-metric-ic" style="--tint:#34d399"><i class="fas fa-server" aria-hidden="true"></i></span>
+        <span class="st-metric-ic" style="--tint:#00c8ff"><i class="fas fa-server" aria-hidden="true"></i></span>
         <div class="st-metric-txt"><span class="st-metric-v" id="stGuilds">—</span><span class="st-metric-l">سيرفر</span></div>
       </div>
       <div class="st-metric">
-        <span class="st-metric-ic" style="--tint:#22d3ee"><i class="fas fa-users" aria-hidden="true"></i></span>
+        <span class="st-metric-ic" style="--tint:#00c8ff"><i class="fas fa-users" aria-hidden="true"></i></span>
         <div class="st-metric-txt"><span class="st-metric-v" id="stMembers">—</span><span class="st-metric-l">عضو</span></div>
       </div>
       <div class="st-metric">
-        <span class="st-metric-ic" style="--tint:#ffd93d"><i class="fas fa-terminal" aria-hidden="true"></i></span>
+        <span class="st-metric-ic" style="--tint:#ff8088"><i class="fas fa-terminal" aria-hidden="true"></i></span>
         <div class="st-metric-txt"><span class="st-metric-v" id="stCmds">—</span><span class="st-metric-l">أمر موثّق</span></div>
       </div>
       <div class="st-metric">
-        <span class="st-metric-ic" style="--tint:#eb459e"><i class="fas fa-ticket" aria-hidden="true"></i></span>
+        <span class="st-metric-ic" style="--tint:#e000ff"><i class="fas fa-ticket" aria-hidden="true"></i></span>
         <div class="st-metric-txt"><span class="st-metric-v" id="stOpen">—</span><span class="st-metric-l">تذكرة مفتوحة</span></div>
       </div>
       <div class="st-metric">
-        <span class="st-metric-ic" style="--tint:#a855f7"><i class="fas fa-microchip" aria-hidden="true"></i></span>
+        <span class="st-metric-ic" style="--tint:#d000ff"><i class="fas fa-microchip" aria-hidden="true"></i></span>
         <div class="st-metric-txt"><span class="st-metric-v" id="stMemory">—</span><span class="st-metric-l">ذاكرة مستخدمة</span></div>
       </div>
       <div class="st-metric">
-        <span class="st-metric-ic" style="--tint:#38bdf8"><i class="fas fa-signal" aria-hidden="true"></i></span>
+        <span class="st-metric-ic" style="--tint:#00c8ff"><i class="fas fa-signal" aria-hidden="true"></i></span>
         <div class="st-metric-txt"><span class="st-metric-v" id="stPing">—</span><span class="st-metric-l">زمن استجابة ديسكورد</span></div>
       </div>
     </div>
@@ -534,17 +534,17 @@
   function drawChart() {
     if (chart || !window.Chart || !$('stChart')) return;
     var cs = getComputedStyle(document.body);
-    var tick = cs.getPropertyValue('--text-muted').trim() || '#8890a1';
-    var grid = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,.06)';
+    var tick = cs.getPropertyValue('--text-muted').trim() || '#858b9d';
+    var grid = cs.getPropertyValue('--border').trim() || 'rgba(237,240,255,0.06)';
     chart = new Chart($('stChart'), {
       type: 'line',
       data: { labels: [], datasets: [{
-        data: [], borderColor: '#a855f7', borderWidth: 2, tension: .35, fill: true,
-        pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: '#a855f7',
+        data: [], borderColor: '#d000ff', borderWidth: 2, tension: .35, fill: true,
+        pointRadius: 0, pointHoverRadius: 5, pointBackgroundColor: '#d000ff',
         backgroundColor: function (c) {
           var g = c.chart.ctx.createLinearGradient(0, 0, 0, 200);
-          g.addColorStop(0, 'rgba(168,85,247,.28)');
-          g.addColorStop(1, 'rgba(168,85,247,0)');
+          g.addColorStop(0, 'rgba(208,0,255,0.28)');
+          g.addColorStop(1, 'rgba(208,0,255,0)');
           return g;
         }
       }] },

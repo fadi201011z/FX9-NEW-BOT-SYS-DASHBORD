@@ -26,13 +26,13 @@
   position: absolute; z-index: 0; top: -200px; left: 50%;
   width: min(1000px, 100%); height: 400px;
   transform: translateX(-50%) rotate(20deg);
-  background: radial-gradient(rgba(104,31,209,.3), var(--nx-ink) 62%, var(--nx-ink));
+  background: radial-gradient(rgba(75,0,130,0.3), var(--nx-ink) 62%, var(--nx-ink));
   pointer-events: none;
 }
 .cm-head h1 {
   position: relative; margin: 0;
   font-size: clamp(1.8rem, 1rem + 3.2vw, 2.7rem);
-  font-weight: 700; line-height: 1.8; color: #fff;
+  font-weight: 700; line-height: 1.8; color: #edf0ff;
 }
 .cm-head p {
   position: relative; margin: 8px 0 0;
@@ -46,7 +46,7 @@
 .cm-tabs {
   position: relative; display: flex; align-items: center;
   margin-top: 80px; margin-bottom: 24px;
-  border-bottom: 1px solid rgba(255,255,255,.13);
+  border-bottom: 1px solid rgba(237,240,255,0.13);
   overflow-x: auto; scrollbar-width: none;
 }
 .cm-tabs::-webkit-scrollbar { display: none; }
@@ -58,16 +58,16 @@
   min-width: 90px; min-height: 48px; padding: 12px 16px;
   border: 0; background: transparent; cursor: pointer;
   font-family: inherit; font-size: .875rem; font-weight: 500; line-height: 1.25;
-  color: rgba(215,220,236,.55); white-space: nowrap;
+  color: rgba(237,240,255,0.55); white-space: nowrap;
   transition: color .15s;
 }
-.cm-tab:hover { color: rgba(215,220,236,.7); }
-.cm-tab[aria-selected="true"] { color: #fff; }
+.cm-tab:hover { color: rgba(237,240,255,0.7); }
+.cm-tab[aria-selected="true"] { color: #edf0ff; }
 .cm-tab:focus-visible { outline: 2px solid var(--nx-glow); outline-offset: -4px; border-radius: 4px; }
 .cm-tabs__ink {
   position: absolute; bottom: 0; left: 0;
   width: var(--cm-ink-w, 90px); height: 4px;
-  border-radius: 10px 10px 0 0; background: #fff;
+  border-radius: 10px 10px 0 0; background: #edf0ff;
   transform: translateX(var(--cm-ink-x, 0px));
   transition: transform .3s cubic-bezier(.4,0,.2,1), width .3s cubic-bezier(.4,0,.2,1);
   will-change: transform, width;
@@ -89,13 +89,13 @@
   display: inline-flex; align-items: center;
   margin-bottom: 24px;
   padding-inline-start: 14px;
-  border-radius: 11px; background: #0e0e15; color: #fff;
+  border-radius: 11px; background: #101014; color: #edf0ff;
   font-size: .875rem; font-weight: 400; line-height: 1.4375em;
 }
 .cm-search::before {
   content: ''; position: absolute;
   inset: -5px 0 0 0;
-  border: 1px solid #2f3139; border-radius: 11px;
+  border: 1px solid #34343f; border-radius: 11px;
   /* The ring is a positioned box that fills the search field, so without this
      it paints over the input and every click lands on the div instead — the
      field can be focused programmatically but never by clicking it. */
@@ -103,7 +103,7 @@
 }
 .cm-search__ico {
   display: flex; align-items: center; flex: none;
-  margin-inline-end: 8px; color: #fff;
+  margin-inline-end: 8px; color: #edf0ff;
 }
 .cm-search__ico svg { width: 16px; height: 16px; display: block; }
 .cm-search input {
@@ -111,26 +111,26 @@
   /* 4px beside the icon, 14px at the far end — the source's, mirrored. */
   padding: 8.5px 4px 8.5px 14px;
   border: 0; background: transparent; outline: 0;
-  font: inherit; font-weight: 500; color: #fff;
+  font: inherit; font-weight: 500; color: #edf0ff;
 }
-.cm-search input::placeholder { color: #fff; opacity: .5; }
+.cm-search input::placeholder { color: #edf0ff; opacity: .5; }
 
 /* ─── Command list ─────────────────────────────────────────────────────────
    One collapsed accordion per command. The base is a 2px transparent border and
-   hover swaps it for 1px of #6c7084, so the card loses a pixel of content box
+   hover swaps it for 1px of #777d90, so the card loses a pixel of content box
    on hover exactly as the source's does; the indicator of the change is the
    border colour, not the size. */
 .cm-list { padding-bottom: 80px; }
 .cm-acc {
   position: relative; width: 100%;
-  background: #15151e; color: var(--nx-muted);
+  background: #101014; color: var(--nx-muted);
   border: 2px solid transparent; border-radius: 11px;
   margin: 5px 0 8px;
   transition: border-color .3s cubic-bezier(.4,0,.2,1), margin .3s cubic-bezier(.4,0,.2,1);
 }
 .cm-acc:first-of-type { border-top-left-radius: 4px; border-top-right-radius: 4px; }
 .cm-acc:last-of-type  { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
-.cm-acc:hover, .cm-acc.is-open { border-width: 1px; border-color: #6c7084; }
+.cm-acc:hover, .cm-acc.is-open { border-width: 1px; border-color: #777d90; }
 .cm-acc.is-open { margin: 16px 0; }
 
 .cm-acc__sum {
@@ -174,17 +174,17 @@
 .cm-acc__ico svg { width: 40px; height: 40px; display: block; }
 .cm-acc__name {
   margin: 0 .3rem 0 0;
-  font-size: 1rem; font-weight: 600; line-height: 1.235; color: #fff;
+  font-size: 1rem; font-weight: 600; line-height: 1.235; color: #edf0ff;
   /* Names are Latin inside an RTL row. Isolating keeps a hyphenated one
      (setup-welcome) from being reordered by the bidi algorithm. */
   unicode-bidi: isolate; direction: ltr;
 }
 .cm-acc__desc {
   display: block; margin: 3px 0 0; min-width: 0;
-  font-size: .875rem; font-weight: 400; line-height: 1.5; color: #9494a3;
+  font-size: .875rem; font-weight: 400; line-height: 1.5; color: #777d90;
 }
 .cm-acc__caret {
-  display: flex; flex: none; color: #fff;
+  display: flex; flex: none; color: #edf0ff;
   transform: rotate(0deg); transition: transform .15s cubic-bezier(.4,0,.2,1);
 }
 .cm-acc__caret svg { width: 24px; height: 24px; display: block; }
@@ -207,14 +207,14 @@
 .cm-acc__panel-in {
   display: flex; flex-wrap: wrap;
   column-gap: 40px; row-gap: 22px;
-  padding: 32px 24px 32px 10px; border-radius: 0 0 11px 11px; background: #0f0f19;
+  padding: 32px 24px 32px 10px; border-radius: 0 0 11px 11px; background: #101014;
 }
 .cm-acc__ex { flex: 0 0 auto; min-width: 0; max-width: 100%; }
 .cm-acc__ex--wide { flex: 1 0 100%; }
-.cm-acc__ex-label { margin: 0; font-size: .875rem; font-weight: 400; line-height: 1.5; color: #fff; }
+.cm-acc__ex-label { margin: 0; font-size: .875rem; font-weight: 400; line-height: 1.5; color: #edf0ff; }
 .cm-acc__usage {
   margin: 0; font-size: .75rem; font-weight: 500; line-height: 1.6;
-  white-space: pre-line; direction: ltr; text-align: end; color: #9494a3;
+  white-space: pre-line; direction: ltr; text-align: end; color: #777d90;
   /* An example line is one unbreakable token until it hits a space, and on a
      narrow phone the longest of them is wider than the panel. break-word rather
      than anywhere: anywhere would also change the item's min-content width,

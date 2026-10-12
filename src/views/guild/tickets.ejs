@@ -17,21 +17,21 @@
 
 <div class="stats-grid">
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-layer-group" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-layer-group" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= total %></span>
       <span class="stat-label">إجمالي التذاكر</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-inbox" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-inbox" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= oList.length %></span>
       <span class="stat-label">مفتوحة الآن</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-check-double" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-check-double" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= cList.length %></span>
       <span class="stat-label">مغلقة</span>
@@ -48,8 +48,8 @@
 
 <div class="tk-progress card glass">
   <div class="tk-progress-info">
-    <span><i class="fas fa-circle-check" style="color:#57f287"></i> مغلقة <strong><%= closedPct %>%</strong></span>
-    <span><i class="fas fa-hourglass-half" style="color:#57f287"></i> مفتوحة <strong><%= total ? 100 - closedPct : 0 %>%</strong></span>
+    <span><i class="fas fa-circle-check" style="color:#00c8ff"></i> مغلقة <strong><%= closedPct %>%</strong></span>
+    <span><i class="fas fa-hourglass-half" style="color:#00c8ff"></i> مفتوحة <strong><%= total ? 100 - closedPct : 0 %>%</strong></span>
   </div>
   <div class="tk-bar"><div class="tk-bar-fill" style="width:<%= closedPct %>%"></div></div>
 </div>
@@ -218,56 +218,56 @@
 .ticket-search { margin-bottom: 16px; position: relative; max-width: 560px; }
 .search-input {
   width: 100%; padding: 13px 16px 13px 44px;
-  border-radius: 12px; border: 1px solid var(--nx-line, rgba(255,255,255,.09));
-  background: rgba(255,255,255,.03); color: var(--text, #eee);
+  border-radius: 12px; border: 1px solid var(--nx-line, rgba(237,240,255,0.09));
+  background: rgba(237,240,255,0.03); color: var(--text, #edf0ff);
   font-size: .92rem; outline: none; box-sizing: border-box;
   transition: border-color .18s var(--nx-ease, ease), box-shadow .18s var(--nx-ease, ease);
 }
 .search-input:focus {
-  border-color: var(--primary, #a855f7);
-  box-shadow: 0 0 0 3px rgba(168,85,247,.18);
+  border-color: var(--primary, #d000ff);
+  box-shadow: 0 0 0 3px rgba(208,0,255,0.18);
 }
 .search-icon { position: absolute; inset-inline-start: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .95rem; z-index: 1; }
 
 .tk-progress { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
 .tk-progress-info { display: flex; gap: 20px; font-size: .82rem; color: var(--text-muted); }
 .tk-progress-info strong { color: var(--text); }
-.tk-bar { height: 8px; border-radius: 20px; background: rgba(255,255,255,.05); overflow: hidden; }
-.tk-bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #57f287, #2ecc71); transition: width .5s ease; }
+.tk-bar { height: 8px; border-radius: 20px; background: rgba(237,240,255,0.05); overflow: hidden; }
+.tk-bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #00c8ff, #00c8ff); transition: width .5s ease; }
 
 .ticket-acc {
-  background: rgba(255,255,255,.02);
-  border: 1px solid var(--nx-line, rgba(255,255,255,.08));
+  background: rgba(237,240,255,0.02);
+  border: 1px solid var(--nx-line, rgba(237,240,255,0.08));
   border-radius: 12px; margin-bottom: 9px; overflow: hidden;
   transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
 }
-.ticket-acc:hover { border-color: rgba(168,85,247,.45); }
+.ticket-acc:hover { border-color: rgba(208,0,255,0.45); }
 .ticket-acc.closed { opacity: .78; }
 .ticket-acc.closed .ticket-id { color: var(--text-muted); }
 .ticket-acc-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 13px 16px; cursor: pointer; user-select: none; gap: 8px;
 }
-.ticket-acc-header:hover { background: rgba(168,85,247,.05); }
+.ticket-acc-header:hover { background: rgba(208,0,255,0.05); }
 .ticket-acc-info { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; min-width: 0; }
-.ticket-acc-user { font-size: .9rem; color: var(--text, #eee); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
-.ticket-acc-cat { font-size: .74rem; color: var(--text-muted); background: rgba(255,255,255,.04); padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
+.ticket-acc-user { font-size: .9rem; color: var(--text, #edf0ff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.ticket-acc-cat { font-size: .74rem; color: var(--text-muted); background: rgba(237,240,255,0.04); padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
 .ticket-acc-claimed { font-size: .78rem; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
 .ticket-acc-claimed i { color: var(--primary); }
-.ticket-acc-rating { font-size: .82rem; color: var(--nx-gold, #ffcc4d); }
+.ticket-acc-rating { font-size: .82rem; color: var(--nx-gold, #ff8088); }
 .ticket-acc-rating.no-rate { color: var(--text-muted); font-size: .72rem; }
 .ticket-acc-arrow { color: var(--text-muted); transition: transform .2s ease; font-size: .8rem; }
 .ticket-acc.open .ticket-acc-arrow { transform: rotate(180deg); }
-.ticket-acc-body { display: none; padding: 12px 16px 16px; border-top: 1px solid var(--nx-line, rgba(255,255,255,.07)); }
+.ticket-acc-body { display: none; padding: 12px 16px 16px; border-top: 1px solid var(--nx-line, rgba(237,240,255,0.07)); }
 .ticket-acc.open .ticket-acc-body { display: block; }
 .ticket-acc-row { display: flex; align-items: flex-start; gap: 8px; font-size: .88rem; padding: 4px 0; flex-wrap: wrap; }
 .ticket-acc-row .ticket-label { color: var(--text-muted); min-width: 110px; display: flex; align-items: center; gap: 5px; font-size: .82rem; flex-shrink: 0; }
 .ticket-label i { width: 16px; text-align: center; }
-.ticket-id { font-weight: 700; font-size: 1rem; color: var(--primary, #a855f7); direction: ltr; display: inline-block; white-space: nowrap; }
+.ticket-id { font-weight: 700; font-size: 1rem; color: var(--primary, #d000ff); direction: ltr; display: inline-block; white-space: nowrap; }
 .ticket-status { font-size: .68rem; padding: 2px 11px; border-radius: 20px; font-weight: 700; white-space: nowrap; }
-.ticket-status.open { background: rgba(46,204,113,.14); color: #2ecc71; border: 1px solid rgba(46,204,113,.3); }
-.ticket-status.closed { background: rgba(231,76,60,.14); color: #e74c3c; border: 1px solid rgba(231,76,60,.3); }
-.ticket-acc code { background: rgba(255,255,255,.06); padding: 1px 6px; border-radius: 5px; font-size: .78rem; color: var(--text-muted); }
+.ticket-status.open { background: rgba(0,200,255,0.14); color: #00c8ff; border: 1px solid rgba(0,200,255,0.3); }
+.ticket-status.closed { background: rgba(255,53,69,0.14); color: #ff3545; border: 1px solid rgba(255,53,69,0.3); }
+.ticket-acc code { background: rgba(237,240,255,0.06); padding: 1px 6px; border-radius: 5px; font-size: .78rem; color: var(--text-muted); }
 </style>
 
 <script>

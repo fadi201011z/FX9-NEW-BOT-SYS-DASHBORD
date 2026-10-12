@@ -1,0 +1,101 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Kratos System — theme polish (whole site)
+
+   The palette itself does not live here: every colour in the site is now
+   defined in tokens.css and the two stylesheets that build on it
+   (landing.css, style.css) plus shell.css. This file is loaded LAST on every
+   page and carries only the handful of decisions a mechanical colour swap
+   could not make on its own -- the spots where the same literal had to become
+   a different member of the palette depending on what it was doing.
+
+   It is split by where it acts, and every selector is a plain one: nothing
+   here is scoped, because the file is linked by the public pages and the
+   dashboard alike.
+
+   Palette: #050507 #101014 #34343F · purple #4B0082 #8700FF #D000FF #E000FF
+   blues #001A80 #0066FF #00A8FF #00C8FF · reds #8B0000 #FF1018 #FF3545
+   #FF8088 · greys #777D90 #858B9D #C9D0E5 #EDF0FF #FFFFFF
+
+   Comfort rules applied here: bright ink is #EDF0FF, never #FFFFFF; big fills
+   use the deep end of the purple ramp and the brightest magenta is saved for
+   small accents; glows are dialled back; and caution is the warm pale red so
+   it can never be mistaken for the blue "success" family.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Gradient titles ───────────────────────────────────────────────────────
+   The hero title and the closing CTA title both clip a fade to text. The
+   source faded a grey into white; on the new palette that reads as a flat
+   grey, so the fade starts on the brand violet instead. */
+.nx-hero h1 { background-image: linear-gradient(to top, #8700ff, #edf0ff 70%); }
+.nx-cta__title span { background-image: linear-gradient(to top, #8700ff, #edf0ff 70%); }
+.nx-hero h1,
+.nx-cta__title span {
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* ── Status pills and small marks ──────────────────────────────────────────
+   ok/success is the cyan; caution is the warm pale red; the little "sparks"
+   are quiet body grey rather than an accent. */
+.nx-pill--ok   { background: rgba(0,200,255,.12);  border-color: rgba(0,200,255,.30); }
+.nx-pill--warn { background: rgba(255,128,136,.13); border-color: rgba(255,128,136,.30); color: #ff8088; }
+.nx-spark      { color: rgba(201,208,229,.85); }
+
+/* ── The header "Plus" item ────────────────────────────────────────────────
+   It was the gold text on the source; on this palette "gold" resolves to the
+   blue/cyan brand accent, so the sweeps and the lifted state follow it. */
+.nx-nav a.nx-btn-g { color: #00c8ff; }
+.nx-btn-g::before { background: linear-gradient(115deg, transparent, rgba(0,168,255,.26), transparent); }
+.nx-btn-g:hover   { background: rgba(0,102,255,.20); box-shadow: 0 0 0 1px rgba(0,168,255,.20), 0 6px 16px rgba(0,102,255,.14); }
+
+/* ── Primary button ────────────────────────────────────────────────────────
+   A calmer halo than the source's, to match the deep end of the ramp. */
+.nx-btn-p { box-shadow: inset 0 -4px 10px 0 var(--nx-rim), 0 0 14px rgba(135,0,255,.20), 0 10px 26px rgba(75,0,130,.30); }
+
+/* ── Dashboard mock inside the landing hero ────────────────────────────────
+   Keep its "online" dot calm cyan and its section hairlines cool. */
+.nx-dash__crumb em { box-shadow: 0 0 8px rgba(0,200,255,.65); }
+.nx-sec::before { border-top-color: rgba(201,208,229,.07); }
+
+/* ── Footer ────────────────────────────────────────────────────────────────
+   The footer was the loudest block on the page: a hard halo round the about
+   card, a saturated wash inside it, and a heavy rule. Keep the accents, lose
+   the glare, and let the rule read as the same cool hairline as the section
+   dividers. */
+.nx-foot__about {
+  border-color: rgba(135,0,255,.26);
+  box-shadow:
+    0 0 22px rgba(135,0,255,.16),
+    0 0 56px rgba(75,0,130,.14),
+    0 22px 50px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(237,240,255,.06);
+}
+.nx-foot__wave { color: #050507; }
+
+/* ── Interactive states ────────────────────────────────────────────────────
+   The source hovered the outlined buttons and the nav links to a flat grey,
+   which belongs to neither the page nor the button; every state now stays in
+   the purple family, and a press gets its own quiet feedback. */
+.nx-btn-p:hover {
+  background-image: linear-gradient(180deg, #d000ff, #8700ff);
+  border-color: #d000ff;
+  filter: none;
+}
+.nx-btn-o:hover,
+.nx-btn-d:hover,
+.nx-nav a:hover {
+  background-color: rgba(135,0,255,.16);
+  border-color: rgba(135,0,255,.5);
+}
+.nx-btn:active,
+.nx-lang__btn:active,
+.nx-lang__opt:active {
+  transform: translateY(0) scale(.985);
+  filter: brightness(.94);
+}
+
+/* ── Selection and scrollbar ───────────────────────────────────────────────
+   Read as the page's own violet rather than a deep, nearly-black indigo. */
+::selection { background: rgba(135,0,255,.18); color: #edf0ff; }
+::-webkit-scrollbar-thumb { background: rgba(135,0,255,.4); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(135,0,255,.65); }

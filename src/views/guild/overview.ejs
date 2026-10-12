@@ -104,7 +104,7 @@
 
 <div class="stats-grid ov-kpis">
   <a class="stat-card glass" href="/guilds/<%= guild.id %>/status">
-    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-users" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #d000ff"><i class="fas fa-users" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= memberCount %></span>
       <span class="stat-label">الأعضاء</span>
@@ -124,7 +124,7 @@
   </a>
 
   <a class="stat-card glass" href="/protection/<%= guild.id %>">
-    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-shield-halved" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-shield-halved" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= protectionCount %>/5</span>
       <span class="stat-label">أنظمة حماية</span>
@@ -134,7 +134,7 @@
   </a>
 
   <a class="stat-card glass" href="/admins/<%= guild.id %>">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-users-gear" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-users-gear" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= adminList.length %></span>
       <span class="stat-label">المدراء</span>
@@ -144,7 +144,7 @@
   </a>
 
   <a class="stat-card glass" href="/settings/<%= guild.id %>">
-    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-sliders" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-sliders" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= Object.keys(guildConfig).length %></span>
       <span class="stat-label">إعدادات محفوظة</span>
@@ -154,7 +154,7 @@
   </a>
 
   <a class="stat-card glass" href="/notifications/<%= guild.id %>">
-    <div class="stat-icon" style="--stat-color: #4dd6e0"><i class="fas fa-bell" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-bell" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= unreadAlerts %></span>
       <span class="stat-label">تنبيهات غير مقروءة</span>
@@ -287,29 +287,29 @@
   .ov-hero::after {
     content: ''; position: absolute; inset-inline-end: -80px; top: -80px;
     width: 240px; height: 240px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(168, 85, 247, .16), transparent 70%);
+    background: radial-gradient(circle, rgba(208,0,255,0.16), transparent 70%);
     pointer-events: none;
   }
   .ov-hero.is-premium::after {
-    background: radial-gradient(circle, rgba(245, 179, 1, .14), transparent 70%);
+    background: radial-gradient(circle, rgba(255,128,136,0.14), transparent 70%);
   }
   .ov-avatar { position: relative; flex: 0 0 auto; }
   .ov-avatar-img, .ov-avatar-fallback {
     width: 64px; height: 64px; border-radius: 16px;
-    border: 2px solid rgba(168, 85, 247, .35);
-    box-shadow: 0 0 24px rgba(168, 85, 247, .18);
+    border: 2px solid rgba(208,0,255,0.35);
+    box-shadow: 0 0 24px rgba(208,0,255,0.18);
   }
   .ov-avatar-fallback {
-    background: linear-gradient(135deg, var(--primary, #8c5aff), #a855f7);
+    background: linear-gradient(135deg, var(--primary, #8700ff), #d000ff);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.6rem; font-weight: 800; color: #fff;
+    font-size: 1.6rem; font-weight: 800; color: #edf0ff;
   }
   .ov-bot-dot {
     position: absolute; bottom: -2px; inset-inline-start: -2px;
     width: 18px; height: 18px; border-radius: 50%;
-    background: var(--success, #57f287);
-    border: 3px solid var(--bg-card, #0d0d14);
-    box-shadow: 0 0 10px rgba(87, 242, 135, .6);
+    background: var(--success, #00c8ff);
+    border: 3px solid var(--bg-card, #101014);
+    box-shadow: 0 0 10px rgba(0,200,255,0.6);
   }
   .ov-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
   .ov-meta-pill {
@@ -318,9 +318,9 @@
     background: var(--bg-glass-hover); border: 1px solid var(--border);
     padding: 4px 11px; border-radius: 999px;
   }
-  .ov-meta-pill i { color: var(--primary, #8c5aff); font-size: .72rem; }
-  .ov-meta-pill.is-gold { color: #ffd93d; border-color: rgba(255, 217, 61, .3); background: rgba(255, 217, 61, .08); }
-  .ov-meta-pill.is-gold i { color: #ffd93d; }
+  .ov-meta-pill i { color: var(--primary, #8700ff); font-size: .72rem; }
+  .ov-meta-pill.is-gold { color: #ff8088; border-color: rgba(255,128,136,0.3); background: rgba(255,128,136,0.08); }
+  .ov-meta-pill.is-gold i { color: #ff8088; }
 
   /* ═══ شريط بريميوم ═══ */
   .ov-premium {
@@ -328,28 +328,28 @@
     padding: 14px 18px; margin-bottom: 20px;
     border-radius: var(--radius);
     background:
-      radial-gradient(ellipse 60% 50% at 15% 0%, rgba(245, 179, 1, .14), transparent 60%),
-      linear-gradient(160deg, rgba(20, 16, 4, .7), rgba(12, 12, 26, .85));
-    border: 1px solid rgba(245, 179, 1, .35);
+      radial-gradient(ellipse 60% 50% at 15% 0%, rgba(255,128,136,0.14), transparent 60%),
+      linear-gradient(160deg, rgba(5,5,7,0.7), rgba(16,16,20,0.85));
+    border: 1px solid rgba(255,128,136,0.35);
   }
   .ov-premium-icon {
     width: 42px; height: 42px; border-radius: 12px; flex: 0 0 42px;
-    display: grid; place-items: center; font-size: 1.05rem; color: #ffd93d;
-    background: rgba(245, 179, 1, .12); border: 1px solid rgba(245, 179, 1, .3);
+    display: grid; place-items: center; font-size: 1.05rem; color: #ff8088;
+    background: rgba(255,128,136,0.12); border: 1px solid rgba(255,128,136,0.3);
   }
   .ov-premium-text { flex: 1; min-width: 200px; }
-  .ov-premium-text strong { font-size: .95rem; color: #ffe08a; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ov-premium-text strong { font-size: .95rem; color: #ff8088; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .ov-premium-text span { color: var(--text-muted); font-size: .8rem; }
-  .ov-premium-text strong span { color: #ffd93d; }
+  .ov-premium-text strong span { color: #ff8088; }
   .ov-premium-days {
-    background: rgba(245, 179, 1, .16); color: #ffe08a !important;
+    background: rgba(255,128,136,0.16); color: #ff8088 !important;
     padding: 2px 10px; border-radius: 999px; font-size: .72rem;
   }
 
   /* ═══ بطاقات المؤشرات ═══ */
   .ov-kpis { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
   .ov-kpis .stat-card { text-decoration: none; transition: border-color .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease); }
-  .ov-kpis .stat-card:hover { border-color: rgba(168, 85, 247, .45); transform: translateY(-2px); }
+  .ov-kpis .stat-card:hover { border-color: rgba(208,0,255,0.45); transform: translateY(-2px); }
   .ov-sub { font-size: .72rem; color: var(--text-muted); margin-top: 2px; display: block; }
 
   /* ═══ صحة الأنظمة ═══ */
@@ -357,30 +357,30 @@
   .ov-system {
     display: flex; align-items: center; gap: 12px; text-decoration: none;
     padding: 12px 14px; border-radius: var(--nx-radius, 11px);
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .08));
-    background: rgba(255, 255, 255, .02);
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.08));
+    background: rgba(237,240,255,0.02);
     transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
   }
-  .ov-system:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .07); transform: translateY(-1px); }
+  .ov-system:hover { border-color: rgba(208,0,255,0.4); background: rgba(208,0,255,0.07); transform: translateY(-1px); }
   .ov-system-icon {
     width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center;
-    border-radius: 10px; background: rgba(168, 85, 247, .12); color: #c4a2ff; font-size: .92rem;
+    border-radius: 10px; background: rgba(208,0,255,0.12); color: #edf0ff; font-size: .92rem;
   }
-  .ov-system.is-off .ov-system-icon { background: rgba(255, 255, 255, .05); color: var(--text-muted); }
+  .ov-system.is-off .ov-system-icon { background: rgba(237,240,255,0.05); color: var(--text-muted); }
   .ov-system-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-  .ov-system-text strong { color: var(--text, #fff); font-size: .88rem; font-weight: 600; }
+  .ov-system-text strong { color: var(--text, #edf0ff); font-size: .88rem; font-weight: 600; }
   .ov-system-text span { color: var(--text-muted); font-size: .76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ov-pill-state { font-size: .7rem; padding: 4px 9px; border-radius: 999px; white-space: nowrap; border: 1px solid transparent; }
-  .ov-pill-state.is-on { color: #57f287; background: rgba(87, 242, 135, .1); border-color: rgba(87, 242, 135, .3); }
-  .ov-pill-state.is-maintenance { color: #ffd93d; background: rgba(255, 217, 61, .1); border-color: rgba(255, 217, 61, .3); }
-  .ov-pill-state.is-off { color: #ed4245; background: rgba(237, 66, 69, .1); border-color: rgba(237, 66, 69, .3); }
+  .ov-pill-state.is-on { color: #00c8ff; background: rgba(0,200,255,0.1); border-color: rgba(0,200,255,0.3); }
+  .ov-pill-state.is-maintenance { color: #ff8088; background: rgba(255,128,136,0.1); border-color: rgba(255,128,136,0.3); }
+  .ov-pill-state.is-off { color: #ff1018; background: rgba(255,16,24,0.1); border-color: rgba(255,16,24,0.3); }
 
   /* ═══ التنبيهات ═══ */
   .ov-alerts { display: flex; flex-direction: column; gap: 4px; }
   .alert-item {
     display: flex; align-items: center; gap: 12px; padding: 11px 12px;
-    border-radius: var(--nx-radius, 11px); border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
-    border-inline-start-width: 3px; background: rgba(255, 255, 255, .015);
+    border-radius: var(--nx-radius, 11px); border: 1px solid var(--nx-line, rgba(237,240,255,0.07));
+    border-inline-start-width: 3px; background: rgba(237,240,255,0.015);
   }
   .alert-item.severity-critical { border-inline-start-color: var(--danger); }
   .alert-item.severity-high { border-inline-start-color: var(--warning); }
@@ -396,7 +396,7 @@
 
   /* ═══ الإعدادات المهمة ═══ */
   .ov-config-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 12px; }
-  .ov-config-icon { color: var(--primary, #8c5aff); width: 16px; margin-inline-end: 6px; font-size: .8rem; }
+  .ov-config-icon { color: var(--primary, #8700ff); width: 16px; margin-inline-end: 6px; font-size: .8rem; }
   .ov-trunc { max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: ltr; text-align: right; font-size: .78rem; font-family: monospace; }
 
   /* ═══ الوصول السريع ═══ */
@@ -404,14 +404,14 @@
   .ov-tile {
     display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none;
     padding: 14px 8px; border-radius: var(--radius-sm, 11px);
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
-    background: rgba(255, 255, 255, .02);
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.07));
+    background: rgba(237,240,255,0.02);
     transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
   }
-  .ov-tile:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .07); transform: translateY(-2px); }
+  .ov-tile:hover { border-color: rgba(208,0,255,0.4); background: rgba(208,0,255,0.07); transform: translateY(-2px); }
   .ov-tile-icon {
     width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
-    font-size: .95rem; color: #c4a2ff; background: rgba(168, 85, 247, .12);
+    font-size: .95rem; color: #edf0ff; background: rgba(208,0,255,0.12);
   }
   .ov-tile-label { font-size: .78rem; font-weight: 600; color: var(--text-muted); text-align: center; }
   .ov-tile:hover .ov-tile-label { color: var(--text); }

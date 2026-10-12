@@ -20,13 +20,13 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <link rel="stylesheet" href="/css/landing.css">
-<!-- Palette experiment for the homepage only. Loaded after landing.css so it
-     remaps the shared --nx-* tokens and the landing's hard-coded accents for
-     this page. No other page links it, so /premium, /invite and /commands are
-     untouched. -->
-<link rel="stylesheet" href="/css/home-theme.css">
+<!-- theme.css loads last on every page of the site. The palette lives in
+     tokens.css and the page stylesheets; this file only carries the handful of
+     per-spot decisions a colour swap cannot make on its own (gradient titles,
+     the two button families, selection and scrollbars). -->
+<link rel="stylesheet" href="/css/theme.css">
 </head>
-<body class="home-theme">
+<body>
 
 <%- include('partials/landing-head') %>
 

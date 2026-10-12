@@ -27,21 +27,21 @@
 
 <div class="stats-grid">
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-list" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-list" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= acts.length %></span>
       <span class="stat-label">نشاط مسجّل</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #d000ff"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= audits.length %></span>
       <span class="stat-label">سجل تدقيق</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-user-shield" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-user-shield" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= new Set(acts.map(a => a.userId).filter(Boolean)).size %></span>
       <span class="stat-label">أعضاء الفريق النشط</span>
@@ -113,7 +113,7 @@
   .lg-count { color: var(--text-muted); font-size: .75rem; }
   .lg-audit-ic {
     width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center;
-    border-radius: 10px; background: rgba(168, 85, 247, .1); color: var(--primary);
+    border-radius: 10px; background: rgba(208,0,255,0.1); color: var(--primary);
   }
   .log-info .fa-circle-dot, .log-info .fa-list { margin-inline-end: 4px; }
   .lg-chip {
@@ -121,7 +121,7 @@
     padding: 1px 8px; border-radius: 7px; font-size: .72rem; font-family: var(--nx-mono, Consolas, monospace);
     max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;
   }
-  .lg-old { background: rgba(237, 66, 69, .1); color: #ff6b6b; }
-  .lg-new { background: rgba(87, 242, 135, .1); color: #57f287; }
+  .lg-old { background: rgba(255,16,24,0.1); color: #ff3545; }
+  .lg-new { background: rgba(0,200,255,0.1); color: #00c8ff; }
   @media (max-width: 600px) { .log-time { display: none; } }
 </style>

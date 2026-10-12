@@ -11,34 +11,35 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Kratos Dashboard" />
   <meta property="og:locale" content="ar_AR" />
-  <meta name="theme-color" content="#a855f7" />
+  <meta name="theme-color" content="#d000ff" />
   <meta name="twitter:card" content="summary" />
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/theme.css">
   <link rel="icon" href="/favicon.png" type="image/png">
   <style>
-    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f0f1a,#1a1a2e); direction:rtl; font-family:'Tajawal', system-ui, sans-serif; }
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#101014,#34343f); direction:rtl; font-family:'Tajawal', system-ui, sans-serif; }
     .mnt-box { width:100%; max-width:480px; padding:20px; }
-    .mnt-card { background:rgba(255,255,255,.04); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:48px 32px; text-align:center; }
-    .mnt-icon { width:80px; height:80px; border-radius:20px; background:rgba(250,166,26,.15); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:2.5rem; color:#faa61a; animation:spin 4s linear infinite; }
+    .mnt-card { background:rgba(237,240,255,0.04); backdrop-filter:blur(20px); border:1px solid rgba(237,240,255,0.06); border-radius:20px; padding:48px 32px; text-align:center; }
+    .mnt-icon { width:80px; height:80px; border-radius:20px; background:rgba(255,128,136,0.15); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:2.5rem; color:#ff8088; animation:spin 4s linear infinite; }
     @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-    .mnt-card h1 { margin:0 0 8px; font-size:1.5rem; font-weight:700; color:#fff; }
-    .mnt-card p { margin:0 0 4px; color:rgba(255,255,255,.6); line-height:1.8; font-size:.9rem; }
-    .mnt-divider { height:1px; background:rgba(255,255,255,.06); margin:24px 0; }
+    .mnt-card h1 { margin:0 0 8px; font-size:1.5rem; font-weight:700; color:#edf0ff; }
+    .mnt-card p { margin:0 0 4px; color:rgba(237,240,255,0.6); line-height:1.8; font-size:.9rem; }
+    .mnt-divider { height:1px; background:rgba(237,240,255,0.06); margin:24px 0; }
     .mnt-countdown { display:flex; gap:12px; justify-content:center; margin:20px 0; }
-    .mnt-countdown > div { background:rgba(255,255,255,.06); border-radius:12px; padding:12px 16px; min-width:70px; }
-    .mnt-countdown > div span:first-child { display:block; font-size:1.6rem; font-weight:700; color:#fff; }
-    .mnt-countdown > div span:last-child { display:block; font-size:.7rem; color:rgba(255,255,255,.4); margin-top:2px; }
+    .mnt-countdown > div { background:rgba(237,240,255,0.06); border-radius:12px; padding:12px 16px; min-width:70px; }
+    .mnt-countdown > div span:first-child { display:block; font-size:1.6rem; font-weight:700; color:#edf0ff; }
+    .mnt-countdown > div span:last-child { display:block; font-size:.7rem; color:rgba(237,240,255,0.4); margin-top:2px; }
     .mnt-actions { display:flex; flex-direction:column; gap:8px; }
     .mnt-actions a,.mnt-actions button { display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 20px; border-radius:10px; text-decoration:none; font-weight:600; font-size:.9rem; transition:.2s; cursor:pointer; border:none; }
-    .mnt-actions .btn-discord { background:#a855f7; color:#fff; }
-    .mnt-actions .btn-discord:hover { background:#7c3aed; }
-    .mnt-actions .btn-ghost { background:rgba(255,255,255,.04); color:rgba(255,255,255,.7); border:1px solid rgba(255,255,255,.08); }
-    .mnt-actions .btn-ghost:hover { background:rgba(255,255,255,.08); }
-    .mnt-actions .btn-skip { background:rgba(168,85,247,.15); color:#a855f7; border:1px solid rgba(168,85,247,.3); }
-    .mnt-actions .btn-skip:hover { background:rgba(168,85,247,.25); }
-    .mnt-footer { margin-top:20px; font-size:.75rem; color:rgba(255,255,255,.3); }
+    .mnt-actions .btn-discord { background:#d000ff; color:#edf0ff; }
+    .mnt-actions .btn-discord:hover { background:#8700ff; }
+    .mnt-actions .btn-ghost { background:rgba(237,240,255,0.04); color:rgba(237,240,255,0.7); border:1px solid rgba(237,240,255,0.08); }
+    .mnt-actions .btn-ghost:hover { background:rgba(237,240,255,0.08); }
+    .mnt-actions .btn-skip { background:rgba(208,0,255,0.15); color:#d000ff; border:1px solid rgba(208,0,255,0.3); }
+    .mnt-actions .btn-skip:hover { background:rgba(208,0,255,0.25); }
+    .mnt-footer { margin-top:20px; font-size:.75rem; color:rgba(237,240,255,0.3); }
   </style>
 </head>
 <body>
@@ -47,11 +48,11 @@
       <div class="mnt-icon"><i class="fas fa-screwdriver-wrench"></i></div>
       <h1>⚠️ الموقع تحت الصيانة</h1>
       <p id="mntMessage"><%= maintenance.message %></p>
-      <p style="font-size:.82rem;color:rgba(255,255,255,.4)">نعمل على تحسين تجربتك — شكراً لصبرك</p>
+      <p style="font-size:.82rem;color:rgba(237,240,255,0.4)">نعمل على تحسين تجربتك — شكراً لصبرك</p>
 
       <div class="mnt-divider"></div>
       <div id="mntTimerSection" style="display:<%= (maintenance.enabled && maintenance.durationMinutes > 0) ? '' : 'none' %>">
-        <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:8px">الوقت المتبقي</div>
+        <div style="font-size:.82rem;color:rgba(237,240,255,0.5);margin-bottom:8px">الوقت المتبقي</div>
         <div class="mnt-countdown" id="mntClock">
           <div><span id="cdDays">00</span><span>أيام</span></div>
           <div><span id="cdHours">00</span><span>ساعات</span></div>
@@ -61,9 +62,9 @@
       </div>
 
       <div id="mntExpiredMsg" style="display:none">
-        <div style="background:rgba(76,175,80,.12);border-radius:12px;padding:16px;margin:16px 0">
+        <div style="background:rgba(0,200,255,0.12);border-radius:12px;padding:16px;margin:16px 0">
           <div style="font-size:2rem;margin-bottom:4px">✅</div>
-          <div style="color:#4caf50;font-weight:700;font-size:.95rem">انتهت الصيانة! يتم إعادة التوجيه...</div>
+          <div style="color:#00c8ff;font-weight:700;font-size:.95rem">انتهت الصيانة! يتم إعادة التوجيه...</div>
         </div>
       </div>
 

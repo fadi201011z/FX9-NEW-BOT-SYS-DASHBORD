@@ -80,7 +80,7 @@
 
 <div class="stats-grid ss-kpis">
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-users"></i></div>
+    <div class="stat-icon" style="--stat-color: #d000ff"><i class="fas fa-users"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= memberCount !== null ? memberCount : '—' %></span>
       <span class="stat-label">الأعضاء</span>
@@ -88,7 +88,7 @@
   </div>
 
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-signal"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-signal"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= hasHistory ? todayOnline : '—' %></span>
       <span class="stat-label">أعلى قراءة اليوم</span>
@@ -96,7 +96,7 @@
   </div>
 
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-user-plus"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-user-plus"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= hasHistory ? todayJoins : '—' %></span>
       <span class="stat-label">دخول اليوم</span>
@@ -104,7 +104,7 @@
   </div>
 
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-user-minus"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-user-minus"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= hasHistory ? todayLeaves : '—' %></span>
       <span class="stat-label">خروج اليوم</span>
@@ -122,7 +122,7 @@
   </div>
 
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-shield-halved"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-shield-halved"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= protectionCount %>/5</span>
       <span class="stat-label">أنظمة حماية</span>
@@ -252,8 +252,8 @@
   }
   .ss-note i { font-size: 1.05rem; margin-top: 3px; }
   .ss-note strong { display: block; margin-bottom: 2px; }
-  .ss-note.is-warn { border-color: rgba(255, 217, 61, .35); background: rgba(255, 217, 61, .07); color: #ffe08a; }
-  .ss-note.is-info { border-color: rgba(140, 90, 255, .3); background: rgba(140, 90, 255, .08); color: #d8b4fe; }
+  .ss-note.is-warn { border-color: rgba(255,128,136,0.35); background: rgba(255,128,136,0.07); color: #ff8088; }
+  .ss-note.is-info { border-color: rgba(135,0,255,0.3); background: rgba(135,0,255,0.08); color: #edf0ff; }
 
   .ss-range {
     display: flex; align-items: center; justify-content: space-between;
@@ -261,26 +261,26 @@
     border-radius: var(--nx-radius, 11px);
   }
   .ss-range-label { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: .85rem; }
-  .ss-pills { display: flex; gap: 4px; padding: 4px; background: rgba(255, 255, 255, .04); border-radius: 999px; }
+  .ss-pills { display: flex; gap: 4px; padding: 4px; background: rgba(237,240,255,0.04); border-radius: 999px; }
   .ss-pill {
     padding: 6px 14px; border-radius: 999px; font-size: .8rem;
     color: var(--text-muted); white-space: nowrap;
     transition: color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
   }
-  .ss-pill:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+  .ss-pill:hover { color: #edf0ff; background: rgba(237,240,255,0.06); }
   .ss-pill.is-on {
-    color: #fff; background: var(--primary, #8c5aff);
-    box-shadow: 0 6px 18px rgba(168, 85, 247, .28);
+    color: #edf0ff; background: var(--primary, #8700ff);
+    box-shadow: 0 6px 18px rgba(208,0,255,0.28);
   }
 
-  .ss-kpis .stat-value.ss-pos { color: var(--success, #57f287); }
-  .ss-kpis .stat-value.ss-neg { color: var(--danger, #ed4245); }
+  .ss-kpis .stat-value.ss-pos { color: var(--success, #00c8ff); }
+  .ss-kpis .stat-value.ss-neg { color: var(--danger, #ff1018); }
 
   .ss-chart .card-header h3 { font-size: .95rem; }
   .ss-legend { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-muted); }
   .ss-key { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-  .ss-key.is-in { background: #57f287; }
-  .ss-key.is-out { background: #ed4245; margin-inline-start: 8px; }
+  .ss-key.is-in { background: #00c8ff; }
+  .ss-key.is-out { background: #ff1018; margin-inline-start: 8px; }
 
   .ss-canvas { position: relative; height: 300px; }
   .ss-canvas--half { height: 230px; }
@@ -289,49 +289,49 @@
   .ss-system {
     display: flex; align-items: center; gap: 12px;
     padding: 12px 14px; text-decoration: none;
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .08));
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.08));
     border-radius: var(--nx-radius, 11px);
-    background: rgba(255, 255, 255, .02);
+    background: rgba(237,240,255,0.02);
     transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
   }
   .ss-system:hover {
-    border-color: rgba(168, 85, 247, .4);
-    background: rgba(168, 85, 247, .07);
+    border-color: rgba(208,0,255,0.4);
+    background: rgba(208,0,255,0.07);
     transform: translateY(-1px);
   }
   .ss-system-icon {
     width: 36px; height: 36px; flex: 0 0 36px;
     display: grid; place-items: center;
-    border-radius: 10px; background: rgba(168, 85, 247, .12); color: #c4a2ff;
+    border-radius: 10px; background: rgba(208,0,255,0.12); color: #edf0ff;
     font-size: .92rem;
   }
   .ss-system-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-  .ss-system-text strong { color: var(--text, #fff); font-size: .88rem; font-weight: 600; }
+  .ss-system-text strong { color: var(--text, #edf0ff); font-size: .88rem; font-weight: 600; }
   .ss-system-text span { color: var(--text-muted); font-size: .76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ss-pill-state {
     font-size: .7rem; padding: 4px 9px; border-radius: 999px; white-space: nowrap;
     border: 1px solid transparent;
   }
-  .ss-pill-state.is-on { color: #57f287; background: rgba(87, 242, 135, .1); border-color: rgba(87, 242, 135, .3); }
-  .ss-pill-state.is-maintenance { color: #ffd93d; background: rgba(255, 217, 61, .1); border-color: rgba(255, 217, 61, .3); }
-  .ss-pill-state.is-off { color: #ed4245; background: rgba(237, 66, 69, .1); border-color: rgba(237, 66, 69, .3); }
+  .ss-pill-state.is-on { color: #00c8ff; background: rgba(0,200,255,0.1); border-color: rgba(0,200,255,0.3); }
+  .ss-pill-state.is-maintenance { color: #ff8088; background: rgba(255,128,136,0.1); border-color: rgba(255,128,136,0.3); }
+  .ss-pill-state.is-off { color: #ff1018; background: rgba(255,16,24,0.1); border-color: rgba(255,16,24,0.3); }
 
   .ss-table-wrap { overflow-x: auto; }
   .ss-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
-  .ss-table th, .ss-table td { padding: 11px 12px; text-align: right; border-bottom: 1px solid var(--nx-line-2, rgba(255, 255, 255, .06)); }
+  .ss-table th, .ss-table td { padding: 11px 12px; text-align: right; border-bottom: 1px solid var(--nx-line-2, rgba(237,240,255,0.06)); }
   .ss-table th { color: var(--text-muted); font-weight: 500; font-size: .76rem; text-transform: none; }
   .ss-table tbody tr:last-child td { border-bottom: 0; }
-  .ss-table tbody tr:hover td { background: rgba(255, 255, 255, .025); }
-  .ss-table tr.is-today td { background: rgba(168, 85, 247, .07); }
+  .ss-table tbody tr:hover td { background: rgba(237,240,255,0.025); }
+  .ss-table tr.is-today td { background: rgba(208,0,255,0.07); }
   .ss-num { font-variant-numeric: tabular-nums; }
-  .ss-pos { color: #57f287; }
-  .ss-neg { color: #ed4245; }
+  .ss-pos { color: #00c8ff; }
+  .ss-neg { color: #ff1018; }
   .ss-flat { color: var(--text-muted); }
   .ss-today-tag {
     display: inline-block; margin-inline-start: 8px; padding: 2px 8px;
     font-size: .66rem; border-radius: 999px;
-    color: #d8b4fe; background: rgba(168, 85, 247, .16);
-    border: 1px solid rgba(168, 85, 247, .35);
+    color: #edf0ff; background: rgba(208,0,255,0.16);
+    border: 1px solid rgba(208,0,255,0.35);
     vertical-align: middle;
   }
 
@@ -360,13 +360,13 @@
   if (!D.series.length) return;
 
   Chart.defaults.font.family = "'Tajawal', system-ui, sans-serif";
-  Chart.defaults.color = '#9ca3af';
-  Chart.defaults.borderColor = 'rgba(255,255,255,.06)';
+  Chart.defaults.color = '#c9d0e5';
+  Chart.defaults.borderColor = 'rgba(237,240,255,0.06)';
 
   var labels = D.series.map(function (s) { return s.d.slice(5); });
   var rtlOpts = { rtl: true, textDirection: 'rtl', displayColors: true, boxWidth: 10, boxHeight: 10, padding: 10 };
   var xGrid = { display: false };
-  var yGrid = { color: 'rgba(255,255,255,.05)' };
+  var yGrid = { color: 'rgba(237,240,255,0.05)' };
   var yTicks = { precision: 0, maxRotation: 0 };
 
   function draw(id, cfg) {
@@ -382,9 +382,9 @@
         {
           label: 'دخول',
           data: D.series.map(function (s) { return s.j; }),
-          backgroundColor: 'rgba(87,242,135,.6)',
-          hoverBackgroundColor: '#57f287',
-          borderColor: 'rgba(87,242,135,.9)',
+          backgroundColor: 'rgba(0,200,255,0.6)',
+          hoverBackgroundColor: '#00c8ff',
+          borderColor: 'rgba(0,200,255,0.9)',
           borderWidth: 1,
           borderRadius: 5,
           maxBarThickness: 24,
@@ -392,9 +392,9 @@
         {
           label: 'خروج',
           data: D.series.map(function (s) { return s.l; }),
-          backgroundColor: 'rgba(237,66,69,.55)',
-          hoverBackgroundColor: '#ed4245',
-          borderColor: 'rgba(237,66,69,.9)',
+          backgroundColor: 'rgba(255,16,24,0.55)',
+          hoverBackgroundColor: '#ff1018',
+          borderColor: 'rgba(255,16,24,0.9)',
           borderWidth: 1,
           borderRadius: 5,
           maxBarThickness: 24,
@@ -420,14 +420,14 @@
       datasets: [{
         label: 'أعلى قراءة متصلين',
         data: D.series.map(function (s) { return s.o; }),
-        borderColor: '#8c5aff',
-        backgroundColor: 'rgba(140,90,255,.16)',
+        borderColor: '#8700ff',
+        backgroundColor: 'rgba(135,0,255,0.16)',
         fill: true,
         tension: .35,
         borderWidth: 2,
         pointRadius: 0,
         pointHoverRadius: 4,
-        pointHoverBackgroundColor: '#8c5aff',
+        pointHoverBackgroundColor: '#8700ff',
       }],
     },
     options: {
@@ -451,14 +451,14 @@
       datasets: [{
         label: 'الصافي التراكمي',
         data: cumulative,
-        borderColor: '#ffd93d',
-        backgroundColor: 'rgba(255,217,61,.14)',
+        borderColor: '#ff8088',
+        backgroundColor: 'rgba(255,128,136,0.14)',
         fill: true,
         tension: .3,
         borderWidth: 2,
         pointRadius: 0,
         pointHoverRadius: 4,
-        pointHoverBackgroundColor: '#ffd93d',
+        pointHoverBackgroundColor: '#ff8088',
       }],
     },
     options: {

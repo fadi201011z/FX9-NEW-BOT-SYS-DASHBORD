@@ -47,7 +47,7 @@
   position: absolute; z-index: 0; top: -200px; left: 50%;
   width: min(1000px, 100%); height: 400px;
   transform: translateX(-50%) rotate(20deg);
-  background: radial-gradient(rgba(104,31,209,.3), var(--nx-ink) 62%, var(--nx-ink));
+  background: radial-gradient(rgba(75,0,130,0.3), var(--nx-ink) 62%, var(--nx-ink));
   pointer-events: none;
 }
 .ud-head__inner { position: relative; }
@@ -56,7 +56,7 @@
   display: inline-flex; align-items: center; gap: 8px;
   margin-bottom: 18px; padding: 5px 14px;
   border: 1px solid var(--nx-glass-br); border-radius: 100px;
-  background: rgba(168,85,247,.08);
+  background: rgba(208,0,255,0.08);
   font-size: .8125rem; font-weight: 500; color: var(--nx-violet-2);
 }
 .ud-pill i { font-size: .5rem; color: var(--nx-glow); animation: udBlink 1.4s ease-in-out infinite; }
@@ -64,7 +64,7 @@
 
 .ud-head h1 {
   font-size: clamp(1.8rem, 1rem + 3.2vw, 2.7rem);
-  font-weight: 700; line-height: 1.8; color: #fff;
+  font-weight: 700; line-height: 1.8; color: #edf0ff;
 }
 .ud-head h1 em {
   font-style: normal;
@@ -78,7 +78,7 @@
 }
 
 /* ─── Card ─────────────────────────────────────────────────────────────────
-   --nx-glass is #120E24 at 80% with a 14px frost and the brand's purple rim,
+   --nx-glass is #101014 at 80% with a 14px frost and the brand's purple rim,
    which is what the design brief asks for anywhere on this site. 24px is the
    brief's large radius; the buttons inside keep their own 8-12px. */
 .ud-card {
@@ -100,12 +100,12 @@
   display: flex; align-items: center; justify-content: center;
   width: 76px; height: 76px; margin: 0 auto 20px;
   border: 1px solid var(--nx-glass-br); border-radius: 50%;
-  background: rgba(168,85,247,.1);
+  background: rgba(208,0,255,0.1);
   font-size: 1.9rem; color: var(--nx-glow);
-  box-shadow: 0 0 30px rgba(168,85,247,.18);
+  box-shadow: 0 0 30px rgba(208,0,255,0.18);
 }
 
-.ud-title { font-size: 1.25rem; font-weight: 700; line-height: 1.6; color: #fff; }
+.ud-title { font-size: 1.25rem; font-weight: 700; line-height: 1.6; color: #edf0ff; }
 .ud-sub { margin: 8px 0 0; font-size: .9375rem; font-weight: 400; color: var(--nx-body); }
 .ud-sub strong { font-weight: 700; color: var(--nx-glow); }
 
@@ -121,10 +121,10 @@
 .ud-note__ico {
   flex: none; display: flex; align-items: center; justify-content: center;
   width: 34px; height: 34px; border-radius: 9px;
-  background: rgba(168,85,247,.12); color: var(--nx-violet-2);
+  background: rgba(208,0,255,0.12); color: var(--nx-violet-2);
 }
-.ud-note__ico--en { background: rgba(140,90,255,.12); color: #93c5fd; }
-.ud-note strong { display: block; margin-bottom: 2px; font-size: .8125rem; font-weight: 700; color: #fff; }
+.ud-note__ico--en { background: rgba(135,0,255,0.12); color: #00a8ff; }
+.ud-note strong { display: block; margin-bottom: 2px; font-size: .8125rem; font-weight: 700; color: #edf0ff; }
 .ud-note span { display: block; font-size: .8125rem; font-weight: 400; line-height: 1.7; color: var(--nx-body); }
 
 /* ─── Roadmap ───────────────────────────────────────────────────────────────
@@ -144,14 +144,14 @@
 .ud-road__ico {
   flex: none; display: flex; align-items: center; justify-content: center;
   width: 32px; height: 32px; border-radius: 9px;
-  background: rgba(255,255,255,.04); color: var(--nx-muted);
+  background: rgba(237,240,255,0.04); color: var(--nx-muted);
   font-size: .75rem;
 }
 .ud-road__item > span { flex: 1; }
 .ud-road__state { font-weight: 700; white-space: nowrap; }
-.ud-road__item--done .ud-road__ico { background: rgba(87,242,135,.1); color: var(--nx-green); }
+.ud-road__item--done .ud-road__ico { background: rgba(0,200,255,0.1); color: var(--nx-green); }
 .ud-road__item--done .ud-road__state { color: var(--nx-green); }
-.ud-road__item--active .ud-road__ico { background: rgba(168,85,247,.12); color: var(--nx-violet-2); }
+.ud-road__item--active .ud-road__ico { background: rgba(208,0,255,0.12); color: var(--nx-violet-2); }
 .ud-road__item--active .ud-road__ico i { animation: udSpin 2.4s linear infinite; }
 .ud-road__item--active .ud-road__state { color: var(--nx-violet-2); }
 .ud-road__item--todo .ud-road__state { color: var(--nx-muted); }
@@ -163,7 +163,7 @@
 .ud-bar {
   margin: 24px 0 0; padding: 14px 16px;
   border: 1px dashed var(--nx-glass-br); border-radius: 14px;
-  background: rgba(168,85,247,.06);
+  background: rgba(208,0,255,0.06);
 }
 .ud-bar__track { display: flex; justify-content: center; gap: 6px; margin-bottom: 10px; }
 .ud-bar__track span {
@@ -173,7 +173,7 @@
 .ud-bar__track span:nth-child(2) { animation-delay: .15s; }
 .ud-bar__track span:nth-child(3) { animation-delay: .3s; }
 @keyframes udBounce { 0%, 100% { transform: translateY(0); opacity: .45; } 50% { transform: translateY(-4px); opacity: 1; } }
-.ud-bar__text { font-size: .8125rem; font-weight: 500; color: #fff; }
+.ud-bar__text { font-size: .8125rem; font-weight: 500; color: #edf0ff; }
 
 /* ─── Actions ───────────────────────────────────────────────────────────────
    The site's own button treatments, not local ones: -d is the outlined purple
@@ -182,7 +182,7 @@
    way down the page. */
 .ud-acts { display: grid; gap: 10px; margin: 28px 0 0; }
 .ud-acts .nx-btn { width: 100%; justify-content: center; }
-.ud-foot { margin: 20px 0 0; font-size: .75rem; color: rgba(255,255,255,.28); }
+.ud-foot { margin: 20px 0 0; font-size: .75rem; color: rgba(237,240,255,0.28); }
 
 @media (max-width: 599.98px) {
   .ud-page { padding-top: 168px; }

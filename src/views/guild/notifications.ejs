@@ -18,21 +18,21 @@ const activeCh = new Set(subs.map(s => s.discordChannelId).filter(Boolean)).size
 
 <div class="stats-grid fade-in-up">
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ed4245"><i class="fas fa-bell" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-bell" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= subs.length %></span>
       <span class="stat-label">إشتراك نشط</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #5a9bff"><i class="fas fa-tower-broadcast" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-tower-broadcast" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= platCount %></span>
       <span class="stat-label">منصات مراقَبة</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-hashtag" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-hashtag" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= activeCh %></span>
       <span class="stat-label">قناة إشعارات</span>
@@ -116,11 +116,11 @@ const activeCh = new Set(subs.map(s => s.discordChannelId).filter(Boolean)).size
       <div class="nt-field">
         <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">🎨 لون الإعلان</label>
         <div class="nt-colors">
-          <% const colorOpts = {blue:'#1a6fff',red:'#e53935',gold:'#ffd700',green:'#00c853',purple:'#7c4dff',orange:'#ff9800',black:'#333'}; %>
+          <% const colorOpts = {blue:'#00a8ff',red:'#ff3545',gold:'#ff8088',green:'#00c8ff',purple:'#d000ff',orange:'#ff8088',black:'#34343f'}; %>
           <% Object.entries(colorOpts).forEach(([k,v]) => { %>
             <label class="color-option" data-value="<%= k %>" style="background:<%= v %>">
               <input type="radio" name="announceColor" value="<%= k %>" style="display:none" <%= k === 'blue' ? 'checked' : '' %>>
-              <span style="font-size:.6rem;color:<%= ['gold','orange'].includes(k) ? '#333' : '#fff' %>;opacity:0">✓</span>
+              <span style="font-size:.6rem;color:<%= ['gold','orange'].includes(k) ? '#34343f' : '#edf0ff' %>;opacity:0">✓</span>
             </label>
           <% }) %>
         </div>
@@ -198,27 +198,27 @@ const activeCh = new Set(subs.map(s => s.discordChannelId).filter(Boolean)).size
 
   .nt-card select, .nt-card input[type="text"], .nt-card input[type="url"], .nt-card textarea {
     width: 100%; padding: 12px 14px; box-sizing: border-box;
-    border-radius: 10px; border: 1px solid var(--nx-line, rgba(255, 255, 255, .1));
-    background: rgba(255, 255, 255, .03); color: var(--text, #eee);
+    border-radius: 10px; border: 1px solid var(--nx-line, rgba(237,240,255,0.1));
+    background: rgba(237,240,255,0.03); color: var(--text, #edf0ff);
     font-family: inherit; font-size: .88rem; outline: none;
     transition: border-color .18s var(--nx-ease, ease), box-shadow .18s var(--nx-ease, ease);
   }
   .nt-card textarea { min-height: 140px; resize: vertical; line-height: 1.7; }
   .nt-card select:focus, .nt-card input:focus, .nt-card textarea:focus {
-    border-color: var(--primary, #a855f7); box-shadow: 0 0 0 3px rgba(168, 85, 247, .14);
+    border-color: var(--primary, #d000ff); box-shadow: 0 0 0 3px rgba(208,0,255,0.14);
   }
 
   .nt-announce { overflow: hidden; }
   .nt-announce-head {
     display: flex; align-items: center; gap: 12px; margin: -22px -22px 18px; padding: 18px 22px;
-    background: linear-gradient(135deg, var(--primary), #0d47a1); color: #fff;
+    background: linear-gradient(135deg, var(--primary), #001a80); color: #edf0ff;
   }
   .nt-announce-icon {
     width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
-    border-radius: 10px; background: rgba(255, 255, 255, .2); font-size: 1.15rem;
+    border-radius: 10px; background: rgba(237,240,255,0.2); font-size: 1.15rem;
   }
-  .nt-announce-head h3 { margin: 0; font-size: 1rem; color: #fff; }
-  .nt-announce-head p { margin: 2px 0 0; color: rgba(255, 255, 255, .75); font-size: .78rem; }
+  .nt-announce-head h3 { margin: 0; font-size: 1rem; color: #edf0ff; }
+  .nt-announce-head p { margin: 2px 0 0; color: rgba(237,240,255,0.75); font-size: .78rem; }
   .nt-ann-body { display: flex; flex-direction: column; gap: 16px; }
   .nt-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .nt-colors { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -232,39 +232,39 @@ const activeCh = new Set(subs.map(s => s.discordChannelId).filter(Boolean)).size
   .nt-send { flex: 1; padding: 13px 24px; font-size: .9rem; cursor: pointer; }
   .nt-preview {
     padding: 13px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: .85rem;
-    background: rgba(255, 255, 255, .05); border: 1px solid var(--nx-line, rgba(255, 255, 255, .12)); color: var(--text, #eee);
+    background: rgba(237,240,255,0.05); border: 1px solid var(--nx-line, rgba(237,240,255,0.12)); color: var(--text, #edf0ff);
     display: inline-flex; align-items: center; gap: 6px;
   }
   .nt-preview-box {
-    margin-top: 20px; padding: 18px; background: rgba(255, 255, 255, .02);
-    border-radius: 12px; border: 1px solid var(--nx-line, rgba(255, 255, 255, .09));
+    margin-top: 20px; padding: 18px; background: rgba(237,240,255,0.02);
+    border-radius: 12px; border: 1px solid var(--nx-line, rgba(237,240,255,0.09));
   }
-  .nt-preview-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--nx-line, rgba(255,255,255,.08)); font-size: .8rem; color: var(--text-muted); }
+  .nt-preview-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--nx-line, rgba(237,240,255,0.08)); font-size: .8rem; color: var(--text-muted); }
 
   .nt-subs-list { display: flex; flex-direction: column; gap: 10px; }
   .nt-sub-item {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
     padding: 12px 16px; border-radius: 12px;
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07)); background: rgba(255, 255, 255, .015);
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.07)); background: rgba(237,240,255,0.015);
     transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
   }
-  .nt-sub-item:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .04); }
+  .nt-sub-item:hover { border-color: rgba(208,0,255,0.4); background: rgba(208,0,255,0.04); }
   .nt-sub-fav { width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0; }
-  .nt-sub-avatar-wrap { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: rgba(255, 255, 255, .06); display: flex; align-items: center; justify-content: center; }
+  .nt-sub-avatar-wrap { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: rgba(237,240,255,0.06); display: flex; align-items: center; justify-content: center; }
   .nt-sub-avatar-wrap img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
   .nt-sub-info { flex: 1; min-width: 0; }
   .nt-sub-name { font-weight: 600; font-size: .9rem; }
   .nt-sub-url { font-size: .77rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; }
   .nt-sub-url a { color: var(--primary); overflow: hidden; text-overflow: ellipsis; }
-  .nt-sub-url code { direction: ltr; unicode-bidi: isolate; font-size: .74rem; background: rgba(255,255,255,.05); padding: 1px 7px; border-radius: 6px; color: var(--text-muted); flex-shrink: 0; }
+  .nt-sub-url code { direction: ltr; unicode-bidi: isolate; font-size: .74rem; background: rgba(237,240,255,0.05); padding: 1px 7px; border-radius: 6px; color: var(--text-muted); flex-shrink: 0; }
   .nt-sub-msg { font-size: .76rem; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nt-sub-actions { display: flex; gap: 8px; }
   .nt-check, .nt-resend, .nt-delete {
     border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: .75rem; font-weight: 600;
   }
-  .nt-check { background: var(--primary, #a855f7); color: #fff; }
-  .nt-resend { background: #fbbf24; color: #000; }
-  .nt-delete { background: var(--danger, #ed4245); color: #fff; }
+  .nt-check { background: var(--primary, #d000ff); color: #edf0ff; }
+  .nt-resend { background: #ff8088; color: #000; }
+  .nt-delete { background: var(--danger, #ff1018); color: #edf0ff; }
   @media (max-width: 620px) { .nt-grid-2 { grid-template-columns: 1fr; } .nt-ann-actions { flex-direction: column; } }
 </style>
 
@@ -408,7 +408,7 @@ document.querySelectorAll('.color-option').forEach(el => {
       o.style.borderColor = 'transparent';
       o.querySelector('span').style.opacity = '0';
     });
-    this.style.borderColor = '#fff';
+    this.style.borderColor = '#edf0ff';
     this.querySelector('span').style.opacity = '1';
     this.querySelector('input[type=radio]').checked = true;
     updatePreview();
@@ -422,7 +422,7 @@ const announceForm = document.getElementById('announceForm');
 const previewBtn = document.getElementById('previewBtn');
 const previewDiv = document.getElementById('announcePreview');
 const previewContent = document.getElementById('previewContent');
-const announceColors = { blue: '#1a6fff', red: '#e53935', gold: '#ffd700', green: '#00c853', purple: '#7c4dff', orange: '#ff9800', black: '#333' };
+const announceColors = { blue: '#00a8ff', red: '#ff3545', gold: '#ff8088', green: '#00c8ff', purple: '#d000ff', orange: '#ff8088', black: '#34343f' };
 const announceEmojis = { general: '📢', maintenance: '🔧', update: '✅', warning: '🚨', rules: '📋' };
 const announceLabels = { general: 'إعلان عام', maintenance: 'صيانة', update: 'تحديث', warning: 'تحذير', rules: 'قواعد' };
 
@@ -442,7 +442,7 @@ function updatePreview() {
   previewDiv.style.display = 'block';
   previewContent.innerHTML = `
     <div style="background:var(--bg-secondary);border-radius:12px;overflow:hidden;border:1px solid var(--border)">
-      <div style="height:4px;background:${announceColors[color] || '#1a6fff'}"></div>
+      <div style="height:4px;background:${announceColors[color] || '#00a8ff'}"></div>
       <div style="padding:16px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:.8rem;color:var(--text-muted)">
           <span>${announceEmojis[type] || '📢'} ${announceLabels[type] || 'إعلان'}</span>

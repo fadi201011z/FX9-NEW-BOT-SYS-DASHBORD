@@ -14,28 +14,28 @@
 
 <div class="stats-grid">
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #a855f7"><i class="fas fa-microphone" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #d000ff"><i class="fas fa-microphone" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= vcs.length %></span>
       <span class="stat-label">قناة نشطة الآن</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #57f287"><i class="fas fa-crown" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-crown" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= ownersN %></span>
       <span class="stat-label">مالك قناة</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ffa63e"><i class="fas fa-lock" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff8088"><i class="fas fa-lock" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= lockedN %></span>
       <span class="stat-label">مقفلة</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #4dd6e0"><i class="fas fa-eye-slash" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-eye-slash" aria-hidden="true"></i></div>
     <div class="stat-info">
       <span class="stat-value"><%= hiddenN %></span>
       <span class="stat-label">مخفية</span>
@@ -89,18 +89,18 @@
   .vc-item {
     display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
     padding: 14px 16px; border-radius: var(--radius, 12px);
-    border: 1px solid var(--nx-line, rgba(255, 255, 255, .07));
-    background: rgba(255, 255, 255, .015);
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.07));
+    background: rgba(237,240,255,0.015);
     transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
   }
-  .vc-item:hover { border-color: rgba(168, 85, 247, .4); background: rgba(168, 85, 247, .05); }
+  .vc-item:hover { border-color: rgba(208,0,255,0.4); background: rgba(208,0,255,0.05); }
   .vc-main { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
   .vc-icon {
     width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
-    border-radius: 11px; background: rgba(168, 85, 247, .12); color: var(--primary); font-size: 1rem;
+    border-radius: 11px; background: rgba(208,0,255,0.12); color: var(--primary); font-size: 1rem;
   }
   .vc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .vc-info strong { color: var(--text, #fff); font-size: .95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vc-info strong { color: var(--text, #edf0ff); font-size: .95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .voice-owner { color: var(--text-muted); font-size: .78rem; }
   .vc-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .vc-badges { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -108,10 +108,10 @@
     display: inline-flex; align-items: center; gap: 4px; font-size: .68rem; font-weight: 600;
     padding: 2px 9px; border-radius: 20px; white-space: nowrap;
   }
-  .vc-locked { background: rgba(255, 166, 62, .12); color: #ffa63e; }
-  .vc-hidden { background: rgba(77, 214, 224, .12); color: #4dd6e0; }
-  .vc-limit { background: rgba(87, 242, 135, .1); color: #57f287; }
-  .vc-bit { background: rgba(90, 155, 255, .1); color: #5a9bff; }
+  .vc-locked { background: rgba(255,128,136,0.12); color: #ff8088; }
+  .vc-hidden { background: rgba(0,200,255,0.12); color: #00c8ff; }
+  .vc-limit { background: rgba(0,200,255,0.1); color: #00c8ff; }
+  .vc-bit { background: rgba(0,168,255,0.1); color: #00a8ff; }
   .vc-time { color: var(--text-muted); font-size: .74rem; display: inline-flex; align-items: center; gap: 5px; }
   @media (max-width: 680px) { .vc-time { display: none; } }
 </style>
