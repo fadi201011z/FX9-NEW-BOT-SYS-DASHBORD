@@ -1,6 +1,6 @@
 <% currentPage = 'commands' %>
 <%
-  // — لوحة الأوامر: تفعيل/تعطيل، وصف، وصلاحيات الرتب لكل أمر.
+  // — لوحة الأوامر: شبكة بطاقات موحّدة بعرض كامل + تحرير داخل البطاقة.
   const byCat = {};
   commands.forEach(c => { const k = c.category || 'أخرى'; (byCat[k] = byCat[k] || []).push(c); });
   const cats = Object.keys(byCat);
@@ -11,7 +11,7 @@
 %>
 
 <style>
-  /* ═══ لوحة الأوامر — تصميم مزدوج (قائمة + محرّر) ═══ */
+  /* ═══ لوحة الأوامر — شبكة بطاقات موحّدة ═══ */
   .cmds-page { --ok: #00c8ff; --no: #ff3545; --acc: #d000ff; --acc2: #8700ff; }
 
   .cmds-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
@@ -25,8 +25,8 @@
   .cmds-kpi.is-perm b { color: var(--acc); }
 
   /* ── شريط الأدوات ── */
-  .cmds-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
-  .cmds-search { position: relative; flex: 1 1 240px; max-width: 380px; }
+  .cmds-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 16px 0 20px; }
+  .cmds-search { position: relative; flex: 1 1 260px; max-width: 420px; }
   .cmds-search > i { position: absolute; inset-inline-start: 13px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.82rem; pointer-events: none; }
   .cmds-search input { width: 100%; padding-block: 10px; padding-inline: 37px 13px; border-radius: 11px; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text); font-family: inherit; font-size: 0.85rem; outline: none; transition: border-color .16s, box-shadow .16s; }
   .cmds-search input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(208,0,255,0.15); }
@@ -35,49 +35,44 @@
   .cmds-chip:hover { color: var(--text); border-color: rgba(208,0,255,0.4); }
   .cmds-chip.is-active { background: rgba(208,0,255,0.16); border-color: rgba(208,0,255,0.5); color: #edf0ff; }
 
-  .cmds-bulkbar { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; padding: 5px 6px 5px 14px; border-radius: 11px; background: rgba(208,0,255,0.10); border: 1px solid rgba(208,0,255,0.32); }
-  .cmds-bulkbar[hidden] { display: none; }
-  .cmds-bulkcount { font-size: 0.76rem; color: var(--text-muted); }
-  .cmds-bulkcount b { color: var(--text); }
+  /* ── الأقسام والشبكة ── */
+  .cmds-sections { display: flex; flex-direction: column; gap: 24px; }
+  .cmds-section[hidden] { display: none; }
+  .cmds-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .cmds-section-head h2 { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 9px; }
+  .cmds-section-count { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); background: rgba(237,240,255,0.05); border-radius: 999px; padding: 2px 9px; }
+  .cmds-section-acts { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; }
+  .cmds-cat-check { display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; color: var(--text-muted); cursor: pointer; user-select: none; }
 
-  /* ── أزرار ── */
-  .cmds-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border); background: rgba(237,240,255,0.04); color: var(--text); font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: .15s; white-space: nowrap; }
-  .cmds-btn:hover { border-color: rgba(208,0,255,0.45); background: rgba(208,0,255,0.10); }
-  .cmds-btn:disabled { opacity: 0.55; cursor: default; }
-  .cmds-btn.is-primary { background: linear-gradient(135deg, var(--acc), var(--acc2)); border-color: transparent; color: #edf0ff; }
-  .cmds-btn.is-primary:hover { filter: brightness(1.08); }
-  .cmds-btn.is-on { border-color: rgba(0,200,255,0.4); color: var(--ok); background: rgba(0,200,255,0.08); }
-  .cmds-btn.is-off { border-color: rgba(255,53,69,0.4); color: var(--no); background: rgba(255,53,69,0.08); }
-  .cmds-btn.is-ghost { background: transparent; border-color: transparent; color: var(--text-muted); }
-  .cmds-btn.is-ghost:hover { color: var(--text); background: rgba(237,240,255,0.05); }
-  .cmds-mini { display: inline-flex; align-items: center; color: var(--text-muted); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 4px 7px; cursor: pointer; font-family: inherit; font-size: 0.74rem; transition: .15s; line-height: 1; }
-  .cmds-mini:hover { color: #edf0ff; background: rgba(237,240,255,0.06); border-color: var(--border); }
+  .cmds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 14px; }
 
-  /* ── التخطيط ── */
-  .cmds-layout { display: grid; grid-template-columns: minmax(300px, 0.9fr) minmax(420px, 1.1fr); gap: 16px; align-items: start; }
-  @media (max-width: 1040px) { .cmds-layout { grid-template-columns: 1fr; } .cmds-editor { position: static !important; } }
+  /* ── بطاقة الأمر (حجم موحّد) ── */
+  .cmd-card { position: relative; display: flex; flex-direction: column; height: 178px; padding: 15px; cursor: pointer; transition: border-color .16s, transform .16s; }
+  .cmd-card[hidden] { display: none; }
+  .cmd-card:hover { border-color: rgba(208,0,255,0.4); transform: translateY(-2px); }
+  .cmd-card.is-off .cmd-name { color: var(--text-muted); }
+  .cmd-card.is-open { grid-column: 1 / -1; height: auto; cursor: default; border-color: rgba(208,0,255,0.45); }
+  .cmd-card.is-open:hover { transform: none; }
 
-  /* ── لوحة القائمة ── */
-  .cmds-list-panel { padding: 0; overflow: hidden; }
-  .cmds-list-head { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border); }
-  .cmds-list-title { font-weight: 700; font-size: 0.88rem; flex: 1; }
-  .cmds-list-count { font-size: 0.72rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-  .cmds-list { max-height: calc(100vh - 300px); min-height: 260px; overflow: auto; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
-  .cmds-list::-webkit-scrollbar, .ed-roles::-webkit-scrollbar { width: 8px; }
-  .cmds-list::-webkit-scrollbar-thumb, .ed-roles::-webkit-scrollbar-thumb { background: rgba(135,0,255,0.35); border-radius: 8px; }
+  .cmd-top { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+  .cmd-name { flex: 1; min-width: 0; font-family: var(--nx-mono, Consolas, monospace); direction: ltr; unicode-bidi: isolate; font-size: 1.02rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cmd-card.is-off .cmd-name { color: var(--text-muted); }
+  .cmd-cat { align-self: flex-start; font-size: 0.64rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: rgba(208,0,255,0.13); color: var(--acc); margin-bottom: 7px; }
+  .cmd-desc { color: var(--text-muted); font-size: 0.8rem; line-height: 1.65; flex: 1; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cmd-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+  .cmd-perm { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cmd-perm.is-allow { background: rgba(0,200,255,0.12); color: var(--ok); }
+  .cmd-perm.is-block { background: rgba(255,53,69,0.12); color: var(--no); }
+  .cmd-perm.is-def { background: rgba(237,240,255,0.05); color: var(--text-muted); }
+  .cmd-openbtn { display: inline-flex; align-items: center; gap: 6px; font-family: inherit; font-size: 0.74rem; font-weight: 700; color: var(--text); background: rgba(208,0,255,0.10); border: 1px solid rgba(208,0,255,0.35); border-radius: 9px; padding: 5px 11px; cursor: pointer; transition: .15s; white-space: nowrap; }
+  .cmd-openbtn:hover { background: rgba(208,0,255,0.2); }
 
-  .cmds-group { display: flex; flex-direction: column; }
-  .cmds-group[hidden] { display: none; }
-  .cmds-group-head { position: sticky; top: -8px; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(16,16,20,0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 9px; }
-  .cmds-group-name { font-size: 0.78rem; font-weight: 800; color: var(--text); }
-  .cmds-group-count { font-size: 0.68rem; color: var(--text-muted); background: rgba(237,240,255,0.05); border-radius: 999px; padding: 1px 8px; }
-  .cmds-group-actions { margin-inline-start: auto; display: flex; gap: 2px; opacity: 0; transition: .15s; }
-  .cmds-group:hover .cmds-group-actions { opacity: 1; }
-
-  .cmds-row { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .13s, border-color .13s; }
-  .cmds-row[hidden] { display: none; }
-  .cmds-row:hover { background: rgba(237,240,255,0.04); }
-  .cmds-row.is-active { background: rgba(208,0,255,0.12); border-color: rgba(208,0,255,0.4); }
+  /* ── المفتاح ── */
+  .cmds-switch { position: relative; flex: 0 0 auto; width: 40px; height: 22px; border-radius: 999px; background: #34343f; border: 1px solid rgba(237,240,255,0.08); cursor: pointer; transition: .18s; outline: none; }
+  .cmds-switch > span { position: absolute; top: 2px; inset-inline-start: 2px; width: 16px; height: 16px; border-radius: 50%; background: #c9d0e5; transition: .18s; }
+  .cmds-switch[data-on="true"] { background: linear-gradient(135deg, var(--acc), var(--acc2)); border-color: transparent; }
+  .cmds-switch[data-on="true"] > span { inset-inline-start: 20px; background: #edf0ff; }
+  .cmds-switch:focus-visible { box-shadow: 0 0 0 3px rgba(208,0,255,0.3); }
 
   .cmds-check { display: inline-flex; flex: 0 0 auto; position: relative; }
   .cmds-check input { position: absolute; opacity: 0; width: 0; height: 0; }
@@ -86,66 +81,50 @@
   .cmds-check input:checked + span::after { content: ''; position: absolute; left: 4.5px; top: 1.5px; width: 4px; height: 8px; border: solid #edf0ff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
   .cmds-check input:focus-visible + span { box-shadow: 0 0 0 3px rgba(208,0,255,0.3); }
 
-  .cmds-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; background: var(--ok); box-shadow: 0 0 8px rgba(0,200,255,0.55); transition: .15s; }
-  .cmds-row.is-off .cmds-dot { background: #777d90; box-shadow: none; }
-  .cmds-name { flex: 1; min-width: 0; font-family: var(--nx-mono, Consolas, monospace); direction: ltr; unicode-bidi: isolate; font-weight: 700; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .cmds-row.is-off .cmds-name { color: var(--text-muted); }
-  .cmds-rowcat { flex: 0 0 auto; font-size: 0.64rem; padding: 2px 8px; border-radius: 999px; background: rgba(208,0,255,0.12); color: #d000ff; }
-  .cmds-rowlock { flex: 0 0 auto; color: #ff8088; font-size: 0.72rem; }
-  .cmds-rowlock[hidden] { display: none; }
+  /* ── محرّر البطاقة المنفتحة ── */
+  .cmd-card.is-open { height: auto; }
+  .cmd-editor { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); cursor: default; }
+  .cmd-editor[hidden] { display: none; }
+  .ce-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .ce-title { font-size: 0.86rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .ce-title i { color: var(--acc); }
+  .ce-title b { font-family: var(--nx-mono, Consolas, monospace); direction: ltr; }
+  .ce-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 820px) { .ce-grid { grid-template-columns: 1fr; gap: 16px; } }
+  .ce-col { min-width: 0; }
+  .ce-col h4 { font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .ce-col h4 > i { color: var(--acc); }
+  .ce-col h4 > span:first-child { display: inline-flex; align-items: center; gap: 8px; }
 
-  /* ── مفتاح التشغيل ── */
-  .cmds-switch { position: relative; flex: 0 0 auto; width: 40px; height: 22px; border-radius: 999px; background: #34343f; border: 1px solid rgba(237,240,255,0.08); cursor: pointer; transition: .18s; outline: none; }
-  .cmds-switch > span { position: absolute; top: 2px; inset-inline-start: 2px; width: 16px; height: 16px; border-radius: 50%; background: #c9d0e5; transition: .18s; }
-  .cmds-switch[data-on="true"] { background: linear-gradient(135deg, var(--acc), var(--acc2)); border-color: transparent; }
-  .cmds-switch[data-on="true"] > span { inset-inline-start: 20px; background: #edf0ff; }
-  .cmds-switch:focus-visible { box-shadow: 0 0 0 3px rgba(208,0,255,0.3); }
-
-  .cmds-nores { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 34px 16px; color: var(--text-muted); text-align: center; }
-  .cmds-nores[hidden] { display: none; }
-  .cmds-nores i { font-size: 1.6rem; }
-
-  /* ── لوحة المحرّر ── */
-  .cmds-editor { position: sticky; top: 16px; padding: 0; overflow: hidden; }
-  .cmds-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 58px 24px; color: var(--text-muted); }
-  .cmds-placeholder i { font-size: 1.9rem; color: var(--acc2); }
-  .cmds-placeholder h3 { color: var(--text); font-size: 1rem; margin-top: 4px; }
-  .cmds-placeholder p { font-size: 0.84rem; max-width: 320px; line-height: 1.7; }
-  .cmds-editor-inner { padding: 16px; }
-  .cmds-editor-inner[hidden] { display: none; }
-
-  .ed-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-  .ed-title { min-width: 0; }
-  .ed-cat { display: inline-block; font-size: 0.66rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: rgba(208,0,255,0.13); color: var(--acc); margin-bottom: 6px; }
-  .ed-name { font-family: var(--nx-mono, Consolas, monospace); direction: ltr; text-align: right; font-size: 1.3rem; font-weight: 800; line-height: 1.15; }
-  .ed-file { display: block; font-family: var(--nx-mono, Consolas, monospace); direction: ltr; text-align: right; font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; }
-  .ed-toggle { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 0 auto; }
-  .ed-toggle > span:first-child { font-size: 0.74rem; color: var(--ok); font-weight: 700; }
-  .ed-toggle > span:first-child.is-off { color: #777d90; }
-
-  .ed-block { padding: 15px 0; }
-  .ed-block + .ed-block { border-top: 1px solid var(--border); }
-  .ed-block-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
-  .ed-block-head h3 { font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  .ed-block-head h3 i { color: var(--acc); }
-  .ed-save-state { font-size: 0.74rem; color: var(--ok); }
-  .ed-desc { width: 100%; min-height: 54px; resize: vertical; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text); font-family: inherit; font-size: 0.85rem; line-height: 1.6; outline: none; transition: border-color .16s, box-shadow .16s; }
+  .ed-desc { width: 100%; min-height: 78px; resize: vertical; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text); font-family: inherit; font-size: 0.85rem; line-height: 1.6; outline: none; transition: border-color .16s, box-shadow .16s; }
   .ed-desc:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(208,0,255,0.15); }
+  .cmds-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border); background: rgba(237,240,255,0.04); color: var(--text); font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: .15s; white-space: nowrap; }
+  .cmds-btn:hover { border-color: rgba(208,0,255,0.45); background: rgba(208,0,255,0.10); }
+  .cmds-btn:disabled { opacity: 0.55; cursor: default; }
+  .cmds-btn.is-primary { background: linear-gradient(135deg, var(--acc), var(--acc2)); border-color: transparent; color: #edf0ff; }
+  .cmds-btn.is-primary:hover { filter: brightness(1.08); }
+  .cmds-btn.is-ghost { background: transparent; border-color: transparent; color: var(--text-muted); }
+  .cmds-btn.is-ghost:hover { color: var(--text); background: rgba(237,240,255,0.05); }
+  .cmds-mini { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 5px 8px; cursor: pointer; font-family: inherit; font-size: 0.74rem; transition: .15s; line-height: 1; }
+  .cmds-mini:hover { color: #edf0ff; background: rgba(237,240,255,0.06); border-color: var(--border); }
   .ed-block-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-  .ed-hint { font-size: 0.76rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 10px; }
+  .ed-save-state { font-size: 0.74rem; color: var(--ok); }
+  .ed-hint { font-size: 0.74rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 8px; }
   .ed-perms-tools { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
-  .ed-rolesearch { position: relative; flex: 1 1 180px; }
+  .ed-rolesearch { position: relative; flex: 1 1 150px; }
   .ed-rolesearch > i { position: absolute; inset-inline-start: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.78rem; pointer-events: none; }
-  .ed-rolesearch input { width: 100%; padding-block: 8px; padding-inline: 32px 11px; border-radius: 9px; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; transition: border-color .16s, box-shadow .16s; }
+  .ed-rolesearch input { width: 100%; padding-block: 8px; padding-inline: 32px 11px; border-radius: 9px; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; }
   .ed-rolesearch input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(208,0,255,0.15); }
-  .ed-onlyset { display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+  .ed-onlyset { display: inline-flex; align-items: center; gap: 5px; font-size: 0.74rem; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
   .ed-perms-chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
   .ed-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
   .ed-chip.is-allow { background: rgba(0,200,255,0.12); color: var(--ok); }
   .ed-chip.is-block { background: rgba(255,53,69,0.12); color: var(--no); }
   .ed-chip.is-def { background: rgba(237,240,255,0.05); color: var(--text-muted); }
 
-  .ed-roles { border: 1px solid var(--border); border-radius: 12px; padding: 6px; max-height: 320px; overflow: auto; }
+  .ed-roles { border: 1px solid var(--border); border-radius: 12px; padding: 6px; max-height: 300px; overflow: auto; }
+  .ed-roles::-webkit-scrollbar { width: 8px; }
+  .ed-roles::-webkit-scrollbar-thumb { background: rgba(135,0,255,0.35); border-radius: 8px; }
   .ed-role { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 9px; }
   .ed-role[hidden] { display: none; }
   .ed-role:hover { background: rgba(237,240,255,0.035); }
@@ -160,9 +139,20 @@
   .ed-roles-loading, .ed-roles-empty { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 22px; color: var(--text-muted); font-size: 0.82rem; }
   .ed-roles-error { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 22px; color: #ff8088; font-size: 0.82rem; }
 
+  .cmds-nores { display: none; flex-direction: column; align-items: center; gap: 6px; padding: 48px 16px; color: var(--text-muted); text-align: center; }
+  .cmds-nores[hidden] { display: none; }
+  .cmds-nores.show { display: flex; }
+  .cmds-nores i { font-size: 1.7rem; }
+
+  /* ── شريط الإجراءات الجماعية (عائم) ── */
+  .cmds-bulkbar { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 16px; border-radius: 14px; background: rgba(16,16,20,0.96); border: 1px solid rgba(208,0,255,0.4); box-shadow: 0 14px 44px rgba(0,0,0,0.5); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  .cmds-bulkbar[hidden] { display: none; }
+  .cmds-bulkcount { font-size: 0.78rem; color: var(--text-muted); }
+  .cmds-bulkcount b { color: var(--text); }
+
   @media (max-width: 520px) {
+    .cmd-card { height: auto; min-height: 150px; }
     .ed-seg button { padding: 5px 8px; font-size: 0.68rem; }
-    .ed-role-name { font-size: 0.8rem; }
   }
 </style>
 
@@ -191,100 +181,73 @@
         <button type="button" class="cmds-chip" data-cat="<%= cat %>"><%= cat %></button>
       <% }) %>
     </div>
-    <div class="cmds-bulkbar" id="cmdsBulkBar" hidden>
-      <span class="cmds-bulkcount"><b id="cmdsPickCount">0</b> محدد</span>
-      <button type="button" class="cmds-btn is-on" onclick="cmdsBulkSelected(true)"><i class="fas fa-toggle-on"></i> تفعيل</button>
-      <button type="button" class="cmds-btn is-off" onclick="cmdsBulkSelected(false)"><i class="fas fa-toggle-off"></i> تعطيل</button>
-      <button type="button" class="cmds-btn is-ghost" onclick="cmdsClearSelection()">مسح</button>
+  </div>
+
+  <div class="cmds-sections" id="cmdsSections">
+    <% cats.forEach(cat => { %>
+      <section class="cmds-section" data-cat="<%= cat %>">
+        <div class="cmds-section-head">
+          <h2><%= cat %> <span class="cmds-section-count"><%= byCat[cat].length %></span></h2>
+          <div class="cmds-section-acts">
+            <label class="cmds-cat-check"><input type="checkbox" class="cmds-cat-check-box"> تحديد الكل</label>
+            <button type="button" class="cmds-mini" onclick='cmdsBulkCategory(<%- JSON.stringify(cat) %>, true)'><i class="fas fa-toggle-on"></i> تفعيل</button>
+            <button type="button" class="cmds-mini" onclick='cmdsBulkCategory(<%- JSON.stringify(cat) %>, false)'><i class="fas fa-toggle-off"></i> تعطيل</button>
+          </div>
+        </div>
+        <div class="cmds-grid">
+          <% byCat[cat].forEach(cmd => { %>
+            <% const cfg = configMap[cmd.name]; %>
+            <% const enabled = enabledOf(cmd); %>
+            <% const allowed = (cfg && cfg.allowedRoles) || []; %>
+            <% const blocked = (cfg && cfg.blockedRoles) || []; %>
+            <% const aN = allowed.length, bN = blocked.length; %>
+            <% const permCls = (aN || bN) ? (bN && !aN ? 'is-block' : 'is-allow') : 'is-def'; %>
+            <% const permTxt = (aN && bN) ? (aN + ' مسموح · ' + bN + ' ممنوع') : aN ? (aN + ' مسموح') : bN ? (bN + ' ممنوع') : 'متاح للجميع'; %>
+            <article class="cmd-card glass<%= enabled ? '' : ' is-off' %>"
+                     data-name="<%= cmd.name %>" data-cat="<%= cat %>"
+                     data-enabled="<%= enabled ? 'true' : 'false' %>"
+                     data-allowed="<%= JSON.stringify(allowed) %>" data-blocked="<%= JSON.stringify(blocked) %>"
+                     data-desc="<%= cmd.description || '' %>" data-file="<%= cmd.file || '' %>">
+              <div class="cmd-top">
+                <span class="cmds-check" title="تحديد"><input type="checkbox" class="cmds-pick"><span></span></span>
+                <span class="cmd-name">/<%= cmd.name %></span>
+                <span class="cmds-switch" role="switch" tabindex="0" data-on="<%= enabled ? 'true' : 'false' %>" aria-label="تفعيل أو تعطيل <%= cmd.name %>"><span></span></span>
+              </div>
+              <span class="cmd-cat"><%= cat %></span>
+              <p class="cmd-desc"><%= cmd.description || 'بدون وصف' %></p>
+              <div class="cmd-foot">
+                <span class="cmd-perm <%= permCls %>"><%= permTxt %></span>
+                <button type="button" class="cmd-openbtn"><span class="t">ضبط</span> <i class="fas fa-sliders"></i></button>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      </section>
+    <% }) %>
+
+    <div class="cmds-nores" id="cmdsNoRes" hidden>
+      <i class="fas fa-search"></i>
+      <p>لا توجد أوامر مطابقة</p>
     </div>
   </div>
 
-  <div class="cmds-layout">
-    <aside class="cmds-list-panel glass">
-      <div class="cmds-list-head">
-        <label class="cmds-check" title="تحديد الكل">
-          <input type="checkbox" id="cmdsSelectAll">
-          <span></span>
-        </label>
-        <span class="cmds-list-title">قائمة الأوامر</span>
-        <span class="cmds-list-count" id="cmdsVisibleCount"><%= total %>/<%= total %></span>
-      </div>
-      <div class="cmds-list" id="cmdsList">
-        <% cats.forEach(cat => { %>
-          <div class="cmds-group" data-cat="<%= cat %>">
-            <div class="cmds-group-head">
-              <span class="cmds-group-name"><%= cat %></span>
-              <span class="cmds-group-count"><%= byCat[cat].length %></span>
-              <span class="cmds-group-actions">
-                <button type="button" class="cmds-mini" title="تفعيل كل أوامر القسم" onclick='cmdsBulkCategory(<%- JSON.stringify(cat) %>, true)'><i class="fas fa-toggle-on"></i></button>
-                <button type="button" class="cmds-mini" onclick='cmdsBulkCategory(<%- JSON.stringify(cat) %>, false)' title="تعطيل كل أوامر القسم"><i class="fas fa-toggle-off"></i></button>
-              </span>
-            </div>
-            <% byCat[cat].forEach(cmd => { %>
-              <% const cfg = configMap[cmd.name]; %>
-              <% const en = cfg ? cfg.enabled !== false : true; %>
-              <% const allowed = (cfg && cfg.allowedRoles) || []; %>
-              <% const blocked = (cfg && cfg.blockedRoles) || []; %>
-              <div class="cmds-row<%= enabledOf(cmd) ? '' : ' is-off' %>"
-                   data-name="<%= cmd.name %>" data-cat="<%= cat %>"
-                   data-enabled="<%= enabledOf(cmd) ? 'true' : 'false' %>"
-                   data-allowed="<%= JSON.stringify(allowed) %>" data-blocked="<%= JSON.stringify(blocked) %>"
-                   data-desc="<%= cmd.description || '' %>" data-file="<%= cmd.file || '' %>">
-                <label class="cmds-check" title="تحديد">
-                  <input type="checkbox" class="cmds-pick">
-                  <span></span>
-                </label>
-                <span class="cmds-dot" aria-hidden="true"></span>
-                <span class="cmds-name">/<%= cmd.name %></span>
-                <span class="cmds-rowcat"><%= cat %></span>
-                <i class="fas fa-lock cmds-rowlock" <%= (allowed.length + blocked.length) ? '' : 'hidden' %> title="صلاحيات مخصّصة"></i>
-                <span class="cmds-switch" role="switch" tabindex="0" data-on="<%= enabledOf(cmd) ? 'true' : 'false' %>" aria-label="تفعيل أو تعطيل <%= cmd.name %>"><span></span></span>
-              </div>
-        <% }) %>
-      </div>
-      <% }) %>
-      <div class="cmds-nores" id="cmdsNoRes" hidden>
-        <i class="fas fa-search"></i>
-        <p>لا توجد أوامر مطابقة</p>
-      </div>
+  <!-- محرّر واحد يُنقل داخل البطاقة المنفتحة -->
+  <div class="cmd-editor" id="cmdEditor" hidden>
+    <div class="ce-head">
+      <span class="ce-title"><i class="fas fa-sliders"></i> ضبط <b id="ceName"></b></span>
+      <button type="button" class="cmds-mini" id="ceClose"><i class="fas fa-xmark"></i> إغلاق</button>
     </div>
-    </aside>
-
-  <section class="cmds-editor glass" id="cmdsEditor">
-    <div class="cmds-placeholder" id="cmdsPlaceholder">
-      <i class="fas fa-sliders"></i>
-      <h3>اختر أمراً لتخصيصه</h3>
-      <p>اضغط على أي أمر من القائمة لعرض خيارات التفعيل والوصف والصلاحيات هنا.</p>
-    </div>
-    <div class="cmds-editor-inner" id="cmdsEditorInner" hidden>
-      <div class="ed-top">
-        <div class="ed-title">
-          <span class="ed-cat" id="edCat"></span>
-          <h2 class="ed-name" id="edName"></h2>
-          <span class="ed-file" id="edFile"></span>
-        </div>
-        <div class="ed-toggle">
-          <span id="edToggleLabel">مفعّل</span>
-          <span class="cmds-switch" id="edSwitch" role="switch" tabindex="0" data-on="true" aria-label="تفعيل أو تعطيل الأمر"><span></span></span>
-        </div>
-      </div>
-
-      <div class="ed-block">
-        <div class="ed-block-head">
-          <h3><i class="fas fa-pen"></i> الوصف</h3>
-          <span class="ed-save-state" id="edDescState"></span>
-        </div>
+    <div class="ce-grid">
+      <div class="ce-col">
+        <h4><span><i class="fas fa-pen"></i> الوصف</span></h4>
         <textarea class="ed-desc" id="edDesc" maxlength="100" placeholder="وصف يظهر للأعضاء…"></textarea>
         <div class="ed-block-foot">
           <button type="button" class="cmds-btn is-primary" id="edDescSave"><i class="fas fa-floppy-disk"></i> حفظ الوصف</button>
+          <span class="ed-save-state" id="edDescState"></span>
         </div>
       </div>
-
-      <div class="ed-block">
-        <div class="ed-block-head">
-          <h3><i class="fas fa-shield-halved"></i> الصلاحيات</h3>
-          <span class="ed-perms-chips" id="edPermChips"></span>
-        </div>
+      <div class="ce-col">
+        <h4><span><i class="fas fa-shield-halved"></i> الصلاحيات</span> <span class="ed-perms-chips" id="edPermChips"></span></h4>
         <p class="ed-hint">افتراضياً الجميع مسموح. اختر <b>مسموح</b> لقصر الأمر على رتب محدّدة، أو <b>ممنوع</b> لاستثناء رتب.</p>
         <div class="ed-perms-tools">
           <div class="ed-rolesearch">
@@ -302,7 +265,13 @@
         </div>
       </div>
     </div>
-  </section>
+  </div>
+
+  <div class="cmds-bulkbar" id="cmdsBulkBar" hidden>
+    <span class="cmds-bulkcount"><b id="cmdsPickCount">0</b> محدد</span>
+    <button type="button" class="cmds-btn is-primary" onclick="cmdsBulkSelected(true)"><i class="fas fa-toggle-on"></i> تفعيل</button>
+    <button type="button" class="cmds-btn" onclick="cmdsBulkSelected(false)"><i class="fas fa-toggle-off"></i> تعطيل</button>
+    <button type="button" class="cmds-btn is-ghost" onclick="cmdsClearSelection()">مسح</button>
   </div>
 </div>
 
@@ -311,25 +280,19 @@
   const GID = '<%= guild.id %>';
   const TOTAL = <%= total %>;
 
-  const listEl = document.getElementById('cmdsList');
-  const placeholder = document.getElementById('cmdsPlaceholder');
-  const inner = document.getElementById('cmdsEditorInner');
+  const sectionsEl = document.getElementById('cmdsSections');
+  const editor = document.getElementById('cmdEditor');
   const searchEl = document.getElementById('cmdsSearch');
   const catsEl = document.getElementById('cmdsCats');
   const bulkBar = document.getElementById('cmdsBulkBar');
   const bulkCount = document.getElementById('cmdsPickCount');
-  const visCount = document.getElementById('cmdsVisibleCount');
-  const selectAll = document.getElementById('cmdsSelectAll');
   const noRes = document.getElementById('cmdsNoRes');
   const kpiOn = document.getElementById('kpiOn');
   const kpiOff = document.getElementById('kpiOff');
   const kpiPerm = document.getElementById('kpiPerm');
 
-  const edCat = document.getElementById('edCat');
-  const edName = document.getElementById('edName');
-  const edFile = document.getElementById('edFile');
-  const edToggleLabel = document.getElementById('edToggleLabel');
-  const edSwitch = document.getElementById('edSwitch');
+  const ceName = document.getElementById('ceName');
+  const ceClose = document.getElementById('ceClose');
   const edDesc = document.getElementById('edDesc');
   const edDescState = document.getElementById('edDescState');
   const edDescSave = document.getElementById('edDescSave');
@@ -344,31 +307,27 @@
   let selected = null;
   let roles = null;
   let rolesPromise = null;
-  let rolesState = {};   // roleId -> 'allow' | 'block'
+  let rolesState = {};
 
   const qsa = (sel, root) => Array.from((root || document).querySelectorAll(sel));
-  const rowOf = name => qsa('.cmds-row', listEl).find(r => r.dataset.name === name) || null;
+  const cards = () => qsa('.cmd-card', sectionsEl);
+  const cardOf = name => qsa('.cmd-card', sectionsEl).find(c => c.dataset.name === name) || null;
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const toast = msg => { try { if (typeof showToast === 'function') showToast(msg); } catch (e) { /* noop */ } };
+  const parseLen = (json) => { try { return JSON.parse(json || '[]').length; } catch (e) { return 0; } };
 
   /* ── تفعيل / تعطيل ─────────────────────────────────────────── */
-  function paintRowEnabled(row, enabled) {
-    row.dataset.enabled = enabled ? 'true' : 'false';
-    row.classList.toggle('is-off', !enabled);
-    const sw = row.querySelector('.cmds-switch');
+  function paintCardEnabled(card, enabled) {
+    card.dataset.enabled = enabled ? 'true' : 'false';
+    card.classList.toggle('is-off', !enabled);
+    const sw = card.querySelector('.cmds-switch');
     if (sw) sw.dataset.on = enabled ? 'true' : 'false';
-    if (selected === row.dataset.name) paintEditorEnabled(enabled);
   }
-  function paintEditorEnabled(enabled) {
-    edSwitch.dataset.on = enabled ? 'true' : 'false';
-    edToggleLabel.textContent = enabled ? 'مفعّل' : 'معطّل';
-    edToggleLabel.classList.toggle('is-off', !enabled);
-  }
-  async function setEnabled(row, enabled, quiet) {
-    const name = row.dataset.name;
-    const prev = row.dataset.enabled === 'true';
+  async function setEnabled(card, enabled, quiet) {
+    const name = card.dataset.name;
+    const prev = card.dataset.enabled === 'true';
     if (prev === enabled) return true;
-    paintRowEnabled(row, enabled);
+    paintCardEnabled(card, enabled);
     try {
       const res = await fetch('/commands/' + GID + '/update', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -378,34 +337,37 @@
       updateKpis();
       return true;
     } catch (e) {
-      paintRowEnabled(row, prev);
+      paintCardEnabled(card, prev);
       if (!quiet) toast('❌ تعذّر تحديث «' + name + '»');
       return false;
     }
   }
 
-  /* ── الاختيار والمحرّر ─────────────────────────────────────── */
-  function select(name) {
-    selected = name;
-    qsa('.cmds-row', listEl).forEach(r => r.classList.toggle('is-active', r.dataset.name === name));
-    if (!name) { placeholder.hidden = false; inner.hidden = true; return; }
-    fillEditor(rowOf(name));
+  /* ── فتح/إغلاق محرّر البطاقة ───────────────────────────────── */
+  function openEditor(card) {
+    const prev = sectionsEl.querySelector('.cmd-card.is-open');
+    if (prev && prev !== card) prev.classList.remove('is-open');
+    card.classList.add('is-open');
+    card.appendChild(editor);
+    editor.hidden = false;
+    selected = card.dataset.name;
+    fillEditor(card);
   }
-  function fillEditor(row) {
-    if (!row) return;
-    placeholder.hidden = true;
-    inner.hidden = false;
-    edCat.textContent = row.dataset.cat;
-    edName.textContent = '/' + row.dataset.name;
-    edFile.textContent = row.dataset.file || '';
-    edDesc.value = row.dataset.desc || '';
+  function closeEditor() {
+    const open = sectionsEl.querySelector('.cmd-card.is-open');
+    if (open) open.classList.remove('is-open');
+    editor.hidden = true;
+    selected = null;
+  }
+  function fillEditor(card) {
+    document.getElementById('ceName').textContent = '/' + card.dataset.name;
+    edDesc.value = card.dataset.desc || '';
     edDescState.textContent = '';
-    paintEditorEnabled(row.dataset.enabled === 'true');
     edRoleSearch.value = '';
     edOnlySet.checked = false;
     rolesState = {};
-    try { JSON.parse(row.dataset.allowed || '[]').forEach(id => { rolesState[id] = 'allow'; }); } catch (e) { /* noop */ }
-    try { JSON.parse(row.dataset.blocked || '[]').forEach(id => { rolesState[id] = 'block'; }); } catch (e) { /* noop */ }
+    try { JSON.parse(card.dataset.allowed || '[]').forEach(id => { rolesState[id] = 'allow'; }); } catch (e) { /* noop */ }
+    try { JSON.parse(card.dataset.blocked || '[]').forEach(id => { rolesState[id] = 'block'; }); } catch (e) { /* noop */ }
     updateChips();
     loadRoles();
   }
@@ -420,25 +382,28 @@
     return rolesPromise;
   }
   async function loadRoles() {
-    edPermState.textContent = '';
+    const edPermStateEl = document.getElementById('edPermState');
+    if (edPermStateEl) edPermStateEl.textContent = '';
+    const edRolesEl = document.getElementById('edRoles');
     if (roles) { renderRoles(); return; }
-    edRoles.innerHTML = '<div class="ed-roles-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الرتب…</div>';
+    edRolesEl.innerHTML = '<div class="ed-roles-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الرتب…</div>';
     try {
       roles = await fetchRoles();
       renderRoles();
     } catch (e) {
-      edRoles.innerHTML = '<div class="ed-roles-error"><i class="fas fa-triangle-exclamation"></i> تعذّر تحميل الرتب. <button type="button" class="cmds-mini" id="edRolesRetry">إعادة المحاولة</button></div>';
+      edRolesEl.innerHTML = '<div class="ed-roles-error"><i class="fas fa-triangle-exclamation"></i> تعذّر تحميل الرتب. <button type="button" class="cmds-mini" id="edRolesRetry">إعادة المحاولة</button></div>';
     }
   }
   function renderRoles() {
+    const edRolesEl = document.getElementById('edRoles');
     if (!roles || !roles.length) {
-      edRoles.innerHTML = '<div class="ed-roles-empty">لا توجد رتب في هذا السيرفر</div>';
+      edRolesEl.innerHTML = '<div class="ed-roles-empty">لا توجد رتب في هذا السيرفر</div>';
       return;
     }
-    edRoles.innerHTML = roles.map(r => {
+    edRolesEl.innerHTML = roles.map(r => {
       const color = r.color ? ('#' + Number(r.color).toString(16).padStart(6, '0')) : '#858b9d';
       const st = rolesState[r.id] || 'def';
-      return '<div class="ed-role" data-id="' + esc(r.id) + '" data-name="' + esc(r.name) + '">'
+      return '<div class="ed-role" data-id="' + esc(r.id) + '">'
         + '<span class="ed-role-dot" style="background:' + color + '"></span>'
         + '<span class="ed-role-name">' + esc(r.name) + '</span>'
         + '<span class="ed-seg">'
@@ -458,10 +423,9 @@
     });
   }
   function filterRoles() {
-    if (!edRoles) return;
     const q = edRoleSearch.value.trim().toLowerCase();
     const only = edOnlySet.checked;
-    qsa('.ed-role', edRoles).forEach(el => {
+    qsa('.ed-role').forEach(el => {
       const nm = (el.querySelector('.ed-role-name').textContent || '').toLowerCase();
       const set = !!rolesState[el.dataset.id];
       el.hidden = !((!q || nm.indexOf(q) !== -1) && (!only || set));
@@ -474,13 +438,13 @@
     if (a) bits.push('<span class="ed-chip is-allow"><i class="fas fa-check"></i> ' + a + ' مسموح</span>');
     if (b) bits.push('<span class="ed-chip is-block"><i class="fas fa-ban"></i> ' + b + ' ممنوع</span>');
     if (!a && !b) bits.push('<span class="ed-chip is-def">الجميع مسموح</span>');
-    edPermChips.innerHTML = bits.join('');
+    document.getElementById('edPermChips').innerHTML = bits.join('');
   }
 
   /* ── الحفظ ─────────────────────────────────────────────────── */
   async function saveDesc() {
     if (!selected) return;
-    const row = rowOf(selected);
+    const card = cardOf(selected);
     const desc = edDesc.value.trim();
     edDescSave.disabled = true;
     edDescState.textContent = '…جاري الحفظ';
@@ -490,7 +454,7 @@
         body: JSON.stringify({ command: selected, description: desc })
       });
       if (!res.ok) throw new Error('bad');
-      if (row) row.dataset.desc = desc;
+      if (card) { card.dataset.desc = desc; card.querySelector('.cmd-desc').textContent = desc || 'بدون وصف'; }
       edDescState.textContent = '✅ تم الحفظ';
       toast('✅ تم تحديث الوصف');
     } catch (e) {
@@ -515,12 +479,8 @@
         body: JSON.stringify({ command: selected, allowedRoles: allowed, blockedRoles: blocked })
       });
       if (!res.ok) throw new Error('bad');
-      const row = rowOf(selected);
-      if (row) {
-        row.dataset.allowed = JSON.stringify(allowed);
-        row.dataset.blocked = JSON.stringify(blocked);
-        paintRowLock(row);
-      }
+      const card = cardOf(selected);
+      if (card) { card.dataset.allowed = JSON.stringify(allowed); card.dataset.blocked = JSON.stringify(blocked); paintPerm(card); }
       edPermState.textContent = '✅ تم الحفظ';
       toast('✅ تم حفظ صلاحيات «' + selected + '»');
       updateKpis();
@@ -531,50 +491,55 @@
       edPermSave.disabled = false;
     }
   }
-  function paintRowLock(row) {
-    const lock = row.querySelector('.cmds-rowlock');
-    if (!lock) return;
-    let n = 0;
-    try { n += JSON.parse(row.dataset.allowed || '[]').length; } catch (e) { /* noop */ }
-    try { n += JSON.parse(row.dataset.blocked || '[]').length; } catch (e) { /* noop */ }
-    lock.hidden = n === 0;
+  function paintPerm(card) {
+    const el = card.querySelector('.cmd-perm');
+    if (!el) return;
+    const a = parseLen(card.dataset.allowed), b = parseLen(card.dataset.blocked);
+    if (!a && !b) { el.className = 'cmd-perm is-def'; el.textContent = 'متاح للجميع'; }
+    else if (a && b) { el.className = 'cmd-perm is-allow'; el.textContent = a + ' مسموح · ' + b + ' ممنوع'; }
+    else if (a) { el.className = 'cmd-perm is-allow'; el.textContent = a + ' مسموح'; }
+    else { el.className = 'cmd-perm is-block'; el.textContent = b + ' ممنوع'; }
   }
 
-  /* ── التصفية والإجراءات الجماعية ───────────────────────────── */
+  /* ── التصفية ───────────────────────────────────────────────── */
   function applyFilter() {
     const q = searchEl.value.trim().toLowerCase().replace(/^\//, '');
     let visible = 0;
-    qsa('.cmds-group').forEach(g => {
-      let gv = 0;
-      qsa('.cmds-row', g).forEach(r => {
-        const match = (!q || r.dataset.name.toLowerCase().indexOf(q) !== -1) && (activeCat === 'all' || r.dataset.cat === activeCat);
-        r.hidden = !match;
-        if (match) { gv++; visible++; }
+    qsa('.cmds-section').forEach(sec => {
+      let sv = 0;
+      qsa('.cmd-card', sec).forEach(card => {
+        const match = (!q || card.dataset.name.toLowerCase().indexOf(q) !== -1) && (activeCat === 'all' || card.dataset.cat === activeCat);
+        card.hidden = !match;
+        if (match) { sv++; visible++; }
       });
-      g.hidden = gv === 0;
+      sec.hidden = sv === 0;
     });
-    noRes.hidden = visible !== 0;
-    visCount.textContent = visible + '/' + TOTAL;
+    if (visible === 0) noRes.removeAttribute('hidden'); else noRes.setAttribute('hidden', '');
     syncBulkBar();
   }
+
+  /* ── الإجراءات الجماعية ────────────────────────────────────── */
   function syncBulkBar() {
     const n = qsa('.cmds-pick:checked').length;
     bulkCount.textContent = n;
-    bulkBar.hidden = n === 0;
-    syncSelectAll();
+    if (n === 0) bulkBar.setAttribute('hidden', ''); else bulkBar.removeAttribute('hidden');
+    syncSectionChecks();
   }
-  function syncSelectAll() {
-    const rows = qsa('.cmds-row', listEl).filter(r => !r.hidden);
-    const checked = rows.filter(r => r.querySelector('.cmds-pick').checked).length;
-    selectAll.checked = rows.length > 0 && checked === rows.length;
-    selectAll.indeterminate = checked > 0 && checked < rows.length;
+  function syncSectionChecks() {
+    qsa('.cmds-section').forEach(sec => {
+      const cb = sec.querySelector('.cmds-cat-check-box');
+      const cards = qsa('.cmd-card', sec).filter(c => !c.hidden);
+      const checked = cards.filter(c => c.querySelector('.cmds-pick').checked).length;
+      cb.checked = cards.length > 0 && checked === cards.length;
+      cb.indeterminate = checked > 0 && checked < cards.length;
+    });
   }
-  async function bulkSet(rows, enabled) {
-    const targets = rows.filter(r => (r.dataset.enabled === 'true') !== enabled);
+  async function bulkSet(cards, enabled) {
+    const targets = cards.filter(c => (c.dataset.enabled === 'true') !== enabled);
     if (!targets.length) { toast('لا يوجد تغيير'); return; }
     let failed = 0;
-    for (const row of targets) {
-      const ok = await setEnabled(row, enabled, true);
+    for (const card of targets) {
+      const ok = await setEnabled(card, enabled, true);
       if (!ok) failed++;
     }
     updateKpis();
@@ -582,58 +547,62 @@
     toast((failed ? '⚠️ ' : '✅ ') + (enabled ? 'تم تفعيل ' : 'تم تعطيل ') + done + ' أمر' + (failed ? ' — فشل ' + failed : ''));
   }
   window.cmdsBulkSelected = function (enabled) {
-    bulkSet(qsa('.cmds-pick:checked').map(p => p.closest('.cmds-row')), enabled);
+    bulkSet(qsa('.cmds-pick:checked').map(p => p.closest('.cmd-card')), enabled);
   };
   window.cmdsBulkCategory = function (cat, enabled) {
-    const group = qsa('.cmds-group').find(g => g.dataset.cat === cat);
-    if (group) bulkSet(qsa('.cmds-row', group), enabled);
+    const sec = qsa('.cmds-section').find(s => s.dataset.cat === cat);
+    if (sec) bulkSet(qsa('.cmd-card', sec), enabled);
+  };
+  window.cmdsClearSelection = function () {
+    qsa('.cmds-pick').forEach(p => { p.checked = false; });
+    syncBulkBar();
   };
   function updateKpis() {
-    const rows = qsa('.cmds-row', listEl);
+    const cards = qsa('.cmd-card');
     let on = 0, perm = 0;
-    rows.forEach(r => {
-      if (r.dataset.enabled === 'true') on++;
-      let n = 0;
-      try { n += JSON.parse(r.dataset.allowed || '[]').length; } catch (e) { /* noop */ }
-      try { n += JSON.parse(r.dataset.blocked || '[]').length; } catch (e) { /* noop */ }
-      if (n > 0) perm++;
+    cards.forEach(c => {
+      if (c.dataset.enabled === 'true') on++;
+      if (parseLen(c.dataset.allowed) + parseLen(c.dataset.blocked) > 0) perm++;
     });
     kpiOn.textContent = on;
-    kpiOff.textContent = rows.length - on;
+    kpiOff.textContent = cards.length - on;
     kpiPerm.textContent = perm;
   }
 
   /* ── الأحداث ───────────────────────────────────────────────── */
-  listEl.addEventListener('click', e => {
-    const row = e.target.closest('.cmds-row');
-    if (!row) return;
-    if (e.target.closest('.cmds-switch')) { setEnabled(row, row.dataset.enabled !== 'true'); return; }
+  sectionsEl.addEventListener('click', e => {
+    const card = e.target.closest('.cmd-card');
+    if (!card) return;
+    if (e.target.closest('.cmds-switch')) { setEnabled(card, card.dataset.enabled !== 'true'); return; }
     if (e.target.closest('.cmds-check')) return;
-    select(row.dataset.name);
+    if (e.target.closest('.cmd-editor')) return;
+    if (e.target.closest('.cmd-openbtn')) { if (card.classList.contains('is-open')) closeEditor(); else openEditor(card); return; }
+    if (card.classList.contains('is-open')) return;
+    openEditor(card);
   });
-  listEl.addEventListener('keydown', e => {
+  sectionsEl.addEventListener('keydown', e => {
     if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('cmds-switch')) {
       e.preventDefault();
-      const row = e.target.closest('.cmds-row');
-      if (row) setEnabled(row, row.dataset.enabled !== 'true');
+      const card = e.target.closest('.cmd-card');
+      if (card) setEnabled(card, card.dataset.enabled !== 'true');
     }
   });
-  listEl.addEventListener('change', e => {
-    if (e.target.classList.contains('cmds-pick')) syncBulkBar();
+  sectionsEl.addEventListener('change', e => {
+    if (e.target.classList.contains('cmds-pick')) { syncBulkBar(); return; }
+    if (e.target.classList.contains('cmds-cat-check-box')) {
+      const sec = e.target.closest('.cmds-section');
+      const on = e.target.checked;
+      qsa('.cmd-card', sec).filter(c => !c.hidden).forEach(c => { c.querySelector('.cmds-pick').checked = on; });
+      syncBulkBar();
+    }
   });
-  edSwitch.addEventListener('click', () => {
-    if (!selected) return;
-    const row = rowOf(selected);
-    if (row) setEnabled(row, row.dataset.enabled !== 'true');
-  });
-  edSwitch.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); edSwitch.click(); }
-  });
-  edDescSave.addEventListener('click', saveDesc);
-  edPermSave.addEventListener('click', savePerms);
-  edRoleSearch.addEventListener('input', filterRoles);
-  edOnlySet.addEventListener('change', filterRoles);
-  edRoles.addEventListener('click', e => {
+  document.getElementById('ceClose').addEventListener('click', closeEditor);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !editor.hidden) closeEditor(); });
+  document.getElementById('edDescSave').addEventListener('click', saveDesc);
+  document.getElementById('edPermSave').addEventListener('click', savePerms);
+  document.getElementById('edRoleSearch').addEventListener('input', filterRoles);
+  document.getElementById('edOnlySet').addEventListener('change', filterRoles);
+  document.getElementById('edRoles').addEventListener('click', e => {
     if (e.target.closest('#edRolesRetry')) { roles = null; rolesPromise = null; loadRoles(); return; }
     const btn = e.target.closest('.ed-seg button');
     if (!btn) return;
@@ -643,8 +612,8 @@
     if (st === 'def') delete rolesState[id]; else rolesState[id] = st;
     paintRole(roleEl);
     updateChips();
-    edPermState.textContent = '';
-    if (edOnlySet.checked) filterRoles();
+    document.getElementById('edPermState').textContent = '';
+    if (document.getElementById('edOnlySet').checked) filterRoles();
   });
   searchEl.addEventListener('input', applyFilter);
   catsEl.addEventListener('click', e => {
@@ -654,16 +623,9 @@
     qsa('.cmds-chip', catsEl).forEach(c => c.classList.toggle('is-active', c === b));
     applyFilter();
   });
-  selectAll.addEventListener('change', () => {
-    const on = selectAll.checked;
-    qsa('.cmds-row', listEl).filter(r => !r.hidden).forEach(r => { r.querySelector('.cmds-pick').checked = on; });
-    syncBulkBar();
-  });
 
   /* ── التهيئة ───────────────────────────────────────────────── */
-  qsa('.cmds-row', listEl).forEach(paintRowLock);
+  qsa('.cmd-card').forEach(paintPerm);
   applyFilter();
-  const first = qsa('.cmds-row', listEl).find(r => !r.hidden);
-  if (first) select(first.dataset.name);
 })();
 </script>
