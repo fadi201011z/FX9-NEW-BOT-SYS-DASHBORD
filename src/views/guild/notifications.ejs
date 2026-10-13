@@ -1,246 +1,368 @@
 <% layout = 'layouts/main' %>
 <% currentPage = 'notifications' %>
 <%
-const platformLogos = {
-  youtube: 'https://www.google.com/s2/favicons?domain=youtube.com&sz=64',
-  kick:    'https://www.google.com/s2/favicons?domain=kick.com&sz=64',
-  twitter: 'https://www.google.com/s2/favicons?domain=twitter.com&sz=64',
-};
 const subs = subscriptions || [];
+const channels = guildChannels || [];
 const platCount = new Set(subs.map(s => s.platform).filter(Boolean)).size;
 const platNames = { youtube: 'YouTube', kick: 'Kick', twitter: 'Twitter/X' };
+const platDomains = { youtube: 'youtube.com', kick: 'kick.com', twitter: 'twitter.com' };
 const activeCh = new Set(subs.map(s => s.discordChannelId).filter(Boolean)).size;
+const chName = (id) => { const c = channels.find(x => x.id === id); return c ? '#' + c.name : '#' + String(id || '').slice(0, 6); };
 %>
 <div class="page-header fade-in-up">
   <h1><i class="fas fa-bell"></i> الإشعارات والإمبد</h1>
-  <p>إشتراكات يوتيوب وكيك وتويتر يراقبها البوت تلقائياً + إرسال إعلانات احترافية — في سيرفر <strong><%= guild.name %></strong></p>
+  <p>تابع قنوات يوتيوب وكيك وتويتر تلقائياً، وأنشئ إمبد احترافي وأرسله كرسالة إلى أي قناة — في سيرفر <strong><%= guild.name %></strong></p>
 </div>
 
-<div class="stats-grid fade-in-up">
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-bell" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= subs.length %></span>
-      <span class="stat-label">إشتراك نشط</span>
-    </div>
+<div class="nt-tabs-wrap fade-in-up">
+  <div class="tabs nt-tabs">
+    <button type="button" class="tab active" data-tab="notifications" onclick="switchTab(this, 'notifications')">
+      <i class="fas fa-tower-broadcast"></i> الإشعارات
+      <% if (subs.length) { %><span class="nt-tab-badge"><%= subs.length %></span><% } %>
+    </button>
+    <button type="button" class="tab" data-tab="embed" onclick="switchTab(this, 'embed')">
+      <i class="fas fa-layer-group"></i> الإمبد
+    </button>
   </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-tower-broadcast" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= platCount %></span>
-      <span class="stat-label">منصات مراقَبة</span>
-    </div>
-  </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-hashtag" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= activeCh %></span>
-      <span class="stat-label">قناة إشعارات</span>
-    </div>
-  </div>
-</div>
 
-<div class="nt-card glass fade-in-up">
-  <div class="nt-card-head">
-    <h3><i class="fas fa-plus-circle"></i> إضافة إشتراك جديد</h3>
-  </div>
-  <form id="addForm" class="nt-add-grid">
-    <div class="nt-field">
-      <select id="platform" required>
-        <option value="">— المنصة —</option>
-        <option value="youtube">YouTube</option>
-        <option value="kick">Kick</option>
-        <option value="twitter">Twitter/X</option>
-      </select>
-      <img id="platformIcon" src="" alt="" class="nt-plat-icon">
-    </div>
-    <input type="url" id="url" required placeholder="رابط القناة (مثل https://youtube.com/@...)">
-    <select id="discordChannelId" required>
-      <option value="">— قناة الإشعارات —</option>
-      <% (guildChannels || []).forEach(ch => { %>
-        <option value="<%= ch.id %>">#<%= ch.name %></option>
-      <% }) %>
-    </select>
-    <input type="text" id="customMessage" placeholder="رسالة إضافية (اختياري)">
-    <button type="submit" class="btn-primary nt-add-submit"><i class="fas fa-plus"></i> إضافة</button>
-  </form>
-</div>
+  <!-- ═══════════════════ الإشعارات ═══════════════════ -->
+  <div class="tab-content active" id="tab-notifications">
 
-<div class="nt-card glass fade-in-up nt-announce">
-  <div class="nt-announce-head">
-    <span class="nt-announce-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span>
-    <div>
-      <h3>إرسال إعلان</h3>
-      <p>أنشئ وأرسل إعلاناً احترافياً لأعضاء السيرفر</p>
-    </div>
-  </div>
-  <form id="announceForm" class="nt-ann-body">
-    <div class="nt-field">
-      <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">عنوان الإعلان</label>
-      <input type="text" id="announceTitle" required placeholder="اكتب عنواناً واضحاً للإعلان...">
-    </div>
-    <div class="nt-field">
-      <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">نص الإعلان</label>
-      <textarea id="announceMessage" required placeholder="اكتب محتوى الإعلان هنا..."></textarea>
-    </div>
-    <div class="nt-grid-2">
-      <div class="nt-field">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">📣 القناة المستهدفة</label>
-        <select id="announceChannel" required>
-          <option value="">اختر القناة...</option>
-          <% (guildChannels || []).forEach(ch => { %>
-            <option value="<%= ch.id %>">#<%= ch.name %></option>
-          <% }) %>
-        </select>
+    <div class="stats-grid">
+      <div class="stat-card glass">
+        <div class="stat-icon" style="--stat-color: #ff1018"><i class="fas fa-bell" aria-hidden="true"></i></div>
+        <div class="stat-info">
+          <span class="stat-value"><%= subs.length %></span>
+          <span class="stat-label">إشتراك نشط</span>
+        </div>
       </div>
-      <div class="nt-field">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">📢 المنشن</label>
-        <select id="announceMention">
-          <option value="none">بدون منشن</option>
-          <option value="everyone">@everyone</option>
-          <option value="here">@here</option>
-        </select>
+      <div class="stat-card glass">
+        <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-tower-broadcast" aria-hidden="true"></i></div>
+        <div class="stat-info">
+          <span class="stat-value"><%= platCount %></span>
+          <span class="stat-label">منصات مراقَبة</span>
+        </div>
       </div>
-    </div>
-    <div class="nt-grid-2">
-      <div class="nt-field">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">🏷️ نوع الإعلان</label>
-        <select id="announceType">
-          <option value="general">📢 إعلان عام</option>
-          <option value="maintenance">🔧 صيانة</option>
-          <option value="update">✅ تحديث</option>
-          <option value="warning">🚨 تحذير</option>
-          <option value="rules">📋 قواعد</option>
-        </select>
-      </div>
-      <div class="nt-field">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">🎨 لون الإعلان</label>
-        <div class="nt-colors">
-          <% const colorOpts = {blue:'#00a8ff',red:'#ff3545',gold:'#ff8088',green:'#00c8ff',purple:'#d000ff',orange:'#ff8088',black:'#34343f'}; %>
-          <% Object.entries(colorOpts).forEach(([k,v]) => { %>
-            <label class="color-option" data-value="<%= k %>" style="background:<%= v %>">
-              <input type="radio" name="announceColor" value="<%= k %>" style="display:none" <%= k === 'blue' ? 'checked' : '' %>>
-              <span style="font-size:.6rem;color:<%= ['gold','orange'].includes(k) ? '#34343f' : '#edf0ff' %>;opacity:0">✓</span>
-            </label>
-          <% }) %>
+      <div class="stat-card glass">
+        <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-hashtag" aria-hidden="true"></i></div>
+        <div class="stat-info">
+          <span class="stat-value"><%= activeCh %></span>
+          <span class="stat-label">قناة إشعارات</span>
         </div>
       </div>
     </div>
-    <div class="nt-grid-2">
-      <input type="url" id="announceImage" placeholder="رابط صورة (اختياري)">
-      <input type="text" id="announceFooter" placeholder="نص التذييل (اختياري)">
-    </div>
-    <div class="nt-ann-actions">
-      <button type="submit" class="btn-primary nt-send"><i class="fas fa-bullhorn"></i> إرسال الإعلان</button>
-      <button type="button" id="previewBtn" class="nt-preview"><i class="fas fa-eye"></i> معاينة</button>
-    </div>
-  </form>
-  <div id="announcePreview" class="nt-preview-box" style="display:none">
-    <div class="nt-preview-bar">
-      <span>👁️</span>
-      <span>معاينة الإعلان — كيف سيظهر في ديسكورد</span>
-    </div>
-    <div id="previewContent"></div>
-  </div>
-</div>
 
-<div class="nt-card glass fade-in-up">
-  <div class="nt-card-head">
-    <h3><i class="fas fa-list"></i> الإشتراكات الحالية <span class="nt-count">(<%= subs.length %>)</span></h3>
-  </div>
-
-  <% if (subs.length === 0) { %>
-    <div class="empty-state">
-      <i class="fas fa-bell-slash"></i>
-      <p>لا يوجد أي إشتراكات بعد — أضف واحداً من الأعلى</p>
+    <div class="nt-card glass">
+      <div class="nt-card-head">
+        <h3><i class="fas fa-plus-circle"></i> إضافة إشتراك جديد</h3>
+      </div>
+      <form id="addForm" class="nt-add-grid" autocomplete="off">
+        <div class="nt-field nt-plat-field">
+          <select id="platform" class="nt-ctl" required>
+            <option value="">— المنصة —</option>
+            <option value="youtube">YouTube</option>
+            <option value="kick">Kick</option>
+            <option value="twitter">Twitter/X</option>
+          </select>
+          <img id="platformIcon" src="" alt="" class="nt-plat-icon">
+        </div>
+        <div class="nt-field">
+          <input type="url" id="url" class="nt-ctl" required placeholder="رابط القناة (مثل https://youtube.com/@username)">
+        </div>
+        <div class="nt-field">
+          <select id="discordChannelId" class="nt-ctl" required>
+            <option value="">— قناة الإشعارات —</option>
+            <% channels.forEach(ch => { %>
+              <option value="<%= ch.id %>">#<%= ch.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="nt-field nt-span-2">
+          <input type="text" id="customMessage" class="nt-ctl" placeholder="رسالة إضافية تُضاف للإشعار (اختياري)">
+        </div>
+        <button type="submit" class="btn-primary nt-add-submit"><i class="fas fa-plus"></i> إضافة</button>
+      </form>
+      <p class="nt-hint"><i class="fas fa-circle-info"></i> يكشف البوت الفيديوهات والبثوث والمنشورات الجديدة تلقائياً ويرسلها إلى القناة المختارة.</p>
     </div>
-  <% } else { %>
-    <div class="nt-subs-list">
-      <% subs.forEach(sub => { %>
-        <div class="sub-item nt-sub-item">
-          <img src="https://www.google.com/s2/favicons?domain=<%= sub.platform === 'youtube' ? 'youtube.com' : sub.platform === 'kick' ? 'kick.com' : 'twitter.com' %>&sz=64" alt="<%= sub.platform %>" class="nt-sub-fav" title="<%= platNames[sub.platform] || sub.platform %>">
-          <div class="nt-sub-avatar-wrap">
-            <img class="channel-avatar" data-channelid="<%= sub.channelId %>" data-platform="<%= sub.platform %>" src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(sub.channelName || sub.channelId || '?') %>&size=32&background=random&color=fff" alt="" onerror="this.parentElement.innerHTML='<span style=font-size:14px;color:var(--text-muted)>?</span>'">
+
+    <div class="nt-card glass">
+      <div class="nt-card-head nt-subs-head">
+        <h3><i class="fas fa-list"></i> الإشتراكات الحالية <span class="nt-count">(<%= subs.length %>)</span></h3>
+        <% if (subs.length) { %>
+        <div class="nt-subs-tools">
+          <div class="nt-search">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="subSearch" placeholder="بحث بالإسم أو القناة...">
           </div>
-          <div class="nt-sub-info">
-            <div class="nt-sub-name"><%= sub.channelName || sub.channelId || '—' %></div>
-            <div class="nt-sub-url">
-              <a href="<%= sub.channelUrl %>" target="_blank"><%= sub.channelUrl %></a>
-              <span>→</span>
-              <code><%= (guildChannels && guildChannels.find(c => c.id === sub.discordChannelId)) ? '#' + guildChannels.find(c => c.id === sub.discordChannelId).name : '#' + sub.discordChannelId %></code>
+          <div class="nt-chips" id="subChips">
+            <button type="button" class="nt-chip active" data-plat="all">الكل</button>
+            <button type="button" class="nt-chip" data-plat="youtube">YouTube</button>
+            <button type="button" class="nt-chip" data-plat="kick">Kick</button>
+            <button type="button" class="nt-chip" data-plat="twitter">Twitter/X</button>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <% if (subs.length === 0) { %>
+        <div class="empty-state">
+          <i class="fas fa-bell-slash"></i>
+          <p>لا يوجد أي إشتراكات بعد — أضف واحداً من الأعلى</p>
+        </div>
+      <% } else { %>
+        <div class="nt-subs-list" id="subsList">
+          <div class="nt-no-results" id="subsEmpty" hidden>
+            <i class="fas fa-magnifying-glass"></i>
+            <p>لا توجد إشتراكات تطابق هذا البحث</p>
+          </div>
+          <% subs.forEach(sub => { %>
+            <div class="sub-item nt-sub-item" data-platform="<%= sub.platform %>" data-name="<%= (sub.channelName || sub.channelId || '').toLowerCase() %>">
+              <img src="https://www.google.com/s2/favicons?domain=<%= platDomains[sub.platform] || 'youtube.com' %>&sz=64" alt="<%= sub.platform %>" class="nt-sub-fav" title="<%= platNames[sub.platform] || sub.platform %>">
+              <div class="nt-sub-avatar-wrap">
+                <img class="channel-avatar" data-channelid="<%= sub.channelId %>" data-platform="<%= sub.platform %>" src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(sub.channelName || sub.channelId || '?') %>&size=32&background=random&color=fff" alt="" onerror="this.parentElement.innerHTML='<span style=font-size:14px;color:var(--text-muted)>?</span>'">
+              </div>
+              <div class="nt-sub-info">
+                <div class="nt-sub-name"><%= sub.channelName || sub.channelId || '—' %></div>
+                <div class="nt-sub-url">
+                  <a href="<%= sub.channelUrl %>" target="_blank" rel="noopener"><%= sub.channelUrl %></a>
+                  <span>→</span>
+                  <code><%= chName(sub.discordChannelId) %></code>
+                </div>
+              </div>
+              <% if (sub.customMessage) { %>
+                <span class="nt-sub-msg" title="<%= sub.customMessage %>">"<%= sub.customMessage %>"</span>
+              <% } %>
+              <div class="nt-sub-actions">
+                <button type="button" class="checknow-btn nt-check" data-id="<%= sub._id %>" title="فحص القناة وإرسال آخر جديد فوراً"><i class="fas fa-magnifying-glass"></i> فحص الآن</button>
+                <button type="button" class="resend-btn nt-resend" data-id="<%= sub._id %>" title="إعادة إرسال آخر إشعار"><i class="fas fa-rotate"></i> إعادة إرسال</button>
+                <button type="button" class="delete-btn nt-delete" data-id="<%= sub._id %>" title="حذف الإشتراك"><i class="fas fa-xmark"></i></button>
+              </div>
             </div>
-          </div>
-          <% if (sub.customMessage) { %>
-            <span class="nt-sub-msg" title="<%= sub.customMessage %>">"<%= sub.customMessage %>"</span>
-          <% } %>
-          <div class="nt-sub-actions">
-            <button class="checknow-btn nt-check" data-id="<%= sub._id %>">🔍 فحص الآن</button>
-            <button class="resend-btn nt-resend" data-id="<%= sub._id %>">🔄 إعادة إرسال</button>
-            <button class="delete-btn nt-delete" data-id="<%= sub._id %>"><i class="fas fa-xmark"></i></button>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ الإمبد ═══════════════════ -->
+  <div class="tab-content" id="tab-embed">
+    <div class="em-layout">
+
+      <div class="em-builder glass">
+        <div class="em-builder-head">
+          <span class="em-builder-icon"><i class="fas fa-layer-group" aria-hidden="true"></i></span>
+          <div>
+            <h3>منشئ الإمبد</h3>
+            <p>صمّم الإمبد كاملاً ثم أرسله كرسالة إلى القناة المختارة</p>
           </div>
         </div>
-      <% }) %>
+
+        <div class="em-templates">
+          <span class="em-templates-label">قوالب سريعة:</span>
+          <button type="button" class="em-tpl" data-tpl="announce"><i class="fas fa-bullhorn"></i> إعلان</button>
+          <button type="button" class="em-tpl" data-tpl="update"><i class="fas fa-rocket"></i> تحديث</button>
+          <button type="button" class="em-tpl" data-tpl="event"><i class="fas fa-calendar-star"></i> حدث</button>
+          <button type="button" class="em-tpl" data-tpl="rules"><i class="fas fa-scroll"></i> قواعد</button>
+        </div>
+
+        <form id="emForm" autocomplete="off">
+          <!-- الإرسال -->
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-paper-plane"></i> الإرسال</h4>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="emChannel">القناة المستهدفة <span class="em-req">*</span></label>
+                <select id="emChannel" class="nt-ctl" required>
+                  <option value="">اختر القناة...</option>
+                  <% channels.forEach(ch => { %>
+                    <option value="<%= ch.id %>">#<%= ch.name %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="emMention"><i class="fas fa-at"></i> المنشن</label>
+                <select id="emMention" class="nt-ctl">
+                  <option value="none">بدون منشن</option>
+                  <option value="everyone">@everyone</option>
+                  <option value="here">@here</option>
+                </select>
+              </div>
+            </div>
+            <div class="em-field">
+              <label class="em-label" for="emContent">نص الرسالة (اختياري)</label>
+              <textarea id="emContent" class="nt-ctl em-ta-sm" maxlength="2000" placeholder="نص يظهر فوق الإمبد... مثل: أعزاءنا الأعضاء 👋"></textarea>
+            </div>
+          </section>
+
+          <!-- المحتوى -->
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-align-right"></i> المحتوى</h4>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="emAuthorName">إسم الكاتب</label>
+                <input type="text" id="emAuthorName" class="nt-ctl" maxlength="256" placeholder="مثل: فريق Kratos">
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="emAuthorIcon">أيقونة الكاتب (رابط)</label>
+                <input type="url" id="emAuthorIcon" class="nt-ctl" placeholder="https://...">
+              </div>
+            </div>
+            <div class="em-field">
+              <label class="em-label" for="emTitle">
+                العنوان
+                <span class="em-counter" id="emTitleCounter">0/256</span>
+              </label>
+              <input type="text" id="emTitle" class="nt-ctl" maxlength="256" placeholder="عنوان الإمبد...">
+            </div>
+            <div class="em-field">
+              <label class="em-label" for="emDesc">
+                الوصف
+                <span class="em-counter" id="emDescCounter">0/4096</span>
+              </label>
+              <textarea id="emDesc" class="nt-ctl" maxlength="4096" placeholder="نصّ الإمبد الكامل... يدعم **الغامق** و __المسطر__ و `الكود`"></textarea>
+            </div>
+          </section>
+
+          <!-- التنسيق -->
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-palette"></i> التنسيق</h4>
+            <div class="em-field">
+              <label class="em-label">لون الجانب</label>
+              <div class="em-swatches" id="emSwatches">
+                <% ['#d000ff','#8700ff','#4b0082','#00a8ff','#00c8ff','#00c853','#ffd700','#ff9800','#ff1018','#ff8088','#1a6fff','#7c4dff'].forEach(c => { %>
+                  <button type="button" class="em-swatch" data-color="<%= c %>" style="--sw: <%= c %>" aria-label="<%= c %>"></button>
+                <% }) %>
+                <label class="em-swatch em-swatch-custom" title="لون مخصص">
+                  <input type="color" id="emColorPick" value="#d000ff">
+                  <i class="fas fa-eye-dropper"></i>
+                </label>
+                <input type="text" id="emColorHex" class="em-hex" value="#d000ff" maxlength="7" spellcheck="false">
+                <input type="hidden" id="emColor" value="#d000ff">
+              </div>
+            </div>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="emThumb">صورة مصغّرة (رابط)</label>
+                <input type="url" id="emThumb" class="nt-ctl" placeholder="https://...">
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="emImage">صورة كبيرة (رابط)</label>
+                <input type="url" id="emImage" class="nt-ctl" placeholder="https://...">
+              </div>
+            </div>
+            <label class="em-toggle">
+              <input type="checkbox" id="emTimestamp" checked>
+              <span class="em-toggle-track"><span class="em-toggle-dot"></span></span>
+              <span>إظهار الوقت والتاريخ</span>
+            </label>
+          </section>
+
+          <!-- الحقول -->
+          <section class="em-sec">
+            <div class="em-sec-head">
+              <h4 class="em-sec-title"><i class="fas fa-table-list"></i> الحقول</h4>
+              <button type="button" class="em-add-field" id="emAddField"><i class="fas fa-plus"></i> إضافة حقل</button>
+            </div>
+            <div id="emFields" class="em-fields"></div>
+            <p class="em-hint" id="emFieldsHint">أضف حتى 25 حقلاً — مثل «الجائزة»، «الموعد»، «الفائز». فعّل «بجانب" لعرضه بأعمدة.</p>
+          </section>
+
+          <!-- التذييل -->
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-signature"></i> التذييل</h4>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="emFooterText">نص التذييل</label>
+                <input type="text" id="emFooterText" class="nt-ctl" maxlength="2048" placeholder="مثل: Kratos System">
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="emFooterIcon">أيقونة التذييل (رابط)</label>
+                <input type="url" id="emFooterIcon" class="nt-ctl" placeholder="https://...">
+              </div>
+            </div>
+          </section>
+
+          <div class="em-actions">
+            <button type="submit" class="btn-primary em-send" id="emSend"><i class="fas fa-paper-plane"></i> إرسال الإمبد</button>
+            <button type="button" class="em-btn-ghost" id="emReset"><i class="fas fa-eraser"></i> تفريغ</button>
+            <button type="button" class="em-btn-ghost" id="emJson"><i class="fas fa-code"></i> نسخ JSON</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- المعاينة -->
+      <div class="em-side">
+        <div class="em-side-head">
+          <span><i class="fas fa-eye"></i> معاينة مباشرة</span>
+          <span class="em-live-dot"></span>
+        </div>
+        <div class="em-preview" id="emPreview"></div>
+        <p class="em-preview-note">هكذا سيظهر الإمبد تقريباً داخل ديسكورد.</p>
+      </div>
     </div>
-  <% } %>
+  </div>
 </div>
 
 <style>
-  .nt-card { padding: 22px; border-radius: var(--radius, 12px); margin-bottom: 20px; }
-  .nt-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  /* ── Tabs ─────────────────────────────────────────────────────────── */
+  .nt-tabs-wrap { margin-top: 18px; }
+  .nt-tabs { margin-bottom: 20px; flex-wrap: wrap; }
+  .nt-tabs .tab { display: inline-flex; align-items: center; gap: 9px; padding: 11px 22px; border-radius: 999px; background: rgba(237,240,255,0.03); }
+  .nt-tabs .tab.active { background: linear-gradient(135deg, var(--primary), #6a00cc); border-color: transparent; box-shadow: 0 8px 24px rgba(208,0,255,0.28); }
+  .nt-tab-badge {
+    min-width: 20px; padding: 1px 7px; border-radius: 999px; font-size: .7rem; font-weight: 800;
+    background: rgba(237,240,255,0.16); color: var(--text);
+  }
+  .nt-tabs .tab.active .nt-tab-badge { background: rgba(255,255,255,0.22); color: #fff; }
+
+  /* ── Cards ────────────────────────────────────────────────────────── */
+  .nt-card { padding: 22px; border-radius: var(--radius); margin-bottom: 20px; }
+  .nt-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 14px; flex-wrap: wrap; }
   .nt-card-head h3 { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  .nt-count { color: var(--text-muted); font-size: .8rem; }
+  .nt-count { color: var(--text-muted); font-size: .8rem; font-weight: 500; }
 
-  .nt-add-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: center; }
-  .nt-field { position: relative; }
-  .nt-plat-icon { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; display: none; pointer-events: none; }
-  .nt-add-grid select { padding-inline-start: 40px; }
-  .nt-add-submit { justify-self: start; }
-
-  .nt-card select, .nt-card input[type="text"], .nt-card input[type="url"], .nt-card textarea {
+  .nt-ctl {
     width: 100%; padding: 12px 14px; box-sizing: border-box;
     border-radius: 10px; border: 1px solid var(--nx-line, rgba(237,240,255,0.1));
     background: rgba(237,240,255,0.03); color: var(--text, #edf0ff);
     font-family: inherit; font-size: .88rem; outline: none;
-    transition: border-color .18s var(--nx-ease, ease), box-shadow .18s var(--nx-ease, ease);
+    transition: border-color .18s var(--nx-ease, ease), box-shadow .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
   }
-  .nt-card textarea { min-height: 140px; resize: vertical; line-height: 1.7; }
-  .nt-card select:focus, .nt-card input:focus, .nt-card textarea:focus {
-    border-color: var(--primary, #d000ff); box-shadow: 0 0 0 3px rgba(208,0,255,0.14);
-  }
+  .nt-ctl::placeholder { color: rgba(201,208,229,0.45); }
+  .nt-ctl:focus { border-color: var(--primary, #d000ff); box-shadow: 0 0 0 3px rgba(208,0,255,0.14); background: rgba(237,240,255,0.05); }
+  textarea.nt-ctl { min-height: 130px; resize: vertical; line-height: 1.7; }
+  select.nt-ctl { cursor: pointer; }
+  select.nt-ctl option { background: var(--bg-secondary, #101014); color: var(--text); }
 
-  .nt-announce { overflow: hidden; }
-  .nt-announce-head {
-    display: flex; align-items: center; gap: 12px; margin: -22px -22px 18px; padding: 18px 22px;
-    background: linear-gradient(135deg, var(--primary), #001a80); color: #edf0ff;
-  }
-  .nt-announce-icon {
-    width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
-    border-radius: 10px; background: rgba(237,240,255,0.2); font-size: 1.15rem;
-  }
-  .nt-announce-head h3 { margin: 0; font-size: 1rem; color: #edf0ff; }
-  .nt-announce-head p { margin: 2px 0 0; color: rgba(237,240,255,0.75); font-size: .78rem; }
-  .nt-ann-body { display: flex; flex-direction: column; gap: 16px; }
-  .nt-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .nt-colors { display: flex; gap: 6px; flex-wrap: wrap; }
-  .color-option {
-    width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
-    border: 2px solid transparent; display: flex; align-items: center; justify-content: center;
-    transition: border-color .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
-  }
-  .color-option:hover { transform: scale(1.08); }
-  .nt-ann-actions { display: flex; gap: 12px; }
-  .nt-send { flex: 1; padding: 13px 24px; font-size: .9rem; cursor: pointer; }
-  .nt-preview {
-    padding: 13px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: .85rem;
-    background: rgba(237,240,255,0.05); border: 1px solid var(--nx-line, rgba(237,240,255,0.12)); color: var(--text, #edf0ff);
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  .nt-preview-box {
-    margin-top: 20px; padding: 18px; background: rgba(237,240,255,0.02);
-    border-radius: 12px; border: 1px solid var(--nx-line, rgba(237,240,255,0.09));
-  }
-  .nt-preview-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--nx-line, rgba(237,240,255,0.08)); font-size: .8rem; color: var(--text-muted); }
+  /* ── Add subscription ─────────────────────────────────────────────── */
+  .nt-add-grid { display: grid; grid-template-columns: minmax(170px, 0.9fr) minmax(240px, 1.7fr) minmax(170px, 1fr); gap: 12px; align-items: center; }
+  .nt-field { position: relative; min-width: 0; }
+  .nt-span-2 { grid-column: span 2; }
+  .nt-plat-icon { position: absolute; inset-inline-start: 13px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; display: none; pointer-events: none; border-radius: 4px; }
+  .nt-plat-field select { padding-inline-start: 42px; }
+  .nt-add-submit { justify-self: start; padding: 12px 26px; border-radius: 10px; cursor: pointer; font-weight: 700; }
+  .nt-hint { margin: 14px 0 0; font-size: .78rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+  .nt-hint i { color: var(--primary); }
 
+  /* ── Subs toolbar ─────────────────────────────────────────────────── */
+  .nt-subs-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .nt-search { position: relative; }
+  .nt-search i { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); font-size: .8rem; color: var(--text-muted); pointer-events: none; }
+  .nt-search input {
+    width: 210px; padding: 9px 34px 9px 12px; border-radius: 999px; font-family: inherit; font-size: .82rem;
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.1)); background: rgba(237,240,255,0.03); color: var(--text); outline: none;
+  }
+  .nt-search input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(208,0,255,0.12); }
+  .nt-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nt-chip {
+    padding: 8px 14px; border-radius: 999px; cursor: pointer; font-family: inherit; font-size: .76rem; font-weight: 600;
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.1)); background: rgba(237,240,255,0.02); color: var(--text-muted);
+    transition: all var(--transition);
+  }
+  .nt-chip:hover { color: var(--text); border-color: rgba(208,0,255,0.4); }
+  .nt-chip.active { background: rgba(208,0,255,0.16); color: var(--text); border-color: rgba(208,0,255,0.55); }
+
+  /* ── Subs list ────────────────────────────────────────────────────── */
   .nt-subs-list { display: flex; flex-direction: column; gap: 10px; }
   .nt-sub-item {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -250,264 +372,585 @@ const activeCh = new Set(subs.map(s => s.discordChannelId).filter(Boolean)).size
   }
   .nt-sub-item:hover { border-color: rgba(208,0,255,0.4); background: rgba(208,0,255,0.04); }
   .nt-sub-fav { width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0; }
-  .nt-sub-avatar-wrap { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: rgba(237,240,255,0.06); display: flex; align-items: center; justify-content: center; }
-  .nt-sub-avatar-wrap img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-  .nt-sub-info { flex: 1; min-width: 0; }
-  .nt-sub-name { font-weight: 600; font-size: .9rem; }
-  .nt-sub-url { font-size: .77rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; }
-  .nt-sub-url a { color: var(--primary); overflow: hidden; text-overflow: ellipsis; }
-  .nt-sub-url code { direction: ltr; unicode-bidi: isolate; font-size: .74rem; background: rgba(237,240,255,0.05); padding: 1px 7px; border-radius: 6px; color: var(--text-muted); flex-shrink: 0; }
+  .nt-sub-avatar-wrap { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: rgba(237,240,255,0.06); display: grid; place-items: center; }
+  .nt-sub-avatar-wrap img { width: 34px; height: 34px; object-fit: cover; }
+  .nt-sub-info { flex: 1; min-width: 150px; }
+  .nt-sub-name { font-weight: 700; font-size: .9rem; }
+  .nt-sub-url { display: flex; align-items: center; gap: 8px; font-size: .76rem; color: var(--text-muted); margin-top: 2px; }
+  .nt-sub-url a { color: var(--primary); text-decoration: none; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nt-sub-url a:hover { text-decoration: underline; }
+  .nt-sub-url code { background: rgba(237,240,255,0.06); padding: 1px 7px; border-radius: 6px; font-size: .72rem; }
   .nt-sub-msg { font-size: .76rem; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nt-sub-actions { display: flex; gap: 8px; }
   .nt-check, .nt-resend, .nt-delete {
-    border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: .75rem; font-weight: 600;
+    border: none; padding: 7px 13px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: .75rem; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px; transition: filter var(--transition), transform var(--transition);
   }
-  .nt-check { background: var(--primary, #d000ff); color: #edf0ff; }
-  .nt-resend { background: #ff8088; color: #000; }
-  .nt-delete { background: var(--danger, #ff1018); color: #edf0ff; }
-  @media (max-width: 620px) { .nt-grid-2 { grid-template-columns: 1fr; } .nt-ann-actions { flex-direction: column; } }
+  .nt-check:hover, .nt-resend:hover, .nt-delete:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  .nt-check { background: linear-gradient(135deg, var(--primary), #8700ff); color: #fff; }
+  .nt-resend { background: rgba(0,200,255,0.16); color: #00c8ff; border: 1px solid rgba(0,200,255,0.35); }
+  .nt-delete { background: rgba(255,16,24,0.14); color: var(--danger); border: 1px solid rgba(255,16,24,0.3); padding: 7px 11px; }
+  .nt-no-results { text-align: center; padding: 30px 0; color: var(--text-muted); }
+  .nt-no-results i { font-size: 1.6rem; display: block; margin-bottom: 8px; }
+
+  /* ── Embed builder ────────────────────────────────────────────────── */
+  .em-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr); gap: 20px; align-items: start; }
+  .em-builder { overflow: hidden; padding: 0 22px 22px; }
+  .em-builder-head {
+    display: flex; align-items: center; gap: 12px; margin: 0 -22px 18px; padding: 18px 22px;
+    background: linear-gradient(135deg, rgba(208,0,255,0.16), rgba(0,26,128,0.28)); border-bottom: 1px solid var(--nx-line, rgba(237,240,255,0.08));
+  }
+  .em-builder-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 11px; background: linear-gradient(135deg, var(--primary), #6a00cc); color: #fff; font-size: 1.1rem; box-shadow: 0 8px 22px rgba(208,0,255,0.3); }
+  .em-builder-head h3 { margin: 0; font-size: 1.02rem; }
+  .em-builder-head p { margin: 3px 0 0; font-size: .78rem; color: var(--text-muted); }
+
+  .em-templates { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .em-templates-label { font-size: .78rem; color: var(--text-muted); }
+  .em-tpl {
+    padding: 7px 14px; border-radius: 999px; cursor: pointer; font-family: inherit; font-size: .76rem; font-weight: 600;
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.12)); background: rgba(237,240,255,0.03); color: var(--text);
+    display: inline-flex; align-items: center; gap: 7px; transition: all var(--transition);
+  }
+  .em-tpl:hover { border-color: rgba(208,0,255,0.5); background: rgba(208,0,255,0.1); transform: translateY(-1px); }
+
+  #emForm { display: flex; flex-direction: column; }
+  .em-sec { padding: 18px 0; border-top: 1px solid var(--nx-line-2, rgba(237,240,255,0.06)); }
+  .em-sec:first-of-type { border-top: none; padding-top: 0; }
+  .em-sec-title { margin: 0 0 14px; font-size: .84rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; text-transform: none; }
+  .em-sec-title i { color: var(--primary); }
+  .em-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .em-sec-head .em-sec-title { margin: 0; }
+  .em-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .em-field { margin-bottom: 13px; min-width: 0; }
+  .em-field:last-child { margin-bottom: 0; }
+  .em-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 7px; }
+  .em-req { color: var(--danger); }
+  .em-counter { font-size: .72rem; color: var(--text-muted); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .em-counter.warn { color: var(--warning); }
+  .em-hint { font-size: .75rem; color: var(--text-muted); margin: 10px 0 0; }
+
+  .em-swatches { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .em-swatch {
+    width: 30px; height: 30px; border-radius: 9px; cursor: pointer; padding: 0;
+    border: 2px solid transparent; background: var(--sw, #d000ff);
+    transition: transform .16s var(--nx-ease, ease), border-color .16s var(--nx-ease, ease);
+    position: relative;
+  }
+  .em-swatch:hover { transform: scale(1.1); }
+  .em-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+  .em-swatch-custom { display: grid; place-items: center; background: rgba(237,240,255,0.06); border: 2px dashed rgba(237,240,255,0.25); overflow: hidden; }
+  .em-swatch-custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .em-swatch-custom i { color: var(--text-muted); font-size: .8rem; pointer-events: none; }
+  .em-hex {
+    width: 92px; padding: 8px 10px; border-radius: 9px; font-family: var(--nx-mono, monospace); font-size: .8rem; text-transform: lowercase;
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.12)); background: rgba(237,240,255,0.03); color: var(--text); outline: none; direction: ltr; text-align: center;
+  }
+  .em-hex:focus { border-color: var(--primary); }
+
+  .em-toggle { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: .82rem; color: var(--text-muted); user-select: none; }
+  .em-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .em-toggle-track { width: 42px; height: 24px; border-radius: 999px; background: rgba(237,240,255,0.12); position: relative; transition: background var(--transition); flex-shrink: 0; }
+  .em-toggle-dot { position: absolute; top: 3px; inset-inline-start: 3px; width: 18px; height: 18px; border-radius: 50%; background: #edf0ff; transition: transform var(--transition); }
+  .em-toggle input:checked + .em-toggle-track { background: linear-gradient(135deg, var(--primary), #8700ff); }
+  .em-toggle input:checked + .em-toggle-track .em-toggle-dot { transform: translateX(-18px); }
+
+  .em-fields { display: flex; flex-direction: column; gap: 10px; }
+  .em-field-row { display: grid; grid-template-columns: 1fr 1.6fr auto auto; gap: 9px; align-items: start; padding: 12px; border-radius: 11px; background: rgba(237,240,255,0.02); border: 1px solid var(--nx-line-2, rgba(237,240,255,0.06)); }
+  .em-field-row input[type=text] { width: 100%; }
+  .em-f-inline-wrap { display: inline-flex; align-items: center; gap: 6px; font-size: .74rem; color: var(--text-muted); cursor: pointer; white-space: nowrap; padding-top: 11px; }
+  .em-f-remove { align-self: stretch; border: none; background: rgba(255,16,24,0.12); color: var(--danger); border-radius: 9px; cursor: pointer; padding: 0 12px; font-size: .85rem; transition: background var(--transition); }
+  .em-f-remove:hover { background: rgba(255,16,24,0.22); }
+  .em-add-field {
+    padding: 8px 16px; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: .78rem; font-weight: 700;
+    border: 1px dashed rgba(208,0,255,0.5); background: rgba(208,0,255,0.08); color: var(--text);
+    display: inline-flex; align-items: center; gap: 7px; transition: all var(--transition);
+  }
+  .em-add-field:hover { background: rgba(208,0,255,0.16); }
+
+  .em-actions { display: flex; gap: 12px; flex-wrap: wrap; padding-top: 18px; border-top: 1px solid var(--nx-line-2, rgba(237,240,255,0.06)); }
+  .em-send { flex: 1; min-width: 200px; padding: 14px 26px; border-radius: 11px; cursor: pointer; font-size: .92rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 9px; }
+  .em-btn-ghost {
+    padding: 14px 20px; border-radius: 11px; cursor: pointer; font-family: inherit; font-size: .82rem; font-weight: 600;
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.12)); background: rgba(237,240,255,0.03); color: var(--text);
+    display: inline-flex; align-items: center; gap: 8px; transition: all var(--transition);
+  }
+  .em-btn-ghost:hover { background: rgba(237,240,255,0.07); transform: translateY(-1px); }
+
+  /* ── Preview ──────────────────────────────────────────────────────── */
+  .em-side { position: sticky; top: calc(var(--nx-topbar-h, 64px) + 16px); }
+  .em-side-head { display: flex; align-items: center; justify-content: space-between; font-size: .82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; }
+  .em-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #00c853; box-shadow: 0 0 0 4px rgba(0,200,83,0.18); }
+  .em-preview {
+    direction: ltr; text-align: left; background: #313338; border-radius: 14px; padding: 16px; min-height: 260px;
+    border: 1px solid rgba(0,0,0,0.4); box-shadow: var(--nx-shadow, 0 24px 70px rgba(0,0,0,.34));
+    font-family: 'gg sans', 'Segoe UI', system-ui, sans-serif; color: #dbdee1; font-size: 14px;
+  }
+  .em-preview .em-empty { text-align: center; color: #80848e; padding: 60px 10px; font-size: .84rem; }
+  .em-preview .em-empty i { display: block; font-size: 1.8rem; margin-bottom: 12px; opacity: .6; }
+  .em-msg { display: flex; gap: 14px; }
+  .em-avatar { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #fff; background: linear-gradient(135deg, #d000ff, #4b0082); }
+  .em-body { min-width: 0; flex: 1; }
+  .em-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .em-name { font-weight: 700; color: #f2f3f5; }
+  .em-bot { font-size: 10px; font-weight: 700; background: #5865f2; color: #fff; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; }
+  .em-time { font-size: 11px; color: #949ba4; }
+  .em-content { margin-top: 3px; white-space: pre-wrap; word-wrap: break-word; color: #dbdee1; }
+  .em-mention { background: rgba(88,101,242,0.3); color: #dee0fc; border-radius: 3px; padding: 0 2px; font-weight: 600; }
+  .em-embed { display: flex; margin-top: 6px; border-radius: 4px; background: #2b2d31; max-width: 520px; overflow: hidden; }
+  .em-embed-bar { width: 4px; flex: 0 0 4px; }
+  .em-embed-in { display: flex; gap: 12px; padding: 12px 14px 12px 12px; flex: 1; min-width: 0; }
+  .em-embed-main { min-width: 0; flex: 1; }
+  .em-embed-author { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #f2f3f5; margin-bottom: 6px; }
+  .em-embed-author img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+  .em-embed-title { font-size: 15px; font-weight: 700; color: #f2f3f5; margin-bottom: 6px; }
+  .em-embed-desc { font-size: 13.5px; line-height: 1.5; color: #dbdee1; white-space: pre-wrap; word-wrap: break-word; }
+  .em-embed-fields { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .em-embed-field { min-width: 100%; }
+  .em-embed-field.inline { min-width: 0; flex: 1 1 30%; }
+  .em-embed-field .n { font-size: 13px; font-weight: 700; color: #f2f3f5; margin-bottom: 2px; }
+  .em-embed-field .v { font-size: 13px; color: #dbdee1; white-space: pre-wrap; word-wrap: break-word; }
+  .em-embed-img { margin-top: 12px; border-radius: 4px; overflow: hidden; max-width: 400px; }
+  .em-embed-img img { max-width: 100%; display: block; }
+  .em-embed-thumb { width: 80px; height: 80px; flex: 0 0 80px; border-radius: 4px; overflow: hidden; }
+  .em-embed-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .em-embed-footer { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 11.5px; color: #b5bac1; }
+  .em-embed-footer img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+  .em-embed-footer .ts { margin-inline-start: 8px; padding-inline-start: 8px; border-inline-start: 1px solid rgba(255,255,255,0.1); }
+
+  .em-side-head + .em-preview { position: relative; }
+  .em-live-dot { animation: em-pulse 1.8s infinite; }
+  @keyframes em-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .em-preview-note { font-size: .74rem; color: var(--text-muted); margin: 10px 0 0; text-align: center; }
+
+  @media (max-width: 1080px) { .em-layout { grid-template-columns: 1fr; } .em-side { position: static; } }
+  @media (max-width: 720px) {
+    .nt-add-grid { grid-template-columns: 1fr; }
+    .nt-span-2 { grid-column: auto; }
+    .em-grid-2 { grid-template-columns: 1fr; }
+    .em-field-row { grid-template-columns: 1fr; }
+    .em-f-inline-wrap { padding-top: 0; }
+    .em-actions { flex-direction: column; }
+    .em-send, .em-btn-ghost { width: 100%; justify-content: center; }
+    .nt-search input { width: 100%; }
+    .nt-subs-head { align-items: flex-start; }
+  }
 </style>
 
 <script>
-// Show platform logo next to select
-const platSelect = document.getElementById('platform');
-const platIcon = document.getElementById('platformIcon');
-const platLogos = { youtube: '<%= platformLogos.youtube %>', kick: '<%= platformLogos.kick %>', twitter: '<%= platformLogos.twitter %>' };
-platSelect?.addEventListener('change', function() {
-  const logo = platLogos[this.value];
-  if (logo) { platIcon.src = logo; platIcon.style.display = 'block'; }
-  else platIcon.style.display = 'none';
-});
+(function () {
+  'use strict';
 
-// Fetch actual channel avatars asynchronously
-document.querySelectorAll('.channel-avatar').forEach(img => {
-  const platform = img.dataset.platform;
-  const channelId = img.dataset.channelid;
-  if (!channelId) return;
+  // ═══════════════ التبويبات + الرابط المرجعي ═══════════════════════
+  (function initTabs() {
+    // The click handlers are safe to attach now; only the *initial* switch has
+    // to wait, because switchTab() lives in main.js which is loaded after this
+    // inline block. Reloading straight onto #embed would otherwise throw here.
+    document.querySelectorAll('.nt-tabs .tab').forEach(b => {
+      b.addEventListener('click', () => { history.replaceState(null, '', '#' + b.dataset.tab); });
+    });
+    function applyHash() {
+      const hash = (location.hash || '').replace('#', '');
+      if (hash !== 'embed' && hash !== 'notifications') return;
+      const btn = document.querySelector('.nt-tabs .tab[data-tab="' + hash + '"]');
+      if (btn && typeof switchTab === 'function') switchTab(btn, hash);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyHash);
+    else applyHash();
+  })();
 
-  let url;
-  if (platform === 'youtube') {
-    url = `https://www.youtube.com/channel/${channelId}`;
-    fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
-      .then(r => r.text())
-      .then(html => {
-        const m = html.match(/"avatar":\s*\[\s*\{\s*"url":\s*"([^"]+)"/);
-        if (m) img.src = m[1].replace(/\\u0026/g, '&');
-      }).catch(() => {});
-  } else if (platform === 'kick') {
-    fetch(`https://kick.com/api/v2/channels/${channelId}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })
-      .then(r => r.json())
-      .then(d => { if (d?.user?.profile_pic) img.src = d.user.profile_pic; })
-      .catch(() => {});
-  } else if (platform === 'twitter') {
-    const instances = ['nitter.net', 'nitter.privacydev.net', 'nitter.lqdev.tech'];
-    for (const inst of instances) {
-      fetch(`https://${inst}/${channelId}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+  // ═══════════════════ الإشعارات ════════════════════════════════════
+  const platSelect = document.getElementById('platform');
+  const platIcon = document.getElementById('platformIcon');
+  const platLogos = {
+    youtube: 'https://www.google.com/s2/favicons?domain=youtube.com&sz=64',
+    kick:    'https://www.google.com/s2/favicons?domain=kick.com&sz=64',
+    twitter: 'https://www.google.com/s2/favicons?domain=twitter.com&sz=64',
+  };
+  platSelect?.addEventListener('change', function () {
+    const logo = platLogos[this.value];
+    if (logo) { platIcon.src = logo; platIcon.style.display = 'block'; }
+    else platIcon.style.display = 'none';
+  });
+
+  // Fetch actual channel avatars asynchronously (best effort, CORS may block)
+  document.querySelectorAll('.channel-avatar').forEach(img => {
+    const platform = img.dataset.platform;
+    const channelId = img.dataset.channelid;
+    if (!channelId) return;
+    if (platform === 'youtube') {
+      fetch(`https://www.youtube.com/channel/${channelId}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })
         .then(r => r.text())
-        .then(html => {
-          const m = html.match(/<img[^>]*class="avatar"[^>]*src="([^"]+)"/);
-          if (m) {
-            const src = m[1].startsWith('http') ? m[1] : `https://${inst}${m[1]}`;
-            img.src = src;
-          }
-        }).catch(() => {});
-      break;
+        .then(html => { const m = html.match(/"avatar":\s*\[\s*\{\s*"url":\s*"([^"]+)"/); if (m) img.src = m[1].replace(/\\u0026/g, '&'); })
+        .catch(() => {});
+    } else if (platform === 'kick') {
+      fetch(`https://kick.com/api/v2/channels/${channelId}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+        .then(r => r.json()).then(d => { if (d?.user?.profile_pic) img.src = d.user.profile_pic; }).catch(() => {});
+    } else if (platform === 'twitter') {
+      const instances = ['nitter.net', 'nitter.privacydev.net'];
+      for (const inst of instances) {
+        fetch(`https://${inst}/${channelId}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+          .then(r => r.text())
+          .then(html => { const m = html.match(/"avatarUrl":"([^"]+)"/); if (m) img.src = m[1].replace(/&amp;/g, '&'); })
+          .catch(() => {});
+      }
     }
+  });
+
+  const addForm = document.getElementById('addForm');
+  addForm?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type=submit]');
+    const orig = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> إضافة...';
+    const body = {
+      platform: document.getElementById('platform').value,
+      url: document.getElementById('url').value,
+      discordChannelId: document.getElementById('discordChannelId').value,
+      customMessage: document.getElementById('customMessage').value,
+    };
+    try {
+      const res = await fetch(`/notifications/<%= guild.id %>/add`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.success) location.reload();
+      else { showToast(data.error || 'فشل الإضافة', 'error'); btn.disabled = false; btn.innerHTML = orig; }
+    } catch { showToast('خطأ في الاتصال بالخادم', 'error'); btn.disabled = false; btn.innerHTML = orig; }
+  });
+
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('تأكيد حذف هذا الإشتراك؟')) return;
+      btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      try {
+        const res = await fetch(`/notifications/<%= guild.id %>/${btn.dataset.id}`, { method: 'DELETE' });
+        if (res.ok) location.reload();
+        else { showToast('فشل الحذف', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-xmark"></i>'; }
+      } catch { showToast('خطأ في الاتصال', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-xmark"></i>'; }
+    });
+  });
+
+  document.querySelectorAll('.checknow-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const orig = btn.innerHTML;
+      btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      try {
+        const res = await fetch(`/notifications/<%= guild.id %>/checknow/${btn.dataset.id}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.found) showToast('تم إرسال الإشعار: ' + (data.title || data.text || data.videoId || ''), 'success');
+        else if (data.offline) showToast(data.message || 'القناة غير متصلة حالياً — سيُرسل تلقائياً عند البدء', 'info');
+        else showToast(data.message || data.error || 'لا يوجد جديد', data.error ? 'error' : 'info');
+      } catch { showToast('البوت غير متصل', 'error'); }
+      btn.disabled = false; btn.innerHTML = orig;
+    });
+  });
+
+  document.querySelectorAll('.resend-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const orig = btn.innerHTML;
+      btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      try {
+        const res = await fetch(`/notifications/<%= guild.id %>/resend/${btn.dataset.id}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.sent) showToast('تمت إعادة الإرسال: ' + (data.title || data.text || ''), 'success');
+        else if (data.offline) showToast(data.message || 'القناة غير متصلة حالياً', 'info');
+        else showToast(data.error || 'فشل الإرسال', 'error');
+      } catch { showToast('البوت غير متصل', 'error'); }
+      btn.disabled = false; btn.innerHTML = orig;
+    });
+  });
+
+  // Search + platform filter
+  (function initSubsFilter() {
+    const search = document.getElementById('subSearch');
+    const chips = document.getElementById('subChips');
+    const empty = document.getElementById('subsEmpty');
+    if (!search || !chips) return;
+    let plat = 'all';
+    function apply() {
+      const q = search.value.trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll('#subsList .nt-sub-item').forEach(item => {
+        const matchPlat = plat === 'all' || item.dataset.platform === plat;
+        const matchQ = !q || (item.dataset.name || '').includes(q) || (item.textContent || '').toLowerCase().includes(q);
+        const show = matchPlat && matchQ;
+        item.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      if (empty) empty.hidden = visible !== 0;
+    }
+    search.addEventListener('input', apply);
+    chips.querySelectorAll('.nt-chip').forEach(c => c.addEventListener('click', () => {
+      chips.querySelectorAll('.nt-chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+      plat = c.dataset.plat;
+      apply();
+    }));
+  })();
+
+  // ═══════════════════ منشئ الإمبد ══════════════════════════════════
+  const preview = document.getElementById('emPreview');
+  const fieldsBox = document.getElementById('emFields');
+  const MAX_FIELDS = 25;
+
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const nl2br = (t) => esc(t).replace(/\n/g, '<br>');
+  const val = (id) => (document.getElementById(id)?.value || '').trim();
+  const safeUrl = (u) => /^https?:\/\//i.test(u) ? esc(u) : '';
+
+  function addFieldRow(name = '', value = '', inline = false) {
+    if (fieldsBox.querySelectorAll('.em-field-row').length >= MAX_FIELDS) {
+      showToast('الحد الأقصى ' + MAX_FIELDS + ' حقلاً', 'warning');
+      return;
+    }
+    const row = document.createElement('div');
+    row.className = 'em-field-row';
+    row.innerHTML =
+      '<input type="text" class="nt-ctl em-f-name" maxlength="256" placeholder="إسم الحقل" value="' + esc(name) + '">' +
+      '<input type="text" class="nt-ctl em-f-value" maxlength="1024" placeholder="قيمة الحقل" value="' + esc(value) + '">' +
+      '<label class="em-f-inline-wrap"><input type="checkbox" class="em-f-inline"' + (inline ? ' checked' : '') + '> ضمن السطر</label>' +
+      '<button type="button" class="em-f-remove" title="حذف"><i class="fas fa-xmark"></i></button>';
+    row.querySelector('.em-f-remove').addEventListener('click', () => { row.remove(); renderPreview(); });
+    row.querySelectorAll('input').forEach(i => i.addEventListener('input', renderPreview));
+    row.querySelector('.em-f-inline').addEventListener('change', renderPreview);
+    fieldsBox.appendChild(row);
   }
-});
 
-document.getElementById('addForm')?.addEventListener('submit', async e => {
-  e.preventDefault();
-  const btn = e.target.querySelector('button[type=submit]');
-  btn.disabled = true; btn.textContent = '⏳ جاري الإضافة...';
+  function readFields() {
+    return Array.from(fieldsBox.querySelectorAll('.em-field-row')).map(r => ({
+      name: r.querySelector('.em-f-name').value.trim(),
+      value: r.querySelector('.em-f-value').value.trim(),
+      inline: r.querySelector('.em-f-inline').checked,
+    })).filter(f => f.name || f.value);
+  }
 
-  const body = {
-    platform: document.getElementById('platform').value,
-    url: document.getElementById('url').value,
-    discordChannelId: document.getElementById('discordChannelId').value,
-    customMessage: document.getElementById('customMessage').value,
+  function currentColor() { return (document.getElementById('emColor').value || '#d000ff'); }
+
+  function setColor(hex) {
+    hex = (hex || '').trim();
+    if (!/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) return;
+    if (hex[0] !== '#') hex = '#' + hex;
+    document.getElementById('emColor').value = hex;
+    document.getElementById('emColorHex').value = hex.toLowerCase();
+    document.getElementById('emColorPick').value = hex.length === 4
+      ? '#' + hex.slice(1).split('').map(c => c + c).join('') : hex;
+    document.querySelectorAll('.em-swatch[data-color]').forEach(s => s.classList.toggle('active', s.dataset.color.toLowerCase() === hex.toLowerCase()));
+    renderPreview();
+  }
+
+  const MENTION_LABEL = { everyone: '@everyone', here: '@here' };
+
+  function renderPreview() {
+    if (!preview) return;
+    const color = currentColor();
+    const content = val('emContent');
+    const mention = document.getElementById('emMention').value;
+    const authorName = val('emAuthorName');
+    const authorIcon = safeUrl(val('emAuthorIcon'));
+    const title = val('emTitle');
+    const desc = val('emDesc');
+    const image = safeUrl(val('emImage'));
+    const thumb = safeUrl(val('emThumb'));
+    const footerText = val('emFooterText');
+    const footerIcon = safeUrl(val('emFooterIcon'));
+    const withTime = document.getElementById('emTimestamp').checked;
+    const fields = readFields();
+
+    const hasBody = title || desc || authorName || footerText || image || thumb || fields.length;
+    if (!content && !hasBody) {
+      preview.innerHTML = '<div class="em-empty"><i class="fas fa-wand-magic-sparkles"></i>ابدأ بتعبئة الحقول لعرض المعاينة هنا</div>';
+      return;
+    }
+
+    let html = '<div class="em-msg"><div class="em-avatar">K</div><div class="em-body">';
+    html += '<div class="em-meta"><span class="em-name">Kratos</span><span class="em-bot"><i class="fas fa-check"></i> BOT</span><span class="em-time">' + new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) + '</span></div>';
+    if (content || MENTION_LABEL[mention]) {
+      html += '<div class="em-content">';
+      if (MENTION_LABEL[mention]) html += '<span class="em-mention">' + MENTION_LABEL[mention] + '</span> ';
+      html += nl2br(content) + '</div>';
+    }
+    if (hasBody) {
+      html += '<div class="em-embed"><div class="em-embed-bar" style="background:' + esc(color) + '"></div><div class="em-embed-in"><div class="em-embed-main">';
+      if (authorName) html += '<div class="em-embed-author">' + (authorIcon ? '<img src="' + authorIcon + '" alt="">' : '') + esc(authorName) + '</div>';
+      if (title) html += '<div class="em-embed-title">' + esc(title) + '</div>';
+      if (desc) html += '<div class="em-embed-desc">' + nl2br(desc) + '</div>';
+      if (fields.length) {
+        html += '<div class="em-embed-fields">';
+        fields.forEach(f => {
+          html += '<div class="em-embed-field' + (f.inline ? ' inline' : '') + '"><div class="n">' + (esc(f.name) || '&#8203;') + '</div><div class="v">' + nl2br(f.value) + '</div></div>';
+        });
+        html += '</div>';
+      }
+      if (image) html += '<div class="em-embed-img"><img src="' + image + '" alt="" onerror="this.parentElement.style.display=\'none\'"></div>';
+      if (footerText || withTime) {
+        html += '<div class="em-embed-footer">' + (footerIcon ? '<img src="' + footerIcon + '" alt="">' : '');
+        if (footerText) html += esc(footerText);
+        if (withTime) html += '<span>' + (footerText ? ' • ' : '') + new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' }) + '</span>';
+        html += '</div>';
+      }
+      html += '</div>';
+      if (thumb) html += '<div class="em-embed-thumb"><img src="' + thumb + '" alt="" onerror="this.parentElement.style.display=\'none\'"></div>';
+      html += '</div></div>';
+    }
+    html += '</div></div>';
+    preview.innerHTML = html;
+  }
+
+  function updateCounter(inputId, counterId, max) {
+    const el = document.getElementById(inputId), c = document.getElementById(counterId);
+    if (!el || !c) return;
+    const n = el.value.length;
+    c.textContent = n + '/' + max;
+    c.classList.toggle('warn', n > max * 0.9);
+  }
+
+  // Wire every input in the builder to the preview
+  (function wireBuilder() {
+    const ids = ['emContent','emMention','emAuthorName','emAuthorIcon','emTitle','emDesc','emThumb','emImage','emFooterText','emFooterIcon','emTimestamp'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', renderPreview);
+    });
+    document.getElementById('emTimestamp')?.addEventListener('change', renderPreview);
+    document.getElementById('emTitle')?.addEventListener('input', () => updateCounter('emTitle', 'emTitleCounter', 256));
+    document.getElementById('emDesc')?.addEventListener('input', () => updateCounter('emDesc', 'emDescCounter', 4096));
+    document.getElementById('emAddField')?.addEventListener('click', () => { addFieldRow(); renderPreview(); });
+
+    // Swatches
+    document.querySelectorAll('.em-swatch[data-color]').forEach(s => s.addEventListener('click', () => setColor(s.dataset.color)));
+    document.getElementById('emColorPick')?.addEventListener('input', e => setColor(e.target.value, true));
+    document.getElementById('emColorHex')?.addEventListener('input', e => setColor(e.target.value));
+    setColor('#d000ff');
+    updateCounter('emTitle', 'emTitleCounter', 256);
+    updateCounter('emDesc', 'emDescCounter', 4096);
+    renderPreview();
+  })();
+
+  // Templates
+  const TEMPLATES = {
+    announce: {
+      authorName: 'فريق Kratos', color: '#d000ff', title: '📢 إعلان رسمي',
+      desc: 'نودّ إبلاغكم بـ **إعلان مهم** يخصّ السيرفر.\nيُرجى قراءة التفاصيل بعناية.',
+      fields: [
+        { name: '📌 التفاصيل', value: 'اكتب تفاصيل الإعلان هنا', inline: false },
+        { name: '📅 التاريخ', value: 'اليوم', inline: true },
+        { name: '👤 المسؤول', value: 'الإدارة', inline: true },
+      ], footerText: 'Kratos Dashboard',
+    },
+    update: {
+      authorName: 'Kratos • تحديثات', color: '#00c8ff', title: '🚀 تحديث جديد',
+      desc: 'أضفنا تحسينات جديدة إلى النظام!\n\n• تحسين الأداء\n• إصلاح أخطاء\n• ميزات جديدة',
+      fields: [
+        { name: 'الإصدار', value: 'v2.0', inline: true },
+        { name: 'الحالة', value: 'مستقر', inline: true },
+      ], footerText: 'Kratos • Update',
+    },
+    event: {
+      authorName: 'Kratos Events', color: '#ffd700', title: '🎉 حدث جديد',
+      desc: 'انضمّوا إلينا في حدث مميّز! لا تفوّتوا الفرصة.',
+      fields: [
+        { name: '🗓️ الموعد', value: 'اليوم — 9:00 مساءً', inline: true },
+        { name: '📍 المكان', value: 'القناة الصوتية العامة', inline: true },
+        { name: '🎁 الجوائز', value: 'رتبة مميّزة + جائزة خاصة', inline: false },
+      ], footerText: 'لا تفوّت الحدث 🎊',
+    },
+    rules: {
+      authorName: 'الإدارة', color: '#ff9800', title: '📋 قواعد السيرفر',
+      desc: 'التزامك بالقواعد يحفظ لك مكانك داخل السيرفر.',
+      fields: [
+        { name: '1️⃣', value: 'احترم جميع الأعضاء.', inline: false },
+        { name: '2️⃣', value: 'يُمنع الإزعاج والسبام.', inline: false },
+        { name: '3️⃣', value: 'يُمنع نشر الروابط دون إذن.', inline: false },
+      ], footerText: 'شكراً لالتزامكم 💜',
+    },
   };
 
-  try {
-    const res = await fetch('/notifications/<%= guild.id %>/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    if (data.success) {
-      location.reload();
-    } else {
-      alert('❌ ' + (data.error || 'فشل الإضافة'));
-    }
-  } catch (err) {
-    alert('❌ خطأ في الإتصال');
+  function applyTemplate(key) {
+    const t = TEMPLATES[key];
+    if (!t) return;
+    document.getElementById('emAuthorName').value = t.authorName || '';
+    document.getElementById('emTitle').value = t.title || '';
+    document.getElementById('emDesc').value = t.desc || '';
+    document.getElementById('emFooterText').value = t.footerText || '';
+    fieldsBox.innerHTML = '';
+    (t.fields || []).forEach(f => addFieldRow(f.name, f.value, f.inline));
+    setColor(t.color || '#d000ff');
+    updateCounter('emTitle', 'emTitleCounter', 256);
+    updateCounter('emDesc', 'emDescCounter', 4096);
+    renderPreview();
+    showToast('تم تطبيق القالب', 'success');
   }
-  btn.disabled = false; btn.textContent = '➕ إضافة';
-});
+  document.querySelectorAll('.em-tpl').forEach(b => b.addEventListener('click', () => applyTemplate(b.dataset.tpl)));
 
-document.querySelectorAll('.delete-btn').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    if (!confirm('تأكيد حذف هذا الإشتراك؟')) return;
-    const id = btn.dataset.id;
-    btn.disabled = true; btn.textContent = '⏳';
+  // Reset
+  document.getElementById('emReset')?.addEventListener('click', () => {
+    if (!confirm('تفريغ كل الحقول؟')) return;
+    document.getElementById('emForm').reset();
+    fieldsBox.innerHTML = '';
+    document.getElementById('emTimestamp').checked = true;
+    setColor('#d000ff');
+    updateCounter('emTitle', 'emTitleCounter', 256);
+    updateCounter('emDesc', 'emDescCounter', 4096);
+    renderPreview();
+  });
+
+  // Export JSON
+  document.getElementById('emJson')?.addEventListener('click', async () => {
+    const payload = {
+      content: val('emContent') || null,
+      mention: document.getElementById('emMention').value,
+      embed: {
+        color: currentColor(), authorName: val('emAuthorName'), authorIcon: val('emAuthorIcon') || null,
+        title: val('emTitle'), description: val('emDesc'), fields: readFields(),
+        image: val('emImage') || null, thumbnail: val('emThumb') || null,
+        footerText: val('emFooterText'), footerIcon: val('emFooterIcon') || null,
+        timestamp: document.getElementById('emTimestamp').checked,
+      },
+    };
+    const json = JSON.stringify(payload, null, 2);
+    try { await navigator.clipboard.writeText(json); showToast('تم نسخ JSON', 'success'); }
+    catch { alert(json); }
+  });
+
+  // Send
+  document.getElementById('emForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const channelId = document.getElementById('emChannel').value;
+    if (!channelId) { showToast('اختر القناة المستهدفة أولاً', 'warning'); return; }
+    const fields = readFields();
+    const hasEmbed = val('emTitle') || val('emDesc') || val('emAuthorName') || val('emFooterText') || val('emImage') || val('emThumb') || fields.length;
+    if (!hasEmbed) { showToast('أضف عنواناً أو وصفاً أو حقلاً واحداً على الأقل', 'warning'); return; }
+
+    const btn = document.getElementById('emSend');
+    const orig = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+    const body = {
+      channelId,
+      content: val('emContent') || undefined,
+      mention: document.getElementById('emMention').value,
+      embed: {
+        color: currentColor(),
+        authorName: val('emAuthorName') || undefined,
+        authorIcon: val('emAuthorIcon') || undefined,
+        title: val('emTitle') || undefined,
+        description: val('emDesc') || undefined,
+        fields,
+        image: val('emImage') || undefined,
+        thumbnail: val('emThumb') || undefined,
+        footerText: val('emFooterText') || undefined,
+        footerIcon: val('emFooterIcon') || undefined,
+        timestamp: document.getElementById('emTimestamp').checked,
+      },
+    };
     try {
-      const res = await fetch('/notifications/<%= guild.id %>/' + id, { method: 'DELETE' });
-      if (res.ok) location.reload();
-      else alert('❌ فشل الحذف');
-    } catch { alert('❌ خطأ في الإتصال'); }
+      const res = await fetch(`/notifications/<%= guild.id %>/embed`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) showToast('تم إرسال الإمبد إلى ' + (data.channel ? '#' + data.channel : 'القناة'), 'success');
+      else showToast(data.error || 'فشل إرسال الإمبد', 'error');
+    } catch { showToast('تعذّر الاتصال بالخادم', 'error'); }
+    btn.disabled = false; btn.innerHTML = orig;
   });
-});
-
-document.querySelectorAll('.checknow-btn').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const id = btn.dataset.id;
-    const orig = btn.textContent;
-    btn.disabled = true; btn.textContent = '⏳';
-    try {
-      const res = await fetch('/notifications/<%= guild.id %>/checknow/' + id, { method: 'POST' });
-      const data = await res.json();
-      if (data.found) {
-        alert('✅ تم إرسال الإشعار: ' + (data.title || data.text || data.videoId));
-      } else if (data.offline) {
-        alert('ℹ️ ' + (data.message || 'القناة غير متصلة حالياً — سيرسل الإشعار تلقائياً عند دخول البث'));
-      } else if (data.message) {
-        alert(data.message);
-      } else {
-        alert('❌ ' + (data.error || 'فشل التحقق'));
-      }
-    } catch { alert('❌ البوت غير متصل'); }
-    btn.disabled = false; btn.textContent = orig;
-  });
-});
-
-document.querySelectorAll('.resend-btn').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const id = btn.dataset.id;
-    const orig = btn.textContent;
-    btn.disabled = true; btn.textContent = '⏳';
-    try {
-      const res = await fetch('/notifications/<%= guild.id %>/resend/' + id, { method: 'POST' });
-      const data = await res.json();
-      if (data.sent) {
-        alert('✅ تمت إعادة الإرسال: ' + (data.title || data.text || ''));
-      } else if (data.offline) {
-        alert('ℹ️ ' + (data.message || 'القناة غير متصلة حالياً'));
-      } else {
-        alert('❌ ' + (data.error || 'فشل الإرسال'));
-      }
-    } catch { alert('❌ البوت غير متصل'); }
-    btn.disabled = false; btn.textContent = orig;
-  });
-});
-
-// ── Color radio buttons ───────────────────────────────────────────────
-document.querySelectorAll('.color-option').forEach(el => {
-  el.addEventListener('click', function() {
-    document.querySelectorAll('.color-option').forEach(o => {
-      o.style.borderColor = 'transparent';
-      o.querySelector('span').style.opacity = '0';
-    });
-    this.style.borderColor = '#edf0ff';
-    this.querySelector('span').style.opacity = '1';
-    this.querySelector('input[type=radio]').checked = true;
-    updatePreview();
-  });
-});
-// Set default blue
-document.querySelector('.color-option[data-value=blue]')?.click();
-
-// ── Announcement ──────────────────────────────────────────────────────
-const announceForm = document.getElementById('announceForm');
-const previewBtn = document.getElementById('previewBtn');
-const previewDiv = document.getElementById('announcePreview');
-const previewContent = document.getElementById('previewContent');
-const announceColors = { blue: '#00a8ff', red: '#ff3545', gold: '#ff8088', green: '#00c8ff', purple: '#d000ff', orange: '#ff8088', black: '#34343f' };
-const announceEmojis = { general: '📢', maintenance: '🔧', update: '✅', warning: '🚨', rules: '📋' };
-const announceLabels = { general: 'إعلان عام', maintenance: 'صيانة', update: 'تحديث', warning: 'تحذير', rules: 'قواعد' };
-
-function getColor() {
-  const checked = document.querySelector('input[name=announceColor]:checked');
-  return checked ? checked.value : 'blue';
-}
-
-function updatePreview() {
-  const title = document.getElementById('announceTitle').value;
-  const msg = document.getElementById('announceMessage').value;
-  const type = document.getElementById('announceType').value;
-  const color = getColor();
-  const img = document.getElementById('announceImage').value;
-  const footer = document.getElementById('announceFooter').value || `${announceLabels[type]} • Kratos Dashboard`;
-  if (!title && !msg) { previewDiv.style.display = 'none'; return; }
-  previewDiv.style.display = 'block';
-  previewContent.innerHTML = `
-    <div style="background:var(--bg-secondary);border-radius:12px;overflow:hidden;border:1px solid var(--border)">
-      <div style="height:4px;background:${announceColors[color] || '#00a8ff'}"></div>
-      <div style="padding:16px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:.8rem;color:var(--text-muted)">
-          <span>${announceEmojis[type] || '📢'} ${announceLabels[type] || 'إعلان'}</span>
-          <span>•</span>
-          <span>📅 ${new Date().toLocaleDateString('ar-SA')}</span>
-        </div>
-        <div style="font-weight:700;font-size:1.15rem;margin-bottom:10px;color:var(--text)">${escapeHtml(title) || 'عنوان الإعلان'}</div>
-        <div style="font-size:.9rem;line-height:1.8;color:var(--text);white-space:pre-wrap">${escapeHtml(msg) || 'نص الإعلان...'}</div>
-        ${img ? `<div style="margin-top:12px;border-radius:8px;overflow:hidden;background:var(--bg-primary)"><img src="${escapeHtml(img)}" style="max-width:100%;max-height:300px;display:block;margin:auto" onerror="this.parentElement.innerHTML='<div style=padding:20px;text-align:center;color:var(--text-muted);font-size:.8rem>⚠️ فشل تحميل الصورة</div>'"></div>` : ''}
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:.78rem;color:var(--text-muted);display:flex;gap:12px">
-          <span>${escapeHtml(footer)}</span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-['announceTitle','announceMessage','announceType'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', updatePreview);
-  document.getElementById(id)?.addEventListener('change', updatePreview);
-});
-document.getElementById('announceImage')?.addEventListener('input', updatePreview);
-document.getElementById('announceFooter')?.addEventListener('input', updatePreview);
-previewBtn?.addEventListener('click', updatePreview);
-
-announceForm?.addEventListener('submit', async e => {
-  e.preventDefault();
-  const btn = e.target.querySelector('button[type=submit]');
-  btn.disabled = true; btn.innerHTML = '⏳ جاري الإرسال...';
-
-  const body = {
-    channelId: document.getElementById('announceChannel').value,
-    title: document.getElementById('announceTitle').value,
-    message: document.getElementById('announceMessage').value,
-    mention: document.getElementById('announceMention').value,
-    type: document.getElementById('announceType').value,
-    color: getColor(),
-    image: document.getElementById('announceImage').value || undefined,
-    footer: document.getElementById('announceFooter').value || undefined,
-  };
-
-  if (!body.channelId) { alert('❌ اختر القناة المستهدفة'); btn.disabled = false; btn.innerHTML = '📢 إرسال الإعلان'; return; }
-
-  try {
-    const res = await fetch('/notifications/<%= guild.id %>/announce', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    if (data.success) {
-      alert('✅ تم إرسال الإعلان بنجاح');
-      announceForm.reset();
-      previewDiv.style.display = 'none';
-    } else {
-      alert('❌ ' + (data.error || 'فشل الإرسال'));
-    }
-  } catch (err) {
-    alert('❌ خطأ في الإتصال');
-  }
-  btn.disabled = false; btn.innerHTML = '📢 إرسال الإعلان';
-});
+})();
 </script>

@@ -4,7 +4,7 @@ import { getGuildChannels } from '../auth/discord.js';
 import Notification from '../models/Notification.js';
 import config from '../config.js';
 import axios from 'axios';
-import { botFetch, botPost } from '../services/botApi.js';
+import { botPost } from '../services/botApi.js';
 
 const router = Router();
 
@@ -117,23 +117,23 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, modOnly, async (re
   }
 });
 
-// API: send announcement via bot
-router.post('/:guildId/announce', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
+// API: send a custom embed built on the page via bot (replaces the old announcement)
+router.post('/:guildId/embed', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
   const { guildId } = req.params;
-  const { channelId, title, message, mention, color, image, thumbnail, footer, type, timestamp } = req.body;
+  const { channelId, content, mention, embed } = req.body || {};
 
-  if (!channelId || !title || !message) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
+  if (!channelId) return res.status(400).json({ error: 'اختر القناة المستهدفة' });
+  if (!embed || typeof embed !== 'object') return res.status(400).json({ error: 'لا يوجد إمبد لإرساله' });
 
   try {
-    await botPost(`${config.botApiUrl}/api/announce`, {
-      guildId, channelId, title, message, mention, color, image, thumbnail, footer, type, timestamp: timestamp !== false,
+    const { data } = await botPost(`${config.botApiUrl}/api/embed/send`, {
+      guildId, channelId, content, mention, embed,
     }, { timeout: 10000 });
-    res.json({ success: true });
+    res.json(data && typeof data === 'object' ? data : { success: true });
   } catch (err) {
-    console.error('[Announce] Bot send failed:', err.code || err.message);
-    res.status(500).json({ error: 'فشل إرسال الإعلان، تأكد من أن البوت متصل' });
+    console.error('[Embed] Bot send failed:', err.code || err.message);
+    const botError = err.response?.data?.error;
+    res.status(500).json({ error: botError || 'فشل إرسال الإمبد، تأكد من أن البوت متصل' });
   }
 });
 
