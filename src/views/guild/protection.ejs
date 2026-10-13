@@ -1,22 +1,57 @@
 <% currentPage = 'protection' %>
 <%
-  // — الحماية: 5 أنظمة تلقائية + حدود + رومات محضورة.
-  const prKeys = ['antiSpamEnabled', 'antiLinkEnabled', 'antiMentionEnabled', 'antiNukeEnabled', 'antiRaidEnabled'];
-  const prCount = prKeys.filter(k => protection[k] === 'true').length;
+  // ── الحماية: 5 أنظمة تلقائية قابلة للضبط، قوائم استثناء، ورومات محضورة.
+  const sysKeys = ['anti_spam', 'anti_link', 'anti_mention', 'anti_nuke', 'anti_raid'];
+  const sysOn = sysKeys.filter(k => protection[k] === 'true').length;
   const restrictedCount = (restrictedChannels || []).length;
-  const punishLabel = { timeout: 'إيقاف مؤقت', kick: 'طرد', warn: 'تحذير' }[protection.spamPunishment] || protection.spamPunishment || '—';
+  const wlCount = (whitelistRoles.length + whitelistUsers.length + whitelistChannels.length);
+  const logMissing = !logChannelId && !modLogChannelId;
+  const punishMap = { timeout: 'إيقاف مؤقت', kick: 'طرد', ban: 'حظر', warn: 'تحذير' };
+  const punishLabel = punishMap[protection.spam_punishment] || protection.spam_punishment || '—';
+  const sel = (v, cur) => (String(v) === String(cur) ? 'selected' : '');
+  const winSec = (ms, def) => Math.max(1, Math.round(parseInt(ms || String(def), 10) / 1000));
+  const onCls = (v) => (v === 'true' ? 'is-on' : '');
+  const bodyOff = (v) => (v === 'true' ? '' : 'is-off');
 %>
 
-<div class="page-header">
-  <h1><i class="fas fa-shield-halved"></i> الحماية</h1>
-  <p>أنظمة الحماية التلقائية والحدود والرومات المحضورة — في سيرفر <strong><%= guild.name %></strong></p>
+<div class="page-header fade-in-up">
+  <h1><i class="fas fa-shield-halved"></i> الحماية والمكافحة</h1>
+  <p>أنظمة حماية فعلية تعمل داخل السيرفر لحظة الحفظ — اضبط الحدود والعقوبات والقوائم، ثم تحقّق من جاهزيتها بزر واحد. سيرفر <strong><%= guild.name %></strong></p>
 </div>
 
-<div class="stats-grid">
+<!-- ═══════════ شريط علوي: الحالة + الأزرار ═══════════ -->
+<div class="pr-topbar glass fade-in-up">
+  <div class="pr-topbar-info">
+    <span class="pr-pill on"><i class="fas fa-shield-halved"></i> <b id="prSysCount"><%= sysOn %></b>/5 أنظمة مفعّلة</span>
+    <span class="pr-pill"><i class="fas fa-ban"></i> <b id="prRestCount"><%= restrictedCount %></b> روم محضور</span>
+    <span class="pr-pill"><i class="fas fa-user-shield"></i> <b id="prWlCount"><%= wlCount %></b> استثناء</span>
+    <span class="pr-pill"><i class="fas fa-gavel"></i> عقوبة السبام: <b id="prPunishPill"><%= punishLabel %></b></span>
+  </div>
+  <div class="pr-topbar-actions">
+    <button type="button" class="btn-secondary" id="prCheckBtn" onclick="runProtectionCheck()">
+      <i class="fas fa-vial"></i> فحص الجاهزية
+    </button>
+    <button type="button" class="btn-primary" id="prSaveBtn" onclick="saveProtection()">
+      <i class="fas fa-floppy-disk"></i> حفظ التغييرات
+    </button>
+  </div>
+</div>
+
+<div id="prCheckResult" class="pr-check" hidden></div>
+
+<% if (logMissing) { %>
+<div class="pr-warn glass fade-in-up">
+  <i class="fas fa-triangle-exclamation"></i>
+  <div>لم تُضبط أي <strong>قناة سجلات أو تنبيهات</strong> بعد — ستعمل الأنظمة، لكنك لن ترى تنبيهاتها. اضبطها من صفحة الإعدادات.</div>
+</div>
+<% } %>
+
+<!-- ═══════════ إحصائيات ═══════════ -->
+<div class="stats-grid fade-in-up">
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-shield-halved" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #d000ff"><i class="fas fa-shield-halved" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <span class="stat-value"><%= prCount %>/<%= prKeys.length %></span>
+      <span class="stat-value"><%= sysOn %>/<%= sysKeys.length %></span>
       <span class="stat-label">أنظمة مفعّلة</span>
     </div>
   </div>
@@ -28,213 +63,654 @@
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ff8088"><i class="fas fa-gavel" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-user-shield" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <span class="stat-value" style="font-size:1.15rem"><%= punishLabel %></span>
-      <span class="stat-label">عقوبة السبام</span>
+      <span class="stat-value"><%= wlCount %></span>
+      <span class="stat-label">قائمة الاستثناءات</span>
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-users-slash" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #ff8088"><i class="fas fa-gavel" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <span class="stat-value" style="font-size:1.15rem"><%= protection.antiRaidEnabled === 'true' ? 'مفعّل' : 'متوقف' %></span>
-      <span class="stat-label">حالة Anti-Raid</span>
+      <span class="stat-value" style="font-size:1.15rem" id="prPunishCard"><%= punishLabel %></span>
+      <span class="stat-label">عقوبة السبام</span>
     </div>
   </div>
 </div>
 
-<form id="protectionForm" onsubmit="updateProtection(event)">
-  <% const systems = [
-    { key: 'antiSpamEnabled', name: 'Anti-Spam', icon: 'fa-shield-halved', tint: '#ff1018', desc: 'منع السبام — 5 رسائل لكل 5 ثوانٍ ← إيقاف 60 ثانية' },
-    { key: 'antiLinkEnabled', name: 'Anti-Link', icon: 'fa-link', tint: '#00a8ff', desc: 'منع الروابط التلقائية في الرسائل' },
-    { key: 'antiMentionEnabled', name: 'Anti-Mention', icon: 'fa-at', tint: '#d000ff', desc: 'منع 5+ منشنات في رسالة واحدة' },
-    { key: 'antiNukeEnabled', name: 'Anti-Nuke', icon: 'fa-bomb', tint: '#ff8088', desc: 'منع حذف القنوات والحظر الجماعي المفاجئ' },
-    { key: 'antiRaidEnabled', name: 'Anti-Raid', icon: 'fa-users-slash', tint: '#00c8ff', desc: 'منع الانضمام الجماعي المفاجئ للسيرفر' },
-  ] %>
+<form id="protectionForm" onsubmit="return saveProtection(event)">
+  <div class="tabs pr-tabs fade-in-up">
+    <button type="button" class="tab active" onclick="switchTab(this, 'systems')"><i class="fas fa-shield-halved"></i> الأنظمة والإعدادات</button>
+    <button type="button" class="tab" onclick="switchTab(this, 'exempt')"><i class="fas fa-user-shield"></i> الاستثناءات</button>
+    <button type="button" class="tab" onclick="switchTab(this, 'restricted')"><i class="fas fa-ban"></i> الرومات المحضورة</button>
+  </div>
 
-  <div class="card glass">
-    <div class="card-header"><h3><i class="fas fa-shield-halved"></i> أنظمة الحماية</h3></div>
-    <div class="protection-grid pr-grid">
-      <% systems.forEach(sys => { %>
-        <div class="pr-card <%= protection[sys.key] === 'true' ? 'is-on' : '' %>">
-          <div class="pr-head">
-            <span class="pr-ic" style="--pr-tint:<%= sys.tint %>"><i class="fas <%= sys.icon %>" aria-hidden="true"></i></span>
-            <h4><%= sys.name %></h4>
-            <label class="toggle">
-              <input type="checkbox" name="<%= sys.key %>" <%= protection[sys.key] === 'true' ? 'checked' : '' %>>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <p><%= sys.desc %></p>
+  <!-- ═══════════════════ الأنظمة ═══════════════════ -->
+  <div class="tab-content active" id="tab-systems">
+    <p class="pr-hint"><i class="fas fa-circle-info"></i> كل نظام يعمل مباشرةً داخل السيرفر. الحدود الافتراضية مناسبة لمعظم السيرفرات، عدّلها فقط عند الحاجة.</p>
+
+    <!-- مكافحة السبام -->
+    <div class="pr-sys glass <%= onCls(protection.anti_spam) %>" data-sys="anti_spam">
+      <div class="pr-sys-head">
+        <span class="pr-ic" style="--pr-tint:#ff1018"><i class="fas fa-comment-slash"></i></span>
+        <div class="pr-sys-name">
+          <h4>مكافحة السبام <span class="pr-state <%= protection.anti_spam === 'true' ? '' : 'off' %>"><%= protection.anti_spam === 'true' ? 'مفعّل' : 'معطّل' %></span></h4>
+          <p>حذف الرسائل المتكررة وإيقاف صاحبها تلقائياً</p>
         </div>
-      <% }) %>
+        <label class="toggle">
+          <input type="checkbox" name="anti_spam" <%= protection.anti_spam === 'true' ? 'checked' : '' %> onchange="toggleGuard('anti_spam')">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="pr-body <%= protection.anti_spam === 'true' ? '' : 'is-off' %>">
+        <div class="pr-subgrid">
+          <div class="pr-field">
+            <label>حد الرسائل</label>
+            <input type="number" name="spam_limit" min="2" max="50" value="<%= protection.spam_limit %>">
+            <small>عدد الرسائل المسموح بها داخل النافذة</small>
+          </div>
+          <div class="pr-field">
+            <label>النافذة الزمنية (ثوانٍ)</label>
+            <input type="number" name="spam_window" min="1" max="60" value="<%= winSec(protection.spam_window, 5000) %>">
+            <small>خلال هذه المدة تُحسب الرسائل</small>
+          </div>
+          <div class="pr-field">
+            <label>العقوبة</label>
+            <select name="spam_punishment" id="spamPunishment" onchange="syncPunish()">
+              <option value="timeout" <%= sel('timeout', protection.spam_punishment) %>>إيقاف مؤقت (Timeout)</option>
+              <option value="kick" <%= sel('kick', protection.spam_punishment) %>>طرد من السيرفر</option>
+              <option value="ban" <%= sel('ban', protection.spam_punishment) %>>حظر نهائي</option>
+              <option value="warn" <%= sel('warn', protection.spam_punishment) %>>تحذير فقط</option>
+            </select>
+          </div>
+          <div class="pr-field" id="spamTimeoutField">
+            <label>مدة الإيقاف (ثوانٍ)</label>
+            <input type="number" name="spam_timeout_seconds" min="1" max="86400" value="<%= protection.spam_timeout_seconds %>">
+            <small>تُستخدم عند اختيار «إيقاف مؤقت»</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- مكافحة الروابط -->
+    <div class="pr-sys glass <%= onCls(protection.anti_link) %>" data-sys="anti_link">
+      <div class="pr-sys-head">
+        <span class="pr-ic" style="--pr-tint:#00c8ff"><i class="fas fa-link-slash" aria-hidden="true"></i></span>
+        <div class="pr-sys-name">
+          <h4>مكافحة الروابط <span class="pr-state <%= protection.anti_link === 'true' ? '' : 'off' %>"><%= protection.anti_link === 'true' ? 'مفعّل' : 'معطّل' %></span></h4>
+          <p>حذف الروابط الدعائية والخبيثة تلقائياً</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="anti_link" <%= protection.anti_link === 'true' ? 'checked' : '' %> onchange="toggleGuard('anti_link')">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="pr-body <%= protection.anti_link === 'true' ? '' : 'is-off' %>">
+        <div class="pr-subgrid">
+          <div class="pr-field">
+            <label>الإجراء عند رابط ممنوع</label>
+            <select name="link_action">
+              <option value="delete" <%= sel('delete', protection.link_action) %>>حذف الرسالة فقط</option>
+              <option value="timeout" <%= sel('timeout', protection.link_action) %>>حذف + إيقاف مؤقت</option>
+              <option value="kick" <%= sel('kick', protection.link_action) %>>حذف + طرد</option>
+              <option value="ban" <%= sel('ban', protection.link_action) %>>حذف + حظر</option>
+            </select>
+          </div>
+          <div class="pr-field pr-span-2">
+            <label>روابط مسموح بها (استثناء)</label>
+            <input type="text" name="link_whitelist" value="<%= protection.link_whitelist %>" placeholder="youtube.com, discord.gg, github.com">
+            <small>نطاقات مسموح بها دائماً، مفصولة بفاصلة. تُقبل النطاقات الفرعية أيضاً.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- مكافحة المنشن -->
+    <div class="pr-sys glass <%= onCls(protection.anti_mention) %>" data-sys="anti_mention">
+      <div class="pr-sys-head">
+        <span class="pr-ic" style="--pr-tint:#d000ff"><i class="fas fa-at" aria-hidden="true"></i></span>
+        <div class="pr-sys-name">
+          <h4>مكافحة المنشن <span class="pr-state <%= protection.anti_mention === 'true' ? '' : 'off' %>"><%= protection.anti_mention === 'true' ? 'مفعّل' : 'معطّل' %></span></h4>
+          <p>منع المنشن الجماعي المزعج في رسالة واحدة</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="anti_mention" <%= protection.anti_mention === 'true' ? 'checked' : '' %> onchange="toggleGuard('anti_mention')">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="pr-body <%= protection.anti_mention === 'true' ? '' : 'is-off' %>">
+        <div class="pr-subgrid">
+          <div class="pr-field">
+            <label>الحد الأقصى للمنشنات</label>
+            <input type="number" name="mention_limit" min="1" max="100" value="<%= protection.mention_limit %>">
+            <small>عدد المعرفات/الرتب المسموح بها في رسالة واحدة</small>
+          </div>
+          <div class="pr-field">
+            <label>الإجراء</label>
+            <select name="mention_action">
+              <option value="delete" <%= sel('delete', protection.mention_action) %>>حذف الرسالة فقط</option>
+              <option value="timeout" <%= sel('timeout', protection.mention_action) %>>حذف + إيقاف مؤقت</option>
+              <option value="kick" <%= sel('kick', protection.mention_action) %>>حذف + طرد</option>
+              <option value="ban" <%= sel('ban', protection.mention_action) %>>حذف + حظر</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- مكافحة التخريب -->
+    <div class="pr-sys glass <%= onCls(protection.anti_nuke) %>" data-sys="anti_nuke">
+      <div class="pr-sys-head">
+        <span class="pr-ic" style="--pr-tint:#ff8088"><i class="fas fa-bomb" aria-hidden="true"></i></span>
+        <div class="pr-sys-name">
+          <h4>مكافحة التخريب (Anti-Nuke) <span class="pr-state <%= protection.anti_nuke === 'true' ? '' : 'off' %>"><%= protection.anti_nuke === 'true' ? 'مفعّل' : 'معطّل' %></span></h4>
+          <p>اكتشاف من يحذف القنوات/الرتب أو يحظر الأعضاء بموجة واحدة</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="anti_nuke" <%= protection.anti_nuke === 'true' ? 'checked' : '' %> onchange="toggleGuard('anti_nuke')">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="pr-body <%= protection.anti_nuke === 'true' ? '' : 'is-off' %>">
+        <div class="pr-subgrid">
+          <div class="pr-field">
+            <label>حد حذف القنوات</label>
+            <input type="number" name="nuke_channel_limit" min="2" max="25" value="<%= protection.nuke_channel_limit %>">
+            <small>عدد القنوات المحذوفة قبل التدخل</small>
+          </div>
+          <div class="pr-field">
+            <label>حد حذف الرتب</label>
+            <input type="number" name="nuke_role_limit" min="2" max="25" value="<%= protection.nuke_role_limit %>">
+            <small>عدد الرتب المحذوفة قبل التدخل</small>
+          </div>
+          <div class="pr-field">
+            <label>حد الحظر الجماعي</label>
+            <input type="number" name="nuke_ban_limit" min="2" max="50" value="<%= protection.nuke_ban_limit %>">
+            <small>عدد أعضاء الحظر خلال النافذة</small>
+          </div>
+          <div class="pr-field">
+            <label>النافذة الزمنية (ثوانٍ)</label>
+            <input type="number" name="nuke_window" min="2" max="300" value="<%= winSec(protection.nuke_window, 10000) %>">
+            <small>تُحسب العمليات خلال هذه المدة</small>
+          </div>
+          <div class="pr-field">
+            <label>الإجراء ضد المخرب</label>
+            <select name="nuke_action">
+              <option value="strip" <%= sel('strip', protection.nuke_action) %>>سحب جميع الرتب</option>
+              <option value="kick" <%= sel('kick', protection.nuke_action) %>>طرد</option>
+              <option value="ban" <%= sel('ban', protection.nuke_action) %>>حظر</option>
+              <option value="timeout" <%= sel('timeout', protection.nuke_action) %>>إيقاف مؤقت (ساعة)</option>
+            </select>
+            <small>لا يُطبَّق على الأدمن/المالك أو الرتب الأعلى من البوت</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- مكافحة الاقتحام -->
+    <div class="pr-sys glass <%= onCls(protection.anti_raid) %>" data-sys="anti_raid">
+      <div class="pr-sys-head">
+        <span class="pr-ic" style="--pr-tint:#00c8ff"><i class="fas fa-users-slash" aria-hidden="true"></i></span>
+        <div class="pr-sys-name">
+          <h4>مكافحة الاقتحام (Anti-Raid) <span class="pr-state <%= protection.anti_raid === 'true' ? '' : 'off' %>"><%= protection.anti_raid === 'true' ? 'مفعّل' : 'معطّل' %></span></h4>
+          <p>رصد موجات الانضمام المفاجئة والتعامل معها</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="anti_raid" <%= protection.anti_raid === 'true' ? 'checked' : '' %> onchange="toggleGuard('anti_raid')">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="pr-body <%= protection.anti_raid === 'true' ? '' : 'is-off' %>">
+        <div class="pr-subgrid">
+          <div class="pr-field">
+            <label>حد الانضمامات</label>
+            <input type="number" name="raid_limit" min="3" max="100" value="<%= protection.raid_limit %>">
+            <small>عدد الأعضاء قبل اعتبارها موجة</small>
+          </div>
+          <div class="pr-field">
+            <label>النافذة الزمنية (ثوانٍ)</label>
+            <input type="number" name="raid_window" min="2" max="120" value="<%= winSec(protection.raid_window, 10000) %>">
+            <small>تُحسب الانضمامات خلال هذه المدة</small>
+          </div>
+          <div class="pr-field">
+            <label>أدنى عمر حساب (أيام)</label>
+            <input type="number" name="raid_min_account_age" min="0" max="365" value="<%= protection.raid_min_account_age %>">
+            <small>0 = تعطيل. الحسابات الأحدث من ذلك تُعدّ مشبوهة.</small>
+          </div>
+          <div class="pr-field">
+            <label>الإجراء</label>
+            <select name="raid_action">
+              <option value="alert" <%= sel('alert', protection.raid_action) %>>تنبيه فقط</option>
+              <option value="kick" <%= sel('kick', protection.raid_action) %>>طرد العضو الجديد</option>
+              <option value="ban" <%= sel('ban', protection.raid_action) %>>حظر العضو الجديد</option>
+            </select>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="card glass">
-    <div class="card-header"><h3><i class="fas fa-sliders-h"></i> الحدود والإعدادات</h3></div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>حد السبام (رسائل)</label>
-        <input type="number" name="spamLimit" value="<%= protection.spamLimit %>" min="1" max="20">
+  <!-- ═══════════════════ الاستثناءات ═══════════════════ -->
+  <div class="tab-content" id="tab-exempt">
+    <p class="pr-hint"><i class="fas fa-circle-info"></i> الأعضاء والرومات المستثناة لن تخضع لأنظمة الأوماتومود ولا سيُتّخذ ضدهم إجراء تخريب/اقتحام. المالك مستثنى دائماً تلقائياً.</p>
+
+    <div class="pr-wl glass">
+      <div class="pr-wl-head">
+        <h3><i class="fas fa-user-tag"></i> رتب مستثناة</h3>
+        <p>أي عضو يحمل إحدى هذه الرتب لن تُطبَّق عليه أنظمة الحماية.</p>
       </div>
-      <div class="form-group">
-        <label>نافذة السبام (مللي ثانية)</label>
-        <input type="number" name="spamWindow" value="<%= protection.spamWindow %>" min="1000" max="30000">
-      </div>
-      <div class="form-group">
-        <label>عقوبة السبام</label>
-        <select name="spamPunishment">
-          <option value="timeout" <%= protection.spamPunishment === 'timeout' ? 'selected' : '' %>>إيقاف مؤقت</option>
-          <option value="kick" <%= protection.spamPunishment === 'kick' ? 'selected' : '' %>>طرد</option>
-          <option value="warn" <%= protection.spamPunishment === 'warn' ? 'selected' : '' %>>تحذير</option>
+      <div class="pr-add-row">
+        <select id="wl-roles-select">
+          <option value="">— اختر رتبة —</option>
+          <% guildRoles.forEach(r => { %>
+            <option value="<%= r.id %>"><%= r.name %></option>
+          <% }) %>
         </select>
+        <button type="button" class="btn-secondary" onclick="addWl('roles')"><i class="fas fa-plus"></i> إضافة رتبة</button>
       </div>
-      <div class="form-group">
-        <label>حد حذف القنوات (Anti-Nuke)</label>
-        <input type="number" name="nukeChannelLimit" value="<%= protection.nukeChannelLimit %>" min="1" max="10">
+      <div class="pr-chips" id="wl-roles-list"></div>
+    </div>
+
+    <div class="pr-wl glass">
+      <div class="pr-wl-head">
+        <h3><i class="fas fa-user-shield"></i> أعضاء مستثنون</h3>
+        <p>أدخل معرّف العضو (ID) لإضافته إلى قائمة الاستثناء.</p>
       </div>
-      <div class="form-group">
-        <label>حد الحظر (Anti-Nuke)</label>
-        <input type="number" name="nukeBanLimit" value="<%= protection.nukeBanLimit %>" min="1" max="10">
+      <div class="pr-add-row">
+        <input type="text" id="wl-users-input" placeholder="مثال: 123456789012345678" inputmode="numeric">
+        <button type="button" class="btn-secondary" onclick="addWl('users')"><i class="fas fa-plus"></i> إضافة عضو</button>
       </div>
-      <div class="form-group">
-        <label>نافذة Nuke (مللي ثانية)</label>
-        <input type="number" name="nukeWindow" value="<%= protection.nukeWindow %>" min="5000" max="30000">
+      <div class="pr-chips" id="wl-users-list"></div>
+    </div>
+
+    <div class="pr-wl glass">
+      <div class="pr-wl-head">
+        <h3><i class="fas fa-hashtag"></i> رومات مستثناة</h3>
+        <p>لن تُطبَّق أنظمة الأوماتومود على الرسائل في هذه الرومات.</p>
       </div>
-      <div class="form-group">
-        <label>حد الانضمام (Raid)</label>
-        <input type="number" name="raidLimit" value="<%= protection.raidLimit %>" min="5" max="30">
+      <div class="pr-add-row">
+        <select id="wl-channels-select">
+          <option value="">— اختر روم —</option>
+          <% guildChannels.forEach(c => { %>
+            <option value="<%= c.id %>">#<%= c.name %></option>
+          <% }) %>
+        </select>
+        <button type="button" class="btn-secondary" onclick="addWl('channels')"><i class="fas fa-plus"></i> إضافة روم</button>
       </div>
-      <div class="form-group">
-        <label>نافذة Raid (مللي ثانية)</label>
-        <input type="number" name="raidWindow" value="<%= protection.raidWindow %>" min="5000" max="30000">
+      <div class="pr-chips" id="wl-channels-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ الرومات المحضورة ═══════════════════ -->
+  <div class="tab-content" id="tab-restricted">
+    <div class="pr-rest glass">
+      <div class="pr-wl-head">
+        <h3><i class="fas fa-ban"></i> الرومات المحضورة</h3>
+        <p>أي عضو ينشر في هذه الرومات يُحظر تلقائياً لمدة 24 ساعة وتُحذف رسائله — باستثناء المالك والبوت وأدمن اللوحة. تُستخدم عادةً لروماتٍ لا يُرسَل فيها أبداً.</p>
+      </div>
+      <div class="pr-add-row">
+        <select id="restrictedChannelSelect">
+          <option value="">— اختر روم —</option>
+          <% guildChannels.forEach(c => { %>
+            <option value="<%= c.id %>">#<%= c.name %></option>
+          <% }) %>
+        </select>
+        <button type="button" class="btn-primary" onclick="addRestrictedChannel()"><i class="fas fa-plus"></i> إضافة روم محضور</button>
+      </div>
+      <div class="pr-rest-list" id="prRestList">
+        <% if (restrictedCount > 0) { %>
+          <% restrictedChannels.forEach(ch => { %>
+            <div class="pr-rest-item">
+              <span class="pr-rest-name"><i class="fas fa-hashtag" aria-hidden="true"></i> <strong><%= ch.name || ch.id %></strong></span>
+              <button type="button" class="pr-del" onclick="removeRestrictedChannel('<%= ch.id %>')"><i class="fas fa-trash"></i> حذف</button>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="empty-state" id="prRestEmpty"><i class="fas fa-inbox"></i><p>لا توجد رومات محضورة — أضف رومًا من القائمة</p></div>
+        <% } %>
       </div>
     </div>
-    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> حفظ إعدادات الحماية</button>
   </div>
 </form>
 
-<!-- ─── الرومات المحضورة ────────────────────────────────────────────── -->
-<div class="card glass pr-restricted">
-  <div class="card-header"><h3><i class="fas fa-ban"></i> الرومات المحضورة</h3></div>
-  <p class="pr-rest-desc">
-    أي شخص يرسل في هذه الرومات (حتى الإدارة) يُطرد لمدة يوم — باستثناء المالك والبوت والمبرمج
-  </p>
-
-  <div class="pr-add-row">
-    <select id="restrictedChannelSelect">
-      <option value="">-- اختر رومًا --</option>
-      <% (guildChannels || []).forEach(ch => { %>
-        <option value="<%= ch.id %>"><%= ch.name %></option>
-      <% }) %>
-    </select>
-    <button onclick="addRestrictedChannel()" class="btn-primary">
-      <i class="fas fa-plus"></i> إضافة روم محضور
-    </button>
-  </div>
-
-  <div class="pr-rest-list">
-    <% if (restrictedCount > 0) { %>
-      <% restrictedChannels.forEach(ch => { %>
-        <div class="pr-rest-item">
-          <span class="pr-rest-name"><i class="fas fa-hashtag" aria-hidden="true"></i> <strong><%= ch.name || ch.id %></strong></span>
-          <button onclick="removeRestrictedChannel('<%= ch.id %>')" class="btn-sm pr-rest-del">
-            <i class="fas fa-trash"></i> حذف
-          </button>
-        </div>
-      <% }) %>
-    <% } else { %>
-      <div class="empty-state">
-        <i class="fas fa-inbox"></i>
-        <p>لا توجد رومات محضورة — أضف رومًا من القائمة أعلاه</p>
-      </div>
-    <% } %>
-  </div>
-</div>
-
 <style>
-  .pr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
-  .pr-card {
-    padding: 15px; border-radius: var(--radius, 12px);
-    border: 1px solid var(--nx-line, rgba(237,240,255,0.07));
-    background: rgba(237,240,255,0.015);
-    transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease), transform .18s var(--nx-ease, ease);
+  .pr-topbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    flex-wrap: wrap; padding: 14px 18px; margin-bottom: 16px;
   }
-  .pr-card:hover { transform: translateY(-1px); }
-  .pr-card.is-on { border-color: rgba(0,200,255,0.28); }
-  .pr-head { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
-  .pr-head h4 { font-size: .9rem; font-weight: 700; flex: 1; }
+  .pr-topbar-info { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .pr-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(237,240,255,0.05); border: 1px solid var(--nx-line, rgba(237,240,255,0.08));
+    color: var(--text-muted); padding: 6px 12px; border-radius: 40px; font-size: 0.8rem;
+  }
+  .pr-pill i { color: var(--primary, #d000ff); font-size: 0.85rem; }
+  .pr-pill b { color: var(--text, #edf0ff); }
+  .pr-topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .pr-warn {
+    display: flex; align-items: center; gap: 12px; padding: 14px 18px; margin-bottom: 16px;
+    border: 1px solid rgba(255,128,136,0.3); background: rgba(255,128,136,0.06); color: #ff8088;
+  }
+  .pr-warn i { font-size: 1.2rem; }
+  .pr-warn div { font-size: 0.85rem; color: var(--text-muted); }
+  .pr-warn strong { color: #ff8088; }
+
+  .pr-check { margin-bottom: 16px; }
+  .pr-ck-head {
+    padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;
+  }
+  .pr-ck-head.ok { background: rgba(0,200,255,0.12); color: #00c8ff; border: 1px solid rgba(0,200,255,0.3); }
+  .pr-ck-head.warn { background: rgba(255,128,136,0.12); color: #ff8088; border: 1px solid rgba(255,128,136,0.3); }
+  .pr-ck-list { display: flex; flex-direction: column; gap: 6px; }
+  .pr-ck-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px;
+    background: rgba(237,240,255,0.03); border: 1px solid var(--nx-line, rgba(237,240,255,0.07));
+    font-size: 0.85rem;
+  }
+  .pr-ck-item i { font-size: 1rem; }
+  .pr-ck-item.ok i { color: #00c8ff; }
+  .pr-ck-item.fail i { color: #ff1018; }
+  .pr-ck-item span { flex: 1; }
+  .pr-ck-item small { color: var(--text-muted); font-size: 0.75rem; }
+  .pr-ck-loading, .pr-ck-fail { padding: 14px 16px; color: var(--text-muted); font-size: 0.85rem; }
+
+  .pr-tabs { flex-wrap: wrap; }
+  .pr-hint {
+    display: flex; align-items: center; gap: 8px; color: var(--text-muted);
+    font-size: 0.82rem; margin-bottom: 14px;
+  }
+  .pr-hint i { color: var(--primary, #d000ff); }
+
+  .pr-sys { padding: 0; margin-bottom: 14px; overflow: hidden; transition: border-color .25s var(--nx-ease, ease); }
+  .pr-sys.is-on { border-color: rgba(208,0,255,0.35); }
+  .pr-sys-head { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
   .pr-ic {
-    width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center;
-    border-radius: 10px; font-size: .9rem;
-    background: color-mix(in srgb, var(--pr-tint) 14%, transparent); color: var(--pr-tint);
+    width: 46px; height: 46px; flex: 0 0 46px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
+    background: color-mix(in srgb, var(--pr-tint, #d000ff) 16%, transparent);
+    color: var(--pr-tint, #d000ff);
   }
-  .pr-card p { color: var(--text-muted); font-size: .76rem; line-height: 1.65; margin: 0; }
-  .pr-rest-desc { color: var(--text-muted); font-size: .82rem; line-height: 1.7; margin: 0 0 16px; }
-  .pr-add-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-  .pr-add-row select {
+  .pr-sys-name { flex: 1; min-width: 0; }
+  .pr-sys-name h4 { font-size: 0.98rem; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .pr-sys-name p { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+  .pr-state {
+    font-size: 0.68rem; font-weight: 700; padding: 2px 10px; border-radius: 20px;
+    background: rgba(0,200,255,0.15); color: #00c8ff; border: 1px solid rgba(0,200,255,0.25);
+  }
+  .pr-state.off { background: rgba(237,240,255,0.06); color: var(--text-muted); border-color: var(--nx-line, rgba(237,240,255,0.1)); }
+
+  .pr-body {
+    padding: 4px 18px 18px; border-top: 1px solid var(--nx-line, rgba(237,240,255,0.06));
+    transition: opacity .25s ease;
+  }
+  .pr-body.is-off { opacity: 0.45; filter: grayscale(0.4); }
+  .pr-subgrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 14px; }
+  .pr-span-2 { grid-column: 1 / -1; }
+  .pr-field { display: flex; flex-direction: column; gap: 5px; }
+  .pr-field label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+  .pr-field input, .pr-field select {
+    background: var(--bg-glass-hover, rgba(237,240,255,0.04)); color: var(--text, #edf0ff);
+    border: 1px solid var(--border, rgba(237,240,255,0.1)); border-radius: var(--radius-sm, 8px);
+    padding: 10px 14px; font-family: inherit; font-size: 0.875rem; transition: border-color .2s ease;
+    width: 100%;
+  }
+  .pr-field input:focus, .pr-field select:focus { outline: none; border-color: var(--primary, #d000ff); }
+  .pr-field small { font-size: 0.72rem; color: var(--text-muted); }
+
+  .pr-wl { padding: 18px; margin-bottom: 14px; }
+  .pr-wl-head h3 { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .pr-wl-head h3 i { color: var(--primary, #d000ff); }
+  .pr-wl-head p { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+  .pr-add-row { display: flex; gap: 10px; margin: 14px 0 12px; flex-wrap: wrap; }
+  .pr-add-row select, .pr-add-row input {
     flex: 1; min-width: 210px; padding: 10px 14px; border-radius: 10px;
-    border: 1px solid var(--nx-line, rgba(237,240,255,0.1));
-    background: var(--bg-secondary, #34343f); color: var(--text, #edf0ff); font-family: inherit; outline: none;
+    border: 1px solid var(--border, rgba(237,240,255,0.1));
+    background: var(--bg-glass-hover, rgba(237,240,255,0.04)); color: var(--text, #edf0ff);
+    font-family: inherit; font-size: 0.85rem; outline: none;
   }
-  .pr-add-row select:focus { border-color: var(--primary, #d000ff); }
+  .pr-add-row select:focus, .pr-add-row input:focus { border-color: var(--primary, #d000ff); }
+  .pr-add-row button { white-space: nowrap; }
+  .pr-chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 30px; }
+  .pr-wl-empty { color: var(--text-muted); font-size: 0.8rem; }
+  .pr-chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 8px 6px 14px;
+    border-radius: 40px; font-size: 0.8rem; font-weight: 600;
+    background: rgba(208,0,255,0.12); border: 1px solid rgba(208,0,255,0.28); color: #edf0ff;
+  }
+  .pr-chip button {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(255,16,24,0.18); color: #ff8088; font-size: 0.7rem;
+  }
+  .pr-chip button:hover { background: rgba(255,16,24,0.35); color: #fff; }
+
+  .pr-rest .pr-add-row { margin-top: 16px; }
   .pr-rest-list { display: flex; flex-direction: column; gap: 8px; }
   .pr-rest-item {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 11px 14px; border-radius: 11px;
-    border: 1px solid var(--nx-line, rgba(237,240,255,0.07)); background: rgba(255,16,24,0.04);
+    padding: 12px 14px; border-radius: 12px;
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.07)); background: rgba(255,16,24,0.05);
   }
-  .pr-rest-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .pr-rest-name { display: flex; align-items: center; gap: 9px; min-width: 0; }
   .pr-rest-name i { color: var(--text-muted); }
-  .pr-rest-name strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pr-rest-del { background: rgba(255,16,24,0.15); color: #ff1018; border: 1px solid rgba(255,16,24,0.3); cursor: pointer; }
-  .pr-rest-del:hover { background: rgba(255,16,24,0.28); color: #ff8088; }
-  @media (max-width: 620px) { .pr-add-row select { min-width: 100%; } }
+  .pr-rest-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pr-del {
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    background: rgba(255,16,24,0.15); color: #ff1018; border: 1px solid rgba(255,16,24,0.3);
+    padding: 6px 14px; border-radius: 8px; font-family: inherit; font-size: 0.8rem; transition: all .2s;
+  }
+  .pr-del:hover { background: rgba(255,16,24,0.28); color: #ff8088; }
+
+  @media (max-width: 700px) {
+    .pr-subgrid { grid-template-columns: 1fr; }
+    .pr-add-row select, .pr-add-row input { min-width: 100%; }
+    .pr-topbar { flex-direction: column; align-items: stretch; }
+    .pr-topbar-actions button { flex: 1; justify-content: center; }
+  }
 </style>
 
 <script>
-async function updateProtection(e) {
-  e.preventDefault();
-  const form = document.getElementById('protectionForm');
-  const data = {};
-  new FormData(form).forEach((v, k) => { data[k] = v; });
-  const res = await fetch('/protection/<%= guild.id %>/update', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (res.ok) showToast('✅ تم حفظ إعدادات الحماية بنجاح');
-}
+  const GUILD_ID = '<%= guild.id %>';
 
-async function addRestrictedChannel() {
-  const sel = document.getElementById('restrictedChannelSelect');
-  const channelId = sel.value;
-  if (!channelId) return showToast('⚠️ اختر رومًا أولاً');
-  const channelName = sel.options[sel.selectedIndex]?.text || channelId;
-  const res = await fetch('/protection/<%= guild.id %>/restricted-channel/add', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ channelId, channelName }),
-  });
-  if (res.ok) {
-    showToast('✅ تمت الإضافة');
-    setTimeout(() => location.reload(), 1000);
-  } else {
-    const data = await res.json();
-    showToast('❌ ' + (data.error || 'فشل'));
-  }
-}
+  // قوائم الاستثناء (تُدار في المتصفح وتُرسل مع الحفظ)
+  const WL = {
+    roles: <%- JSON.stringify((whitelistRoles || []).map(r => r.id)) %>,
+    users: <%- JSON.stringify((whitelistUsers || []).map(u => u.id)) %>,
+    channels: <%- JSON.stringify((whitelistChannels || []).map(c => c.id)) %>,
+  };
+  const WL_NAMES = {
+    roles: <%- JSON.stringify(Object.fromEntries((whitelistRoles || []).map(r => [r.id, r.name]))) %>,
+    users: {},
+    channels: <%- JSON.stringify(Object.fromEntries((whitelistChannels || []).map(c => [c.id, c.name]))) %>,
+  };
 
-async function removeRestrictedChannel(channelId) {
-  if (!confirm('هل أنت متأكد من إزالة هذا الروم المحضور؟')) return;
-  const res = await fetch('/protection/<%= guild.id %>/restricted-channel/remove', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ channelId }),
-  });
-  if (res.ok) {
-    showToast('✅ تمت الإزالة');
-    setTimeout(() => location.reload(), 1000);
-  } else {
-    showToast('❌ فشل الإزالة');
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
-}
+
+  // ─── تفعيل/تعطيل بطاقة نظام ──────────────────────────────────────────────
+  function toggleGuard(key) {
+    const input = document.querySelector('[name="' + key + '"]');
+    if (!input) return;
+    const card = input.closest('.pr-sys');
+    const body = card?.querySelector('.pr-body');
+    const badge = card?.querySelector('.pr-state');
+    const on = input.checked;
+    if (card) card.classList.toggle('is-on', on);
+    if (body) body.classList.toggle('is-off', !on);
+    if (badge) { badge.textContent = on ? 'مفعّل' : 'معطّل'; badge.classList.toggle('off', !on); }
+    updateSummary();
+    if (key === 'anti_spam') syncPunish();
+  }
+
+  function syncPunish() {
+    const p = document.getElementById('spamPunishment')?.value;
+    const field = document.getElementById('spamTimeoutField');
+    if (field) field.style.display = (p === 'timeout') ? '' : 'none';
+  }
+
+  function updateSummary() {
+    const keys = ['anti_spam', 'anti_link', 'anti_mention', 'anti_nuke', 'anti_raid'];
+    const on = keys.filter(k => document.querySelector('[name="' + k + '"]')?.checked).length;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('prSysCount', on);
+    set('prWlCount', WL.roles.length + WL.users.length + WL.channels.length);
+    const punish = document.getElementById('spamPunishment');
+    const label = punish?.options[punish.selectedIndex]?.text || '—';
+    set('prPunishPill', label);
+    set('prPunishCard', label);
+  }
+
+  // ── قوائم الاستثناء ──────────────────────────────────────────────────────
+  function addWl(kind) {
+    if (kind === 'users') {
+      const input = document.getElementById('wl-users-input');
+      const id = (input?.value || '').trim();
+      if (!/^\d{17,20}$/.test(id)) { showToast('⚠️ أدخل معرّف عضو صالح (17-20 رقم)'); return; }
+      if (WL.users.includes(id)) return showToast('ℹ️ مضاف مسبقاً');
+      WL.users.push(id); WL_NAMES.users[id] = id;
+      if (input) input.value = '';
+      renderWhitelist('users'); updateSummary();
+      return;
+    }
+    const sel = document.getElementById('wl-' + kind + '-select');
+    const id = sel?.value;
+    if (!id) return showToast('⚠️ اختر عنصراً أولاً');
+    if (WL[kind].includes(id)) { showToast('ℹ️ مضاف مسبقاً'); return; }
+    WL[kind].push(id);
+    WL_NAMES[kind][id] = sel.options[sel.selectedIndex]?.text || id;
+    sel.selectedIndex = 0;
+    renderWhitelist(kind);
+    updateSummary();
+  }
+
+  function removeWl(kind, id) {
+    WL[kind] = WL[kind].filter(x => x !== id);
+    renderWhitelist(kind);
+    updateSummary();
+  }
+
+  function renderWhitelist(kind) {
+    const list = document.getElementById('wl-' + kind + '-list');
+    if (!list) return;
+    if (!WL[kind].length) {
+      list.innerHTML = '<span class="pr-wl-empty">لا يوجد استثناء</span>';
+      return;
+    }
+    list.innerHTML = WL[kind].map(id => {
+      const name = WL_NAMES[kind][id] || id;
+      return '<span class="pr-chip">' + escapeHtml(name)
+        + '<button type="button" onclick="removeWl(\'' + kind + '\',\'' + id + '\')" aria-label="إزالة"><i class="fas fa-xmark"></i></button></span>';
+    }).join('');
+  }
+
+  // ── الحفظ ──
+  async function saveProtection(e) {
+    if (e) e.preventDefault();
+    const q = (n) => document.querySelector('[name="' + n + '"]');
+    const on = (n) => Boolean(q(n)?.checked);
+    const num = (n, d) => { const v = parseInt(q(n)?.value, 10); return Number.isFinite(v) ? v : d; };
+    const sec = (n, d) => { const s = parseFloat(q(n)?.value); return Number.isFinite(s) ? Math.round(s * 1000) : d; };
+    const val = (n) => q(n)?.value ?? '';
+
+    const payload = {
+      anti_spam: on('anti_spam'),
+      anti_link: on('anti_link'),
+      anti_mention: on('anti_mention'),
+      anti_nuke: on('anti_nuke'),
+      anti_raid: on('anti_raid'),
+      spam_limit: num('spam_limit', 5),
+      spam_window: sec('spam_window', 5000),
+      spam_punishment: val('spam_punishment'),
+      spam_timeout_seconds: num('spam_timeout_seconds', 60),
+      link_action: val('link_action'),
+      link_whitelist: val('link_whitelist'),
+      mention_limit: num('mention_limit', 5),
+      mention_action: val('mention_action'),
+      nuke_channel_limit: num('nuke_channel_limit', 3),
+      nuke_role_limit: num('nuke_role_limit', 3),
+      nuke_ban_limit: num('nuke_ban_limit', 5),
+      nuke_window: sec('nuke_window', 10000),
+      nuke_action: val('nuke_action'),
+      raid_limit: num('raid_limit', 10),
+      raid_window: sec('raid_window', 10000),
+      raid_min_account_age: num('raid_min_account_age', 0),
+      raid_action: val('raid_action'),
+      protection_whitelist_roles: WL.roles,
+      protection_whitelist_users: WL.users,
+      protection_whitelist_channels: WL.channels,
+    };
+
+    const btn = document.getElementById('prSaveBtn');
+    if (btn) { btn.disabled = true; btn.dataset.label = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ...'; }
+    try {
+      const res = await fetch('/protection/' + GUILD_ID + '/update', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+      });
+      if (res.ok) { showToast('✅ تم حفظ إعدادات الحماية — الأنظمة تعمل الآن'); updateSummary(); }
+      else { const d = await res.json().catch(() => ({})); showToast('❌ ' + (d.error || 'فشل الحفظ')); }
+    } catch { showToast('❌ تعذّر الاتصال بالخادم'); }
+    finally { if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.label || '<i class="fas fa-floppy-disk"></i> حفظ التغييرات'; } }
+    return false;
+  }
+
+  // ── فحص الجاهزية ──
+  async function runProtectionCheck() {
+    const box = document.getElementById('prCheckResult');
+    const btn = document.getElementById('prCheckBtn');
+    box.hidden = false;
+    box.innerHTML = '<div class="pr-ck-loading"><i class="fas fa-spinner fa-spin"></i> جارٍ فحص البوت والصلاحيات...</div>';
+    if (btn) btn.disabled = true;
+    try {
+      const res = await fetch('/protection/' + GUILD_ID + '/test', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!data.checks) {
+        box.innerHTML = '<div class="pr-ck-head warn">❌ ' + escapeHtml(data.error || 'فشل الفحص') + '</div>';
+        return;
+      }
+      const rows = data.checks.map(c =>
+        '<div class="pr-ck-item ' + (c.ok ? 'ok' : 'fail') + '">'
+        + '<i class="fas ' + (c.ok ? 'fa-circle-check' : 'fa-circle-xmark') + '"></i>'
+        + '<span>' + escapeHtml(c.label) + '</span>'
+        + '<small>' + escapeHtml(c.detail || '') + '</small></div>'
+      ).join('');
+      box.innerHTML = '<div class="pr-ck-head ' + (data.ok ? 'ok' : 'warn') + '">'
+        + (data.ok ? '✅ كل الفحوصات ناجحة — الحماية جاهزة للعمل' : '⚠️ بعض الفحوصات تحتاج انتباهك قبل الاعتماد الكامل')
+        + '</div><div class="pr-ck-list">' + rows + '</div>';
+    } catch {
+      box.innerHTML = '<div class="pr-ck-head warn">❌ تعذّر الوصول إلى البوت — تأكد من أنه يعمل</div>';
+    } finally { if (btn) btn.disabled = false; }
+  }
+
+  // ── الرومات المحضورة ──
+  async function addRestrictedChannel() {
+    const sel = document.getElementById('restrictedChannelSelect');
+    const channelId = sel.value;
+    if (!channelId) return showToast('⚠️ اختر رومًا أولاً');
+    const channelName = sel.options[sel.selectedIndex]?.text?.replace('#', '') || channelId;
+    const res = await fetch('/protection/' + GUILD_ID + '/restricted-channel/add', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId, channelName }),
+    });
+    if (res.ok) { showToast('✅ تمت إضافة الروم المحضور'); setTimeout(() => location.reload(), 700); }
+    else { const d = await res.json().catch(() => ({})); showToast('❌ ' + (d.error || 'فشل')); }
+  }
+
+  async function removeRestrictedChannel(channelId) {
+    if (!confirm('إزالة هذا الروم من قائمة المحضورة؟')) return;
+    const res = await fetch('/protection/' + GUILD_ID + '/restricted-channel/remove', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId }),
+    });
+    if (res.ok) { showToast('✅ تمت الإزالة'); setTimeout(() => location.reload(), 700); }
+    else { showToast('❌ فشل الإزالة'); }
+  }
+
+  // تهيئة أولية
+  document.addEventListener('DOMContentLoaded', () => {
+    ['roles', 'users', 'channels'].forEach(renderWhitelist);
+    syncPunish();
+    updateSummary();
+  });
 </script>
