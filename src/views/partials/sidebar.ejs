@@ -127,9 +127,9 @@
         <span>سجل النشاط</span>
         <% if (!perms.can.logs) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
-      <a href="/notifications/<%= guild.id %>" class="nav-link <%= currentPage === 'notifications' ? 'active' : '' %> <%= perms.can.notifications ? '' : 'locked' %>" data-req="1" data-tip="الإشعارات" aria-label="الإشعارات"<% if (currentPage === 'notifications') { %> aria-current="page"<% } %>>
+      <a href="/notifications/<%= guild.id %>" class="nav-link <%= currentPage === 'notifications' ? 'active' : '' %> <%= perms.can.notifications ? '' : 'locked' %>" data-req="1" data-tip="الإشعارات والإمبد" aria-label="الإشعارات والإمبد"<% if (currentPage === 'notifications') { %> aria-current="page"<% } %>>
         <i class="fas fa-bell" aria-hidden="true"></i>
-        <span>الإشعارات</span>
+        <span>الإشعارات والإمبد</span>
         <% if (!perms.can.notifications) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
       </a>
       <a href="/protection/<%= guild.id %>" class="nav-link <%= currentPage === 'protection' ? 'active' : '' %> <%= perms.can.protection ? '' : 'locked' %>" data-req="2" data-tip="الحماية" aria-label="الحماية"<% if (currentPage === 'protection') { %> aria-current="page"<% } %>>

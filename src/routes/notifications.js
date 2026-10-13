@@ -54,7 +54,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, modOnly, async (req, re
     guild,
     guildChannels,
     subscriptions,
-    title: 'الإشعارات',
+    title: 'الإشعارات والإمبد',
     currentPage: 'notifications',
   });
 });
