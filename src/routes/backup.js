@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, hasGuildAccess, isOwner, requireRole } from '../middleware/auth.js';
+import { isAuthenticated, hasGuildAccess, isOwner, requireRole, getGuildPremium } from '../middleware/auth.js';
 import { createBackupRecord, getBackupHistory, logActivity, logAudit, getAllGuildConfig } from '../database.js';
 import { sanitizeInput } from '../middleware/security.js';
 import path from 'path';
@@ -13,17 +13,37 @@ const BACKUP_DIR = path.join(__dirname, '..', '..', 'data', 'backups');
 const router = Router();
 const mgrOnly = requireRole('manager');
 
+// ── بوابة البريميوم: النسخ الاحتياطي ميزة مدفوعة ─────────────────────────
+// النسخ تُتحقّق في الخادم لا في الواجهة فقط، حتى لا يمكن تجاوز الحجب بنداء
+// مباشر على نقاط الإنشاء/الاستعادة/التحميل.
+async function premiumActive(guildId) {
+  try {
+    const status = await getGuildPremium(guildId);
+    return !!(status && status.active);
+  } catch {
+    return false;
+  }
+}
+
+const PREMIUM_DENIED = {
+  error: 'النسخ الاحتياطي ميزة بريميوم — فعّل اشتراكك للاستفادة منها.',
+  premiumRequired: true,
+};
+
 router.get('/:guildId', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   const { guildId } = req.params;
   const guild = await resolveGuild(req.session.user.guilds, guildId);
   if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
-  const backups = await getBackupHistory(guildId);
-  res.render('guild/backup', { user: req.session.user, guild, backups, title: 'النسخ الاحتياطي' });
+  const premium = await getGuildPremium(guildId);
+  // لا نجلب سجل النسخ إلا للمشتركين؛ غير المشترك يرى شاشة البريميوم فقط.
+  const backups = premium.active ? await getBackupHistory(guildId) : [];
+  res.render('guild/backup', { user: req.session.user, guild, backups, premium, title: 'النسخ الاحتياطي' });
 });
 
 router.post('/:guildId/create', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   try {
     const { guildId } = req.params;
+    if (!(await premiumActive(guildId))) return res.status(402).json(PREMIUM_DENIED);
     fs.mkdirSync(BACKUP_DIR, { recursive: true });
 
     const config = await getAllGuildConfig(guildId);
@@ -47,6 +67,7 @@ router.post('/:guildId/create', isAuthenticated, hasGuildAccess, mgrOnly, async 
 router.post('/:guildId/restore', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   try {
     const { guildId } = req.params;
+    if (!(await premiumActive(guildId))) return res.status(402).json(PREMIUM_DENIED);
     const { filename } = req.body;
     if (!filename) return res.status(400).json({ error: 'Filename required' });
 
@@ -74,6 +95,7 @@ router.post('/:guildId/restore', isAuthenticated, hasGuildAccess, mgrOnly, async
 
 router.get('/:guildId/download/:filename', isAuthenticated, hasGuildAccess, mgrOnly, async (req, res) => {
   const { guildId, filename } = req.params;
+  if (!(await premiumActive(guildId))) return res.status(402).json(PREMIUM_DENIED);
   const filePath = path.join(BACKUP_DIR, filename);
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
   res.download(filePath);

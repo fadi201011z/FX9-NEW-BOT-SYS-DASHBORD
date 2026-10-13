@@ -1002,6 +1002,21 @@ body:has(.guild-rail-item) {
   opacity: .9;
 }
 
+/* صفّ محجوب بالبريميوم (وليست الصلاحيات): شارة ذهبية صغيرة بدل قفل أحمر. */
+.nav-link .nav-premium-lock {
+  margin-inline-start: auto;
+  width: auto;
+  flex: none;
+  font-size: .62rem;
+  padding: 2px 7px;
+  border-radius: 20px;
+  color: #ffcf5c;
+  background: rgba(255,207,92,0.12);
+  border: 1px solid rgba(255,207,92,0.32);
+  opacity: .95;
+}
+.nav-link:hover .nav-premium-lock { background: rgba(255,207,92,0.2); }
+
 /* There is no "out of the server" card in this rail any more, and that is not an
    oversight to be corrected by adding one back. It lived here once, above the
    server's own section, and the section it belonged to was the only thing in the
@@ -1337,6 +1352,7 @@ body:has(.guild-rail-item) {
 .sidebar.collapsed .nav-section-title > span,
 .sidebar.collapsed .nav-link > span,
 .sidebar.collapsed .nav-link .nav-lock,
+.sidebar.collapsed .nav-link .nav-premium-lock,
 .sidebar.collapsed .sidebar-role-label,
 .sidebar.collapsed .sidebar-role-dev,
 .sidebar.collapsed .bot-status > span:last-child {

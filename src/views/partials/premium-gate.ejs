@@ -1,0 +1,193 @@
+<%#
+  premium-gate.ejs — شاشة «ميزة بريميوم» القابلة لإعادة الاستخدام.
+
+  تُستدعى من أي صفحة محجوبة بالبريميوم عبر include مع تمرير:
+    guild, featureName, featureIcon, featureDesc, benefits
+
+  كل المتغيّرات تُمرَّر صراحةً (guild + وصف الميزة + مزاياها) حتى لا تعتمد على
+  locals الأب، لأن include() في EJS يُصرَّف داخل جسم القالب المستدعي.
+%>
+<%
+  var pgFeatureName = (typeof featureName !== 'undefined' && featureName) ? featureName : 'هذه الميزة';
+  var pgFeatureIcon = (typeof featureIcon !== 'undefined' && featureIcon) ? featureIcon : 'fa-gem';
+  var pgFeatureDesc = (typeof featureDesc !== 'undefined' && featureDesc) ? featureDesc : '';
+  var pgBenefits    = (typeof benefits !== 'undefined' && Array.isArray(benefits)) ? benefits : [];
+  var pgGuildId     = (typeof guild !== 'undefined' && guild && guild.id) ? guild.id : '';
+%>
+
+<section class="pg-wrap fade-in-up" aria-label="ميزة بريميوم">
+  <div class="pg-card glass">
+    <span class="pg-glow" aria-hidden="true"></span>
+    <span class="pg-grid" aria-hidden="true"></span>
+
+    <div class="pg-crown" aria-hidden="true">
+      <span class="pg-ring"></span>
+      <i class="fas fa-crown"></i>
+    </div>
+
+    <span class="pg-badge"><i class="fas fa-gem" aria-hidden="true"></i> ميزة بريميوم</span>
+
+    <h2 class="pg-title">
+      <i class="fas <%= pgFeatureIcon %>" aria-hidden="true"></i>
+      ميزة <%= pgFeatureName %> محصورة بمشتركي البريميوم
+    </h2>
+
+    <% if (pgFeatureDesc) { %>
+    <p class="pg-lead"><%= pgFeatureDesc %></p>
+    <% } %>
+
+    <% if (pgBenefits.length) { %>
+    <ul class="pg-benefits">
+      <% pgBenefits.forEach(function (b) { %>
+      <li><i class="fas fa-circle-check" aria-hidden="true"></i> <span><%= b %></span></li>
+      <% }); %>
+    </ul>
+    <% } %>
+
+    <div class="pg-plans" role="list" aria-label="الخطط المتاحة">
+      <div class="pg-plan" role="listitem">
+        <span class="pg-plan-name">Standard</span>
+        <span class="pg-plan-price">$4.99 <em>/ شهرياً</em></span>
+        <span class="pg-plan-hint">حماية أساسية + لوحة كاملة</span>
+      </div>
+      <div class="pg-plan is-pop" role="listitem">
+        <span class="pg-plan-tag"><i class="fas fa-fire" aria-hidden="true"></i> الأكثر طلباً</span>
+        <span class="pg-plan-name">Ultimate</span>
+        <span class="pg-plan-price">$9.99 <em>/ شهرياً</em></span>
+        <span class="pg-plan-hint">كل المزايا المتقدمة بلا حدود</span>
+      </div>
+    </div>
+
+    <div class="pg-actions">
+      <% if (pgGuildId) { %>
+      <a href="/premium/<%= pgGuildId %>" class="pg-cta">
+        <i class="fas fa-crown" aria-hidden="true"></i> فعّل الاشتراك الآن
+      </a>
+      <a href="/guilds/<%= pgGuildId %>" class="pg-ghost">
+        <i class="fas fa-arrow-right" aria-hidden="true"></i> العودة للنظرة العامة
+      </a>
+      <% } else { %>
+      <a href="/premium" class="pg-cta"><i class="fas fa-crown" aria-hidden="true"></i> استعرض الخطط</a>
+      <% } %>
+    </div>
+
+    <p class="pg-foot">
+      <i class="fas fa-lock" aria-hidden="true"></i>
+      سيرفرك الحالي لا يملك اشتراكاً فعّالاً — فعّل الخطة من صفحة البريميوم بالكود السري <span class="pg-hint">(الاشتراك مدته 30 يوماً)</span>.
+    </p>
+  </div>
+</section>
+
+<style>
+  .pg-wrap { display: flex; justify-content: center; padding: 8px 0 24px; }
+  .pg-card {
+    position: relative; overflow: hidden; width: 100%; max-width: 760px;
+    padding: 40px 30px 26px; border-radius: 24px; text-align: center;
+    border: 1px solid rgba(255,183,77,0.28);
+    background:
+      radial-gradient(1200px 400px at 50% -10%, rgba(208,0,255,0.16), transparent 60%),
+      linear-gradient(180deg, rgba(26,20,34,0.85), rgba(13,13,15,0.92));
+    box-shadow: 0 24px 70px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,0.04);
+    overflow: hidden;
+  }
+  /* توهّج علوي متحرّك */
+  .pg-glow {
+    position: absolute; inset: -40% -10% auto -10%; height: 60%;
+    background: radial-gradient(60% 80% at 50% 0%, rgba(208,0,255,0.35), transparent 70%);
+    filter: blur(28px); animation: pgPulse 5s ease-in-out infinite; pointer-events: none;
+  }
+  .pg-grid {
+    position: absolute; inset: 0; pointer-events: none; opacity: .25;
+    background-image: linear-gradient(rgba(237,240,255,0.05) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(237,240,255,0.05) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 75%);
+    -webkit-mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 75%);
+  }
+  @keyframes pgPulse { 0%,100% { opacity: .75; } 50% { opacity: 1; } }
+
+  .pg-crown {
+    position: relative; width: 82px; height: 82px; margin: 0 auto 14px;
+    display: grid; place-items: center; font-size: 2rem; color: #ffcf5c;
+    border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgba(255,207,92,0.28), rgba(208,0,255,0.14) 60%, transparent 70%);
+    box-shadow: 0 0 0 1px rgba(255,207,92,0.35) inset, 0 10px 30px rgba(208,0,255,0.25);
+    animation: pgFloat 4s ease-in-out infinite;
+  }
+  .pg-crown .pg-ring {
+    position: absolute; inset: -8px; border-radius: 50%;
+    border: 1px dashed rgba(255,207,92,0.4); animation: pgSpin 14s linear infinite;
+  }
+  @keyframes pgFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes pgSpin { to { transform: rotate(360deg); } }
+
+  .pg-badge {
+    display: inline-flex; align-items: center; gap: 7px; margin-bottom: 12px;
+    padding: 5px 14px; border-radius: 40px; font-size: .72rem; font-weight: 800; letter-spacing: .3px;
+    color: #ffcf5c; background: rgba(255,207,92,0.1); border: 1px solid rgba(255,207,92,0.35);
+  }
+  .pg-title {
+    font-size: 1.35rem; font-weight: 800; color: var(--text, #edf0ff);
+    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .pg-title i { color: var(--primary, #d000ff); }
+  .pg-lead { color: var(--text-muted); font-size: .9rem; line-height: 1.85; max-width: 560px; margin: 0 auto 18px; }
+
+  .pg-benefits {
+    list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 18px; max-width: 560px; margin: 0 auto 22px; text-align: right;
+  }
+  .pg-benefits li {
+    display: flex; align-items: center; gap: 9px; font-size: .85rem; color: var(--text, #edf0ff);
+    padding: 9px 12px; border-radius: 12px;
+    background: rgba(237,240,255,0.03); border: 1px solid var(--nx-line, rgba(237,240,255,0.07));
+  }
+  .pg-benefits li i { color: #00e0a4; font-size: .9rem; }
+
+  .pg-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 560px; margin: 0 auto 22px; }
+  .pg-plan {
+    position: relative; display: flex; flex-direction: column; gap: 4px; text-align: right;
+    padding: 16px; border-radius: 14px;
+    background: rgba(237,240,255,0.03); border: 1px solid var(--nx-line, rgba(237,240,255,0.09));
+  }
+  .pg-plan.is-pop {
+    border-color: rgba(208,0,255,0.55);
+    background: linear-gradient(180deg, rgba(208,0,255,0.12), rgba(208,0,255,0.03));
+    box-shadow: 0 12px 30px rgba(208,0,255,0.18);
+  }
+  .pg-plan-tag {
+    position: absolute; top: -10px; left: 12px; font-size: .62rem; font-weight: 800;
+    padding: 3px 9px; border-radius: 20px; color: #fff; background: var(--primary, #d000ff);
+  }
+  .pg-plan-name { font-size: .95rem; font-weight: 800; color: var(--text, #edf0ff); }
+  .pg-plan-price { font-size: 1.05rem; font-weight: 800; color: #ffcf5c; direction: ltr; }
+  .pg-plan-price em { font-style: normal; font-size: .72rem; color: var(--text-muted); font-weight: 500; }
+  .pg-plan-hint { font-size: .74rem; color: var(--text-muted); }
+
+  .pg-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .pg-cta {
+    display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
+    padding: 13px 30px; border-radius: 40px; font-weight: 800; font-size: .92rem; color: #fff;
+    background: linear-gradient(135deg, #d000ff, #7a00ff);
+    box-shadow: 0 12px 30px rgba(208,0,255,0.4); transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .pg-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(208,0,255,0.55); }
+  .pg-ghost {
+    display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+    padding: 13px 22px; border-radius: 40px; font-weight: 700; font-size: .88rem;
+    color: var(--text-muted); background: rgba(237,240,255,0.05);
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.1)); transition: all .2s ease;
+  }
+  .pg-ghost:hover { color: var(--text, #edf0ff); background: rgba(237,240,255,0.09); }
+
+  .pg-foot { font-size: .76rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: wrap; }
+  .pg-foot i { color: #ffcf5c; }
+  .pg-hint { opacity: .75; }
+
+  @media (max-width: 640px) {
+    .pg-benefits, .pg-plans { grid-template-columns: 1fr; }
+    .pg-title { font-size: 1.12rem; }
+    .pg-actions { flex-direction: column; }
+    .pg-cta, .pg-ghost { justify-content: center; }
+  }
+</style>

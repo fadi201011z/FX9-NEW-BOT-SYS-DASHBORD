@@ -1,15 +1,46 @@
 <% currentPage = 'backup' %>
 <%
   // — النسخ الاحتياطي: إنشاء/استعادة نسخ JSON لإعدادات السيرفر.
-  const bks = backups || [];
+  //   هذه الميزة مخصّصة لمشتركي البريميوم؛ غير المشترك يرى شاشة الاشتراك.
+  const bks = Array.isArray(backups) ? backups : [];
   const totalMB = bks.reduce((s, b) => s + (Number(b.size) || 0), 0) / (1024 * 1024);
   const last = bks[0] || null;
+  const isPremium = !!(premium && premium.active);
 %>
 
 <div class="page-header">
-  <h1><i class="fas fa-database"></i> النسخ الاحتياطي</h1>
+  <h1>
+    <i class="fas fa-database"></i> النسخ الاحتياطي
+    <% if (isPremium) { %><span class="bk-pro"><i class="fas fa-gem" aria-hidden="true"></i> بريميوم</span><% } %>
+  </h1>
   <p>إنشاء واستعادة نسخ احتياطية لإعدادات بوت سيرفر <strong><%= guild.name %></strong></p>
 </div>
+
+<style>
+  .bk-pro {
+    display: inline-flex; align-items: center; gap: 6px; vertical-align: middle;
+    margin-inline-start: 10px; padding: 4px 12px; border-radius: 40px;
+    font-size: .68rem; font-weight: 800; letter-spacing: .3px;
+    color: #ffcf5c; background: rgba(255,207,92,0.1); border: 1px solid rgba(255,207,92,0.35);
+  }
+</style>
+
+<% if (!isPremium) { %>
+
+  <%- include('../partials/premium-gate', {
+        guild: guild,
+        featureName: 'النسخ الاحتياطي',
+        featureIcon: 'fa-database',
+        featureDesc: 'أنشئ نسخة كاملة من إعدادات سيرفرك واستعدها في أي وقت بضغطة واحدة — متاحة لسيرفرات البريميوم لضمان موارد مستقرة وسجل منظّم.',
+        benefits: [
+          'نسخ غير محدودة من إعدادات سيرفرك',
+          'استعادة الإعدادات بضغطة واحدة',
+          'تحميل النسخ كملفات JSON',
+          'حماية إعداداتك من التغيير العرضي',
+        ]
+      }) %>
+
+<% } else { %>
 
 <div class="stats-grid">
   <div class="stat-card glass">
@@ -27,9 +58,9 @@
     </div>
   </div>
   <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i></div>
+    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-clock" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <span class="stat-label" style="display:block;margin-top:6px"><%= last ? new Date(last.createdAt || last.created_at || Date.now()).toLocaleString('ar-SA') : 'لا توجد نسخ' %></span>
+      <span class="stat-value"><%= last ? new Date(last.createdAt || last.timestamp || Date.now()).toLocaleDateString('ar') : '—' %></span>
       <span class="stat-label">آخر نسخة</span>
     </div>
   </div>
@@ -38,46 +69,45 @@
 <div class="dashboard-grid">
   <div class="card glass">
     <div class="card-header">
-      <h3><i class="fas fa-plus-circle"></i> إنشاء نسخة احتياطية</h3>
+      <h3><i class="fas fa-circle-plus" aria-hidden="true"></i> إنشاء نسخة جديدة</h3>
     </div>
-    <div class="backup-create bk-create">
-      <span class="bk-create-icon"><i class="fas fa-file-zipper" aria-hidden="true"></i></span>
-      <p>سيتم حفظ جميع إعدادات السيرفر الحالية في ملف <code>JSON</code> — يمكنك استعادته في أي وقت أو تحميله.</p>
-      <button class="btn-primary" onclick="createBackup()">
-        <i class="fas fa-database"></i> إنشاء نسخة احتياطية الآن
+    <div class="bk-create">
+      <span class="bk-create-icon"><i class="fas fa-box-archive" aria-hidden="true"></i></span>
+      <p>سيتم أخذ نسخة كاملة من إعدادات السيرفر الحالية وحفظها كملف <code>JSON</code> يمكن استعادته أو تحميله لاحقاً.</p>
+      <button class="btn-primary" type="button" onclick="createBackup(this)">
+        <i class="fas fa-box-archive" aria-hidden="true"></i> إنشاء نسخة احتياطية
       </button>
     </div>
   </div>
 
   <div class="card glass">
     <div class="card-header">
-      <h3><i class="fas fa-history"></i> النسخ السابقة</h3>
-      <span class="bk-note">الأحدث أولاً</span>
+      <h3><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> النسخ السابقة</h3>
+      <span class="bk-count"><%= bks.length %></span>
     </div>
-    <div class="backup-list bk-list">
-      <% if (bks.length > 0) { %>
-        <% bks.forEach(b => { %>
-          <div class="bk-item">
-            <span class="bk-file"><i class="fas fa-file-archive" aria-hidden="true"></i></span>
-            <div class="bk-info">
-              <strong><%= b.filename %></strong>
-              <span><%= ((Number(b.size) || 0) / 1024).toFixed(1) %> KB • <%= new Date(b.createdAt || b.created_at || Date.now()).toLocaleString('ar-SA') %></span>
-            </div>
-            <div class="bk-actions">
-              <button class="btn-sm" onclick="restoreBackup('<%= b.filename %>')">
-                <i class="fas fa-undo"></i> استعادة
-              </button>
-              <a href="/backup/<%= guild.id %>/download/<%= b.filename %>" class="btn-sm" title="تحميل النسخة">
-                <i class="fas fa-download"></i>
-              </a>
-            </div>
+    <div class="bk-list">
+      <% if (bks.length) { %>
+        <% bks.forEach(function (b) { %>
+        <div class="bk-item">
+          <span class="bk-item-icon"><i class="fas fa-file-code" aria-hidden="true"></i></span>
+          <div class="bk-item-info">
+            <strong title="<%= b.filename %>"><%= b.filename %></strong>
+            <small><%= (Number(b.size) / 1024).toFixed(1) %> KB · <%= new Date(b.createdAt || b.timestamp || Date.now()).toLocaleString('ar') %></small>
           </div>
-        <% }) %>
+          <div class="bk-item-actions">
+            <button class="bk-btn" type="button" title="استعادة" onclick="restoreBackup('<%= b.filename %>')">
+              <i class="fas fa-rotate-left" aria-hidden="true"></i>
+            </button>
+            <a class="bk-btn" href="/backup/<%= guild.id %>/download/<%= b.filename %>" title="تحميل">
+              <i class="fas fa-download" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+        <% }); %>
       <% } else { %>
-        <div class="empty-state">
-          <i class="fas fa-database"></i>
+        <div class="bk-empty">
+          <i class="fas fa-inbox" aria-hidden="true"></i>
           <p>لا توجد نسخ احتياطية بعد</p>
-          <small>أنشئ أول نسخة الآن لتأمين إعدادات سيرفرك</small>
         </div>
       <% } %>
     </div>
@@ -85,54 +115,90 @@
 </div>
 
 <style>
-  .bk-note { color: var(--text-muted); font-size: .75rem; }
-  .bk-create { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 14px 4px; }
+  .bk-create { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 18px 10px 22px; }
   .bk-create-icon {
-    width: 64px; height: 64px; display: grid; place-items: center; border-radius: 18px;
+    width: 66px; height: 66px; display: grid; place-items: center; border-radius: 18px;
     background: rgba(208,0,255,0.12); color: var(--primary); font-size: 1.6rem;
   }
-  .bk-create p { color: var(--text-muted); font-size: .86rem; max-width: 330px; line-height: 1.7; }
-  .bk-create code { direction: ltr; unicode-bidi: isolate; background: rgba(237,240,255,0.06); padding: 1px 8px; border-radius: 6px; }
-  .bk-list { display: flex; flex-direction: column; gap: 10px; }
+  .bk-create p { color: var(--text-muted); font-size: .86rem; max-width: 360px; line-height: 1.85; }
+  .bk-create code { direction: ltr; unicode-bidi: isolate; background: rgba(237,240,255,0.06); padding: 1px 7px; border-radius: 6px; }
+  .bk-count {
+    min-width: 26px; height: 22px; padding: 0 8px; display: inline-grid; place-items: center;
+    border-radius: 20px; font-size: .72rem; font-weight: 800;
+    color: var(--primary); background: rgba(208,0,255,0.12);
+  }
+  .bk-list { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; }
   .bk-item {
     display: flex; align-items: center; gap: 12px; padding: 12px 14px;
     border-radius: var(--radius, 12px); border: 1px solid var(--nx-line, rgba(237,240,255,0.07));
-    background: rgba(237,240,255,0.015);
-    transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
+    background: rgba(237,240,255,0.015); transition: border-color .18s ease, background .18s ease;
   }
   .bk-item:hover { border-color: rgba(208,0,255,0.4); background: rgba(208,0,255,0.05); }
-  .bk-file {
+  .bk-item-icon {
     width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
     border-radius: 11px; background: rgba(0,168,255,0.12); color: #00a8ff; font-size: 1rem;
   }
-  .bk-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-  .bk-info strong { direction: ltr; unicode-bidi: isolate; text-align: right; font-size: .82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--nx-mono, Consolas, monospace); }
-  .bk-info span { color: var(--text-muted); font-size: .74rem; }
-  .bk-actions { display: flex; gap: 8px; }
-  @media (max-width: 620px) { .bk-info strong { max-width: 140px; } }
+  .bk-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .bk-item-info strong {
+    direction: ltr; unicode-bidi: isolate; text-align: right; font-size: .8rem; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--nx-mono, Consolas, monospace);
+  }
+  .bk-item-info small { color: var(--text-muted); font-size: .72rem; }
+  .bk-item-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+  .bk-btn {
+    width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer;
+    border-radius: 10px; font-size: .82rem; text-decoration: none;
+    color: var(--text-muted); background: rgba(237,240,255,0.05);
+    border: 1px solid var(--nx-line, rgba(237,240,255,0.09)); transition: all .18s ease;
+  }
+  .bk-btn:hover { color: #fff; border-color: rgba(208,0,255,0.5); background: rgba(208,0,255,0.12); }
+  .bk-empty {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 34px 12px; color: var(--text-muted); text-align: center;
+  }
+  .bk-empty i { font-size: 1.7rem; opacity: .5; }
+  .bk-empty p { font-size: .84rem; }
+  @media (max-width: 620px) { .bk-item-info strong { max-width: 140px; } }
 </style>
 
 <script>
-async function createBackup() {
-  const res = await fetch('/backup/<%= guild.id %>/create', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-  });
-  const data = await res.json();
-  if (data.success) {
-    showToast('✅ تم إنشاء النسخة: ' + data.filename);
-    location.reload();
-  } else {
-    showToast('❌ ' + data.error);
+function bkToast(msg, type) { if (typeof showToast === 'function') showToast(msg, type); }
+
+async function createBackup(btn) {
+  if (btn) { btn.disabled = true; btn.dataset.label = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الإنشاء...'; }
+  try {
+    const res = await fetch(`/backup/<%= guild.id %>/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      bkToast('تم إنشاء النسخة بنجاح.', 'success');
+      location.reload();
+      return;
+    }
+    bkToast(data.error || 'تعذّر إنشاء النسخة.', 'error');
+  } catch {
+    bkToast('خطأ في الاتصال.', 'error');
   }
+  if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.label || 'إنشاء نسخة احتياطية'; }
 }
 
 async function restoreBackup(filename) {
-  if (!confirm('⚠️ استعادة النسخة ستحل محل الإعدادات الحالية. هل أنت متأكد؟')) return;
-  const res = await fetch('/backup/<%= guild.id %>/restore', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filename }),
-  });
-  const data = await res.json();
-  showToast(data.success ? '✅ تمت الاستعادة بنجاح' : '❌ ' + data.error);
+  if (!confirm('سيتم استبدال الإعدادات الحالية بمحتوى هذه النسخة، هل أنت متأكد؟')) return;
+  try {
+    const res = await fetch(`/backup/<%= guild.id %>/restore`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      bkToast('تمت استعادة النسخة.', 'success');
+      location.reload();
+      return;
+    }
+    bkToast(data.error || 'تعذّرت الاستعادة.', 'error');
+  } catch {
+    bkToast('خطأ في الاتصال.', 'error');
+  }
 }
 </script>
+
+<% } %>

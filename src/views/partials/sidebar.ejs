@@ -155,7 +155,7 @@
       <a href="/backup/<%= guild.id %>" class="nav-link <%= currentPage === 'backup' ? 'active' : '' %> <%= perms.can.backup ? '' : 'locked' %>" data-req="3" data-tip="النسخ الاحتياطي" aria-label="النسخ الاحتياطي"<% if (currentPage === 'backup') { %> aria-current="page"<% } %>>
         <i class="fas fa-database" aria-hidden="true"></i>
         <span>النسخ الاحتياطي</span>
-        <% if (!perms.can.backup) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
+        <% if (!perms.can.backup) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } else if (!(locals.premiumStatus && locals.premiumStatus.active)) { %><span class="nav-premium-lock" title="ميزة بريميوم"><i class="fas fa-gem" aria-hidden="true"></i> برو</span><% } %>
       </a>
     </div>
     <% } %>
