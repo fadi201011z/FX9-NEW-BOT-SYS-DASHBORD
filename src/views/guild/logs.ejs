@@ -1,10 +1,27 @@
 <% currentPage = 'logs' %>
 <%
-  // — سجل النشاط: نشاطات المدراء + سجل التدقيق (old → new) في تبويبين.
-  const acts = activity || [];
+  // — السجلات: سجلات سيرفر ديسكورد الحقيقية (من البوت) + سجل إدارة اللوحة.
+  const slogs  = serverLogs || [];
+  const st     = stats || { total: 0, server: 0, mod: 0, bot: 0, lastAt: 0 };
+  const acts   = activity || [];
   const audits = auditLogs || [];
+  const hours  = retentionHours || 48;
+
+  const SRC = {
+    server: { label: 'عام',   cls: 'is-server', icon: 'fa-comment-dots' },
+    mod:    { label: 'إشراف', cls: 'is-mod',    icon: 'fa-gavel' },
+    bot:    { label: 'البوت', cls: 'is-bot',    icon: 'fa-robot' },
+  };
+  const metaOf = (l) => SRC[l && l.source] || SRC.server;
+  const firstEmbed = (l) => (l && Array.isArray(l.embeds) && l.embeds.length ? l.embeds[0] : null);
+  const logTitle = (l) => { const e = firstEmbed(l); return (e && e.title) || (l.content ? String(l.content).slice(0, 90) : 'حدث'); };
+  const logDesc = (l) => { const e = firstEmbed(l); return (e && e.description) || (!e && l.content ? String(l.content) : ''); };
+  const logFields = (l) => { const e = firstEmbed(l); return (e && Array.isArray(e.fields)) ? e.fields : []; };
+  const clip = (s, n) => { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n) + '…' : s; };
+  const searchText = (l) => [logTitle(l), logDesc(l), ...logFields(l).map(f => `${f.name || ''} ${f.value || ''}`)].join(' ').replace(/\s+/g, ' ').trim();
+
   const actIcon = (a) => {
-    const s = String(a.action || '').toLowerCase();
+    const s = String((a && a.action) || '').toLowerCase();
     if (s.includes('admin')) return 'fa-users-gear';
     if (s.includes('ticket')) return 'fa-ticket';
     if (s.includes('backup')) return 'fa-database';
@@ -13,115 +30,625 @@
     if (s.includes('channel')) return 'fa-hashtag';
     if (s.includes('create') || s.includes('add')) return 'fa-plus';
     if (s.includes('delete') || s.includes('remove')) return 'fa-trash';
-    if (s.includes('join')) return 'fa-right-to-bracket';
-    if (s.includes('leave')) return 'fa-right-from-bracket';
-    if (s.includes('config') || s.includes('save') || s.includes('update') || s.includes('set')) return 'fa-sliders-h';
+    if (s.includes('config') || s.includes('save') || s.includes('update') || s.includes('set')) return 'fa-sliders';
     return 'fa-circle-dot';
   };
 %>
 
-<div class="page-header">
-  <h1><i class="fas fa-clock-rotate-left"></i> السجلات</h1>
-  <p>نشاطات الفريق وسجل التدقيق — في سيرفر <strong><%= guild.name %></strong></p>
-</div>
-
-<div class="stats-grid">
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00a8ff"><i class="fas fa-list" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= acts.length %></span>
-      <span class="stat-label">نشاط مسجّل</span>
+<div class="sl-page">
+  <div class="page-header sl-header">
+    <div>
+      <h1><i class="fas fa-clipboard-list"></i> السجلات</h1>
+      <p>سجلات سيرفر ديسكورد الحقيقية وسجل إدارة اللوحة — سيرفر <strong><%= guild.name %></strong></p>
+      <span class="sl-window"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> نافذة الاحتفاظ: آخر <%= hours %> ساعة — يُحذف الأقدم تلقائياً</span>
+    </div>
+    <div class="sl-kpis">
+      <div class="sl-kpi is-total"><i class="fas fa-layer-group" aria-hidden="true"></i><b><%= st.total %></b><span>سجل</span></div>
+      <div class="sl-kpi is-server"><i class="fas fa-comment-dots" aria-hidden="true"></i><b><%= st.server %></b><span>عام</span></div>
+      <div class="sl-kpi is-mod"><i class="fas fa-gavel" aria-hidden="true"></i><b><%= st.mod %></b><span>إشراف</span></div>
+      <div class="sl-kpi is-bot"><i class="fas fa-robot" aria-hidden="true"></i><b><%= st.bot %></b><span>البوت</span></div>
+      <div class="sl-kpi"><i class="fas fa-hourglass-half" aria-hidden="true"></i><b class="sl-rel" data-ts="<%= st.lastAt %>">—</b><span>آخر حدث</span></div>
     </div>
   </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #d000ff"><i class="fas fa-clipboard-check" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= audits.length %></span>
-      <span class="stat-label">سجل تدقيق</span>
+
+  <div class="tabs sl-tabs">
+    <button class="tab active" onclick="switchTab(this, 'server')"><i class="fas fa-comment-dots"></i> سجلات السيرفر (<%= slogs.length %>)</button>
+    <button class="tab" onclick="switchTab(this, 'admin')"><i class="fas fa-user-shield"></i> سجل الإدارة (<%= acts.length + audits.length %>)</button>
+  </div>
+
+  <!-- ── سجلات السيرفر ─────────────────────────────────────────────── -->
+  <div class="tab-content active" id="tab-server">
+    <div class="sl-toolbar">
+      <div class="sl-search">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="search" id="slSearch" placeholder="ابحث في السجلات…" autocomplete="off">
+      </div>
+      <div class="sl-seg" id="slSeg" role="group" aria-label="فلترة المصدر">
+        <button type="button" data-f="all" class="is-active">الكل</button>
+        <button type="button" data-f="server">عام</button>
+        <button type="button" data-f="mod">إشراف</button>
+        <button type="button" data-f="bot">البوت</button>
+      </div>
+      <button type="button" class="sl-btn" id="slAuto" title="تحديث تلقائي كل 30 ثانية" aria-pressed="false"><i class="fas fa-tower-broadcast" aria-hidden="true"></i> تحديث حيّ</button>
+      <button type="button" class="sl-icon-btn" id="slRefresh" title="تحديث الآن" aria-label="تحديث الآن"><i class="fas fa-rotate" aria-hidden="true"></i></button>
+      <span class="sl-count" id="slCount"><%= slogs.length %> سجل</span>
+    </div>
+
+    <div class="sl-wrap glass">
+      <div class="sl-scroll">
+        <table class="sl-table">
+          <thead>
+            <tr>
+              <th>الحدث</th>
+              <th class="col-src">المصدر</th>
+              <th class="col-fields">التفاصيل</th>
+              <th class="col-time">الوقت</th>
+              <th class="col-chev"></th>
+            </tr>
+          </thead>
+          <tbody id="slBody">
+            <% slogs.forEach(l => { const m = metaOf(l); const fs = logFields(l); %>
+              <tr class="sl-tr" data-id="<%= l._id %>" data-ts="<%= l.timestamp %>" data-src="<%= l.source %>" data-s="<%= searchText(l).toLowerCase() %>" tabindex="0">
+                <td>
+                  <div class="sl-ev">
+                    <span class="sl-ico <%= m.cls %>"><i class="fas fa-circle-info" aria-hidden="true"></i></span>
+                    <div class="sl-evtx">
+                      <span class="sl-ttl"><%= logTitle(l) %></span>
+                      <% if (logDesc(l)) { %><span class="sl-desc"><%= clip(logDesc(l), 140) %></span><% } %>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-src"><span class="sl-src <%= m.cls %>"><i class="fas <%= m.icon %>" aria-hidden="true"></i> <%= m.label %></span></td>
+                <td class="col-fields">
+                  <span class="sl-fields">
+                    <% if (fs.length) { %>
+                      <% fs.slice(0, 2).forEach(f => { %>
+                        <span class="sl-chip"><b><%= clip(f.name, 22) %></b> <%= clip(f.value, 60) %></span>
+                      <% }) %>
+                      <% if (fs.length > 2) { %><span class="sl-chip is-more">+<%= fs.length - 2 %></span><% } %>
+                    <% } else { %><span class="sl-dim">—</span><% } %>
+                  </span>
+                </td>
+                <td class="col-time"><span class="sl-rel" data-ts="<%= l.timestamp %>">—</span></td>
+                <td class="col-chev"><i class="fas fa-chevron-left" aria-hidden="true"></i></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div class="sl-empty<%= slogs.length ? '' : ' show' %>" id="slEmpty">
+        <span class="sl-empty-ic"><i class="fas fa-inbox" aria-hidden="true"></i></span>
+        <b id="slEmptyTitle">لا توجد سجلات في هذه النافذة</b>
+        <span id="slEmptySub">ستظهر هنا أحداث سيرفر ديسكورد فور إرسالها من البوت (رسائل، أعضاء، رتب، صوت، إشراف).</span>
+      </div>
+      <button type="button" class="sl-more" id="slMore" hidden><i class="fas fa-chevron-down" aria-hidden="true"></i> تحميل المزيد</button>
     </div>
   </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-user-shield" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= new Set(acts.map(a => a.userId).filter(Boolean)).size %></span>
-      <span class="stat-label">أعضاء الفريق النشط</span>
-    </div>
-  </div>
-</div>
 
-<div class="tabs">
-  <button class="tab active" onclick="switchTab(this, 'activity')"><i class="fas fa-list"></i> سجل النشاطات (<%= acts.length %>)</button>
-  <button class="tab" onclick="switchTab(this, 'audit')"><i class="fas fa-clipboard-check"></i> سجل التدقيق (<%= audits.length %>)</button>
-</div>
-
-<div class="tab-content active" id="tab-activity">
-  <div class="card glass">
-    <div class="card-header">
-      <h3><i class="fas fa-list"></i> النشاطات</h3>
-      <span class="lg-count">آخر التحديثات أولاً</span>
-    </div>
-    <div class="logs-list">
-      <% if (acts.length > 0) { %>
-        <% acts.forEach(a => { %>
-          <div class="log-item">
-            <img src="https://cdn.discordapp.com/avatars/<%= a.userId %>/<%= a.avatar %>.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-            <div class="log-info">
-              <strong><%= a.username || a.userId %></strong>
-              <span><i class="fas <%= actIcon(a) %>" aria-hidden="true"></i> <%= a.action %></span>
-              <small><%= a.details || '' %></small>
-            </div>
-            <span class="log-time"><%= new Date(a.timestamp).toLocaleString('ar-SA') %></span>
-          </div>
-        <% }) %>
+  <div class="tab-content" id="tab-admin">
+    <div class="sl-card glass">
+      <div class="sl-card-head">
+        <h3><i class="fas fa-list-check"></i> نشاط إدارة اللوحة</h3>
+        <span class="sl-dim"><%= acts.length %> عنصر</span>
+      </div>
+      <% if (acts.length) { %>
+        <table class="sl-table is-admin">
+          <thead><tr><th>العضو</th><th>الحدث</th><th class="col-fields">التفاصيل</th><th class="col-time">الوقت</th></tr></thead>
+          <tbody>
+            <% acts.forEach(a => { %>
+              <tr>
+                <td>
+                  <div class="sl-user">
+                    <span class="sl-av"><i class="fas fa-user" aria-hidden="true"></i><img src="https://cdn.discordapp.com/avatars/<%= a.userId %>/<%= a.avatar %>.png" alt="" loading="lazy" onerror="this.remove()"></span>
+                    <span class="sl-uname"><%= a.username || a.userId %></span>
+                  </div>
+                </td>
+                <td><span class="sl-act"><i class="fas <%= actIcon(a) %>" aria-hidden="true"></i> <%= a.action %></span></td>
+                <td class="col-fields"><span class="sl-dim"><%= a.details || '—' %></span></td>
+                <td class="col-time"><span class="sl-rel" data-ts="<%= a.timestamp %>">—</span></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
       <% } else { %>
-        <div class="empty-state"><i class="fas fa-history"></i><p>لا توجد نشاطات بعد</p></div>
+        <div class="sl-empty show"><span class="sl-empty-ic"><i class="fas fa-list" aria-hidden="true"></i></span><b>لا توجد نشاطات بعد</b></div>
+      <% } %>
+    </div>
+
+    <div class="sl-card glass">
+      <div class="sl-card-head">
+        <h3><i class="fas fa-clipboard-check"></i> سجل تدقيق الإعدادات</h3>
+        <span class="sl-dim"><%= audits.length %> عنصر</span>
+      </div>
+      <% if (audits.length) { %>
+        <table class="sl-table is-admin">
+          <thead><tr><th>الفاعل</th><th>الحقل</th><th class="col-fields">من ← إلى</th><th class="col-time">الوقت</th></tr></thead>
+          <tbody>
+            <% audits.forEach(l => { %>
+              <tr>
+                <td>
+                  <div class="sl-user">
+                    <span class="sl-av"><i class="fas fa-user" aria-hidden="true"></i><img src="https://cdn.discordapp.com/avatars/<%= l.userId %>/<%= l.avatar %>.png" alt="" loading="lazy" onerror="this.remove()"></span>
+                    <span class="sl-uname"><%= l.username || l.userId %></span>
+                  </div>
+                </td>
+                <td><span class="sl-act"><i class="fas fa-pen-to-square" aria-hidden="true"></i> <code><%= l.field || l.action %></code></span></td>
+                <td class="col-fields">
+                  <span class="sl-fields">
+                    <span class="sl-chip is-old"><%= clip(l.oldValue || 'فارغ', 42) %></span>
+                    <i class="fas fa-arrow-left sl-arrow" aria-hidden="true"></i>
+                    <span class="sl-chip is-new"><%= clip(l.newValue || 'فارغ', 42) %></span>
+                  </span>
+                </td>
+                <td class="col-time"><span class="sl-rel" data-ts="<%= l.timestamp %>">—</span></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <div class="sl-empty show"><span class="sl-empty-ic"><i class="fas fa-clipboard-check"></i></span><b>لا توجد سجلات تدقيق بعد</b></div>
       <% } %>
     </div>
   </div>
 </div>
 
-<div class="tab-content" id="tab-audit">
-  <div class="card glass">
-    <div class="card-header">
-      <h3><i class="fas fa-clipboard-check"></i> سجل التدقيق</h3>
-      <span class="lg-count">تغيّرات الإعدادات</span>
+<div class="sl-backdrop" id="slBackdrop"></div>
+<aside class="sl-drawer" id="slDrawer" aria-hidden="true" aria-label="تفاصيل السجل">
+  <div class="sl-drawer-head">
+    <span class="sl-src" id="slDrawerSrc"><i class="fas fa-circle-info"></i></span>
+    <div class="sl-drawer-title">
+      <b id="slDrawerTitle">—</b>
+      <span class="sl-dim" id="slDrawerTime">—</span>
     </div>
-    <div class="logs-list">
-      <% if (audits.length > 0) { %>
-        <% audits.forEach(l => { %>
-          <div class="log-item audit-item">
-            <span class="lg-audit-ic"><i class="fas fa-clipboard-check" aria-hidden="true"></i></span>
-            <div class="log-info">
-              <strong><%= l.username || l.userId %></strong>
-              <span><%= l.action %> → <code><%= l.field %></code></span>
-              <small>
-                من: <span class="lg-chip lg-old"><%= l.oldValue || 'فارغ' %></span>
-                ← إلى: <span class="lg-chip lg-new"><%= l.newValue || 'فارغ' %></span>
-              </small>
-            </div>
-            <span class="log-time"><%= new Date(l.timestamp).toLocaleString('ar-SA') %></span>
-          </div>
-        <% }) %>
-      <% } else { %>
-        <div class="empty-state"><i class="fas fa-clipboard-check"></i><p>لا توجد سجلات تدقيق بعد</p></div>
-      <% } %>
-    </div>
+    <button type="button" class="sl-icon-btn" id="slDrawerClose" aria-label="إغلاق"><i class="fas fa-xmark"></i></button>
   </div>
-</div>
+  <div class="sl-drawer-body">
+    <p class="sl-drawer-desc" id="slDrawerDesc"></p>
+    <div class="sl-drawer-fields" id="slDrawerFields"></div>
+    <div class="sl-drawer-meta" id="slDrawerMeta"></div>
+    <button type="button" class="sl-raw-toggle" id="slRawToggle"><i class="fas fa-code"></i> عرض البيانات الخام</button>
+    <pre class="sl-raw" id="slRaw" hidden></pre>
+  </div>
+</aside>
 
 <style>
-  .lg-count { color: var(--text-muted); font-size: .75rem; }
-  .lg-audit-ic {
-    width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center;
-    border-radius: 10px; background: rgba(208,0,255,0.1); color: var(--primary);
+  .sl-page {
+    --acc: #d000ff; --acc2: #8700ff; --cy: #00c8ff; --bad: #ff3545;
+    --line: rgba(237,240,255,0.08); --line2: rgba(237,240,255,0.045);
+    --surf: rgba(16,16,20,0.55); --surf2: rgba(5,5,7,0.84); --hover: rgba(208,0,255,0.06);
   }
-  .log-info .fa-circle-dot, .log-info .fa-list { margin-inline-end: 4px; }
-  .lg-chip {
-    display: inline-block; direction: ltr; unicode-bidi: isolate;
-    padding: 1px 8px; border-radius: 7px; font-size: .72rem; font-family: var(--nx-mono, Consolas, monospace);
-    max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;
-  }
-  .lg-old { background: rgba(255,16,24,0.1); color: #ff3545; }
-  .lg-new { background: rgba(0,200,255,0.1); color: #00c8ff; }
-  @media (max-width: 600px) { .log-time { display: none; } }
+
+  /* ── الرأس ── */
+  .sl-header { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .sl-header::after { content: ''; position: absolute; inset-inline-start: 0; bottom: -1px; width: 130px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--acc), var(--acc2), transparent); }
+  .sl-header h1 i { color: var(--acc); }
+  .sl-window { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); }
+  .sl-window i { color: var(--acc); }
+  .sl-kpis { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sl-kpi { display: flex; align-items: center; gap: 9px; padding: 8px 12px; border-radius: 12px; background: var(--surf); border: 1px solid var(--line); transition: border-color .2s, transform .2s; }
+  .sl-kpi:hover { border-color: rgba(208,0,255,0.4); transform: translateY(-1px); }
+  .sl-kpi i { color: var(--text-muted); font-size: 0.8rem; }
+  .sl-kpi b { font-size: 0.95rem; font-variant-numeric: tabular-nums; color: var(--text); }
+  .sl-kpi span { font-size: 0.7rem; color: var(--text-muted); }
+  .sl-kpi.is-total i, .sl-kpi.is-total b { color: var(--acc); }
+  .sl-kpi.is-server i, .sl-kpi.is-server b { color: var(--cy); }
+  .sl-kpi.is-mod i, .sl-kpi.is-mod b { color: var(--bad); }
+  .sl-kpi.is-bot i, .sl-kpi.is-bot b { color: var(--acc2); }
+  .sl-kpi b.sl-rel { font-size: 0.82rem; }
+
+  .sl-tabs { margin-top: 16px; }
+
+  /* ── شريط الأدوات ── */
+  .sl-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .sl-search { position: relative; flex: 1 1 220px; max-width: 320px; }
+  .sl-search > i { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem; pointer-events: none; }
+  .sl-search input { width: 100%; padding-block: 9px; padding-inline: 34px 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--surf); color: var(--text); font-family: inherit; font-size: 0.84rem; outline: none; transition: border-color .18s, box-shadow .18s; }
+  .sl-search input:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(208,0,255,0.16); }
+  .sl-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 11px; overflow: hidden; background: var(--surf); }
+  .sl-seg button { border: 0; border-inline-start: 1px solid var(--line); background: transparent; color: var(--text-muted); font-family: inherit; font-size: 0.78rem; font-weight: 600; padding: 9px 13px; cursor: pointer; transition: color .15s, background .2s; }
+  .sl-seg button:first-child { border-inline-start: 0; }
+  .sl-seg button:hover { color: var(--text); }
+  .sl-seg button.is-active { background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #edf0ff; }
+  .sl-btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 11px; border: 1px solid var(--line); background: var(--surf); color: var(--text-muted); font-family: inherit; font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer; transition: color .15s, border-color .15s, background .2s, box-shadow .2s; }
+  .sl-btn:hover { color: #edf0ff; border-color: var(--acc); }
+  .sl-btn i { font-size: 0.82rem; }
+  .sl-btn.is-on { color: #edf0ff; border-color: transparent; background: linear-gradient(135deg, var(--acc), var(--acc2)); box-shadow: 0 6px 18px rgba(208,0,255,0.28); }
+  .sl-btn.is-on i { animation: slPulse 1.6s ease-in-out infinite; }
+  @keyframes slPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  .sl-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--line); background: var(--surf); color: var(--text-muted); cursor: pointer; transition: color .15s, border-color .15s, transform .2s; }
+  .sl-icon-btn:hover { color: #edf0ff; border-color: var(--acc); }
+  .sl-icon-btn.is-busy i { animation: slSpin .8s linear infinite; }
+  @keyframes slSpin { to { transform: rotate(360deg); } }
+  .sl-count { margin-inline-start: auto; font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  /* ── الجدول ── */
+  .sl-wrap { border-radius: 14px; overflow: hidden; box-shadow: 0 18px 50px rgba(0,0,0,0.28); animation: slFade .4s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes slFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .sl-scroll { max-height: calc(100vh - 340px); overflow: auto; }
+  .sl-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+  .sl-scroll::-webkit-scrollbar-thumb { background: rgba(135,0,255,0.35); border-radius: 9px; }
+  .sl-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.84rem; }
+  .sl-table thead th { position: sticky; top: 0; z-index: 3; background: var(--surf2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); text-align: start; font-size: 0.67rem; font-weight: 800; letter-spacing: 0.4px; color: var(--text-muted); padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .sl-tr { cursor: pointer; transition: background .14s, opacity .24s, transform .24s; }
+  .sl-tr:hover { background: var(--hover); }
+  .sl-tr:focus-visible { outline: 2px solid var(--acc); outline-offset: -2px; }
+  .sl-tr[hidden] { display: none; }
+  .sl-tr.is-gone { opacity: 0; transform: translateX(-12px); }
+  .sl-table tbody td { padding: 11px 14px; border-bottom: 1px solid var(--line2); vertical-align: middle; }
+  .sl-table tbody tr:last-child td { border-bottom: 0; }
+  .col-chev { width: 34px; text-align: end; color: var(--text-muted); }
+
+  .sl-ev { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .sl-ico { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; font-size: 0.82rem; }
+  .sl-ico.is-server { background: rgba(0,200,255,0.12); color: var(--cy); }
+  .sl-ico.is-mod { background: rgba(255,53,69,0.13); color: #ff8088; }
+  .sl-ico.is-bot { background: rgba(208,0,255,0.13); color: var(--acc); }
+  .sl-evtx { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .sl-ttl { font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 360px; }
+  .sl-desc { font-size: 0.76rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 420px; }
+
+  .sl-src { display: inline-flex; align-items: center; gap: 5px; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .sl-src.is-server { background: rgba(0,200,255,0.12); color: var(--cy); }
+  .sl-src.is-mod { background: rgba(255,53,69,0.14); color: #ff8088; }
+  .sl-src.is-bot { background: rgba(208,0,255,0.14); color: var(--acc); }
+
+  .sl-fields { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .sl-chip { display: inline-flex; align-items: center; gap: 5px; max-width: 260px; padding: 2px 9px; border-radius: 8px; background: rgba(237,240,255,0.05); border: 1px solid var(--line2); font-size: 0.72rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sl-chip b { color: var(--text); font-weight: 700; }
+  .sl-chip.is-more { color: var(--acc); border-color: rgba(208,0,255,0.3); }
+  .sl-chip.is-old { background: rgba(255,16,24,0.1); color: #ff8088; border-color: transparent; }
+  .sl-chip.is-new { background: rgba(0,200,255,0.1); color: var(--cy); border-color: transparent; }
+  .sl-arrow { color: var(--text-muted); font-size: 0.66rem; }
+  .sl-dim { color: var(--text-muted); font-size: 0.78rem; }
+  .col-time { white-space: nowrap; }
+  .sl-rel { color: var(--text-muted); font-size: 0.76rem; }
+
+  /* ── تبويب الإدارة ── */
+  .sl-card { border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+  .sl-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .sl-card-head h3 { font-size: 0.95rem; }
+  .sl-card-head h3 i { color: var(--acc); margin-inline-end: 6px; }
+  .sl-table.is-admin thead th { position: static; }
+  .sl-user { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .sl-av { position: relative; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, rgba(208,0,255,0.25), rgba(135,0,255,0.15)); color: #edf0ff; font-size: 0.68rem; overflow: hidden; }
+  .sl-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .sl-uname { font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+  .sl-act { display: inline-flex; align-items: center; gap: 7px; color: var(--text); }
+  .sl-act i { color: var(--acc); }
+  .sl-act code { direction: ltr; unicode-bidi: isolate; font-size: 0.76rem; color: var(--cy); }
+
+  /* ── الحالة الفارغة ── */
+  .sl-empty { display: none; flex-direction: column; align-items: center; gap: 8px; padding: 52px 16px; color: var(--text-muted); text-align: center; }
+  .sl-empty.show { display: flex; }
+  .sl-empty-ic { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; background: rgba(208,0,255,0.1); color: var(--acc); font-size: 1.35rem; }
+  .sl-empty b { color: var(--text); font-size: 0.95rem; }
+  .sl-empty span { font-size: 0.8rem; max-width: 460px; }
+
+  .sl-more { display: block; width: 100%; padding: 13px; border: 0; border-top: 1px solid var(--line); background: var(--surf2); color: var(--text-muted); font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: color .15s, background .15s; }
+  .sl-more:hover { color: var(--text); background: var(--hover); }
+  .sl-more i { margin-inline-end: 6px; }
+  .sl-more[hidden] { display: none; }
+
+  /* ── اللوح الجانبي ── */
+  .sl-backdrop { position: fixed; inset: 0; background: rgba(5,5,7,0.6); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s; z-index: 90; }
+  .sl-backdrop.show { opacity: 1; visibility: visible; }
+  .sl-drawer { position: fixed; top: 0; left: 0; height: 100%; width: min(480px, 92vw); background: var(--nx-glass, rgba(16,16,20,0.92)); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-right: 1px solid var(--line); z-index: 91; display: flex; flex-direction: column; transform: translateX(-101%); transition: transform .32s cubic-bezier(.22,1,.36,1); }
+  .sl-drawer.is-open { transform: translateX(0); }
+  .sl-drawer-head { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid var(--line); }
+  .sl-drawer-title { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .sl-drawer-title b { color: var(--text); font-size: 0.98rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sl-drawer-body { padding: 16px; overflow: auto; flex: 1; }
+  .sl-drawer-desc { color: var(--text); font-size: 0.86rem; line-height: 1.7; white-space: pre-wrap; word-break: break-word; margin-bottom: 14px; }
+  .sl-drawer-fields { display: flex; flex-direction: column; gap: 8px; }
+  .sl-dfield { background: rgba(237,240,255,0.035); border: 1px solid var(--line2); border-radius: 11px; padding: 9px 12px; }
+  .sl-dfield b { display: block; font-size: 0.72rem; color: var(--acc); margin-bottom: 3px; }
+  .sl-dfield span { font-size: 0.84rem; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+  .sl-drawer-meta { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; font-size: 0.76rem; color: var(--text-muted); }
+  .sl-drawer-meta code { direction: ltr; unicode-bidi: isolate; color: var(--cy); }
+  .sl-raw-toggle { margin-top: 16px; background: transparent; border: 1px dashed var(--line); border-radius: 10px; padding: 8px 12px; color: var(--text-muted); font-family: inherit; font-size: 0.78rem; cursor: pointer; }
+  .sl-drawer-meta { display: flex; flex-direction: column; gap: 8px; }
+  .sl-raw-toggle:hover { color: var(--text); border-color: var(--acc); }
+  .sl-raw { margin-top: 10px; padding: 12px; border-radius: 11px; background: rgba(5,5,7,0.8); border: 1px solid var(--line2); color: var(--text-muted); font-size: 0.72rem; line-height: 1.6; overflow: auto; max-height: 320px; direction: ltr; text-align: left; }
+
+  @media (max-width: 1000px) { .col-fields { display: none; } }
+  @media (max-width: 720px) { .col-time { display: none; } .sl-ttl { max-width: 220px; } .sl-scroll { max-height: none; } }
+  @media (prefers-reduced-motion: reduce) { .sl-wrap, .sl-tr, .sl-drawer, .sl-btn.is-on i { transition: none !important; animation: none !important; } }
 </style>
+
+<script id="sl-data" type="application/json"><%- JSON.stringify(serverLogs).replace(/</g, '\\u003c') %></script>
+<script>
+(function () {
+  const GID = '<%= guild.id %>';
+  const LOG_MAP = {};
+  try { JSON.parse(document.getElementById('sl-data').textContent || '[]').forEach(l => { LOG_MAP[l._id] = l; }); } catch (e) { /* noop */ }
+
+  const SRC = {
+    server: { label: 'عام', cls: 'is-server' },
+    mod: { label: 'إشراف', cls: 'is-mod' },
+    bot: { label: 'البوت', cls: 'is-bot' },
+  };
+  const ICONS = [
+    [/join|انضم|عضو جديد|welcome/, 'fa-user-plus'],
+    [/leave|left|خرج|غادر/, 'fa-user-minus'],
+    [/ban|باند|حظر/, 'fa-ban'],
+    [/unban|رفع الحظر/, 'fa-unlock'],
+    [/kick|طرد/, 'fa-user-xmark'],
+    [/timeout|كتم|تايم/, 'fa-clock'],
+    [/warn|تحذير/, 'fa-triangle-exclamation'],
+    [/bulk|بشكل جماعي/, 'fa-broom'],
+    [/edit|تعديل رسالة|message update/, 'fa-pen'],
+    [/delete|حذف|محذوف/, 'fa-trash'],
+    [/role|رتب|دور/, 'fa-user-tag'],
+    [/channel|روم|قناة/, 'fa-hashtag'],
+    [/nick|كنية|لقب/, 'fa-signature'],
+    [/voice|صوت/, 'fa-microphone'],
+    [/ticket|تذكرة/, 'fa-ticket'],
+    [/bot|بوت|online|offline|shutdown|startup/, 'fa-robot'],
+  ];
+  const iconFor = (log) => {
+    const e = (log.embeds && log.embeds[0]) || null;
+    const s = `${(e && e.title) || ''} ${(e && e.description) || ''} ${log.content || ''}`.toLowerCase();
+    for (const [re, ic] of ICONS) if (re.test(s)) return ic;
+    return 'fa-circle-info';
+  };
+
+  const body = document.getElementById('slBody');
+  const rows = () => Array.from(body.querySelectorAll('.sl-tr'));
+  const searchEl = document.getElementById('slSearch');
+  const filterEl = document.getElementById('slFilter') || document.querySelector('.sl-seg');
+  const countEl = document.getElementById('slCount');
+  const emptyEl = document.getElementById('slEmpty');
+  const emptyTitle = document.getElementById('slEmptyTitle');
+  const emptySub = document.getElementById('slEmptySub');
+  const moreBtn = document.getElementById('slMore');
+  const refreshBtn = document.getElementById('slRefresh');
+  const autoBtn = document.getElementById('slAuto');
+  const qsa = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const toast = (m, t) => { try { if (typeof showToast === 'function') showToast(m, t); } catch (e) { /* noop */ } };
+  const txt = (s) => (s == null ? '' : String(s));
+
+  let query = '', filter = 'all', oldestTs = 0, autoTimer = null;
+
+  /* ── الوقت النسبي ─────────────────────────────────────────── */
+  function relTime(ts) {
+    if (!ts) return '—';
+    const sec = Math.floor((Date.now() - ts) / 1000);
+    if (sec < 45) return 'الآن';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return 'منذ ' + min + ' د';
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return 'منذ ' + hr + ' س';
+    const day = Math.floor(hr / 24);
+    return 'منذ ' + day + ' ي';
+  }
+  function paintTimes() {
+    qsa('.sl-rel').forEach(el => {
+      const ts = Number(el.dataset.ts) || 0;
+      el.textContent = relTime(ts);
+      if (ts) el.title = new Date(ts).toLocaleString('ar');
+    });
+  }
+
+  /* ── تصفية ────────────────────────────────────────────────── */
+  function matches(tr) {
+    if (query && tr.dataset.s.indexOf(query) === -1) return false;
+    if (filter !== 'all' && tr.dataset.src !== filter) return false;
+    return true;
+  }
+  function applyFilter() {
+    let visible = 0;
+    rows().forEach(tr => { const ok = matches(tr); tr.hidden = !ok; if (ok) visible++; });
+    const alive = rows().length;
+    countEl.textContent = (query || filter !== 'all') ? `${visible} / ${alive} سجل` : `${alive} سجل`;
+    emptyEl.classList.toggle('show', visible === 0);
+    emptyTitle.textContent = alive === 0 ? 'لا توجد سجلات في هذه النافذة' : 'لا توجد سجلات مطابقة';
+    emptySub.textContent = alive === 0
+      ? 'ستظهر هنا أحداث سيرفر ديسكورد فور إرسالها من البوت (رسائل، أعضاء، رتب، صوت، إشراف).'
+      : 'جرّب تغيير كلمة البحث أو الفلتر.';
+  }
+
+  /* ── بناء صف (يُستخدم للتحديث الحيّ) ─────────────────────── */
+  function buildRow(log) {
+    const m = SRC[log.source] || SRC.server;
+    const e = (log.embeds && log.embeds[0]) || null;
+    const title = (e && e.title) || (log.content ? txt(log.content).slice(0, 90) : 'حدث');
+    const desc = (e && e.description) || (!e && log.content ? txt(log.content) : '');
+    const fields = (e && Array.isArray(e.fields)) ? e.fields : [];
+    const clamp = (s, n) => { s = txt(s); return s.length > n ? s.slice(0, n) + '…' : s; };
+
+    const tr = document.createElement('tr');
+    tr.className = 'sl-tr';
+    tr.dataset.id = log._id;
+    tr.dataset.ts = log.timestamp;
+    tr.dataset.src = log.source;
+    tr.dataset.s = [title, desc, ...fields.map(f => `${f.name || ''} ${f.value || ''}`)].join(' ').replace(/\s+/g, ' ').trim().toLowerCase();
+    tr.tabIndex = 0;
+
+    const tdEv = document.createElement('td');
+    const ev = document.createElement('div'); ev.className = 'sl-ev';
+    const ico = document.createElement('span'); ico.className = 'sl-ico ' + m.cls;
+    const icoI = document.createElement('i'); icoI.className = 'fas ' + iconFor(log); ico.appendChild(icoI);
+    const evtx = document.createElement('div'); evtx.className = 'sl-evtx';
+    const ttl = document.createElement('span'); ttl.className = 'sl-ttl'; ttl.textContent = title;
+    evtx.appendChild(ttl);
+    if (desc) { const d = document.createElement('span'); d.className = 'sl-desc'; d.textContent = clamp(desc, 140); evtx.appendChild(d); }
+    ev.append(ico, evtx); tdEv.appendChild(ev);
+
+    const tdSrc = document.createElement('td'); tdSrc.className = 'col-src';
+    const src = document.createElement('span'); src.className = 'sl-src ' + m.cls; src.textContent = m.label; tdSrc.appendChild(src);
+
+    const tdF = document.createElement('td'); tdF.className = 'col-fields';
+    const fwrap = document.createElement('span'); fwrap.className = 'sl-fields';
+    if (fields.length) {
+      fields.slice(0, 2).forEach(f => {
+        const c = document.createElement('span'); c.className = 'sl-chip';
+        const b = document.createElement('b'); b.textContent = clamp(f.name, 22);
+        c.appendChild(b); c.appendChild(document.createTextNode(' ' + clamp(f.value, 60)));
+        fwrap.appendChild(c);
+      });
+      if (fields.length > 2) { const c = document.createElement('span'); c.className = 'sl-chip is-more'; c.textContent = '+' + (fields.length - 2); fwrap.appendChild(c); }
+    } else { const d = document.createElement('span'); d.className = 'sl-dim'; d.textContent = '—'; fwrap.appendChild(d); }
+    tdF.appendChild(fwrap);
+
+    const tdT = document.createElement('td'); tdT.className = 'col-time';
+    const rel = document.createElement('span'); rel.className = 'sl-rel'; rel.dataset.ts = log.timestamp; rel.textContent = relTime(log.timestamp); tdT.appendChild(rel);
+
+    const tdC = document.createElement('td'); tdC.className = 'col-chev';
+    const chev = document.createElement('i'); chev.className = 'fas fa-chevron-left'; tdC.appendChild(chev);
+
+    tr.append(tdEv, tdSrc, tdF, tdT, tdC);
+    return tr;
+  }
+
+  /* ── اللوح الجانبي ───────────────────────────────────────── */
+  const drawer = document.getElementById('slDrawer');
+  const backdrop = document.getElementById('slBackdrop');
+  const dSrc = document.getElementById('slDrawerSrc');
+  const dTitle = document.getElementById('slDrawerTitle');
+  const dTime = document.getElementById('slDrawerTime');
+  const dDesc = document.getElementById('slDrawerDesc');
+  const dFields = document.getElementById('slDrawerFields');
+  const dMeta = document.getElementById('slDrawerMeta');
+  const rawToggle = document.getElementById('slRawToggle');
+  const rawEl = document.getElementById('slRaw');
+  let currentRaw = null;
+
+  function openDrawer(id) {
+    const log = LOG_MAP[id];
+    if (!log) return;
+    const m = SRC[log.source] || SRC.server;
+    const e = (log.embeds && log.embeds[0]) || null;
+
+    dSrc.className = 'sl-src ' + m.cls;
+    dSrc.innerHTML = '';
+    const di = document.createElement('i'); di.className = 'fas ' + iconFor(log); dSrc.appendChild(di);
+    dSrc.appendChild(document.createTextNode(' ' + m.label));
+
+    dTitle.textContent = (e && e.title) || (log.content ? 'رسالة' : 'حدث');
+    dTime.textContent = new Date(log.timestamp).toLocaleString('ar');
+
+    dDesc.textContent = (e && e.description) || (!e ? txt(log.content) : '');
+    dDesc.hidden = !dDesc.textContent;
+
+    dFields.innerHTML = '';
+    const fields = (e && Array.isArray(e.fields)) ? e.fields : [];
+    fields.forEach(f => {
+      const box = document.createElement('div'); box.className = 'sl-dfield';
+      const b = document.createElement('b'); b.textContent = txt(f.name);
+      const s = document.createElement('span'); s.textContent = txt(f.value);
+      box.append(b, s); dFields.appendChild(box);
+    });
+    if (!fields.length && !dDesc.textContent && log.content) {
+      const box = document.createElement('div'); box.className = 'sl-dfield';
+      const b = document.createElement('b'); b.textContent = 'المحتوى';
+      const s = document.createElement('span'); s.textContent = txt(log.content);
+      box.append(b, s); dFields.appendChild(box);
+    }
+
+    dMeta.innerHTML = '';
+    const metaRows = [];
+    if (e && e.footer && e.footer.text) metaRows.push(['التذييل', e.footer.text]);
+    if (log.channelId) metaRows.push(['القناة', log.channelId]);
+    if (e && e.author && e.author.name) metaRows.push(['المُرسل', e.author.name]);
+    metaRows.forEach(([k, v]) => {
+      const row = document.createElement('div'); row.className = 'sl-dim';
+      const b = document.createElement('b'); b.textContent = k + ': '; b.style.color = 'var(--text)';
+      row.append(b, document.createTextNode(txt(v))); dMeta.appendChild(row);
+    });
+
+    currentRaw = log;
+    rawEl.hidden = true; rawEl.textContent = '';
+    rawToggle.innerHTML = '<i class="fas fa-code"></i> عرض البيانات الخام';
+
+    drawer.classList.add('is-open');
+    drawer.setAttribute('aria-hidden', 'false');
+    backdrop.classList.add('show');
+  }
+  function closeDrawer() {
+    drawer.classList.remove('is-open');
+    drawer.setAttribute('aria-hidden', 'true');
+    backdrop.classList.remove('show');
+  }
+  rawToggle.addEventListener('click', () => {
+    if (rawEl.hidden) { rawEl.textContent = JSON.stringify(currentRaw, null, 2); rawEl.hidden = false; rawToggle.innerHTML = '<i class="fas fa-code"></i> إخفاء البيانات الخام'; }
+    else { rawEl.hidden = true; rawToggle.innerHTML = '<i class="fas fa-code"></i> عرض البيانات الخام'; }
+  });
+  backdrop.addEventListener('click', closeDrawer);
+  document.getElementById('slDrawerClose').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+  body.addEventListener('click', e => { const tr = e.target.closest('.sl-tr'); if (tr) openDrawer(tr.dataset.id); });
+  body.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('sl-tr')) { e.preventDefault(); openDrawer(e.target.dataset.id); } });
+
+  /* ── الفلاتر ─────────────────────────────────────────────── */
+  searchEl.addEventListener('input', () => { query = searchEl.value.trim().toLowerCase(); applyFilter(); });
+  filterEl.addEventListener('click', e => {
+    const b = e.target.closest('button[data-f]'); if (!b) return;
+    filter = b.dataset.f;
+    qsa('button', filterEl).forEach(x => x.classList.toggle('is-active', x === b));
+    applyFilter();
+  });
+
+  /* ── تحميل المزيد ────────────────────────────────────────── */
+  async function loadMore() {
+    const before = oldestTs || (rows().length ? Number(rows()[rows().length - 1].dataset.ts) : 0);
+    if (!before) return;
+    moreBtn.disabled = true; moreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ التحميل…';
+    try {
+      const r = await fetch(`/logs/${GID}/server?before=${before}&limit=60`, { headers: { Accept: 'application/json' } });
+      const data = await r.json();
+      (data.logs || []).forEach(log => { LOG_MAP[log._id] = log; body.appendChild(buildRow(log)); });
+      moreBtn.hidden = !data.hasMore;
+      reconcileOldest();
+      paintTimes(); applyFilter();
+    } catch (err) {
+      toast('تعذّر تحميل المزيد', 'error');
+    } finally {
+      moreBtn.disabled = false; moreBtn.innerHTML = '<i class="fas fa-chevron-down"></i> تحميل المزيد';
+    }
+  }
+  function reconcileOldest() {
+    const list = rows();
+    oldestTs = list.length ? Math.min(...list.map(r => Number(r.dataset.ts) || 0)) : 0;
+  }
+  moreBtn.addEventListener('click', loadMore);
+
+  /* ── التحديث الحيّ ───────────────────────────────────────── */
+  async function refresh(silent) {
+    refreshBtn.classList.add('is-busy');
+    try {
+      const r = await fetch(`/logs/${GID}/live`, { headers: { Accept: 'application/json' } });
+      const data = await r.json();
+      const known = new Set(rows().map(x => x.dataset.id));
+      const fresh = (data.logs || []).filter(l => !known.has(l._id)).sort((a, b) => a.timestamp - b.timestamp);
+      fresh.forEach(log => { LOG_MAP[log._id] = log; body.prepend(buildRow(log)); });
+      if (data.stats) {
+        const set = (sel, v) => { const el = document.querySelector(sel); if (el) el.textContent = v; };
+        set('.sl-kpi.is-total b', data.stats.total);
+        set('.sl-kpi.is-server b', data.stats.server);
+        set('.sl-kpi.is-mod b', data.stats.mod);
+        set('.sl-kpi.is-bot b', data.stats.bot);
+        const lastEl = document.querySelector('.sl-kpi .sl-rel');
+        if (lastEl && data.stats.lastAt) { lastEl.dataset.ts = data.stats.lastAt; lastEl.textContent = relTime(data.stats.lastAt); }
+      }
+      paintTimes(); reconcileOldest(); applyFilter();
+      if (!silent) toast(fresh.length ? `✅ ${fresh.length} سجل جديد` : 'لا جديد', fresh.length ? 'success' : 'info');
+    } catch (err) {
+      if (!silent) toast('تعذّر التحديث', 'error');
+    } finally {
+      refreshBtn.classList.remove('is-busy');
+    }
+  }
+  refreshBtn.addEventListener('click', () => refresh(false));
+  autoBtn.addEventListener('click', () => {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; autoBtn.classList.remove('is-on'); autoBtn.setAttribute('aria-pressed', 'false'); toast('أُوقف التحديث الحيّ', 'info'); }
+    else { autoTimer = setInterval(() => refresh(true), 30000); autoBtn.classList.add('is-on'); autoBtn.setAttribute('aria-pressed', 'true'); toast('التحديث الحيّ يعمل كل 30 ثانية', 'success'); }
+  });
+
+  /* ── التهيئة ─────────────────────────────────────────────── */
+  paintTimes();
+  reconcileOldest();
+  applyFilter();
+  setInterval(paintTimes, 60000);
+})();
+</script>

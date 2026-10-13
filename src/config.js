@@ -30,6 +30,10 @@ export default {
   // Must match the bot's API_SECRET. Without it the bot refuses all /api calls.
   apiSecret: process.env.API_SECRET || '',
 
+  // مدة الاحتفاظ بسجلات السيرفر (نشاط/تدقيق/سجلات ديسكورد) بالساعات.
+  // الافتراضي 48 ساعة — يمنع تضخّم قاعدة البيانات وتدهور أداء صفحة السجلات.
+  logRetentionHours: Math.max(1, parseInt(process.env.LOG_RETENTION_HOURS, 10) || 48),
+
   mongodb: {
     uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/fx9_dashboard',
   },

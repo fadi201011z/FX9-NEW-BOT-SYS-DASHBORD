@@ -2,7 +2,7 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 import crypto from 'node:crypto';
 import { isAuthenticated, hasGuildAccess, isOwner, clearBotGuildCache } from '../middleware/auth.js';
-import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig, getGuildAdmins } from '../database.js';
+import { getGuildConfig, getActivity, getAlerts, getUserActivity, getAllGuildConfig, getGuildAdmins, saveServerLogs } from '../database.js';
 import { getCommandStats } from '../services/syncService.js';
 import { getBotGuilds } from '../auth/discord.js';
 import config from '../config.js';
@@ -234,6 +234,87 @@ router.post('/tickets/cleanup', isAuthenticated, isOwner, async (req, res) => {
     const result = await Ticket.deleteMany({});
     res.json({ success: true, deleted: result.deletedCount });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Webhook: Bot mirrors Discord server logs here ───────────────────────
+// Authenticated with the dashboard<->bot shared secret (API_SECRET), NOT the
+// bot token. Fail closed when API_SECRET is unset, compare in constant time,
+// and strip each embed down to a small whitelist before storing it.
+const EMBED_KEYS = ['title', 'description', 'url', 'color', 'timestamp', 'footer', 'thumbnail', 'image', 'author'];
+
+function safeSecretEqual(a, b) {
+  const ba = Buffer.from(String(a ?? ''));
+  const bb = Buffer.from(String(b ?? ''));
+  if (ba.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ba, bb);
+}
+
+function clip(v, max) {
+  if (typeof v !== 'string') return v === undefined ? undefined : v;
+  return v.length > max ? v.slice(0, max) : v;
+}
+
+function sanitizeEmbed(embed) {
+  if (!embed || typeof embed !== 'object') return null;
+  const out = {};
+  for (const key of EMBED_KEYS) {
+    if (embed[key] === undefined) continue;
+    out[key] = ['title', 'description', 'url'].includes(key)
+      ? clip(embed[key], key === 'url' ? 512 : 2048)
+      : embed[key];
+  }
+  if (Array.isArray(embed.fields)) {
+    out.fields = embed.fields.slice(0, 25).map((f) => ({
+      name: clip(f?.name, 256),
+      value: clip(f?.value, 1024),
+      inline: Boolean(f?.inline),
+    }));
+  }
+  try {
+    if (JSON.stringify(out).length > 6000) {
+      return { title: out.title, description: clip(out.description, 1500), color: out.color };
+    }
+  } catch { return null; }
+  return out;
+}
+
+router.post('/server-logs', async (req, res) => {
+  try {
+    if (!config.apiSecret) {
+      return res.status(503).json({ error: 'API disabled: API_SECRET not configured' });
+    }
+    const provided = req.get('x-api-key') || req.get('authorization')?.replace(/^Bearer\s+/i, '');
+    if (!safeSecretEqual(provided, config.apiSecret)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const body = req.body || {};
+    const incoming = Array.isArray(body.logs) ? body.logs : [body];
+
+    const now = Date.now();
+    const entries = [];
+    for (const raw of incoming.slice(0, 200)) {
+      if (!raw || typeof raw !== 'object') continue;
+      const guildId = String(raw.guildId ?? '').trim();
+      if (!/^\d{5,32}$/.test(guildId)) continue;
+      const source = ['server', 'mod', 'bot'].includes(raw.source) ? raw.source : 'server';
+      const ts = Number(raw.timestamp);
+      entries.push({
+        guildId,
+        channelId: clip(String(raw.channelId ?? ''), 32) || undefined,
+        source,
+        content: clip(typeof raw.content === 'string' ? raw.content : undefined, 2000),
+        embeds: (Array.isArray(raw.embeds) ? raw.embeds : []).slice(0, 5).map(sanitizeEmbed).filter(Boolean),
+        timestamp: Number.isFinite(ts) && ts > 0 && ts <= now + 60_000 ? ts : now,
+      });
+    }
+
+    const stored = await saveServerLogs(entries);
+    res.json({ success: true, stored });
+  } catch (err) {
+    console.error('[ServerLogs Ingest Error]', err);
     res.status(500).json({ error: err.message });
   }
 });

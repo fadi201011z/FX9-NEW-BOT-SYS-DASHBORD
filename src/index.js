@@ -471,7 +471,7 @@ const server = app.listen(config.port, '0.0.0.0', () => {
 });
 
 // ─── Periodic Admin Sync (every 5 minutes) ──────────────────────────────────
-import { getAllGuildIdsWithAdminRoles } from './database.js';
+import { getAllGuildIdsWithAdminRoles, pruneLogs } from './database.js';
 setInterval(async () => {
   try {
     const guildIds = await getAllGuildIdsWithAdminRoles();
@@ -489,6 +489,27 @@ setInterval(async () => {
     console.error('[AdminSync] Error:', err.message);
   }
 }, 300_000);
+
+// ─── Log Retention (every hour) ─────────────────────────────────────────────
+// Keeps ServerLog/Activity/AuditLog bounded so the logs page cannot grow into
+// a slow query or a crash on the free tier. The TTL index is the primary guard;
+// this sweep makes the window honour LOG_RETENTION_HOURS and trims immediately
+// at boot instead of waiting for Mongo's TTL monitor.
+async function runLogRetention() {
+  try {
+    const removed = await pruneLogs(config.logRetentionHours);
+    const total = removed.server + removed.activity + removed.audit;
+    if (total > 0) {
+      console.log(`[LogRetention] removed ${total} entries older than ${config.logRetentionHours}h`
+        + ` (server ${removed.server} / activity ${removed.activity} / audit ${removed.audit})`);
+    }
+  } catch (err) {
+    console.error('[LogRetention] Error:', err.message);
+  }
+}
+runLogRetention();
+const logRetentionTimer = setInterval(runLogRetention, 3600_000);
+if (logRetentionTimer.unref) logRetentionTimer.unref();
 
 // ─── WebSocket ───────────────────────────────────────────────────────────
 const ws = setupWebSocket(server);

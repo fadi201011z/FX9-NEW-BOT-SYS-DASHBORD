@@ -2,6 +2,7 @@ import User from './models/User.js';
 import Admin from './models/Admin.js';
 import Activity from './models/Activity.js';
 import AuditLog from './models/AuditLog.js';
+import ServerLog from './models/ServerLog.js';
 import CommandConfig from './models/CommandConfig.js';
 import Alert from './models/Alert.js';
 import Backup from './models/Backup.js';
@@ -100,6 +101,68 @@ export async function getAuditLogs(guildId, limit = 100) {
     username: userMap[l.userId]?.username,
     avatar: userMap[l.userId]?.avatar,
   }));
+}
+
+// ─── Server Logs (Discord events mirrored by the bot) ─────────────────────
+// البوت يعكس سجلاته الحقيقية (رسائل/أعضاء/رتب/بانات/صوت) إلى اللوحة، فتُخزَّن
+// هنا مؤقتاً وتُعرض في صفحة السجلات. الاحتفاظ 48 ساعة افتراضياً.
+
+export async function saveServerLogs(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) return 0;
+  await ServerLog.insertMany(entries, { ordered: false });
+  return entries.length;
+}
+
+export async function getServerLogs(guildId, limit = 60, before = null) {
+  const query = { guildId };
+  if (before) query.timestamp = { $lt: Number(before) };
+  return ServerLog.find(query).sort({ timestamp: -1 }).limit(Math.min(limit, 200)).lean();
+}
+
+export async function countServerLogs(guildId, since = 0) {
+  const query = { guildId };
+  if (since) query.timestamp = { $gte: Number(since) };
+  return ServerLog.countDocuments(query);
+}
+
+// إحصاءات نافذة العرض (48 ساعة افتراضياً): الإجمالي + توزيع المصادر + آخر حدث.
+export async function getServerLogStats(guildId, since = 0) {
+  const match = { guildId };
+  if (since) match.timestamp = { $gte: Number(since) };
+
+  const [grouped, last] = await Promise.all([
+    ServerLog.aggregate([
+      { $match: match },
+      { $group: { _id: '$source', count: { $sum: 1 } } },
+    ]),
+    ServerLog.findOne({ guildId }).sort({ timestamp: -1 }).select('timestamp').lean(),
+  ]);
+
+  const bySource = { server: 0, mod: 0, bot: 0 };
+  for (const row of grouped) {
+    if (bySource[row._id] !== undefined) bySource[row._id] = row.count;
+  }
+  return {
+    total: bySource.server + bySource.mod + bySource.bot,
+    ...bySource,
+    lastAt: last?.timestamp || 0,
+  };
+}
+
+// يحذف السجلات الأقدم من المدة المحددة (بالساعات). يعتمد timestamp الرقمي
+// لتوحيد السلوك بين المجموعات الثلاث، ويُكمِّل فهرس TTL كشبكة أمان ثانية.
+export async function pruneLogs(retentionHours = 48) {
+  const cutoff = Date.now() - Math.max(1, retentionHours) * 3600 * 1000;
+  const [server, activity, audit] = await Promise.all([
+    ServerLog.deleteMany({ timestamp: { $lt: cutoff } }),
+    Activity.deleteMany({ timestamp: { $lt: cutoff } }),
+    AuditLog.deleteMany({ timestamp: { $lt: cutoff } }),
+  ]);
+  return {
+    server: server.deletedCount || 0,
+    activity: activity.deletedCount || 0,
+    audit: audit.deletedCount || 0,
+  };
 }
 
 // ─── Command Config ───────────────────────────────────────────────────────

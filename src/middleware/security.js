@@ -22,6 +22,10 @@ export function securityMiddleware(app) {
     message: { error: 'Too many requests, try again later.' },
     standardHeaders: true,
     legacyHeaders: false,
+    // بوت سيرفر واحد يعكس سجلاته هنا بوتيرة ثابتة، وحدّ 100/15د مصمَّم
+    // لزوار المتصفح لا لمصدر آلي موثوق بمفتاح مشترك. تُترك نقطة الاستقبال
+    // خارج العدّاد حتى لا تُحجب السجلات، مع بقاء المصادقة بالمفتاح قائمة.
+    skip: (req) => req.originalUrl.startsWith('/api/server-logs'),
   });
   app.use('/api/', limiter);
 

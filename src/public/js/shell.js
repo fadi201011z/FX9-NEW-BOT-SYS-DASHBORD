@@ -129,6 +129,7 @@
   };
 
   var showTip = function (el) {
+    if (!el) return hideTip();
     /* A navigation row says its own name out loud while the rail is expanded,
        so a tip there would be the label twice. The collapse handle is exempt: it
        says the same thing on both sides of the state it controls, and neither
