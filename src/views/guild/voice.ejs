@@ -1,143 +1,409 @@
 <% currentPage = 'voice' %>
 <%
-  // — الرومات المؤقتة: قائمة القنوات الصوتية التي أنشأها الأعضاء في السيرفر.
+  // — الرومات الصوتية المؤقتة: قنوات ينشئها الأعضاء تلقائياً عند الانضمام
+  //   لقناة الإنشاء، وتُحذف عند خلوّها. هذه الصفحة للمراقبة والإدارة.
   const vcs = voiceChannels || [];
   const ownersN = new Set(vcs.map(v => v.ownerId).filter(Boolean)).size;
   const lockedN = vcs.filter(v => v.locked === true).length;
   const hiddenN = vcs.filter(v => v.hidden === true).length;
+  const limitedN = vcs.filter(v => v.userLimit).length;
+  // فهرس الصورة الرمزية الافتراضية في ديسكورد = (id >> 22) % 6
+  const defAvatar = (id) => { try { return Number((BigInt(String(id)) >> 22n) % 6n); } catch (e) { return 0; } };
 %>
 
-<div class="page-header">
-  <h1><i class="fas fa-microphone"></i> الرومات المؤقتة</h1>
-  <p>القنوات الصوتية التي أنشأها أعضاء سيرفر <strong><%= guild.name %></strong> — تُحذف تلقائياً عند خلوّها</p>
-</div>
-
-<div class="stats-grid">
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #d000ff"><i class="fas fa-microphone" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= vcs.length %></span>
-      <span class="stat-label">قناة نشطة الآن</span>
-    </div>
-  </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-crown" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= ownersN %></span>
-      <span class="stat-label">مالك قناة</span>
-    </div>
-  </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #ff8088"><i class="fas fa-lock" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= lockedN %></span>
-      <span class="stat-label">مقفلة</span>
-    </div>
-  </div>
-  <div class="stat-card glass">
-    <div class="stat-icon" style="--stat-color: #00c8ff"><i class="fas fa-eye-slash" aria-hidden="true"></i></div>
-    <div class="stat-info">
-      <span class="stat-value"><%= hiddenN %></span>
-      <span class="stat-label">مخفية</span>
-    </div>
-  </div>
-</div>
-
-<div class="card glass">
-  <div class="card-header">
-    <h3><i class="fas fa-list"></i> القنوات النشطة حالياً</h3>
-    <span class="vc-note">يمكن للمالك إدارة قناته بالكامل</span>
-  </div>
-  <div class="voice-list vc-list">
-    <% if (vcs.length > 0) { %>
-      <% vcs.forEach(vc => { %>
-        <div class="vc-item">
-          <div class="vc-main">
-            <span class="vc-icon"><i class="fas fa-microphone" aria-hidden="true"></i></span>
-            <div class="vc-info">
-              <strong><%= vc.name || vc.vcId %></strong>
-              <span class="voice-owner">👑 المالك: <%- vc.ownerId ? `<@${vc.ownerId}>` : 'غير معروف' %></span>
-            </div>
-          </div>
-          <div class="vc-meta">
-            <span class="vc-badges">
-              <% if (vc.locked === true) { %><span class="vc-badge vc-locked"><i class="fas fa-lock" aria-hidden="true"></i> مقفلة</span><% } %>
-              <% if (vc.hidden === true) { %><span class="vc-badge vc-hidden"><i class="fas fa-eye-slash" aria-hidden="true"></i> مخفية</span><% } %>
-              <% if (vc.userLimit) { %><span class="vc-badge vc-limit"><i class="fas fa-users" aria-hidden="true"></i> <%= vc.userLimit %></span><% } %>
-              <% if (vc.bitrate) { %><span class="vc-badge vc-bit"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> <%= Math.round(vc.bitrate / 1000) %>kbps</span><% } %>
-            </span>
-            <span class="vc-time"><i class="fas fa-clock" aria-hidden="true"></i> <%= new Date(vc.createdAt || Date.now()).toLocaleString('ar-SA') %></span>
-            <button class="btn-sm btn-danger" onclick="deleteVoice('<%= vc.vcId %>', '<%= (vc.name || vc.vcId).replace(/'/g, "\\'") %>')" title="حذف القناة من السيرفر">
-              <i class="fas fa-trash"></i> حذف
-            </button>
-          </div>
-        </div>
-      <% }) %>
-    <% } else { %>
-      <div class="empty-state">
-        <i class="fas fa-microphone-slash"></i>
-        <p>لا توجد قنوات صوتية مؤقتة نشطة حالياً</p>
-        <small>عندما ينضم عضو إلى قناة الإطلاق «+ إنشاء روم» تُنشأ الروم تلقائياً</small>
-      </div>
-    <% } %>
-  </div>
-</div>
-
 <style>
-  .vc-note { color: var(--text-muted); font-size: .75rem; }
-  .vc-list { display: flex; flex-direction: column; gap: 10px; }
-  .vc-item {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
-    padding: 14px 16px; border-radius: var(--radius, 12px);
-    border: 1px solid var(--nx-line, rgba(237,240,255,0.07));
-    background: rgba(237,240,255,0.015);
-    transition: border-color .18s var(--nx-ease, ease), background .18s var(--nx-ease, ease);
+  /* ═══ الرومات الصوتية — جدول كثيف احترافي ═══ */
+  .vox-page {
+    --ok: #00c8ff; --no: #ff3545; --warn: #ff8088; --acc: #d000ff; --acc2: #8700ff;
+    --line: rgba(237,240,255,0.08); --line2: rgba(237,240,255,0.045);
+    --surf: rgba(16,16,20,0.55); --surf2: rgba(5,5,7,0.84);
+    --hover: rgba(208,0,255,0.07);
   }
-  .vc-item:hover { border-color: rgba(208,0,255,0.4); background: rgba(208,0,255,0.05); }
-  .vc-main { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
-  .vc-icon {
-    width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center;
-    border-radius: 11px; background: rgba(208,0,255,0.12); color: var(--primary); font-size: 1rem;
-  }
-  .vc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .vc-info strong { color: var(--text, #edf0ff); font-size: .95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .voice-owner { color: var(--text-muted); font-size: .78rem; }
-  .vc-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .vc-badges { display: flex; gap: 6px; flex-wrap: wrap; }
-  .vc-badge {
-    display: inline-flex; align-items: center; gap: 4px; font-size: .68rem; font-weight: 600;
-    padding: 2px 9px; border-radius: 20px; white-space: nowrap;
-  }
-  .vc-locked { background: rgba(255,128,136,0.12); color: #ff8088; }
-  .vc-hidden { background: rgba(0,200,255,0.12); color: #00c8ff; }
-  .vc-limit { background: rgba(0,200,255,0.1); color: #00c8ff; }
-  .vc-bit { background: rgba(0,168,255,0.1); color: #00a8ff; }
-  .vc-time { color: var(--text-muted); font-size: .74rem; display: inline-flex; align-items: center; gap: 5px; }
-  @media (max-width: 680px) { .vc-time { display: none; } }
+
+  /* ── رأس الصفحة ── */
+  .vox-header { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+  .vox-header::after { content: ''; position: absolute; inset-inline-start: 0; bottom: -1px; width: 130px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--acc), var(--acc2), transparent); }
+  .vox-header h1 i { color: var(--acc); }
+  .vox-kpis { display: flex; gap: 8px; flex-wrap: wrap; }
+  .vox-kpi { display: flex; align-items: center; gap: 10px; padding: 8px 13px; border-radius: 12px; background: var(--surf); border: 1px solid var(--line); transition: border-color .2s, transform .2s; }
+  .vox-kpi:hover { border-color: rgba(208,0,255,0.4); transform: translateY(-1px); }
+  .vox-kpi > i { color: var(--text-muted); font-size: 0.85rem; }
+  .vox-kpi b { font-size: 1.05rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .vox-kpi span { font-size: 0.7rem; color: var(--text-muted); }
+  .vox-kpi.is-live i { color: var(--ok); }
+  .vox-kpi.is-live b { color: var(--ok); }
+  .vox-kpi.is-lock i { color: var(--warn); }
+  .vox-kpi.is-hide i { color: var(--acc); }
+
+  /* ── شريط الأدوات ── */
+  .vox-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 16px 0 14px; }
+  .vox-search { position: relative; flex: 1 1 220px; max-width: 320px; }
+  .vox-search > i { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem; pointer-events: none; }
+  .vox-search input { width: 100%; padding-block: 9px; padding-inline: 34px 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--surf); color: var(--text); font-family: inherit; font-size: 0.84rem; outline: none; transition: border-color .18s, box-shadow .18s; }
+  .vox-search input:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(208,0,255,0.16); }
+  .vox-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 11px; overflow: hidden; background: var(--surf); }
+  .vox-seg button { border: 0; border-inline-start: 1px solid var(--line); background: transparent; color: var(--text-muted); font-family: inherit; font-size: 0.78rem; font-weight: 600; padding: 9px 13px; cursor: pointer; transition: color .15s, background .2s; }
+  .vox-seg button:first-child { border-inline-start: 0; }
+  .vox-seg button:hover { color: var(--text); }
+  .vox-seg button.is-active { background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #edf0ff; }
+  .vox-count { margin-inline-start: auto; font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  /* ── الجدول ── */
+  .vox-tablewrap { border-radius: 14px; overflow: hidden; box-shadow: 0 18px 50px rgba(0,0,0,0.28); animation: voxFade .45s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes voxFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .vox-scroll { max-height: calc(100vh - 320px); overflow: auto; }
+  .vox-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+  .vox-scroll::-webkit-scrollbar-thumb { background: rgba(135,0,255,0.35); border-radius: 9px; }
+  .vox-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.84rem; }
+  .vox-table thead th { position: sticky; top: 0; z-index: 3; background: var(--surf2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); text-align: start; font-size: 0.67rem; font-weight: 800; letter-spacing: 0.4px; color: var(--text-muted); padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .vox-table thead th i { margin-inline-start: 5px; font-size: 0.64rem; opacity: 0.45; }
+  .vox-table thead th[data-sort] { cursor: pointer; user-select: none; transition: color .15s; }
+  .vox-table thead th[data-sort]:hover { color: var(--text); }
+  .vox-table thead th.is-sorted i { opacity: 1; color: var(--acc); }
+  .vox-tr { transition: background .14s, opacity .26s, transform .26s; }
+  .vox-tr:hover { background: var(--hover); }
+  .vox-tr[hidden] { display: none; }
+  .vox-tr.is-gone { opacity: 0; transform: translateX(-14px); }
+  .vox-tr td { padding: 10px 14px; border-bottom: 1px solid var(--line2); vertical-align: middle; }
+  .vox-tr:last-child td { border-bottom: 0; }
+
+  /* ── خلية القناة ── */
+  .vox-chan { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .vox-ico { position: relative; width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; border-radius: 10px; background: rgba(208,0,255,0.12); color: var(--acc); font-size: 0.85rem; overflow: hidden; }
+  .vox-ico::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(208,0,255,0.22); }
+  .vox-nm { display: block; font-weight: 700; color: var(--text); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vox-id { display: block; font-family: var(--nx-mono, Consolas, monospace); direction: ltr; text-align: start; font-size: 0.67rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── خلية المالك ── */
+  .vox-owner { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .vox-av { position: relative; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, rgba(208,0,255,0.25), rgba(135,0,255,0.15)); color: #edf0ff; font-size: 0.68rem; overflow: hidden; }
+  .vox-av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .vox-oid { font-family: var(--nx-mono, Consolas, monospace); direction: ltr; text-align: start; font-size: 0.76rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ── الشرائح ── */
+  .vox-pills { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .vox-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .vox-pill.is-open { background: rgba(0,200,255,0.12); color: var(--ok); }
+  .vox-pill.is-locked { background: rgba(255,53,69,0.14); color: var(--no); }
+  .vox-pill.is-shown { background: rgba(237,240,255,0.06); color: var(--text-muted); }
+  .vox-pill.is-hidden { background: rgba(208,0,255,0.14); color: var(--acc); }
+
+  /* ── القيم الرقمية ── */
+  .vox-num { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
+  .vox-num.is-dim { color: var(--text-muted); font-weight: 600; }
+  .vox-time { color: var(--text-muted); font-size: 0.76rem; white-space: nowrap; }
+
+  /* ── الأزرار ── */
+  .vox-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9px; border: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 0.82rem; transition: color .15s, background .15s, border-color .15s; }
+  .vox-icon:hover { color: #edf0ff; background: rgba(237,240,255,0.06); border-color: var(--line); }
+  .vox-icon.is-danger:hover { color: var(--no); border-color: rgba(255,53,69,0.4); background: rgba(255,53,69,0.08); }
+  .vox-icon:disabled { opacity: 0.5; cursor: default; }
+  .col-act { white-space: nowrap; text-align: end; }
+
+  /* ── الحالة الفارغة ── */
+  .vox-empty { display: none; flex-direction: column; align-items: center; gap: 8px; padding: 56px 16px; color: var(--text-muted); text-align: center; }
+  .vox-empty.show { display: flex; }
+  .vox-empty .vox-empty-ic { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 16px; background: rgba(208,0,255,0.1); color: var(--acc); font-size: 1.4rem; }
+  .vox-empty b { color: var(--text); font-size: 0.95rem; }
+  .vox-empty span { font-size: 0.8rem; }
+
+  /* ── تذييل توضيحي ── */
+  .vox-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-size: 0.76rem; color: var(--text-muted); }
+  .vox-foot span { display: inline-flex; align-items: center; gap: 6px; }
+  .vox-foot i { color: var(--acc); }
+
+  @media (max-width: 900px) { .col-bitrate { display: none; } }
+  @media (max-width: 720px) { .col-time { display: none; } .vox-id { display: none; } .vox-scroll { max-height: none; } }
+  @media (max-width: 560px) { .vox-oid { display: none; } .vox-nm { max-width: 150px; } }
+  @media (prefers-reduced-motion: reduce) { .vox-tablewrap, .vox-tr { transition: none !important; animation: none !important; } }
 </style>
 
+<div class="vox-page">
+  <div class="page-header vox-header">
+    <div>
+      <h1><i class="fas fa-microphone-lines"></i> الرومات الصوتية المؤقتة</h1>
+      <p>قنوات ينشئها الأعضاء تلقائياً وتُحذف عند خلوّها — سيرفر <strong><%= guild.name %></strong></p>
+    </div>
+    <div class="vox-kpis">
+      <div class="vox-kpi is-live"><i class="fas fa-signal" aria-hidden="true"></i><b id="kpiActive"><%= vcs.length %></b><span>قناة نشطة</span></div>
+      <div class="vox-kpi"><i class="fas fa-crown" aria-hidden="true"></i><b id="kpiOwners"><%= ownersN %></b><span>مالك</span></div>
+      <div class="vox-kpi is-lock"><i class="fas fa-lock" aria-hidden="true"></i><b id="kpiLocked"><%= lockedN %></b><span>مقفلة</span></div>
+      <div class="vox-kpi is-hide"><i class="fas fa-eye-slash" aria-hidden="true"></i><b id="kpiHidden"><%= hiddenN %></b><span>مخفية</span></div>
+    </div>
+  </div>
+
+  <div class="vox-toolbar">
+    <div class="vox-search">
+      <i class="fas fa-search" aria-hidden="true"></i>
+      <input type="search" id="voxSearch" placeholder="ابحث باسم القناة أو معرّف المالك…" autocomplete="off">
+    </div>
+    <div class="vox-seg" id="voxFilter" role="group" aria-label="فلترة القنوات">
+      <button type="button" data-f="all" class="is-active">الكل</button>
+      <button type="button" data-f="open">مفتوحة</button>
+      <button type="button" data-f="locked">مقفلة</button>
+      <button type="button" data-f="hidden">مخفية</button>
+      <button type="button" data-f="limited">بحدّ أعضاء</button>
+    </div>
+    <span class="vox-count" id="voxCount"><%= vcs.length %> قناة</span>
+  </div>
+
+  <div class="vox-tablewrap glass">
+    <div class="vox-scroll">
+      <table class="vox-table">
+        <thead>
+          <tr>
+            <th data-sort="name">القناة <i class="fas fa-sort" aria-hidden="true"></i></th>
+            <th data-sort="owner">المالك <i class="fas fa-sort" aria-hidden="true"></i></th>
+            <th>الوصول</th>
+            <th data-sort="limit">الحد <i class="fas fa-sort" aria-hidden="true"></i></th>
+            <th data-sort="bitrate" class="col-bitrate">الجودة <i class="fas fa-sort" aria-hidden="true"></i></th>
+            <th data-sort="time" class="col-time">أُنشئت <i class="fas fa-sort" aria-hidden="true"></i></th>
+            <th class="col-act">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="voxBody">
+          <% vcs.forEach(v => { %>
+            <% const nm = v.name || v.vcId; %>
+            <% const created = v.createdAt ? new Date(v.createdAt).getTime() : (v.createdAt === 0 ? 0 : Date.now()); %>
+            <% const av = v.ownerId ? ((() => { try { return Number((BigInt(String(v.ownerId)) >> 22n) % 6n); } catch (e) { return 0; } })()) : null; %>
+            <tr class="vox-tr"
+                data-vcid="<%= v.vcId %>"
+                data-name="<%= nm %>"
+                data-owner="<%= v.ownerId || '' %>"
+                data-locked="<%= v.locked === true ? 'true' : 'false' %>"
+                data-hidden="<%= v.hidden === true ? 'true' : 'false' %>"
+                data-limit="<%= v.userLimit || 0 %>"
+                data-bitrate="<%= v.bitrate || 0 %>"
+                data-created="<%= created %>">
+              <td>
+                <div class="vox-chan">
+                  <span class="vox-ico"><i class="fas fa-microphone" aria-hidden="true"></i></span>
+                  <div style="min-width:0">
+                    <span class="vox-nm" title="<%= nm %>"><%= nm %></span>
+                    <span class="vox-id"><%= v.vcId %></span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="vox-owner">
+                  <% if (v.ownerId) { %>
+                    <span class="vox-av"><i class="fas fa-user" aria-hidden="true"></i><img src="https://cdn.discordapp.com/embed/avatars/<%= av %>.png" alt="" loading="lazy" onerror="this.remove()"></span>
+                    <span class="vox-oid" title="<%= v.ownerId %>"><%= v.ownerId %></span>
+                  <% } else { %>
+                    <span class="vox-av"><i class="fas fa-ghost" aria-hidden="true"></i></span>
+                    <span class="vox-oid">غير معروف</span>
+                  <% } %>
+                </div>
+              </td>
+              <td>
+                <span class="vox-pills">
+                  <% if (v.locked === true) { %>
+                    <span class="vox-pill is-locked"><i class="fas fa-lock" aria-hidden="true"></i> مقفلة</span>
+                  <% } else { %>
+                    <span class="vox-pill is-open"><i class="fas fa-lock-open" aria-hidden="true"></i> مفتوحة</span>
+                  <% } %>
+                  <% if (v.hidden === true) { %>
+                    <span class="vox-pill is-hidden"><i class="fas fa-eye-slash" aria-hidden="true"></i> مخفية</span>
+                  <% } else { %>
+                    <span class="vox-pill is-shown"><i class="fas fa-eye" aria-hidden="true"></i> ظاهرة</span>
+                  <% } %>
+                </span>
+              </td>
+              <td>
+                <span class="vox-num <%= v.userLimit ? '' : 'is-dim' %>">
+                  <%= v.userLimit ? v.userLimit : '∞' %>
+                </span>
+              </td>
+              <td class="col-bitrate">
+                <span class="vox-num <%= v.bitrate ? '' : 'is-dim' %>">
+                  <%= v.bitrate ? (Math.round(v.bitrate / 1000) + ' kbps') : 'افتراضي' %>
+                </span>
+              </td>
+              <td class="col-time"><span class="vox-time" data-ts="<%= created %>">—</span></td>
+              <td class="col-act">
+                <span class="vox-actions">
+                  <button type="button" class="vox-icon is-danger" title="حذف القناة من السيرفر" aria-label="حذف القناة">
+                    <i class="fas fa-trash" aria-hidden="true"></i>
+                  </button>
+                </span>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="vox-empty" id="voxEmpty">
+      <span class="vox-empty-ic"><i class="fas fa-microphone-slash" aria-hidden="true"></i></span>
+      <b id="voxEmptyTitle">لا توجد رومات مؤقتة الآن</b>
+      <span id="voxEmptySub">تُنشأ تلقائياً عندما ينضم عضو إلى قناة الإنشاء المخصّصة.</span>
+    </div>
+  </div>
+
+  <div class="vox-foot">
+    <span><i class="fas fa-circle-info" aria-hidden="true"></i> القنوات تُحذف تلقائياً من ديسكورد عند خلوّها من الأعضاء.</span>
+    <span><i class="fas fa-shield-halved" aria-hidden="true"></i> الحذف هنا يزيل القناة فوراً من السيرفر وينظّف بياناتها.</span>
+  </div>
+</div>
+
 <script>
-async function deleteVoice(channelId, name) {
-  if (!confirm(`هل أنت متأكد من حذف "${name}" من السيرفر؟`)) return;
-  const btn = event.target.closest('button');
-  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-  try {
-    const res = await fetch('/voice/<%= guild.id %>/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ channelId }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast('✅ تم حذف القناة من السيرفر');
-      location.reload();
-    } else {
-      showToast('❌ ' + (data.error || 'فشل الحذف'));
-      btn.disabled = false; btn.innerHTML = '<i class="fas fa-trash"></i> حذف';
-    }
-  } catch {
-    showToast('❌ فشل الاتصال');
-    btn.disabled = false; btn.innerHTML = '<i class="fas fa-trash"></i> حذف';
+(function () {
+  const GID = '<%= guild.id %>';
+  const TOTAL = <%= vcs.length %>;
+
+  const body = document.getElementById('voxBody');
+  const searchEl = document.getElementById('voxSearch');
+  const filterEl = document.getElementById('voxFilter');
+  const countEl = document.getElementById('voxCount');
+  const emptyEl = document.getElementById('voxEmpty');
+  const emptyTitle = document.getElementById('voxEmptyTitle');
+  const emptySub = document.getElementById('voxEmptySub');
+  const kpiActive = document.getElementById('kpiActive');
+  const kpiOwners = document.getElementById('kpiOwners');
+  const kpiLocked = document.getElementById('kpiLocked');
+  const kpiHidden = document.getElementById('kpiHidden');
+
+  const qsa = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const toast = m => { try { if (typeof showToast === 'function') showToast(m); } catch (e) { /* noop */ } };
+  const rows = () => qsa('.vox-tr', body);
+
+  let query = '', filter = 'all', sortKey = null, sortDir = 1;
+
+  /* ── الوقت النسبي ─────────────────────────────────────────── */
+  function relTime(ts) {
+    if (!ts) return '—';
+    const sec = Math.floor((Date.now() - ts) / 1000);
+    if (sec < 45) return 'الآن';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return 'منذ ' + min + ' د';
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return 'منذ ' + hr + ' س';
+    const day = Math.floor(hr / 24);
+    if (day < 30) return 'منذ ' + day + ' ي';
+    return new Date(ts).toLocaleDateString('ar');
   }
-}
+  function paintTimes() {
+    rows().forEach(tr => {
+      const el = tr.querySelector('.vox-time');
+      if (!el) return;
+      const ts = Number(el.dataset.ts) || 0;
+      el.textContent = relTime(ts);
+      if (ts) el.title = new Date(ts).toLocaleString('ar');
+    });
+  }
+
+  /* ── التصفية والترتيب ─────────────────────────────────────── */
+  function matches(tr) {
+    if (query && tr.dataset.name.toLowerCase().indexOf(query) === -1 &&
+        tr.dataset.owner.toLowerCase().indexOf(query) === -1) return false;
+    const locked = tr.dataset.locked === 'true';
+    const hidden = tr.dataset.hidden === 'true';
+    const limited = Number(tr.dataset.limit) > 0;
+    if (filter === 'locked' && !locked) return false;
+    if (filter === 'open' && locked) return false;
+    if (filter === 'hidden' && !hidden) return false;
+    if (filter === 'limited' && !limited) return false;
+    return true;
+  }
+  function applyFilter() {
+    let visible = 0;
+    rows().forEach(tr => {
+      const ok = matches(tr);
+      tr.hidden = !ok;
+      if (ok) visible++;
+    });
+    const alive = rows().length;
+    countEl.textContent = (query || filter !== 'all') ? (visible + ' / ' + alive + ' قناة') : (alive + ' قناة');
+    emptyEl.classList.toggle('show', visible === 0);
+    if (alive === 0) {
+      emptyTitle.textContent = 'لا توجد رومات مؤقتة الآن';
+      emptySub.textContent = 'تُنشأ تلقائياً عندما ينضم عضو إلى قناة الإنشاء المخصّصة.';
+    } else {
+      emptyTitle.textContent = 'لا توجد قنوات مطابقة';
+      emptySub.textContent = 'جرّب تغيير كلمة البحث أو الفلتر.';
+    }
+  }
+  function sortRows() {
+    if (!sortKey) return;
+    const list = rows();
+    list.sort((a, b) => {
+      let av, bv;
+      if (sortKey === 'name') { av = a.dataset.name.toLowerCase(); bv = b.dataset.name.toLowerCase(); return av.localeCompare(bv, 'ar') * sortDir; }
+      if (sortKey === 'owner') { av = a.dataset.owner; bv = b.dataset.owner; return av.localeCompare(bv) * sortDir; }
+      if (sortKey === 'limit') { av = Number(a.dataset.limit) || 0; bv = Number(b.dataset.limit) || 0; }
+      if (sortKey === 'bitrate') { av = Number(a.dataset.bitrate) || 0; bv = Number(b.dataset.bitrate) || 0; }
+      if (sortKey === 'time') { av = Number(a.dataset.created) || 0; bv = Number(b.dataset.created) || 0; }
+      if (av !== bv) return (av - bv) * sortDir;
+      return a.dataset.name.localeCompare(b.dataset.name, 'ar');
+    });
+    list.forEach(r => body.appendChild(r));
+  }
+  function updateSortIcons() {
+    qsa('th[data-sort]').forEach(th => {
+      const i = th.querySelector('i');
+      const on = th.dataset.sort === sortKey;
+      th.classList.toggle('is-sorted', on);
+      i.className = 'fas ' + (on ? (sortDir > 0 ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort');
+    });
+  }
+  qsa('th[data-sort]').forEach(th => th.addEventListener('click', () => {
+    const k = th.dataset.sort;
+    if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+    sortRows(); updateSortIcons(); applyFilter();
+  }));
+
+  /* ── KPIs ─────────────────────────────────────────────────── */
+  function updateKpis() {
+    const list = rows();
+    kpiActive.textContent = list.length;
+    kpiOwners.textContent = new Set(list.map(t => t.dataset.owner).filter(Boolean)).size;
+    kpiLocked.textContent = list.filter(t => t.dataset.locked === 'true').length;
+    kpiHidden.textContent = list.filter(t => t.dataset.hidden === 'true').length;
+  }
+
+  /* ── الحذف ────────────────────────────────────────────────── */
+  async function removeRow(tr, btn) {
+    const name = tr.dataset.name;
+    if (!confirm('هل أنت متأكد من حذف "' + name + '" من السيرفر؟')) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i>';
+    try {
+      const res = await fetch('/voice/' + GID + '/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId: tr.dataset.vcid })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || 'فشل الحذف');
+      toast('✅ تم حذف «' + name + '» من السيرفر');
+      tr.classList.add('is-gone');
+      setTimeout(() => { tr.remove(); updateKpis(); applyFilter(); }, 260);
+    } catch (e) {
+      toast('❌ ' + (e.message || 'فشل الاتصال'));
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-trash" aria-hidden="true"></i>';
+    }
+  }
+
+  /* ── الأحداث ──────────────────────────────────────────────── */
+  body.addEventListener('click', e => {
+    const btn = e.target.closest('.vox-icon.is-danger');
+    if (!btn) return;
+    const tr = btn.closest('.vox-tr');
+    if (tr) removeRow(tr, btn);
+  });
+  searchEl.addEventListener('input', () => { query = searchEl.value.trim().toLowerCase(); applyFilter(); });
+  filterEl.addEventListener('click', e => {
+    const b = e.target.closest('button[data-f]');
+    if (!b) return;
+    filter = b.dataset.f;
+    qsa('button', filterEl).forEach(x => x.classList.toggle('is-active', x === b));
+    applyFilter();
+  });
+
+  /* ── التهيئة ──────────────────────────────────────────────── */
+  paintTimes();
+  updateKpis();
+  applyFilter();
+  setInterval(paintTimes, 60000);
+})();
 </script>
