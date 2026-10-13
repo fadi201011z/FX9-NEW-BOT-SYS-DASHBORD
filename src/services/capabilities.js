@@ -14,19 +14,29 @@ import BotDeveloper from '../models/BotDeveloper.js';
  */
 
 // ── Levels ────────────────────────────────────────────────────────────────
+// ستّ رتب إدارية داخل السيرفر (بعد مالك البوت)، كل رتبة أرفع من التي تليها.
 export const LEVEL = Object.freeze({
   NONE: -1,
-  SUPPORT: 0,
-  MODERATOR: 1,
-  ADMIN: 2,
-  MANAGER: 3,
-  OWNER: 4,
+  VIEWER: 0,
+  SUPPORT: 1,
+  MODERATOR: 2,
+  SUPERVISOR: 3,
+  ADMIN: 4,
+  MANAGER: 5,
+  OWNER: 6,
 });
+
+/** الرتب الست التي يمكن تعيين مدراء السيرفر عليها، من الأدنى إلى الأعلى. */
+export const ADMIN_ROLES = Object.freeze([
+  'viewer', 'support', 'moderator', 'supervisor', 'admin', 'manager',
+]);
 
 /** The roles a guild admin can be appointed to. */
 export const ROLE_LEVEL = Object.freeze({
+  viewer: LEVEL.VIEWER,
   support: LEVEL.SUPPORT,
   moderator: LEVEL.MODERATOR,
+  supervisor: LEVEL.SUPERVISOR,
   admin: LEVEL.ADMIN,
   manager: LEVEL.MANAGER,
 });
@@ -35,8 +45,10 @@ export const ROLE_LABELS = Object.freeze({
   owner: 'المالك',
   manager: 'مدير',
   admin: 'آدمن',
+  supervisor: 'مشرف أول',
   moderator: 'مشرف',
   support: 'دعم',
+  viewer: 'مراقب',
   member: 'عضو',
 });
 
@@ -46,11 +58,11 @@ export const ROLE_LABELS = Object.freeze({
  * gets compared -- adding a capability here is how you add one anywhere.
  */
 export const CAPABILITIES = Object.freeze({
-  guilds: LEVEL.SUPPORT,
+  guilds: LEVEL.VIEWER,
   tickets: LEVEL.SUPPORT,
   logs: LEVEL.MODERATOR,
-  notifications: LEVEL.MODERATOR,
   voice: LEVEL.MODERATOR,
+  notifications: LEVEL.SUPERVISOR,
   settings: LEVEL.ADMIN,
   commands: LEVEL.ADMIN,
   protection: LEVEL.ADMIN,
@@ -60,6 +72,91 @@ export const CAPABILITIES = Object.freeze({
   backup: LEVEL.MANAGER,
   modify: LEVEL.MANAGER,
 });
+
+/**
+ * The capability vocabulary in words, for the admin/permissions screens. Kept
+ * next to CAPABILITIES so a new capability can never be granted without also
+ * having a name a server owner can read.
+ */
+export const CAPABILITY_LABELS = Object.freeze({
+  guilds: 'قائمة السيرفرات والنظرة العامة',
+  tickets: 'نظام التذاكر والدعم',
+  logs: 'سجل النشاط',
+  voice: 'الرومات الصوتية المؤقتة',
+  notifications: 'الإشعارات والإمبد',
+  settings: 'إعدادات السيرفر',
+  commands: 'إدارة الأوامر والصلاحيات',
+  protection: 'أنظمة الحماية والتصفية',
+  premium: 'نظام البريميوم',
+  admins: 'إدارة المدراء والرتب',
+  backup: 'النسخ الاحتياطي',
+  dashboard: 'لوحة التحكم الرئيسية',
+  modify: 'صلاحية التعديل على السيرفر',
+});
+
+/**
+ * The six ranks a server owner hands out, described once. The /admins page draws
+ * its cards and its details modal straight off this array, and `permissions` is
+ * computed from CAPABILITIES -- so the page can never advertise a permission the
+ * guard would not actually hand out.
+ */
+export const ROLE_CATALOG = Object.freeze([
+  {
+    id: 'manager', label: 'مدير', en: 'Manager', level: LEVEL.MANAGER,
+    icon: 'crown', color: '#ffcf5c',
+    tagline: 'صلاحية كاملة على كل صفحات السيرفر',
+    description: 'أعلى رتبة إدارية في السيرفر بعد مالك البوت. تتحكم في كل شيء: الإعدادات، الأوامر، الحماية، المدراء، النسخ الاحتياطي والبريميوم.',
+  },
+  {
+    id: 'admin', label: 'آدمن', en: 'Admin', level: LEVEL.ADMIN, icon: 'user-shield', color: '#d000ff',
+    tagline: 'تحكم في الإعدادات والحماية والأوامر',
+    description: 'تدير الجانب التقني للسيرفر: الإعدادات، نظام الأوامر، أنظمة الحماية والبريميوم — دون الوصول إلى إدارة المدراء أو النسخ الاحتياطي.',
+  },
+  {
+    id: 'supervisor', label: 'مشرف أول', en: 'Supervisor', level: LEVEL.SUPERVISOR, icon: 'user-tie', color: '#00c8ff',
+    tagline: 'إشراف كامل على الإشراف والتنبيهات',
+    description: 'رتبة إشرافية أعلى: تتابع سجل النشاط والرومات الصوتية وتدير الإشعارات والإمبد، مع صلاحيات الإشراف والتذاكر.',
+  },
+  {
+    id: 'moderator', label: 'مشرف', en: 'Moderator', level: LEVEL.MODERATOR, icon: 'gavel', color: '#ffb020',
+    tagline: 'إدارة الرومات الصوتية والسجلات',
+    description: 'يشرف على الرومات الصوتية المؤقتة ويطّلع على سجل النشاط، ويساعد في التذاكر — بدون الوصول إلى الإعدادات.',
+  },
+  {
+    id: 'support', label: 'دعم', en: 'Support', level: LEVEL.SUPPORT, icon: 'headset', color: '#00e0a4',
+    tagline: 'فريق الدعم ونظام التذاكر',
+    description: 'مسؤول الدعم الفني: يستقبل التذاكر ويرد عليها ويغلقها، ويرى قائمة السيرفرات فقط.',
+  },
+  {
+    id: 'viewer', label: 'مراقب', en: 'Viewer', level: LEVEL.VIEWER, icon: 'eye', color: '#9aa0b5',
+    tagline: 'اطّلاع فقط دون أي تعديل',
+    description: 'رتبة للقراءة فقط: يمكنه فتح اللوحة ومعاينة النظرة العامة وحالة السيرفر، دون أي صلاحية تعديل أو إجراء.',
+  },
+]);
+
+/** Capability keys a given level is granted, in CAPABILITIES order. */
+export function capabilitiesForLevel(level) {
+  return Object.keys(CAPABILITIES).filter((name) => level >= CAPABILITIES[name]);
+}
+
+export function levelOf(role) {
+  return ROLE_LEVEL[role] ?? LEVEL.NONE;
+}
+
+export function isValidAdminRole(role) {
+  return ADMIN_ROLES.includes(role);
+}
+
+/** Highest admin role out of a list of role names (null when none qualify). */
+export function bestRole(roleList) {
+  let best = null;
+  let bestLevel = LEVEL.NONE;
+  for (const role of roleList || []) {
+    const l = levelOf(role);
+    if (l > bestLevel) { bestLevel = l; best = role; }
+  }
+  return best;
+}
 
 // ── Discord permission bits ───────────────────────────────────────────────
 const PERM_ADMINISTRATOR = 0x8n;
@@ -183,8 +280,10 @@ export function roleTokenFromLevel(level) {
   if (level >= LEVEL.OWNER) return 'owner';
   if (level >= LEVEL.MANAGER) return 'manager';
   if (level >= LEVEL.ADMIN) return 'admin';
+  if (level >= LEVEL.SUPERVISOR) return 'supervisor';
   if (level >= LEVEL.MODERATOR) return 'moderator';
   if (level >= LEVEL.SUPPORT) return 'support';
+  if (level >= LEVEL.VIEWER) return 'viewer';
   return 'member';
 }
 

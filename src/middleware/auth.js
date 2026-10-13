@@ -31,8 +31,10 @@ export const ROLE_HIERARCHY = Object.freeze({
   developer: LEVEL.OWNER,
   manager: LEVEL.MANAGER,
   admin: LEVEL.ADMIN,
+  supervisor: LEVEL.SUPERVISOR,
   moderator: LEVEL.MODERATOR,
   support: LEVEL.SUPPORT,
+  viewer: LEVEL.VIEWER,
   member: LEVEL.NONE,
   guest: LEVEL.NONE,
 });

@@ -72,7 +72,7 @@
   // settings.ejs, which is six sections of real configuration, was announced as
   // "هوية البوت وقناة السجلات" and five sixths of it was invisible from home.
   // A page with eleven ways in should not need eleven visits to find out.
-  const REQ_LABEL = ['دعم', 'مشرف', 'آدمن', 'مدير'];
+  const REQ_LABEL = ['مراقب', 'دعم', 'مشرف', 'مشرف أول', 'آدمن', 'مدير'];
   // Two rows of servers, then the button. Chosen because it is the point where a
   // front door stops being a front door: past six the page is a directory, and the
   // count in the heading already says how many there are.
@@ -81,34 +81,34 @@
     { icon: 'circle-info', name: 'نظرة عامة', req: null, tint: 'hd-t-p',
       desc: 'الملخّص الذي تبدأ منه: حالة السيرفر بلا تعديل.',
       items: ['الإعدادات الحالية', 'آخر النشاطات', 'التنقل السريع'] },
-    { icon: 'ticket', name: 'التذاكر', req: 0, tint: 'hd-t-a',
+    { icon: 'ticket', name: 'التذاكر', req: 1, tint: 'hd-t-a',
       desc: 'دعم الأعضاء بقنوات مصنّفة يفتحها العضو بنفسه.',
       items: ['التذاكر المفتوحة', 'التذاكر المغلقة', 'بحث بالرقم أو العضو أو القسم'] },
-    { icon: 'microphone', name: 'الرومات المؤقتة', req: 1, tint: 'hd-t-v',
+    { icon: 'microphone', name: 'الرومات المؤقتة', req: 2, tint: 'hd-t-v',
       desc: 'قنوات صوتية تُفتح عند الطلب وتُغلق من نفسها.',
       items: ['القنوات النشطة حالياً', 'حذف تلقائي بعد آخر مغادرة'] },
-    { icon: 'clock-rotate-left', name: 'سجل النشاط', req: 1, tint: 'hd-t-g',
+    { icon: 'clock-rotate-left', name: 'سجل النشاط', req: 2, tint: 'hd-t-g',
       desc: 'ما الذي صار في سيرفرك، ومن فعله.',
       items: ['النشاطات', 'سجل التدقيق'] },
-    { icon: 'bell', name: 'الإشعارات والإمبد', req: 1, tint: 'hd-t-o',
+    { icon: 'bell', name: 'الإشعارات والإمبد', req: 3, tint: 'hd-t-o',
       desc: 'إشتراكات المنصات ومنشئ الإمبد الاحترافي.',
       items: ['إضافة إشتراك جديد', 'إنشاء إمبد وإرساله', 'الإشتراكات الحالية'] },
-    { icon: 'sliders', name: 'الإعدادات', req: 2, tint: 'hd-t-s',
+    { icon: 'sliders', name: 'الإعدادات', req: 4, tint: 'hd-t-s',
       desc: 'ستة أقسام تغطي هوية السيرفر وما يوثّقه.',
       items: ['الترحيب بالسيرفر', 'الصور المخصصة', 'قنوات السجلات', 'الإحصائيات الصوتية', 'نظام التذاكر', 'فريق الدعم والعدادات'] },
-    { icon: 'terminal', name: 'الأوامر', req: 2, tint: 'hd-t-c',
+    { icon: 'terminal', name: 'الأوامر', req: 4, tint: 'hd-t-c',
       desc: 'أي أمر يعمل، ومن ينفّذه ومن لا ينفّذه.',
       items: ['تفعيل الأوامر', 'تعديل وصف الأمر', 'صلاحيات الأمر: رتب مسموحة وممنوعة'] },
-    { icon: 'shield', name: 'الحماية', req: 2, tint: 'hd-t-r',
+    { icon: 'shield', name: 'الحماية', req: 4, tint: 'hd-t-r',
       desc: 'ما يوقفه البوت قبل أن يصل إلى سيرفرك.',
       items: ['خمسة أنظمة: سبام، روابط، منشنات، ناك، غارات مفاجئة', 'الحدود والإعدادات', 'الرومات المحضورة'] },
-    { icon: 'gem', name: 'نظام البريميوم', req: 2, tint: 'hd-t-k',
+    { icon: 'gem', name: 'نظام البريميوم', req: 4, tint: 'hd-t-k',
       desc: 'الخطة التي يعمل بها السيرفر، وكيف تُفعّل.',
       items: ['الخطة المفعّلة', 'اشترك في خطة', 'تفعيل بالكود السري'] },
-    { icon: 'user-gear', name: 'المدراء', req: 3, tint: 'hd-t-b',
+    { icon: 'user-gear', name: 'المدراء', req: 5, tint: 'hd-t-b',
       desc: 'من يلمس لوحة السيرفر، وبأي صلاحية.',
       items: ['الرتب الإدارية في السيرفر', 'الأعضاء المرتبطون بالرتب', 'إضافة مدير يدوي', 'قائمة المدراء الحالية'] },
-    { icon: 'database', name: 'النسخ الاحتياطي', req: 3, tint: 'hd-t-a',
+    { icon: 'database', name: 'النسخ الاحتياطي', req: 5, tint: 'hd-t-a',
       desc: 'صورة من السيرفر ترجعك إذا صار شي.',
       items: ['إنشاء نسخة احتياطية', 'النسخ السابقة'] },
   ];

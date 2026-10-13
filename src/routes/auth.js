@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { upsertUser, getUserAdminGuilds } from '../database.js';
 import { getAuthUrl, generateState, exchangeCode, getUserInfo, getUserGuilds, refreshToken } from '../auth/discord.js';
+import { ROLE_LEVEL } from '../services/capabilities.js';
 import config from '../config.js';
 
 const router = Router();
@@ -50,8 +51,7 @@ router.get('/discord/callback', async (req, res) => {
     const adminGuilds = await getUserAdminGuilds(discordUser.id);
     const bestAdmin = adminGuilds.length > 0
       ? adminGuilds.reduce((a, b) => {
-          const hierarchy = { owner: 4, manager: 3, admin: 2, moderator: 1, support: 0 };
-          return (hierarchy[a.role] || 0) >= (hierarchy[b.role] || 0) ? a : b;
+          return (ROLE_LEVEL[a.role] || 0) >= (ROLE_LEVEL[b.role] || 0) ? a : b;
         })
       : null;
 

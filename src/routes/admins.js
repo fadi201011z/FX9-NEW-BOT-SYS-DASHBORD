@@ -10,27 +10,35 @@ import { sanitizeInput } from '../middleware/security.js';
 import { getGuildRoles, getGuildMember, getGuildMembersByRole, fetchBotMembersByRoles, fetchBotUser, fetchBotMembers, getAllGuildMembersPaginated } from '../auth/discord.js';
 import config from '../config.js';
 import { resolveGuild } from '../services/guildResolver.js';
+import {
+  ROLE_CATALOG, ROLE_LEVEL, CAPABILITIES, CAPABILITY_LABELS,
+  ADMIN_ROLES, capabilitiesForLevel, isValidAdminRole,
+} from '../services/capabilities.js';
 
 const router = Router();
+
+// أدنى رتبة إدارية — تُستخدم كافتراضي عندما لا تُطابق أي رتبة معيّنة.
+const LOWEST_ADMIN_ROLE = ADMIN_ROLES[0];
+const rankOf = (role) => ROLE_LEVEL[role] ?? -1;
 
 async function autoSyncAdmins(guildId, callerUserId) {
   const adminRoles = await getGuildAdminRoleIds(guildId);
   if (adminRoles.length === 0) return { added: 0, removed: 0 };
 
   const roleIds = adminRoles.map(ar => ar.roleId);
-  const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
 
   // Fetch members — Multi-level with empty-check fallthrough
   const roleLevelMap = {};
   for (const ar of adminRoles) roleLevelMap[ar.roleId] = ar.level;
 
   const computeLevel = (memberRoles) => {
-    let highestLevel = 'moderator';
-    let maxP = 0;
+    let highestLevel = LOWEST_ADMIN_ROLE;
+    let maxP = -1;
     for (const rid of memberRoles) {
-      if (roleLevelMap[rid] && hierarchy[roleLevelMap[rid]] > maxP) {
-        maxP = hierarchy[roleLevelMap[rid]];
-        highestLevel = roleLevelMap[rid];
+      const lvl = roleLevelMap[rid];
+      if (lvl && rankOf(lvl) > maxP) {
+        maxP = rankOf(lvl);
+        highestLevel = lvl;
       }
     }
     return highestLevel;
@@ -87,7 +95,7 @@ async function autoSyncAdmins(guildId, callerUserId) {
   const validUserIds = new Set(members.map(m => m.id));
   const userRoleMap = {};
   for (const m of members) {
-    if (!userRoleMap[m.id] || hierarchy[m.highestLevel] > hierarchy[userRoleMap[m.id]]) {
+    if (!userRoleMap[m.id] || rankOf(m.highestLevel) > rankOf(userRoleMap[m.id])) {
       userRoleMap[m.id] = m.highestLevel;
     }
   }
@@ -106,7 +114,7 @@ async function autoSyncAdmins(guildId, callerUserId) {
   for (const userId of validUserIds) {
     const exists = await getAdminRole(userId, guildId);
     if (!exists) {
-      await addAdminRaw(userId, guildId, userRoleMap[userId] || 'moderator', 'role_sync');
+      await addAdminRaw(userId, guildId, userRoleMap[userId] || LOWEST_ADMIN_ROLE, 'role_sync');
       clearDashboardRoleCache(userId);
       added++;
     }
@@ -203,13 +211,13 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'),
     const roleIds = adminRoles.map(ar => ar.roleId);
     const roleLevelMap = {};
     for (const ar of adminRoles) roleLevelMap[ar.roleId] = ar.level;
-    const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
     const computeLevel = (memberRoles) => {
-      let highestLevel = 'moderator', maxP = 0;
+      let highestLevel = LOWEST_ADMIN_ROLE, maxP = -1;
       for (const rid of memberRoles) {
-        if (roleLevelMap[rid] && hierarchy[roleLevelMap[rid]] > maxP) {
-          maxP = hierarchy[roleLevelMap[rid]];
-          highestLevel = roleLevelMap[rid];
+        const lvl = roleLevelMap[rid];
+        if (lvl && rankOf(lvl) > maxP) {
+          maxP = rankOf(lvl);
+          highestLevel = lvl;
         }
       }
       return highestLevel;
@@ -229,6 +237,23 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'),
 
   const admins = await enrichAdminUsers(await getGuildAdmins(guildId), adminRoleMembers);
 
+  // بطاقة الرتب + جدول الصلاحيات يُبنيان من نفس المصدر الذي تقرأ منه الحرّاس،
+  // فلا يمكن للصفحة أن تعرض صلاحية لا يمنحها الحارس فعلاً.
+  const roleCatalog = ROLE_CATALOG.map(r => ({
+    ...r,
+    permissions: capabilitiesForLevel(r.level).map(k => CAPABILITY_LABELS[k]).filter(Boolean),
+    linkedRoles: adminRoles.filter(ar => ar.level === r.id).length,
+  }));
+
+  const roleMatrix = {
+    roles: ROLE_CATALOG.map(r => ({ id: r.id, label: r.label, color: r.color, icon: r.icon })),
+    rows: Object.keys(CAPABILITIES).map(key => ({
+      key,
+      label: CAPABILITY_LABELS[key] || key,
+      has: ROLE_CATALOG.reduce((acc, r) => { acc[r.id] = r.level >= CAPABILITIES[key]; return acc; }, {}),
+    })),
+  };
+
   res.render('guild/admins', {
     user: req.session.user,
     guild,
@@ -236,6 +261,8 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('manager'),
     adminRoles,
     guildRoles,
     adminRoleMembers,
+    roleCatalog,
+    roleMatrix,
     title: 'إدارة المدراء',
   });
 });
@@ -249,6 +276,7 @@ router.post('/:guildId/set-role', isAuthenticated, hasGuildAccess, mgrOnly, sani
     const { guildId } = req.params;
     const { roleId, level } = req.body;
     if (!roleId || !level) return res.status(400).json({ error: 'Role ID and level required' });
+    if (!isValidAdminRole(level)) return res.status(400).json({ error: 'رتبة غير صالحة' });
 
     await setGuildAdminRole(guildId, roleId, level, req.session.user.id);
     await logActivity(req.session.user.id, guildId, 'set_admin_role', roleId, `تعيين رتبة ${level} للدور`, req.ip, req.sessionID);
@@ -298,6 +326,7 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, mgrOnly, sanitizeI
     const { guildId } = req.params;
     const { userId, role } = req.body;
     if (!userId || !role) return res.status(400).json({ error: 'User ID and role required' });
+    if (!isValidAdminRole(role)) return res.status(400).json({ error: 'رتبة غير صالحة' });
 
     await setAdminRole(userId, guildId, role, req.session.user.id);
     clearDashboardRoleCache(userId);
@@ -332,6 +361,7 @@ router.post('/:guildId/update-role', isAuthenticated, hasGuildAccess, mgrOnly, s
     const { guildId } = req.params;
     const { userId, role } = req.body;
     if (!userId || !role) return res.status(400).json({ error: 'User ID and role required' });
+    if (!isValidAdminRole(role)) return res.status(400).json({ error: 'رتبة غير صالحة' });
 
     await setAdminRole(userId, guildId, role, req.session.user.id);
     clearDashboardRoleCache(userId);
@@ -368,13 +398,12 @@ router.post('/webhook/sync-member', async (req, res) => {
 
     const memberRoleIds = member.roles || [];
     let hasAdminRole = false;
-    let matchedLevel = 'moderator';
-    const hierarchy = { manager: 4, admin: 3, moderator: 2, support: 1 };
+    let matchedLevel = LOWEST_ADMIN_ROLE;
 
     for (const ar of adminRoles) {
       if (memberRoleIds.includes(ar.roleId)) {
         hasAdminRole = true;
-        if (hierarchy[ar.level] > hierarchy[matchedLevel]) matchedLevel = ar.level;
+        if (rankOf(ar.level) > rankOf(matchedLevel)) matchedLevel = ar.level;
       }
     }
 

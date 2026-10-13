@@ -1136,10 +1136,12 @@ a:hover { color: var(--primary-hover); }
   display: inline-flex; padding: 2px 10px; border-radius: 20px;
   font-size: 0.75rem; font-weight: 600;
 }
-.role-manager { background: rgba(255,16,24,0.15); color: var(--danger); }
+.role-manager { background: rgba(255,207,92,0.16); color: #ffcf5c; }
 .role-admin { background: rgba(208,0,255,0.15); color: var(--primary); }
-.role-moderator { background: rgba(255,128,136,0.15); color: var(--warning); }
-.role-support { background: rgba(0,200,255,0.15); color: var(--success); }
+.role-supervisor { background: rgba(0,200,255,0.15); color: #00c8ff; }
+.role-moderator { background: rgba(255,176,32,0.15); color: #ffb020; }
+.role-support { background: rgba(0,224,164,0.15); color: #00e0a4; }
+.role-viewer { background: rgba(154,160,181,0.15); color: #9aa0b5; }
 
 .role-select {
   background: var(--bg-glass-hover); color: var(--text);
@@ -1482,12 +1484,18 @@ a:hover { color: var(--primary-hover); }
   display: none; align-items: center; justify-content: center;
   z-index: 9999; backdrop-filter: blur(4px);
   animation: fadeIn 0.2s ease;
+  /* A tall modal must stay reachable on short screens: the overlay itself
+     scrolls, and `margin:auto` on the box keeps it centred while there is
+     room and pins it to the top once the content no longer fits. */
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 24px 16px;
 }
 .modal-overlay.show { display: flex; }
 .modal-box {
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 24px; max-width: 480px; width: 90%;
   animation: fadeInUp 0.3s ease;
+  margin: auto;
 }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .modal-header h3 { font-size: 1.1rem; }
@@ -1645,7 +1653,7 @@ a:hover { color: var(--primary-hover); }
 
 /* ═══ Admin Roles Grid ═══ */
 .roles-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr));
   gap: 12px; padding: 18px;
 }
 .admin-role-card { position: relative; }
@@ -1660,12 +1668,12 @@ a:hover { color: var(--primary-hover); }
   color: #edf0ff; background: rgba(208,0,255,0.35); border-color: var(--primary);
 }
 .admin-role-card .role-level-badge { font-size: 0.68rem; padding: 2px 8px; margin-inline-start: 4px; }
-.role-search { position: relative; max-width: 320px; }
-.role-search input {
+.role-search, .admin-search { position: relative; width: 320px; max-width: 100%; }
+.role-search input, .admin-search input {
   width: 100%; padding: 9px 36px 9px 14px; border-radius: var(--radius-sm);
   background: var(--bg-card); border: 1px solid var(--border); color: var(--text); font-size: 0.85rem;
 }
-.role-search i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+.role-search i, .admin-search i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
 .roles-empty { text-align: center; padding: 40px; color: var(--text-muted); grid-column: 1 / -1; }
 .roles-empty i { font-size: 1.6rem; margin-bottom: 8px; }
 .role-perms { margin: 10px 0 0; padding: 10px 0 0; border-top: 1px dashed var(--border); list-style: none; text-align: right; }

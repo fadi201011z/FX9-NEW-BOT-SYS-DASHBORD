@@ -8,7 +8,7 @@ import { botPost } from '../services/botApi.js';
 
 const router = Router();
 
-const modOnly = requireRole('moderator');
+const supervisorOnly = requireRole('supervisor');
 
 async function resolveYouTubeChannelId(url) {
   const clean = url.trim().replace(/\/[?#].*$/, '').replace(/\/$/, '');
@@ -35,7 +35,7 @@ async function resolveYouTubeChannelId(url) {
   return null;
 }
 
-router.get('/:guildId', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
+router.get('/:guildId', isAuthenticated, hasGuildAccess, supervisorOnly, async (req, res) => {
   const { guildId } = req.params;
   const guild = req.session.user.guilds?.find(g => g.id === guildId);
   if (!guild) return res.redirect('/guilds');
@@ -60,7 +60,7 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, modOnly, async (req, re
 });
 
 // API: add subscription (local DB + bot sync)
-router.post('/:guildId/add', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
+router.post('/:guildId/add', isAuthenticated, hasGuildAccess, supervisorOnly, async (req, res) => {
   const { guildId } = req.params;
   const { platform, url, discordChannelId, customMessage } = req.body;
 
@@ -118,7 +118,7 @@ router.post('/:guildId/add', isAuthenticated, hasGuildAccess, modOnly, async (re
 });
 
 // API: send a custom embed built on the page via bot (replaces the old announcement)
-router.post('/:guildId/embed', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
+router.post('/:guildId/embed', isAuthenticated, hasGuildAccess, supervisorOnly, async (req, res) => {
   const { guildId } = req.params;
   const { channelId, content, mention, embed } = req.body || {};
 
@@ -138,7 +138,7 @@ router.post('/:guildId/embed', isAuthenticated, hasGuildAccess, modOnly, async (
 });
 
 // API: force check now
-router.post('/:guildId/checknow/:id', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
+router.post('/:guildId/checknow/:id', isAuthenticated, hasGuildAccess, supervisorOnly, async (req, res) => {
   try {
     const { data } = await botPost(`${config.botApiUrl}/api/notifications/checknow/${req.params.id}`, {}, { timeout: 10000 });
     res.json(data);
@@ -149,7 +149,7 @@ router.post('/:guildId/checknow/:id', isAuthenticated, hasGuildAccess, modOnly, 
 });
 
 // API: resend latest
-router.post('/:guildId/resend/:id', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
+router.post('/:guildId/resend/:id', isAuthenticated, hasGuildAccess, supervisorOnly, async (req, res) => {
   try {
     const { data } = await botPost(`${config.botApiUrl}/api/notifications/resend/${req.params.id}`, {}, { timeout: 10000 });
     res.json(data);
@@ -160,7 +160,7 @@ router.post('/:guildId/resend/:id', isAuthenticated, hasGuildAccess, modOnly, as
 });
 
 // API: remove subscription
-router.delete('/:guildId/:id', isAuthenticated, hasGuildAccess, modOnly, async (req, res) => {
+router.delete('/:guildId/:id', isAuthenticated, hasGuildAccess, supervisorOnly, async (req, res) => {
   const { id } = req.params;
 
   try {
