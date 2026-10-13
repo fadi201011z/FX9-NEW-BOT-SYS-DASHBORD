@@ -6,6 +6,9 @@ import mongoose from 'mongoose';
 const serverLogSchema = new mongoose.Schema({
   guildId: { type: String, required: true, index: true },
   channelId: { type: String },
+  // مُعرِّف فريد من البوت لكل حدث — يمنع تكرار السجل حين يصل الحدث مرتين
+  // (مرة عبر الدفع المباشر ومرة عبر سحب اللوحة).
+  eventId: { type: String },
   // server = log_channel (نشاط عام) · mod = modlog_channel (إشراف) · bot = botlog_channel (البوت)
   source: { type: String, enum: ['server', 'mod', 'bot'], default: 'server' },
   content: { type: String },
@@ -14,6 +17,9 @@ const serverLogSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 serverLogSchema.index({ guildId: 1, timestamp: -1 });
+// eventId فريد لكنه اختياري (sparse): يمنع تكرار نفس الحدث بينما يتجاهل
+// السجلات القديمة التي لم يكن لها معرّف.
+serverLogSchema.index({ eventId: 1 }, { unique: true, sparse: true });
 // شبكة أمان ثانية: فهرس TTL يحذف المستندات المنتهية تلقائياً. مدّته تتبع
 // LOG_RETENTION_HOURS (الافتراضي 48 ساعة) لتتوافق مع مهمة التنظيف في index.js.
 const RETENTION_HOURS = Math.max(1, parseInt(process.env.LOG_RETENTION_HOURS, 10) || 48);

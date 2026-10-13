@@ -303,6 +303,7 @@ router.post('/server-logs', async (req, res) => {
       const ts = Number(raw.timestamp);
       entries.push({
         guildId,
+        eventId: typeof raw.eventId === 'string' ? raw.eventId.slice(0, 80) : undefined,
         channelId: clip(String(raw.channelId ?? ''), 32) || undefined,
         source,
         content: clip(typeof raw.content === 'string' ? raw.content : undefined, 2000),

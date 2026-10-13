@@ -6,6 +6,7 @@
   const acts   = activity || [];
   const audits = auditLogs || [];
   const hours  = retentionHours || 48;
+  const diag   = typeof diagnostic !== 'undefined' ? diagnostic : null;
 
   const SRC = {
     server: { label: 'عام',   cls: 'is-server', icon: 'fa-comment-dots' },
@@ -73,6 +74,16 @@
       <button type="button" class="sl-icon-btn" id="slRefresh" title="تحديث الآن" aria-label="تحديث الآن"><i class="fas fa-rotate" aria-hidden="true"></i></button>
       <span class="sl-count" id="slCount"><%= slogs.length %> سجل</span>
     </div>
+
+    <% if (diag) { %>
+      <div class="sl-diag is-<%= diag.kind %>" id="slDiag">
+        <span class="sl-diag-ic"><i class="fas <%= diag.kind === 'warn' ? 'fa-triangle-exclamation' : 'fa-circle-info' %>" aria-hidden="true"></i></span>
+        <div class="sl-diag-tx">
+          <b><%= diag.title %></b>
+          <span><%= diag.hint %></span>
+        </div>
+      </div>
+    <% } %>
 
     <div class="sl-wrap glass">
       <div class="sl-scroll">
@@ -261,6 +272,18 @@
   @keyframes slSpin { to { transform: rotate(360deg); } }
   .sl-count { margin-inline-start: auto; font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
+  /* ── شريط التشخيص (يشرح سبب خلو السجل) ── */
+  .sl-diag { display: flex; align-items: flex-start; gap: 11px; margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surf); animation: slFade .3s cubic-bezier(.22,1,.36,1) both; }
+  .sl-diag[hidden] { display: none; }
+  .sl-diag-ic { flex: 0 0 32px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; font-size: 0.86rem; }
+  .sl-diag-tx { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .sl-diag-tx b { font-size: 0.86rem; color: var(--text); }
+  .sl-diag-tx span { font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; }
+  .sl-diag.is-warn { border-color: rgba(255,53,69,0.35); background: rgba(255,53,69,0.06); }
+  .sl-diag.is-warn .sl-diag-ic { background: rgba(255,53,69,0.14); color: #ff8088; }
+  .sl-diag.is-info { border-color: rgba(0,200,255,0.28); background: rgba(0,200,255,0.05); }
+  .sl-diag.is-info .sl-diag-ic { background: rgba(0,200,255,0.13); color: var(--cy); }
+
   /* ── الجدول ── */
   .sl-wrap { border-radius: 14px; overflow: hidden; box-shadow: 0 18px 50px rgba(0,0,0,0.28); animation: slFade .4s cubic-bezier(.22,1,.36,1) both; }
   @keyframes slFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -445,6 +468,8 @@
     emptySub.textContent = alive === 0
       ? 'ستظهر هنا أحداث سيرفر ديسكورد فور إرسالها من البوت (رسائل، أعضاء، رتب، صوت، إشراف).'
       : 'جرّب تغيير كلمة البحث أو الفلتر.';
+    const diagEl = document.getElementById('slDiag');
+    if (diagEl) diagEl.hidden = alive > 0;
   }
 
   /* ── بناء صف (يُستخدم للتحديث الحيّ) ─────────────────────── */

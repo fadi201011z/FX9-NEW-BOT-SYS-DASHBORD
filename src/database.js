@@ -109,8 +109,18 @@ export async function getAuditLogs(guildId, limit = 100) {
 
 export async function saveServerLogs(entries) {
   if (!Array.isArray(entries) || entries.length === 0) return 0;
-  await ServerLog.insertMany(entries, { ordered: false });
-  return entries.length;
+  try {
+    const docs = await ServerLog.insertMany(entries, { ordered: false });
+    return docs.length;
+  } catch (err) {
+    // The same event can arrive twice (bot push + dashboard pull). The unique
+    // eventId makes the second insert a duplicate-key error, which is expected
+    // and must not lose the rest of the batch (ordered:false inserts the rest).
+    if (err?.code === 11000 || Array.isArray(err?.writeErrors)) {
+      return err?.insertedDocs?.length ?? err?.result?.insertedCount ?? 0;
+    }
+    throw err;
+  }
 }
 
 export async function getServerLogs(guildId, limit = 60, before = null) {
