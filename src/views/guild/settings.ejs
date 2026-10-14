@@ -550,6 +550,10 @@
       <span class="ticket-status" id="imagesStatusBadge"><span class="ticket-status-dot"></span><span id="imagesStatusText">—</span></span>
     </div>
     <p class="card-desc">غيّر صور البوت في سيرفرك: بطاقة الترحيب، بنل التذاكر، وبنل الرومات الصوتية — ارفع صورة أو ألصق رابطاً مباشراً، وتُطبق على البوت فوراً</p>
+    <div class="custom-images-note">
+      <i class="fas fa-circle-info"></i>
+      <span>يُرفع الملف إلى موقع صور عام ويُخزَّن <b>رابط مباشر فقط</b> (بدون base64) حتى لا يُثقل اللوحة أو البوت — الصيغ المدعومة: <b>PNG / JPG / GIF / WEBP</b> بحد أقصى <b>8MB</b>.</span>
+    </div>
 
     <div class="custom-images-grid">
       <!-- صورة الترحيب + محرر موضع الصورة الرمزية -->
@@ -1055,6 +1059,13 @@
   @media (max-width: 640px) { .role-grid { grid-template-columns: 1fr; } .ticket-counter { justify-content: center; } }
 
   /* ─── Custom Images ─────────────────────────────────────────── */
+  .custom-images-note {
+    display: flex; align-items: flex-start; gap: 10px; margin: -6px 20px 16px; padding: 10px 14px;
+    background: rgba(0,200,255,0.06); border: 1px dashed rgba(0,200,255,0.35); border-radius: 10px;
+    color: var(--text-muted); font-size: .76rem; line-height: 1.7;
+  }
+  .custom-images-note i { color: #00c8ff; margin-top: 2px; }
+  .custom-images-note b { color: var(--text); font-weight: 600; }
   .custom-images-grid { display: flex; flex-direction: column; gap: 14px; }
   .custom-img-body { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; flex-wrap: wrap; }
   .custom-img-preview {
@@ -1074,6 +1085,7 @@
     transition: transform .15s ease, box-shadow .15s ease;
   }
   .img-upload-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(135,0,255,0.35); }
+  .img-upload-btn.is-uploading { opacity: .6; pointer-events: none; }
   .img-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .btn-save-img {
     padding: 7px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;
@@ -1605,6 +1617,37 @@ async function saveCustomImage(key, value) {
   }
 }
 
+function setUploadBusy(input, busy) {
+  const label = input && input.closest('.img-upload-btn');
+  if (label) label.classList.toggle('is-uploading', !!busy);
+}
+
+// يرفع الملف إلى موقع الصور (بدون base64) ثم يحفظ الرابط المُعاد فقط.
+async function uploadCustomImage(key, file, input) {
+  setUploadBusy(input, true);
+  showToast('جارٍ رفع الصورة إلى الموقع...', 'info');
+  try {
+    const res = await fetch('/settings/<%= guild.id %>/images/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      body: file,
+    });
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (!res.ok || !data.success || !data.url) {
+      showToast(data.error || 'فشل رفع الصورة إلى الموقع', 'error');
+      return;
+    }
+    const urlInput = document.querySelector('[data-img-url="' + key + '"]');
+    if (urlInput) urlInput.value = data.url;
+    await saveCustomImage(key, data.url);
+  } catch {
+    showToast('تعذّر الاتصال بموقع رفع الصور — تحقق من الشبكة', 'error');
+  } finally {
+    setUploadBusy(input, false);
+  }
+}
+
 function initCustomImages() {
   fetch('/settings/<%= guild.id %>/images')
     .then(r => r.json())
@@ -1626,24 +1669,17 @@ function initCustomImages() {
     input.addEventListener('change', () => {
       const key = input.dataset.imgKey;
       const file = input.files[0];
+      input.value = ''; // يسمح بإعادة اختيار الملف نفسه لاحقاً
       if (!file) return;
-      if (file.size > 8 * 1024 * 1024) {
-        showToast('⚠️ الصورة كبيرة جداً (الحد 8MB)', 'warning');
-        input.value = '';
+      if (!/^image\/(png|jpe?g|gif|webp)$/i.test(file.type)) {
+        showToast('صيغة غير مدعومة — المسموح: PNG / JPG / GIF / WEBP', 'warning');
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUri = e.target.result;
-        setImagePreview(key, dataUri);
-        setImageState(key, true);
-        const url = document.querySelector('[data-img-url="' + key + '"]');
-        if (url) url.value = '';
-        saveCustomImage(key, dataUri);
-      };
-      reader.onerror = () => showToast('❌ فشل قراءة الصورة', 'error');
-      reader.readAsDataURL(file);
-      input.value = '';
+      if (file.size > 8 * 1024 * 1024) {
+        showToast('حجم الصورة كبير جداً (الحد 8MB)', 'warning');
+        return;
+      }
+      uploadCustomImage(key, file, input);
     });
   });
 
