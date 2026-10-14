@@ -753,7 +753,7 @@
 
   /* ─── دليل البدء ─── */
   .st-guide { margin-bottom: 16px; }
-  .st-guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; padding: 0 20px 22px; }
+  .st-guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; padding: 0 20px 22px; }
   .st-guide-step {
     display: flex; align-items: center; gap: 12px; text-decoration: none;
     padding: 13px 14px; border-radius: 13px;
@@ -775,7 +775,7 @@
   .st-guide-pill.ok { color: #00c8ff; }
 
   /* ─── شريط الحالة السريعة ─── */
-  .st-status-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .st-status-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 10px; margin-bottom: 18px; }
   .st-status-cell {
     display: flex; flex-direction: column; align-items: center; gap: 2px;
     padding: 14px 10px; border-radius: 14px; text-align: center;
@@ -841,7 +841,7 @@
   .st-prem-days { background: rgba(255,128,136,0.16); color: #ff8088 !important; padding: 2px 10px; border-radius: 999px; font-size: .72rem; }
 
   /* ─── أنظمة أخرى ─── */
-  .st-sysgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; padding: 0 20px 22px; }
+  .st-sysgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 10px; padding: 0 20px 22px; }
   .st-systile {
     display: flex; align-items: center; gap: 12px; text-decoration: none;
     padding: 12px 14px; border-radius: 12px;
@@ -1056,7 +1056,7 @@
 
   /* ─── Custom Images ─────────────────────────────────────────── */
   .custom-images-grid { display: flex; flex-direction: column; gap: 14px; }
-  .custom-img-body { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+  .custom-img-body { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; flex-wrap: wrap; }
   .custom-img-preview {
     width: 150px; height: 90px; border-radius: 10px; border: 1px dashed var(--border-c, #34343f);
     display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -1066,7 +1066,7 @@
     width: 100%; height: 100%; object-fit: cover; display: none;
   }
   .custom-img-preview .preview-ph { color: #777d90; font-size: 20px; }
-  .custom-img-controls { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+  .custom-img-controls { display: flex; flex-direction: column; gap: 8px; flex: 1; }
   .img-upload-btn {
     display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
     padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
