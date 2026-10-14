@@ -291,4 +291,77 @@ router.get('/:guildId/default-image/:type', isAuthenticated, hasGuildAccess, req
   }
 });
 
+// ─── Welcome avatar placement (used by the welcome-image editor) ────────────
+// The dashboard's editor lets admins drop the joining member's avatar anywhere
+// on the custom welcome image and pick its size / ring. Values are stored under
+// dedicated keys that the bot reads when it renders the card.
+const WELCOME_AVATAR_DEFAULTS = { x: 1340, y: 527, size: 512, ring: true, ringColor: '#ffffff', ringWidth: 5 };
+
+function readWelcomeAvatar(cfg) {
+  const num = (key, fallback) => {
+    const raw = cfg[key];
+    if (raw === undefined || raw === null || raw === '') return fallback;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : fallback;
+  };
+  const color = cfg.welcome_avatar_ring_color;
+  return {
+    x: num('welcome_avatar_x', WELCOME_AVATAR_DEFAULTS.x),
+    y: num('welcome_avatar_y', WELCOME_AVATAR_DEFAULTS.y),
+    size: num('welcome_avatar_size', WELCOME_AVATAR_DEFAULTS.size),
+    ring: cfg.welcome_avatar_ring === undefined ? true : String(cfg.welcome_avatar_ring) === '1',
+    ringColor: /^#[0-9a-f]{6}$/i.test(color || '') ? color : WELCOME_AVATAR_DEFAULTS.ringColor,
+    ringWidth: num('welcome_avatar_ring_width', WELCOME_AVATAR_DEFAULTS.ringWidth),
+  };
+}
+
+router.get('/:guildId/welcome-avatar', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  try {
+    const cfg = await getAllGuildConfig(req.params.guildId);
+    res.json({ success: true, avatar: readWelcomeAvatar(cfg) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:guildId/welcome-avatar', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const b = req.body || {};
+    const clamp = (v, min, max, fallback) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : fallback;
+    };
+
+    const avatar = {
+      x: clamp(b.x, 0, 1920, WELCOME_AVATAR_DEFAULTS.x),
+      y: clamp(b.y, 0, 1080, WELCOME_AVATAR_DEFAULTS.y),
+      size: clamp(b.size, 40, 1080, WELCOME_AVATAR_DEFAULTS.size),
+      ring: b.ring !== false && b.ring !== '0',
+      ringColor: /^#[0-9a-f]{6}$/i.test(String(b.ringColor || '')) ? String(b.ringColor).toLowerCase() : WELCOME_AVATAR_DEFAULTS.ringColor,
+      ringWidth: clamp(b.ringWidth, 0, 40, WELCOME_AVATAR_DEFAULTS.ringWidth),
+    };
+
+    const pairs = {
+      welcome_avatar_x: String(avatar.x),
+      welcome_avatar_y: String(avatar.y),
+      welcome_avatar_size: String(avatar.size),
+      welcome_avatar_ring: avatar.ring ? '1' : '0',
+      welcome_avatar_ring_color: avatar.ringColor,
+      welcome_avatar_ring_width: String(avatar.ringWidth),
+    };
+    for (const [key, value] of Object.entries(pairs)) {
+      await setGuildConfig(guildId, key, value);
+    }
+
+    logAudit(req.session.user.id, guildId, 'update_setting', 'welcome_avatar', null, JSON.stringify(avatar), req.ip, req.sessionID);
+    logActivity(req.session.user.id, guildId, 'update_setting', 'welcome_avatar', 'تعديل موضع صورة الترحيب', req.ip, req.sessionID);
+
+    const synced = await syncConfigToBot();
+    res.json({ success: true, synced, avatar });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

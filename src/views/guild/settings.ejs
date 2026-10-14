@@ -13,6 +13,23 @@
     : null;
   const imgCustom = ['welcome_image', 'ticket_panel_image', 'voice_panel_image'].filter(k => config[k]).length;
 
+  // مُهيّئات محرر صورة الترحيب: الموضع/الحجم/الإطار الافتراضية + صورة العضو التجريبية.
+  const waNum = (v, d) => {
+    const n = Number(v);
+    return (v === undefined || v === null || v === '' || !Number.isFinite(n)) ? d : n;
+  };
+  const waInit = {
+    x: waNum(config.welcome_avatar_x, 1340),
+    y: waNum(config.welcome_avatar_y, 527),
+    size: waNum(config.welcome_avatar_size, 512),
+    ring: config.welcome_avatar_ring === undefined ? true : String(config.welcome_avatar_ring) === '1',
+    ringColor: /^#[0-9a-f]{6}$/i.test(config.welcome_avatar_ring_color || '') ? config.welcome_avatar_ring_color : '#ffffff',
+    ringWidth: waNum(config.welcome_avatar_ring_width, 5),
+  };
+  const waAvatarUrl = (user && user.avatar && user.id)
+    ? 'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=256'
+    : 'https://cdn.discordapp.com/embed/avatars/' + (Number(user && user.discriminator) % 5) + '.png';
+
   // خطوات دليل البدء: ما تفعله كل خاصية ولماذا تفيدك — مبنية من نفس الإعدادات.
   const stSteps = [
     { id: 'st-welcome', icon: 'fa-door-open', name: 'تفعيل بطاقة الترحيب', desc: 'بطاقة باسم العضو وصورته ورقمه تُرسل تلقائياً عند دخوله السيرفر', done: welcomeSet, label: welcomeSet ? 'مفعّلة' : 'لم تُفعّل بعد' },
@@ -120,12 +137,9 @@
           <div class="preview-banner">
             <span class="preview-badge"><%= guild.name %></span>
             <i class="fas fa-camera preview-cam"></i>
-            <div class="maint-glass maint-glass--sm maint-glass--banner">
-              <i class="fas fa-wrench"></i><span>تحت الصيانة</span>
-            </div>
           </div>
           <div class="preview-body">
-            <span class="preview-avatar"><i class="fas fa-user"></i></span>
+            <span class="preview-avatar"><img src="<%= waAvatarUrl %>" alt=""></span>
             <div class="preview-text">
               <strong>أهلاً بك في سيرفرنا!</strong>
               <span>أنت العضو رقم <b>#8b0000</b></span>
@@ -538,29 +552,85 @@
     <p class="card-desc">غيّر صور البوت في سيرفرك: بطاقة الترحيب، بنل التذاكر، وبنل الرومات الصوتية — ارفع صورة أو ألصق رابطاً مباشراً، وتُطبق على البوت فوراً</p>
 
     <div class="custom-images-grid">
-      <!-- صورة الترحيب -->
-      <div class="stat-voice-item item-lg-general" data-for="welcome_image">
-        <div class="stat-voice-icon"><i class="fas fa-door-open"></i></div>
-        <div class="stat-voice-info">
-          <strong>صورة الترحيب</strong>
-          <small>خلفية بطاقة الترحيب عند انضمام عضو جديد — بحجم 1600×900 يناسب البطاقة</small>
-        </div>
-        <div class="custom-img-body">
-          <div class="custom-img-preview" id="preview-welcome_image">
-            <i class="fas fa-image preview-ph"></i>
+      <!-- صورة الترحيب + محرر موضع الصورة الرمزية -->
+      <div class="stat-voice-item item-lg-general st-welcome-img" data-for="welcome_image">
+        <div class="st-welcome-img-head">
+          <div class="stat-voice-icon"><i class="fas fa-door-open"></i></div>
+          <div class="stat-voice-info">
+            <strong>صورة الترحيب</strong>
+            <small>ارفع خلفية البطاقة ثم حرّك صورة العضو وأعد حجمها داخل الصورة — المعاينة مطابقة لما يُرسله البوت.</small>
           </div>
-          <div class="custom-img-controls">
-            <div class="maint-notice"><i class="fas fa-wrench"></i><span>هذه الخاصية تحت الصيانة والتعديل — لا يمكن رفع أو حفظ أو حذف صورة الترحيب حالياً</span></div>
-            <label class="img-upload-btn is-disabled" title="الميزة تحت الصيانة حالياً">
-              <i class="fas fa-upload"></i> رفع صورة
-              <input type="file" accept="image/*" hidden data-img-key="welcome_image" disabled />
-            </label>
-            <input type="text" class="ticket-select img-url-input" data-img-url="welcome_image" placeholder="أو ألصق رابط صورة مباشر https://..." disabled title="الميزة تحت الصيانة حالياً" />
-            <div class="img-actions">
-              <button type="button" class="btn-sm btn-save-img" data-img-save="welcome_image" disabled title="الميزة تحت الصيانة حالياً"><i class="fas fa-save"></i> حفظ</button>
-              <button type="button" class="btn-sm btn-view-img" data-img-view="welcome_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
-              <button type="button" class="btn-delete-sm" data-img-delete="welcome_image" disabled title="الميزة تحت الصيانة حالياً"><i class="fas fa-trash"></i></button>
-              <span class="ticket-field-state" data-state-of="welcome_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+          <span class="ticket-field-state" data-state-of="welcome_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+        </div>
+
+        <div class="st-welcome-img-body">
+          <div class="wa-stage-wrap">
+            <div class="wa-stage no-image" id="waStage">
+              <img class="wa-stage-bg" id="waStageBg" alt="" />
+              <div class="wa-stage-empty" id="waStageEmpty">
+                <i class="fas fa-image"></i>
+                <span>لا توجد صورة بعد — ارفع صورة لبدء التخصيص</span>
+              </div>
+              <div class="wa-avatar" id="waAvatar" tabindex="0" role="button" aria-label="صورة العضو — اسحب لتغيير الموضع">
+                <img id="waAvatarImg" src="<%= waAvatarUrl %>" alt="" draggable="false" />
+              </div>
+              <div class="wa-stage-hint"><i class="fas fa-hand-pointer"></i> اسحب الصورة الرمزية لوضعها</div>
+            </div>
+            <div class="wa-stage-meta">
+              <span><i class="fas fa-arrows-left-right"></i> أفقي <b id="waValX"><%= waInit.x %></b></span>
+              <span><i class="fas fa-arrows-up-down"></i> عمودي <b id="waValY"><%= waInit.y %></b></span>
+              <span><i class="fas fa-expand"></i> الحجم <b id="waValSize"><%= waInit.size %></b>px</span>
+            </div>
+          </div>
+
+          <div class="wa-controls">
+            <div class="wa-ctrl-row">
+              <label class="img-upload-btn"><i class="fas fa-upload"></i> رفع صورة
+                <input type="file" accept="image/*" hidden data-img-key="welcome_image" />
+              </label>
+              <button type="button" class="btn-sm btn-view-img" data-img-view="welcome_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة</button>
+              <button type="button" class="btn-delete-sm" data-img-delete="welcome_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="wa-ctrl-row">
+              <input type="text" class="ticket-select img-url-input" data-img-url="welcome_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
+              <button type="button" class="btn-sm btn-save-img" data-img-save="welcome_image"><i class="fas fa-link"></i> حفظ الرابط</button>
+            </div>
+
+            <div class="wa-sliders">
+              <label class="wa-field">
+                <span><i class="fas fa-up-right-and-down-left-from-center"></i> حجم الصورة الرمزية</span>
+                <input type="range" id="waSize" min="60" max="1080" step="2" value="<%= waInit.size %>">
+                <b id="waSizeVal"><%= waInit.size %>px</b>
+              </label>
+              <label class="wa-field">
+                <span><i class="fas fa-arrows-left-right"></i> الموضع الأفقي</span>
+                <input type="range" id="waX" min="0" max="1920" step="2" value="<%= waInit.x %>">
+                <b id="waXVal"><%= waInit.x %></b>
+              </label>
+              <label class="wa-field">
+                <span><i class="fas fa-arrows-up-down"></i> الموضع العمودي</span>
+                <input type="range" id="waY" min="0" max="1080" step="2" value="<%= waInit.y %>">
+                <b id="waYVal"><%= waInit.y %></b>
+              </label>
+            </div>
+
+            <div class="wa-ring">
+              <label class="wa-toggle">
+                <input type="checkbox" id="waRingOn" <%= waInit.ring ? 'checked' : '' %>>
+                <span class="wa-toggle-track"><span class="wa-toggle-dot"></span></span>
+                إطار حول الصورة
+              </label>
+              <label class="wa-color">اللون <input type="color" id="waRingColor" value="<%= waInit.ringColor %>"></label>
+              <label class="wa-field wa-field--inline">السماكة
+                <input type="range" id="waRingWidth" min="0" max="24" step="1" value="<%= waInit.ringWidth %>">
+                <b id="waRingWidthVal"><%= waInit.ringWidth %>px</b>
+              </label>
+            </div>
+
+            <div class="wa-actions">
+              <button type="button" class="btn-save-img" id="waSave"><i class="fas fa-save"></i> حفظ التخصيص</button>
+              <button type="button" class="btn-sm wa-reset" id="waReset"><i class="fas fa-rotate-left"></i> إعادة ضبط الموضع</button>
+              <span class="wa-status" id="waStatus"></span>
             </div>
           </div>
         </div>
@@ -1018,6 +1088,81 @@
   .btn-view-img:hover { filter: brightness(1.1); }
   @media (max-width: 560px) { .custom-img-body { flex-direction: column; align-items: stretch; } .custom-img-preview { width: 100%; height: 120px; } }
 
+  /* ─── محرر صورة الترحيب: موضع/حجم الصورة الرمزية ───────────────── */
+  .preview-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+  .st-welcome-img { flex-direction: column; align-items: stretch; gap: 14px; }
+  .st-welcome-img-head { display: flex; align-items: center; gap: 14px; }
+  .st-welcome-img-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .wa-stage-wrap { min-width: 0; }
+  .wa-stage {
+    position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden;
+    background: #0b0b0e; touch-action: none;
+    box-shadow: inset 0 0 0 1px var(--border);
+    background-image: linear-gradient(45deg, rgba(237,240,255,0.045) 25%, transparent 25%, transparent 75%, rgba(237,240,255,0.045) 75%),
+      linear-gradient(45deg, rgba(237,240,255,0.045) 25%, transparent 25%, transparent 75%, rgba(237,240,255,0.045) 75%);
+    background-size: 22px 22px; background-position: 0 0, 11px 11px;
+  }
+  .wa-stage-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+  .wa-stage-bg.ready { display: block; }
+  .wa-stage-empty {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; color: #777d90; font-size: .78rem; text-align: center; padding: 16px;
+  }
+  .wa-stage-empty i { font-size: 22px; opacity: .8; }
+  .wa-stage.no-image .wa-avatar { display: none; }
+  .wa-avatar {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    border-radius: 50%; overflow: hidden; cursor: grab; touch-action: none;
+    box-shadow: inset 0 0 0 var(--ring-w, 2.4px) var(--ring-color, #ffffff), 0 4px 16px rgba(0,0,0,.4);
+    outline: 1.5px dashed rgba(237,240,255,0.4); outline-offset: 2px;
+  }
+  .wa-avatar:hover, .wa-avatar:focus-visible { outline-color: var(--primary); }
+  .wa-stage.dragging .wa-avatar { outline-color: var(--primary); }
+  .wa-avatar.no-ring { --ring-w: 0px; }
+  .wa-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .wa-stage.dragging .wa-avatar { cursor: grabbing; }
+  .wa-stage.dragging .wa-stage-hint { opacity: 0; }
+  .wa-stage-hint {
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+    background: rgba(5,5,7,0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    color: #edf0ff; font-size: 11.5px; font-weight: 600; border: 1px solid rgba(237,240,255,0.18);
+    pointer-events: none; transition: opacity .2s ease; white-space: nowrap;
+  }
+  .wa-stage-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; color: var(--text-muted); font-size: .76rem; }
+  .wa-stage-meta i { color: var(--primary); margin-inline-end: 3px; }
+  .wa-stage-meta b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .wa-controls { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .wa-ctrl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .wa-ctrl-row .img-url-input { flex: 1; min-width: 150px; }
+  .wa-sliders { display: flex; flex-direction: column; gap: 8px; }
+  .wa-field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 3px 10px; font-size: .78rem; color: var(--text-muted); }
+  .wa-field > span { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; }
+  .wa-field > span i { color: var(--primary); }
+  .wa-field b { color: var(--text); font-variant-numeric: tabular-nums; min-width: 58px; text-align: end; }
+  .wa-field input[type=range] { width: 100%; }
+  .wa-field--inline { grid-template-columns: auto 1fr auto; }
+  .wa-ring { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(237,240,255,0.02); }
+  .wa-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--text); cursor: pointer; user-select: none; }
+  .wa-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .wa-toggle-track { position: relative; width: 34px; height: 19px; border-radius: 999px; background: #34343f; transition: background .2s ease; flex-shrink: 0; }
+  .wa-toggle-dot { position: absolute; top: 2px; inset-inline-start: 2px; width: 15px; height: 15px; border-radius: 50%; background: #9aa0b4; transition: transform .2s ease, background .2s ease; }
+  .wa-toggle input:checked + .wa-toggle-track { background: rgba(0,200,255,0.35); }
+  .wa-toggle input:checked + .wa-toggle-track .wa-toggle-dot { background: #00c8ff; transform: translateX(15px); }
+  [dir="rtl"] .wa-toggle input:checked + .wa-toggle-track .wa-toggle-dot { transform: translateX(-15px); }
+  .wa-color { display: inline-flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--text-muted); }
+  .wa-color input[type=color] { width: 36px; height: 26px; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: none; cursor: pointer; }
+  .wa-field--inline input[type=range] { width: 100%; }
+  .wa-field--inline b { min-width: 44px; }
+  .wa-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .wa-reset { padding: 7px 14px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; background: transparent; color: var(--text-muted); }
+  .wa-reset:hover { color: var(--text); border-color: rgba(208,0,255,0.5); }
+  .wa-status { font-size: .76rem; color: var(--text-muted); }
+  .wa-status.ok { color: #35d68a; }
+  .wa-status.err { color: #ff8088; }
+  .st-welcome-img-body input[type=range] { accent-color: #8700ff; height: 4px; }
+  @media (max-width: 860px) { .st-welcome-img-body { grid-template-columns: 1fr; } }
+
   /* ─── نافذة عرض الصورة الحالية ───────────────────────────────── */
   .img-viewer-modal {
     position: fixed; inset: 0; z-index: 10000;
@@ -1050,64 +1195,6 @@
     max-width: 100%; max-height: 68vh; border-radius: 10px; display: block; border: 1px solid var(--border);
   }
   .img-viewer-note { color: var(--text-muted); font-size: 13px; text-align: center; margin: 0; }
-
-  /* ─── شارة زجاجية «تحت الصيانة والتعديل» فوق صورة الترحيب (الداشبورد فقط) ── */
-  .maint-glass {
-    position: absolute;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 13px;
-    border-radius: 999px;
-    background: rgba(237,240,255,0.14);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(237,240,255,0.38);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(237,240,255,0.28);
-    color: #edf0ff;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: .2px;
-    z-index: 3;
-    pointer-events: none;
-    user-select: none;
-    white-space: nowrap;
-    inset-inline-start: 12px;
-    top: 12px;
-    animation: maintPulse 2.6s ease-in-out infinite;
-  }
-  .maint-glass .fa-wrench {
-    color: #ff8088;
-    font-size: 14px;
-    animation: maintSpin 7s linear infinite;
-  }
-  @keyframes maintPulse {
-    0%, 100% { opacity: 1; box-shadow: 0 4px 16px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(237,240,255,0.28); }
-    50% { opacity: .72; box-shadow: 0 4px 24px rgba(255,128,136,0.25), 0 0 14px rgba(255,128,136,0.35); }
-  }
-  @keyframes maintSpin { to { transform: rotate(360deg); } }
-  .maint-glass--sm { padding: 4px 9px; font-size: 9.5px; gap: 4px; inset-inline-start: 6px; top: 6px; }
-  .maint-glass--sm .fa-wrench { font-size: 9px; }
-  .maint-glass--lg { padding: 10px 18px; font-size: 15px; gap: 9px; inset-inline-start: 16px; top: 16px; }
-  .maint-glass--lg .fa-wrench { font-size: 17px; }
-  .maint-glass--banner { inset-inline-start: auto; left: 50%; transform: translateX(-50%); top: 10px; }
-  .maint-glass[hidden] { display: none; }
-
-  .maint-notice {
-    display: inline-flex; align-items: flex-start; gap: 8px;
-    padding: 8px 12px; border-radius: 10px;
-    background: rgba(255,128,136,0.08);
-    border: 1px dashed rgba(255,128,136,0.4);
-    color: #ff8088; font-size: 12px; font-weight: 600; line-height: 1.55;
-    width: fit-content; max-width: 100%;
-  }
-  .maint-notice i { margin-top: 2px; animation: maintSpin 7s linear infinite; }
-  .img-upload-btn.is-disabled {
-    opacity: .55; cursor: not-allowed; filter: grayscale(.4); box-shadow: none;
-  }
-  .img-upload-btn.is-disabled:hover { transform: none; box-shadow: none; }
-  .img-url-input:disabled { opacity: .55; cursor: not-allowed; }
-  .btn-save-img:disabled, .btn-delete-sm:disabled { opacity: .4; cursor: not-allowed; filter: grayscale(.35); }
 </style>
 
 <!-- نافذة عرض الصورة الحالية (تظهر بزر «عرض الصورة الحالية» بجانب كل صورة) -->
@@ -1120,9 +1207,6 @@
     <div class="img-viewer-body">
       <div class="img-viewer-stage">
         <img id="imgViewerImage" alt="الصورة الحالية" />
-        <div class="maint-glass maint-glass--lg" id="imgViewerMaint" hidden>
-          <i class="fas fa-wrench"></i><span>هذه الخاصية تحت الصيانة والتعديل</span>
-        </div>
       </div>
       <p class="img-viewer-note" id="imgViewerNote">الصورة المعروضة حالياً على البوت في هذا السيرفر</p>
     </div>
@@ -1438,6 +1522,7 @@ function imgIsDataUri(v) { return typeof v === 'string' && v.startsWith('data:im
 function imgIsUrl(v) { return typeof v === 'string' && /^https?:\/\//i.test(v); }
 
 function setImagePreview(key, value) {
+  if (key === 'welcome_image') waSetImage(value);
   const prev = document.getElementById('preview-' + key);
   if (!prev) return;
   prev.innerHTML = '';
@@ -1460,12 +1545,6 @@ function setImagePreview(key, value) {
     const ph = document.createElement('i');
     ph.className = 'fas fa-image preview-ph';
     prev.appendChild(ph);
-  }
-  if (key === 'welcome_image') {
-    const b = document.createElement('div');
-    b.className = 'maint-glass maint-glass--sm';
-    b.innerHTML = '<i class="fas fa-wrench"></i><span>تحت الصيانة</span>';
-    prev.appendChild(b);
   }
 }
 
@@ -1611,8 +1690,6 @@ function openImgViewer(key) {
 
   const isCustom = !!(customImageValues[key] || '').trim();
   const src = isCustom ? customImageValues[key] : DEFAULT_IMG_ENDPOINT[key];
-  const maint = document.getElementById('imgViewerMaint');
-  if (maint) maint.hidden = key !== 'welcome_image';
   img.style.display = 'none';
   note.textContent = 'جارٍ تحميل الصورة...';
   img.onload = () => {
@@ -1649,5 +1726,186 @@ const imgViewerClose = document.getElementById('imgViewerClose');
 if (imgViewerClose) imgViewerClose.addEventListener('click', closeImgViewer);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeImgViewer(); });
 
+// ─── محرر صورة الترحيب: وضع وحجم الصورة الرمزية للعضو المنضم ───────────────
+// الحالة محفوظة بإحداثيات مساحة البوت الأصلية (1920×1080) ثم تُقاس إلى مساحة
+// المعاينة، فتكون المعاينة مطابقة تماماً لما يرسمه البوت على البطاقة.
+const WA = {
+  defaults: { x: 1340, y: 527, size: 512, ring: true, ringColor: '#ffffff', ringWidth: 5 },
+  state: Object.assign({}, <%- JSON.stringify(waInit) %>),
+  stage: null, bg: null, empty: null, avatar: null,
+};
+
+function waClamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+
+function waRender() {
+  if (!WA.stage || !WA.avatar) return;
+  const w = WA.stage.clientWidth || 1;
+  const h = WA.stage.clientHeight || 1;
+  const sx = w / 1920, sy = h / 1080;
+  const s = WA.state;
+  const d = Math.max(6, s.size * sy);
+  WA.avatar.style.width = d + 'px';
+  WA.avatar.style.height = d + 'px';
+  WA.avatar.style.left = (s.x * sx) + 'px';
+  WA.avatar.style.top = (s.y * sy) + 'px';
+  WA.avatar.classList.toggle('no-ring', !s.ring || s.ringWidth <= 0);
+  WA.avatar.style.setProperty('--ring-color', s.ringColor);
+  WA.avatar.style.setProperty('--ring-w', Math.max(0, s.ringWidth * sy) + 'px');
+  const meta = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  meta('waValX', s.x); meta('waValY', s.y); meta('waValSize', s.size);
+}
+
+function waSyncControls() {
+  const s = WA.state;
+  const setV = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  const setT = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setV('waSize', s.size); setT('waSizeVal', s.size + 'px');
+  setV('waX', s.x); setT('waXVal', s.x);
+  setV('waY', s.y); setT('waYVal', s.y);
+  setV('waRingWidth', s.ringWidth); setT('waRingWidthVal', s.ringWidth + 'px');
+  const on = document.getElementById('waRingOn'); if (on) on.checked = !!s.ring;
+  const col = document.getElementById('waRingColor'); if (col) col.value = s.ringColor;
+  waRender();
+}
+
+function waImageState(ok) {
+  if (WA.bg) WA.bg.classList.toggle('ready', ok);
+  if (WA.stage) WA.stage.classList.toggle('no-image', !ok);
+  if (WA.empty) WA.empty.style.display = ok ? 'none' : 'flex';
+}
+
+function waSetImage(value) {
+  if (!WA.bg) return;
+  const has = imgIsDataUri(value) || imgIsUrl(value);
+  const src = has ? value : (DEFAULT_IMG_ENDPOINT.welcome_image || '');
+  if (!src) { waImageState(false); return; }
+  if (WA.bg.getAttribute('src') === src && WA.bg.classList.contains('ready')) return;
+  WA.bg.onload = () => waImageState(true);
+  WA.bg.onerror = () => waImageState(false);
+  WA.bg.classList.remove('ready');
+  WA.bg.src = src;
+}
+
+function waStatus(msg, kind) {
+  const el = document.getElementById('waStatus');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.className = 'wa-status' + (kind ? ' ' + kind : '');
+}
+
+async function waSave() {
+  const btn = document.getElementById('waSave');
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ...'; }
+  waStatus('جارٍ حفظ التخصيص...', '');
+  try {
+    const res = await fetch('/settings/<%= guild.id %>/welcome-avatar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(WA.state),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      if (data.avatar) WA.state = Object.assign({}, data.avatar);
+      waSyncControls();
+      waStatus('تم الحفظ' + (data.synced ? ' — طُبّق على البوت فوراً' : ' — سيُطبَّق خلال ثوانٍ'), 'ok');
+      showToast('✅ تم حفظ تخصيص صورة الترحيب', 'success');
+    } else {
+      waStatus(data.error || 'فشل الحفظ', 'err');
+      showToast('❌ ' + (data.error || 'فشل الحفظ'), 'error');
+    }
+  } catch {
+    waStatus('تعذّر الاتصال بالخادم', 'err');
+    showToast('❌ حدث خطأ في الاتصال', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+  }
+}
+
+function waInitEditor() {
+  WA.stage = document.getElementById('waStage');
+  WA.bg = document.getElementById('waStageBg');
+  WA.empty = document.getElementById('waStageEmpty');
+  WA.avatar = document.getElementById('waAvatar');
+  if (!WA.stage || !WA.avatar) return;
+
+  const slider = (id, key, labelId, suffix) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      WA.state[key] = Number(el.value);
+      const t = document.getElementById(labelId);
+      if (t) t.textContent = el.value + (suffix || '');
+      waRender();
+    });
+  };
+  slider('waSize', 'size', 'waSizeVal', 'px');
+  slider('waX', 'x', 'waXVal');
+  slider('waY', 'y', 'waYVal');
+  slider('waRingWidth', 'ringWidth', 'waRingWidthVal', 'px');
+
+  const ringOn = document.getElementById('waRingOn');
+  if (ringOn) ringOn.addEventListener('change', () => { WA.state.ring = ringOn.checked; waRender(); });
+  const ringColor = document.getElementById('waRingColor');
+  if (ringColor) ringColor.addEventListener('input', () => { WA.state.ringColor = ringColor.value; waRender(); });
+
+  // سحب الصورة الرمزية لإعادة وضعها
+  let drag = false, px = 0, py = 0, ax = 0, ay = 0;
+  const start = (e) => {
+    drag = true; px = e.clientX; py = e.clientY; ax = WA.state.x; ay = WA.state.y;
+    WA.stage.classList.add('dragging');
+    try { WA.avatar.setPointerCapture(e.pointerId); } catch {}
+    e.preventDefault();
+  };
+  const move = (e) => {
+    if (!drag) return;
+    const w = WA.stage.clientWidth || 1;
+    const h = WA.stage.clientHeight || 1;
+    WA.state.x = Math.round(waClamp(ax + (e.clientX - px) * (1920 / w), 0, 1920));
+    WA.state.y = Math.round(waClamp(ay + (e.clientY - py) * (1080 / h), 0, 1080));
+    const sx = document.getElementById('waX'); if (sx) sx.value = WA.state.x;
+    const sy = document.getElementById('waY'); if (sy) sy.value = WA.state.y;
+    const lx = document.getElementById('waXVal'); if (lx) lx.textContent = WA.state.x;
+    const ly = document.getElementById('waYVal'); if (ly) ly.textContent = WA.state.y;
+    waRender();
+  };
+  const end = (e) => {
+    if (!drag) return;
+    drag = false;
+    WA.stage.classList.remove('dragging');
+    try { WA.avatar.releasePointerCapture(e.pointerId); } catch {}
+  };
+  WA.avatar.addEventListener('pointerdown', start);
+  WA.avatar.addEventListener('pointermove', move);
+  WA.avatar.addEventListener('pointerup', end);
+  WA.avatar.addEventListener('pointercancel', end);
+
+  // أسهم لوحة المفاتيح لضبط دقيق
+  WA.avatar.addEventListener('keydown', (e) => {
+    const step = e.shiftKey ? 20 : 4;
+    const s = WA.state;
+    if (e.key === 'ArrowLeft') s.x = waClamp(s.x - step, 0, 1920);
+    else if (e.key === 'ArrowRight') s.x = waClamp(s.x + step, 0, 1920);
+    else if (e.key === 'ArrowUp') s.y = waClamp(s.y - step, 0, 1080);
+    else if (e.key === 'ArrowDown') s.y = waClamp(s.y + step, 0, 1080);
+    else return;
+    e.preventDefault();
+    const sx = document.getElementById('waX'); if (sx) sx.value = s.x;
+    const sy = document.getElementById('waY'); if (sy) sy.value = s.y;
+    const lx = document.getElementById('waXVal'); if (lx) lx.textContent = s.x;
+    const ly = document.getElementById('waYVal'); if (ly) ly.textContent = s.y;
+    waRender();
+  });
+
+  const save = document.getElementById('waSave');
+  if (save) save.addEventListener('click', waSave);
+  const reset = document.getElementById('waReset');
+  if (reset) reset.addEventListener('click', () => { WA.state = Object.assign({}, WA.defaults); waStatus('', ''); waSyncControls(); });
+
+  window.addEventListener('resize', waRender);
+  waSyncControls();
+}
+
+waInitEditor();
 initCustomImages();
 </script>
