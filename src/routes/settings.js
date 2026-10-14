@@ -18,6 +18,15 @@ const TICKET_KEY_MAP = {
 // مفاتيح الصور المخصصة لكل سيرفر (تُقرأ من البوت عبر guildImage.js)
 const CUSTOM_IMAGE_KEYS = ['welcome_image', 'ticket_panel_image', 'voice_panel_image'];
 
+// لكل عنصر مخصّص وضعٌ للعرض: صورة (افتراضي) أو إمبد. الوضع يُخزَّن تحت <mode>
+// والإمبد (JSON) تحت <embed>. البوت يقرأ نفس المفاتيح عبر utils/customDisplay.js.
+const CUSTOM_ITEMS = {
+  welcome_image: { type: 'welcome', mode: 'welcome_display', embed: 'welcome_embed' },
+  ticket_panel_image: { type: 'ticket', mode: 'ticket_display', embed: 'ticket_embed' },
+  voice_panel_image: { type: 'voice', mode: 'voice_display', embed: 'voice_embed' },
+};
+const CUSTOM_MODE_VALUES = ['image', 'embed'];
+
 const router = Router();
 
 async function fetchGuildChannels(guildId) {
@@ -300,6 +309,8 @@ router.get('/:guildId/images', isAuthenticated, hasGuildAccess, requireRole('adm
     const { guildId } = req.params;
     const cfg = await getAllGuildConfig(guildId);
     const images = {};
+    const modes = {};
+    const embeds = {};
     for (const key of CUSTOM_IMAGE_KEYS) {
       let value = cfg[key] || '';
       if (/^data:image\//i.test(value)) {
@@ -308,8 +319,125 @@ router.get('/:guildId/images', isAuthenticated, hasGuildAccess, requireRole('adm
         migrateBase64Image(guildId, key, value).catch(() => {});
       }
       images[key] = value;
+
+      const item = CUSTOM_ITEMS[key];
+      modes[key] = cfg[item.mode] === 'embed' ? 'embed' : 'image';
+      embeds[key] = parseEmbed(cfg[item.embed]);
     }
-    res.json({ success: true, images });
+    res.json({ success: true, images, modes, embeds });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** Parses a stored embed JSON string into a plain object (null when absent/invalid). */
+function parseEmbed(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cleans an embed coming from the browser to exactly what the bot expects.
+ * Every value is clamped to Discord's limits and links are restricted to
+ * http(s). Returns null when nothing meaningful is left, so the caller can
+ * refuse to store an empty embed.
+ */
+function sanitizeEmbed(input) {
+  if (!input || typeof input !== 'object') return null;
+  const text = (value, max) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
+  const url = (value) => {
+    const text2 = text(value, 2048);
+    return /^https?:\/\//i.test(text2) ? text2 : '';
+  };
+  const color = (value) => {
+    const text2 = text(value, 9);
+    return /^#[0-9a-f]{6}$/i.test(text2) ? text2.toLowerCase() : '';
+  };
+
+  const fields = Array.isArray(input.fields)
+    ? input.fields.slice(0, 25)
+        .map((f) => ({ name: text(f?.name, 256), value: text(f?.value, 1024), inline: !!f?.inline }))
+        .filter((f) => f.name || f.value)
+    : [];
+
+  const embed = {
+    color: color(input.color) || '#d000ff',
+    authorName: text(input.authorName, 256),
+    authorIcon: url(input.authorIcon),
+    title: text(input.title, 256),
+    description: text(input.description, 4096),
+    fields,
+    image: url(input.image),
+    thumbnail: url(input.thumbnail),
+    footerText: text(input.footerText, 2048),
+    footerIcon: url(input.footerIcon),
+    timestamp: !!input.timestamp,
+  };
+
+  const empty = !embed.authorName && !embed.title && !embed.description
+    && !embed.fields.length && !embed.image && !embed.thumbnail && !embed.footerText;
+  return empty ? null : embed;
+}
+
+/** Persists one custom setting (set or delete), audits it, then syncs + refreshes the panels. */
+async function persistCustomSetting(req, guildId, key, value) {
+  const oldValue = (await getGuildConfig(guildId, key))?.value ?? null;
+  if (value === null || value === '') await deleteGuildConfig(guildId, key);
+  else await setGuildConfig(guildId, key, value);
+
+  logAudit(req.session.user.id, guildId, 'update_setting', key, oldValue, value || null, req.ip, req.sessionID);
+  logActivity(req.session.user.id, guildId, 'update_setting', key, value ? `تعديل ${key}` : `حذف ${key}`, req.ip, req.sessionID);
+
+  const synced = await syncConfigToBot();
+
+  let refreshed = false;
+  try {
+    const rf = await botFetch(`${config.botApiUrl}/api/panels/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guildId }),
+      signal: AbortSignal.timeout(4000),
+    });
+    refreshed = rf.ok;
+  } catch {}
+
+  return { synced, refreshed };
+}
+
+// يحفظ وضع العرض (صورة/إمبد) لعنصر مخصّص ثم يزامن البوت ويحدّث البنلات فوراً.
+router.post('/:guildId/images/mode', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const { key, mode } = req.body || {};
+    const item = CUSTOM_ITEMS[key];
+    if (!item) return res.status(400).json({ error: 'Invalid image key' });
+    if (!CUSTOM_MODE_VALUES.includes(mode)) return res.status(400).json({ error: 'Invalid display mode' });
+
+    // الوضع الافتراضي هو الصورة — نحذف المفتاح بدل تخزين 'image' لتقليل الضجيج.
+    const result = await persistCustomSetting(req, guildId, item.mode, mode === 'embed' ? 'embed' : '');
+    res.json({ success: true, key, mode, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// يحفظ تعريف الإمبد (JSON مُنقّى) لعنصر مخصّص، أو يحذفه عند التفريغ.
+router.post('/:guildId/images/embed', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const { key, embed } = req.body || {};
+    const item = CUSTOM_ITEMS[key];
+    if (!item) return res.status(400).json({ error: 'Invalid image key' });
+
+    const clean = embed == null ? null : sanitizeEmbed(embed);
+    // إمبد فارغ/محذوف: نحذف المفتاح ليعود البوت إلى الصورة تلقائياً.
+    const result = await persistCustomSetting(req, guildId, item.embed, clean ? JSON.stringify(clean) : '');
+    res.json({ success: true, key, embed: clean, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -334,31 +462,8 @@ router.post('/:guildId/images', isAuthenticated, hasGuildAccess, requireRole('ad
       return res.status(400).json({ error: 'مسموح برابط صورة مباشر https:// فقط' });
     }
 
-    const oldValue = (await getGuildConfig(guildId, key))?.value ?? null;
-    if (!raw) {
-      await deleteGuildConfig(guildId, key);
-    } else {
-      await setGuildConfig(guildId, key, raw);
-    }
-
-    logAudit(req.session.user.id, guildId, 'update_setting', key, oldValue, raw || null, req.ip, req.sessionID);
-    logActivity(req.session.user.id, guildId, 'update_setting', key, raw ? `تعديل ${key}` : `حذف ${key}`, req.ip, req.sessionID);
-
-    const synced = await syncConfigToBot();
-
-    // تحديث البنلين (تذاكر + صوتيات) فورياً ليعكسا الصورة الجديدة
-    let refreshed = false;
-    try {
-      const rf = await botFetch(`${config.botApiUrl}/api/panels/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guildId }),
-        signal: AbortSignal.timeout(4000),
-      });
-      refreshed = rf.ok;
-    } catch {}
-
-    res.json({ success: true, key, synced, refreshed });
+    const result = await persistCustomSetting(req, guildId, key, raw);
+    res.json({ success: true, key, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

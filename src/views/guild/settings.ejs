@@ -549,10 +549,10 @@
       <h3><i class="fas fa-images"></i> الصور المخصصة</h3>
       <span class="ticket-status" id="imagesStatusBadge"><span class="ticket-status-dot"></span><span id="imagesStatusText">—</span></span>
     </div>
-    <p class="card-desc">غيّر صور البوت في سيرفرك: بطاقة الترحيب، بنل التذاكر، وبنل الرومات الصوتية — ارفع صورة أو ألصق رابطاً مباشراً، وتُطبق على البوت فوراً</p>
+    <p class="card-desc">خصّص شكل البوت في سيرفرك: بطاقة الترحيب، بنل التذاكر، وبنل الرومات الصوتية — اختر <b>صورة</b> جاهزة أو ابنِ <b>امبد</b> احترافياً (عنوان، وصف، حقول، صور)، ويُطبَّق على البوت فوراً</p>
     <div class="custom-images-note">
       <i class="fas fa-circle-info"></i>
-      <span>يُرفع الملف إلى موقع صور عام ويُخزَّن <b>رابط مباشر فقط</b> (بدون base64) حتى لا يُثقل اللوحة أو البوت — الصيغ المدعومة: <b>PNG / JPG / GIF / WEBP</b> بحد أقصى <b>8MB</b>.</span>
+      <span>لكل عنصر مبدّل <b>صورة / امبد</b>: في وضع الصورة يُرفع الملف إلى موقع صور عام ويُخزَّن <b>رابط مباشر فقط</b> (بدون base64) — الصيغ المدعومة: <b>PNG / JPG / GIF / WEBP</b> بحد أقصى <b>8MB</b>. وفي وضع الإمبد تُبنى البطاقة هنا ويُخزَّن تعريفها فقط، ويظهر <b>معاينة مباشرة</b> بأسلوب ديسكورد.</span>
     </div>
 
     <div class="custom-images-grid">
@@ -567,6 +567,12 @@
           <span class="ticket-field-state" data-state-of="welcome_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
         </div>
 
+        <div class="ci-mode" data-ci-mode-group="welcome_image" role="tablist" aria-label="طريقة العرض: صورة أم امبد">
+          <button type="button" class="ci-mode-btn is-active" data-ci-set-mode="welcome_image" data-ci-mode="image" role="tab" aria-selected="true"><i class="fas fa-image" aria-hidden="true"></i> صورة</button>
+          <button type="button" class="ci-mode-btn" data-ci-set-mode="welcome_image" data-ci-mode="embed" role="tab" aria-selected="false"><i class="fas fa-rectangle-ad" aria-hidden="true"></i> امبد</button>
+        </div>
+
+        <div class="ci-pane ci-pane-image" data-ci-pane="welcome_image" data-ci-kind="image">
         <div class="st-welcome-img-body">
           <div class="wa-stage-wrap">
             <div class="wa-stage no-image" id="waStage">
@@ -638,15 +644,33 @@
             </div>
           </div>
         </div>
+        </div>
+
+        <div class="ci-pane ci-pane-embed" data-ci-pane="welcome_image" data-ci-kind="embed" hidden>
+          <div class="ci-embed-card">
+            <div class="em-preview ci-embed-preview" data-ci-preview="welcome_image"></div>
+            <div class="ci-embed-actions">
+              <button type="button" class="btn-save-img" data-ci-edit="welcome_image"><i class="fas fa-pen-ruler" aria-hidden="true"></i> تخصيص الإمبد</button>
+              <span class="ci-embed-state" data-ci-state="welcome_image">لا يوجد امبد بعد — اضغط «تخصيص الإمبد»</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- صورة بنل التذاكر -->
-      <div class="stat-voice-item item-lg-general" data-for="ticket_panel_image">
+      <div class="stat-voice-item item-lg-general ci-stack" data-for="ticket_panel_image">
+        <div class="ci-head">
         <div class="stat-voice-icon"><i class="fas fa-ticket-alt"></i></div>
         <div class="stat-voice-info">
           <strong>صورة بنل التذاكر</strong>
           <small>الصورة العلوية لبنل فتح التذاكر — أول ما يراه العضو قبل فتح التذكرة</small>
         </div>
+        </div>
+        <div class="ci-mode" data-ci-mode-group="ticket_panel_image" role="tablist" aria-label="طريقة العرض: صورة أم امبد">
+          <button type="button" class="ci-mode-btn is-active" data-ci-set-mode="ticket_panel_image" data-ci-mode="image" role="tab" aria-selected="true"><i class="fas fa-image" aria-hidden="true"></i> صورة</button>
+          <button type="button" class="ci-mode-btn" data-ci-set-mode="ticket_panel_image" data-ci-mode="embed" role="tab" aria-selected="false"><i class="fas fa-rectangle-ad" aria-hidden="true"></i> امبد</button>
+        </div>
+        <div class="ci-pane ci-pane-image" data-ci-pane="ticket_panel_image" data-ci-kind="image">
         <div class="custom-img-body">
           <div class="custom-img-preview" id="preview-ticket_panel_image">
             <i class="fas fa-image preview-ph"></i>
@@ -665,15 +689,33 @@
             </div>
           </div>
         </div>
+        </div>
+
+        <div class="ci-pane ci-pane-embed" data-ci-pane="ticket_panel_image" data-ci-kind="embed" hidden>
+          <div class="ci-embed-card">
+            <div class="em-preview ci-embed-preview" data-ci-preview="ticket_panel_image"></div>
+            <div class="ci-embed-actions">
+              <button type="button" class="btn-save-img" data-ci-edit="ticket_panel_image"><i class="fas fa-pen-ruler" aria-hidden="true"></i> تخصيص الإمبد</button>
+              <span class="ci-embed-state" data-ci-state="ticket_panel_image">لا يوجد امبد بعد — اضغط «تخصيص الإمبد»</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- صورة بنل الصوتيات -->
-      <div class="stat-voice-item item-lg-general" data-for="voice_panel_image">
+      <div class="stat-voice-item item-lg-general ci-stack" data-for="voice_panel_image">
+        <div class="ci-head">
         <div class="stat-voice-icon"><i class="fas fa-microphone"></i></div>
         <div class="stat-voice-info">
           <strong>صورة بنل الصوتيات</strong>
           <small>الصورة العلوية لبنل القنوات الصوتية المؤقتة — تظهر لمن يريد إنشاء غرفة</small>
         </div>
+        </div>
+        <div class="ci-mode" data-ci-mode-group="voice_panel_image" role="tablist" aria-label="طريقة العرض: صورة أم امبد">
+          <button type="button" class="ci-mode-btn is-active" data-ci-set-mode="voice_panel_image" data-ci-mode="image" role="tab" aria-selected="true"><i class="fas fa-image" aria-hidden="true"></i> صورة</button>
+          <button type="button" class="ci-mode-btn" data-ci-set-mode="voice_panel_image" data-ci-mode="embed" role="tab" aria-selected="false"><i class="fas fa-rectangle-ad" aria-hidden="true"></i> امبد</button>
+        </div>
+        <div class="ci-pane ci-pane-image" data-ci-pane="voice_panel_image" data-ci-kind="image">
         <div class="custom-img-body">
           <div class="custom-img-preview" id="preview-voice_panel_image">
             <i class="fas fa-image preview-ph"></i>
@@ -689,6 +731,17 @@
               <button type="button" class="btn-sm btn-view-img" data-img-view="voice_panel_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة الحالية</button>
               <button type="button" class="btn-delete-sm" data-img-delete="voice_panel_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
               <span class="ticket-field-state" data-state-of="voice_panel_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <div class="ci-pane ci-pane-embed" data-ci-pane="voice_panel_image" data-ci-kind="embed" hidden>
+          <div class="ci-embed-card">
+            <div class="em-preview ci-embed-preview" data-ci-preview="voice_panel_image"></div>
+            <div class="ci-embed-actions">
+              <button type="button" class="btn-save-img" data-ci-edit="voice_panel_image"><i class="fas fa-pen-ruler" aria-hidden="true"></i> تخصيص الإمبد</button>
+              <span class="ci-embed-state" data-ci-state="voice_panel_image">لا يوجد امبد بعد — اضغط «تخصيص الإمبد»</span>
             </div>
           </div>
         </div>
@@ -1207,6 +1260,143 @@
     max-width: 100%; max-height: 68vh; border-radius: 10px; display: block; border: 1px solid var(--border);
   }
   .img-viewer-note { color: var(--text-muted); font-size: 13px; text-align: center; margin: 0; }
+
+  /* ─── صورة / امبد: مبدّل طريقة العرض لكل عنصر ────────────────── */
+  .ci-stack { flex-direction: column; align-items: stretch; }
+  .ci-head { display: flex; align-items: center; gap: 14px; }
+  .ci-mode {
+    display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; align-self: flex-start;
+    background: rgba(237,240,255,0.05); border: 1px solid var(--border);
+  }
+  .ci-mode-btn {
+    padding: 8px 18px; border-radius: 9px; border: none; cursor: pointer; font-family: inherit;
+    font-size: .8rem; font-weight: 700; color: var(--text-muted); background: transparent;
+    display: inline-flex; align-items: center; gap: 7px; transition: color .18s ease, background .18s ease;
+  }
+  .ci-mode-btn:hover { color: var(--text); background: rgba(237,240,255,0.05); }
+  .ci-mode-btn.is-active { color: #fff; background: linear-gradient(135deg, var(--primary), #6a00cc); box-shadow: 0 4px 14px rgba(135,0,255,0.35); }
+  .ci-pane[hidden] { display: none !important; }
+  .ci-embed-card { display: flex; flex-direction: column; gap: 12px; }
+  .ci-embed-preview { min-height: 150px; }
+  .ci-embed-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ci-embed-state { font-size: .78rem; color: var(--text-muted); }
+  .ci-embed-state i { color: #00c853; }
+
+  /* نافذة محرر الإمبد (تشارك سلوك نافذة عرض الصورة) */
+  .ci-embed-modal-content {
+    width: min(1180px, 96vw); max-height: 92vh; display: flex; flex-direction: column;
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px;
+    box-shadow: 0 30px 90px rgba(0,0,0,.55); overflow: hidden;
+  }
+  .ci-embed-modal-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 15px 20px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(208,0,255,0.14), rgba(0,26,128,0.22));
+  }
+  .ci-embed-modal-head strong { font-size: 1rem; }
+  .ci-embed-modal-body { padding: 18px 20px; overflow: auto; }
+  .ci-embed-modal-body .em-layout { grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); }
+  .ci-embed-modal .em-side { position: static; }
+  .ci-embed-modal-foot {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px 20px; border-top: 1px solid var(--border);
+  }
+  .ci-embed-modal-foot .ci-foot-spacer { flex: 1; }
+  .ci-ctl {
+    width: 100%; padding: 10px 12px; border-radius: 9px; font-family: inherit; font-size: .84rem;
+    background: rgba(237,240,255,0.04); color: var(--text); border: 1px solid var(--border); outline: none;
+  }
+  .ci-ctl:focus { border-color: rgba(208,0,255,0.6); }
+  textarea.ci-ctl { min-height: 96px; resize: vertical; }
+  .ci-url-row { display: flex; align-items: stretch; gap: 8px; }
+  .ci-url-row .ci-ctl { flex: 1; min-width: 0; }
+  .ci-upload-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 13px;
+    border-radius: 9px; cursor: pointer; font-size: .74rem; font-weight: 700; white-space: nowrap;
+    border: 1px solid var(--border); background: rgba(237,240,255,0.04); color: var(--text);
+  }
+  .ci-upload-btn.is-uploading { opacity: .6; pointer-events: none; }
+  .ci-ph-hint { font-size: .74rem; color: var(--text-muted); margin: 6px 0 0; }
+  .ci-ph-hint code { background: rgba(237,240,255,0.08); padding: 1px 5px; border-radius: 5px; font-size: .72rem; }
+
+  /* ── CSS محرر الإمبد (مطابق لصفحة الإشعارات) ─────────────────── */
+  .em-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr); gap: 20px; align-items: start; }
+  .em-sec { padding: 18px 0; border-top: 1px solid rgba(237,240,255,0.06); }
+  .em-sec:first-of-type { border-top: none; padding-top: 0; }
+  .em-sec-title { margin: 0 0 14px; font-size: .84rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .em-sec-title i { color: var(--primary); }
+  .em-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .em-sec-head .em-sec-title { margin: 0; }
+  .em-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .em-field { margin-bottom: 13px; min-width: 0; }
+  .em-field:last-child { margin-bottom: 0; }
+  .em-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 7px; }
+  .em-counter { font-size: .72rem; color: var(--text-muted); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .em-counter.warn { color: var(--warning); }
+  .em-hint { font-size: .75rem; color: var(--text-muted); margin: 10px 0 0; }
+  .em-swatches { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .em-swatch { width: 30px; height: 30px; border-radius: 9px; cursor: pointer; padding: 0; border: 2px solid transparent; background: var(--sw, #d000ff); position: relative; transition: transform .16s ease, border-color .16s ease; }
+  .em-swatch:hover { transform: scale(1.1); }
+  .em-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+  .em-swatch-custom { display: grid; place-items: center; background: rgba(237,240,255,0.06); border: 2px solid rgba(237,240,255,0.2); }
+  .em-swatch-custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .em-swatch-custom i { font-size: .72rem; pointer-events: none; }
+  .em-hex { width: 92px; padding: 8px 10px; border-radius: 9px; font-family: monospace; font-size: .78rem; text-align: center; background: rgba(237,240,255,0.04); color: var(--text); border: 1px solid var(--border); outline: none; }
+  .em-toggle { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: .8rem; color: var(--text-muted); }
+  .em-toggle input { position: absolute; opacity: 0; }
+  .em-toggle-track { width: 42px; height: 24px; border-radius: 999px; background: rgba(237,240,255,0.14); position: relative; transition: background .2s ease; }
+  .em-toggle-dot { position: absolute; top: 3px; inset-inline-start: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: inset-inline-start .2s ease; }
+  .em-toggle input:checked + .em-toggle-track { background: linear-gradient(135deg, var(--primary), #6a00cc); }
+  .em-toggle input:checked + .em-toggle-track .em-toggle-dot { inset-inline-start: 21px; }
+  .em-fields { display: flex; flex-direction: column; gap: 10px; }
+  .em-field-row { display: grid; grid-template-columns: 1fr 1.4fr auto auto; gap: 8px; align-items: center; }
+  .em-f-inline-wrap { display: inline-flex; align-items: center; gap: 6px; font-size: .74rem; color: var(--text-muted); white-space: nowrap; }
+  .em-f-remove { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,53,69,0.35); background: rgba(255,53,69,0.1); color: #ff6b78; cursor: pointer; }
+  .em-f-remove:hover { background: rgba(255,53,69,0.2); }
+  .em-add-field { padding: 8px 16px; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: .78rem; font-weight: 700; border: 1px dashed rgba(208,0,255,0.5); background: rgba(208,0,255,0.08); color: var(--text); display: inline-flex; align-items: center; gap: 7px; }
+  .em-add-field:hover { background: rgba(208,0,255,0.16); }
+  .em-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .em-btn-ghost { padding: 12px 18px; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: .82rem; font-weight: 600; border: 1px solid var(--border); background: rgba(237,240,255,0.03); color: var(--text); display: inline-flex; align-items: center; gap: 8px; }
+  .em-btn-ghost:hover { background: rgba(237,240,255,0.08); }
+  .em-side-head { display: flex; align-items: center; justify-content: space-between; font-size: .82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; }
+  .em-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #00c853; box-shadow: 0 0 0 4px rgba(0,200,83,0.18); }
+  .em-preview {
+    direction: ltr; text-align: left; background: #313338; border-radius: 14px; padding: 16px; min-height: 240px;
+    border: 1px solid rgba(0,0,0,0.4); color: #dbdee1; font-size: 14px; font-family: 'gg sans', 'Segoe UI', system-ui, sans-serif;
+  }
+  .em-preview .em-empty { text-align: center; color: #80848e; padding: 60px 10px; font-size: .84rem; }
+  .em-preview .em-empty i { display: block; font-size: 1.8rem; margin-bottom: 12px; opacity: .6; }
+  .em-msg { display: flex; gap: 14px; }
+  .em-avatar { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #fff; background: linear-gradient(135deg, #d000ff, #4b0082); }
+  .em-body { min-width: 0; flex: 1; }
+  .em-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .em-name { font-weight: 700; color: #f2f3f5; }
+  .em-bot { font-size: 10px; font-weight: 700; background: #5865f2; color: #fff; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; }
+  .em-time { font-size: 11px; color: #949ba4; }
+  .em-embed { display: flex; margin-top: 6px; border-radius: 4px; background: #2b2d31; max-width: 520px; overflow: hidden; }
+  .em-embed-bar { width: 4px; flex: 0 0 4px; }
+  .em-embed-in { display: flex; gap: 12px; padding: 12px 14px 12px 12px; flex: 1; min-width: 0; }
+  .em-embed-main { min-width: 0; flex: 1; }
+  .em-embed-author { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #f2f3f5; margin-bottom: 6px; }
+  .em-embed-author img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+  .em-embed-title { font-size: 15px; font-weight: 700; color: #f2f3f5; margin-bottom: 6px; }
+  .em-embed-desc { font-size: 13.5px; line-height: 1.5; color: #dbdee1; white-space: pre-wrap; word-wrap: break-word; }
+  .em-embed-fields { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .em-embed-field { min-width: 100%; }
+  .em-embed-field.inline { min-width: 0; flex: 1 1 30%; }
+  .em-embed-field .n { font-size: 13px; font-weight: 700; color: #f2f3f5; margin-bottom: 2px; }
+  .em-embed-field .v { font-size: 13px; color: #dbdee1; white-space: pre-wrap; word-wrap: break-word; }
+  .em-embed-img { margin-top: 12px; border-radius: 4px; overflow: hidden; max-width: 400px; }
+  .em-embed-img img { max-width: 100%; display: block; }
+  .em-embed-thumb { width: 80px; height: 80px; flex: 0 0 80px; border-radius: 4px; overflow: hidden; }
+  .em-embed-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .em-embed-footer { display: flex; align-items: center; gap: 8px; color: #949ba4; font-size: 11px; margin-top: 10px; }
+  .em-embed-footer img { width: 18px; height: 18px; border-radius: 50%; }
+  @media (max-width: 760px) {
+    .ci-embed-modal-body .em-layout { grid-template-columns: 1fr; }
+    .em-grid-2 { grid-template-columns: 1fr; }
+    .em-field-row { grid-template-columns: 1fr; }
+  }
 </style>
 
 <!-- نافذة عرض الصورة الحالية (تظهر بزر «عرض الصورة الحالية» بجانب كل صورة) -->
@@ -1221,6 +1411,127 @@
         <img id="imgViewerImage" alt="الصورة الحالية" />
       </div>
       <p class="img-viewer-note" id="imgViewerNote">الصورة المعروضة حالياً على البوت في هذا السيرفر</p>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة تخصيص الإمبد (مشتركة للترحيب وبنل التذاكر وبنل الصوتيات) -->
+<div class="img-viewer-modal ci-embed-modal" id="ciEmbedModal">
+  <div class="ci-embed-modal-content" role="dialog" aria-modal="true" aria-labelledby="ciModalTitle">
+    <div class="ci-embed-modal-head">
+      <strong id="ciModalTitle">تخصيص الإمبد</strong>
+      <button type="button" class="img-viewer-close" id="ciClose" title="إغلاق"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="ci-embed-modal-body">
+      <div class="em-layout">
+        <div class="ci-builder">
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-align-right"></i> المحتوى</h4>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="ciAuthorName">إسم الكاتب</label>
+                <input type="text" id="ciAuthorName" class="ci-ctl" maxlength="256" placeholder="مثل: فريق Kratos">
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="ciAuthorIcon">أيقونة الكاتب (رابط)</label>
+                <div class="ci-url-row">
+                  <input type="url" id="ciAuthorIcon" class="ci-ctl" placeholder="https://...">
+                  <label class="ci-upload-btn" title="رفع صورة"><i class="fas fa-upload" aria-hidden="true"></i> رفع<input type="file" accept="image/*" hidden data-ci-upload="ciAuthorIcon"></label>
+                </div>
+              </div>
+            </div>
+            <div class="em-field">
+              <label class="em-label" for="ciTitle">العنوان <span class="em-counter" id="ciTitleCounter">0/256</span></label>
+              <input type="text" id="ciTitle" class="ci-ctl" maxlength="256" placeholder="عنوان الإمبد...">
+            </div>
+            <div class="em-field">
+              <label class="em-label" for="ciDesc">الوصف <span class="em-counter" id="ciDescCounter">0/4096</span></label>
+              <textarea id="ciDesc" class="ci-ctl" maxlength="4096" placeholder="نص الإمبد... يدعم **الغامق** و __المسطر__ و `الكود`"></textarea>
+              <p class="ci-ph-hint" id="ciPhHint" hidden></p>
+            </div>
+          </section>
+
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-palette"></i> التنسيق</h4>
+            <div class="em-field">
+              <label class="em-label">لون الجانب</label>
+              <div class="em-swatches" id="ciSwatches">
+                <% ['#d000ff','#8700ff','#4b0082','#00a8ff','#00c8ff','#00c853','#ffd700','#ff9800','#ff1018','#ff8088','#1a6fff','#7c4dff'].forEach(c => { %>
+                  <button type="button" class="em-swatch" data-color="<%= c %>" style="--sw: <%= c %>" aria-label="<%= c %>"></button>
+                <% }) %>
+                <label class="em-swatch em-swatch-custom" title="لون مخصص">
+                  <input type="color" id="ciColorPick" value="#d000ff">
+                  <i class="fas fa-eye-dropper" aria-hidden="true"></i>
+                </label>
+                <input type="text" id="ciColorHex" class="em-hex" value="#d000ff" maxlength="7" spellcheck="false">
+                <input type="hidden" id="ciColor" value="#d000ff">
+              </div>
+            </div>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="ciThumb">صورة مصغّرة (رابط)</label>
+                <div class="ci-url-row">
+                  <input type="url" id="ciThumb" class="ci-ctl" placeholder="https://...">
+                  <label class="ci-upload-btn" title="رفع صورة"><i class="fas fa-upload" aria-hidden="true"></i> رفع<input type="file" accept="image/*" hidden data-ci-upload="ciThumb"></label>
+                </div>
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="ciImage">صورة كبيرة (رابط)</label>
+                <div class="ci-url-row">
+                  <input type="url" id="ciImage" class="ci-ctl" placeholder="https://...">
+                  <label class="ci-upload-btn" title="رفع صورة"><i class="fas fa-upload" aria-hidden="true"></i> رفع<input type="file" accept="image/*" hidden data-ci-upload="ciImage"></label>
+                </div>
+              </div>
+            </div>
+            <label class="em-toggle">
+              <input type="checkbox" id="ciTimestamp" checked>
+              <span class="em-toggle-track"><span class="em-toggle-dot"></span></span>
+              <span>إظهار الوقت والتاريخ</span>
+            </label>
+          </section>
+
+          <section class="em-sec">
+            <div class="em-sec-head">
+              <h4 class="em-sec-title"><i class="fas fa-table-list"></i> الحقول</h4>
+              <button type="button" class="em-add-field" id="ciAddField"><i class="fas fa-plus"></i> إضافة حقل</button>
+            </div>
+            <div id="ciFields" class="em-fields"></div>
+            <p class="em-hint">أضف حتى 25 حقلاً — فعّل «ضمن السطر» لعرض الحقول بأعمدة.</p>
+          </section>
+
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-signature"></i> التذييل</h4>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="ciFooterText">نص التذييل</label>
+                <input type="text" id="ciFooterText" class="ci-ctl" maxlength="2048" placeholder="مثل: Kratos System">
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="ciFooterIcon">أيقونة التذييل (رابط)</label>
+                <div class="ci-url-row">
+                  <input type="url" id="ciFooterIcon" class="ci-ctl" placeholder="https://...">
+                  <label class="ci-upload-btn" title="رفع صورة"><i class="fas fa-upload" aria-hidden="true"></i> رفع<input type="file" accept="image/*" hidden data-ci-upload="ciFooterIcon"></label>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="em-side">
+          <div class="em-side-head">
+            <span><i class="fas fa-eye" aria-hidden="true"></i> معاينة مباشرة</span>
+            <span class="em-live-dot"></span>
+          </div>
+          <div class="em-preview" id="ciPreview"></div>
+          <p class="em-hint">هكذا سيظهر الإمبد تقريباً داخل ديسكورد.</p>
+        </div>
+      </div>
+    </div>
+    <div class="ci-embed-modal-foot">
+      <button type="button" class="btn-save-img" id="ciSave"><i class="fas fa-save" aria-hidden="true"></i> حفظ الإمبد</button>
+      <button type="button" class="em-btn-ghost" id="ciClear"><i class="fas fa-eraser" aria-hidden="true"></i> تفريغ</button>
+      <div class="ci-foot-spacer"></div>
+      <button type="button" class="em-btn-ghost" id="ciCancel"><i class="fas fa-xmark" aria-hidden="true"></i> إلغاء</button>
     </div>
   </div>
 </div>
@@ -1574,13 +1885,14 @@ function updateImagesBadge() {
   let done = 0;
   CUSTOM_IMAGES.forEach(key => {
     const url = document.querySelector('[data-img-url="' + key + '"]');
-    if (url && url.value.trim()) done++;
+    // يُحتسب العنصر مخصّصاً إذا كانت له صورة أو إمبد محفوظ.
+    if ((url && url.value.trim()) || customEmbeds[key]) done++;
   });
   const badge = document.getElementById('imagesStatusBadge');
   const text = document.getElementById('imagesStatusText');
   if (done === 3) {
     badge.className = 'ticket-status ready';
-    text.textContent = 'جميع الصور مخصصة';
+    text.textContent = 'جميع العناصر مخصصة';
   } else if (done > 0) {
     badge.className = 'ticket-status partial';
     text.textContent = done + ' من 3 مخصصة';
@@ -1660,6 +1972,10 @@ function initCustomImages() {
         setImageState(key, !!val);
         const url = document.querySelector('[data-img-url="' + key + '"]');
         if (url && imgIsUrl(val)) url.value = val;
+
+        customEmbeds[key] = (data.embeds && data.embeds[key]) || null;
+        ciRenderItem(key);
+        ciApplyMode(key, (data.modes && data.modes[key]) === 'embed' ? 'embed' : 'image');
       });
       updateImagesBadge();
     })
@@ -1700,9 +2016,385 @@ function initCustomImages() {
       await saveCustomImage(key, '');
     });
   });
+
+  // مبدّل «صورة / امبد» وزر تخصيص الإمبد لكل عنصر
+  document.querySelectorAll('[data-ci-set-mode]').forEach(btn => {
+    btn.addEventListener('click', () => ciSetMode(btn.dataset.ciSetMode, btn.dataset.ciMode));
+  });
+  document.querySelectorAll('[data-ci-edit]').forEach(btn => {
+    btn.addEventListener('click', () => ciOpenEditor(btn.dataset.ciEdit));
+  });
 }
 
+// ─── صورة / امبد: حالة وواجهة ───────────────────────────────────────────────
+
+const CUSTOM_MODE_VALUES = ['image', 'embed'];
+
+// وصف كل عنصر + قيم نموذجية للمتغيّرات تُستخدم في المعاينة فقط.
+const GUILD_NAME = <%- JSON.stringify(guild.name) %>;
+const CI_ITEMS = {
+  welcome_image: {
+    label: 'رسالة الترحيب',
+    sample: { user: 'اسم العضو', mention: '@العضو', tag: 'اسم العضو#0000', server: GUILD_NAME, count: '128' },
+  },
+  ticket_panel_image: { label: 'بنل التذاكر', sample: {} },
+  voice_panel_image: { label: 'بنل الصوتيات', sample: { count: '3' } },
+};
+
 const customImageValues = {};
+const customModes = {};
+const customEmbeds = {};
+
+function ciEsc(t) {
+  return String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function ciNl2br(t) { return ciEsc(t).replace(/\n/g, '<br>'); }
+function ciSafeUrl(u) { return /^https?:\/\//i.test(u || '') ? ciEsc(u) : ''; }
+
+// يستبدل {user} و{mention} ... بقيم نموذجية ليظهر أثرها في المعاينة.
+function ciFill(text, key) {
+  const sample = (CI_ITEMS[key] && CI_ITEMS[key].sample) || {};
+  return String(text == null ? '' : text).replace(/\{(user|mention|tag|server|count)\}/gi, (m, name) => {
+    const v = sample[name.toLowerCase()];
+    return v === undefined ? m : v;
+  });
+}
+
+function ciPhHintText(key) {
+  if (key === 'welcome_image') return 'يدعم المتغيّرات: <code>{user}</code> اسم العضو، <code>{mention}</code> منشن، <code>{tag}</code> الوسم، <code>{server}</code> اسم السيرفر، <code>{count}</code> عدد الأعضاء';
+  if (key === 'voice_panel_image') return 'يدعم المتغيّر: <code>{count}</code> عدد الغرف الصوتية النشطة';
+  return '';
+}
+
+/** HTML لمعاينة الإمبد بأسلوب ديسكورد (يُستخدم داخل البطاقة وفي النافذة). */
+function ciPreviewHtml(cfg, key) {
+  if (!cfg) return '';
+  const color = /^#[0-9a-f]{6}$/i.test(cfg.color || '') ? cfg.color : '#d000ff';
+  const authorName = ciFill(cfg.authorName, key);
+  const authorIcon = /^https?:\/\//i.test(cfg.authorIcon || '') ? ciEsc(cfg.authorIcon) : '';
+  const title = ciFill(cfg.title, key);
+  const desc = cfg.description ? ciFill(cfg.description, key) : '';
+  const image = /^https?:\/\//i.test(cfg.image || '') ? ciEsc(cfg.image) : '';
+  const thumb = /^https?:\/\//i.test(cfg.thumbnail || '') ? ciEsc(cfg.thumbnail) : '';
+  const footerText = ciFill(cfg.footerText, key);
+  const footerIcon = /^https?:\/\//i.test(cfg.footerIcon || '') ? ciEsc(cfg.footerIcon) : '';
+  const fields = Array.isArray(cfg.fields)
+    ? cfg.fields.filter((f) => (f.name || '').trim() || (f.value || '').trim())
+    : [];
+
+  let html = '<div class="em-msg"><div class="em-avatar">K</div><div class="em-body">';
+  html += '<div class="em-meta"><span class="em-name">Kratos</span><span class="em-bot"><i class="fas fa-check"></i> BOT</span><span class="em-time">' + new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) + '</span></div>';
+  html += '<div class="em-embed"><div class="em-embed-bar" style="background:' + ciEsc(color) + '"></div><div class="em-embed-in"><div class="em-embed-main">';
+  if (authorName) html += '<div class="em-embed-author">' + (authorIcon ? '<img src="' + authorIcon + '" alt="">' : '') + ciEsc(authorName) + '</div>';
+  if (title) html += '<div class="em-embed-title">' + ciEsc(title) + '</div>';
+  if (desc) html += '<div class="em-embed-desc">' + ciEsc(desc).replace(/\n/g, '<br>') + '</div>';
+  if (fields.length) {
+    html += '<div class="em-embed-fields">';
+    fields.forEach((f) => {
+      html += '<div class="em-embed-field' + (f.inline ? ' inline' : '') + '"><div class="n">' + (ciEsc(ciFill(f.name, key)) || '&#8203;') + '</div><div class="v">' + ciEsc(ciFill(f.value, key)).replace(/\n/g, '<br>') + '</div></div>';
+    });
+    html += '</div>';
+  }
+  if (image) html += '<div class="em-embed-img"><img src="' + image + '" alt="" onerror="this.parentElement.style.display=\'none\'"></div>';
+  if (footerText || cfg.timestamp) {
+    html += '<div class="em-embed-footer">' + (footerIcon ? '<img src="' + footerIcon + '" alt="">' : '');
+    if (footerText) html += ciEsc(footerText);
+    if (cfg.timestamp) html += '<span>' + (footerText ? ' • ' : '') + new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' }) + '</span>';
+    html += '</div>';
+  }
+  html += '</div>';
+  if (thumb) html += '<div class="em-embed-thumb"><img src="' + thumb + '" alt="" onerror="this.parentElement.style.display=\'none\'"></div>';
+  html += '</div></div></div></div>';
+  return html;
+}
+
+/** يحدّث معاينة البطاقة وحالة عنصر (لا يوجد إمبد / محفوظ). */
+function ciRenderItem(key) {
+  const preview = document.querySelector('[data-ci-preview="' + key + '"]');
+  const state = document.querySelector('[data-ci-state="' + key + '"]');
+  const cfg = customEmbeds[key];
+  if (preview) {
+    preview.innerHTML = cfg
+      ? ciPreviewHtml(cfg, key)
+      : '<div class="em-empty"><i class="fas fa-wand-magic-sparkles"></i>لم تُضبط إعدادات الإمبد بعد</div>';
+  }
+  if (state) {
+    if (cfg) { state.innerHTML = '<i class="fas fa-check-circle"></i> الإمبد محفوظ ومُفعّل'; }
+    else { state.textContent = 'لا يوجد إمبد بعد — اضغط «تخصيص الإمبد»'; }
+  }
+}
+
+/** يطبّق الوضع المختار على أزرار المبدّل ولوحات العنصر. */
+function ciApplyMode(key, mode) {
+  customModes[key] = mode === 'embed' ? 'embed' : 'image';
+  document.querySelectorAll('[data-ci-set-mode="' + key + '"]').forEach((btn) => {
+    const on = btn.dataset.ciMode === customModes[key];
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  document.querySelectorAll('[data-ci-pane="' + key + '"]').forEach((pane) => {
+    pane.hidden = pane.dataset.ciKind !== customModes[key];
+  });
+}
+
+async function ciSetMode(key, mode) {
+  if (!CUSTOM_MODE_VALUES.includes(mode) || customModes[key] === mode) return;
+  const previous = customModes[key] || 'image';
+  ciApplyMode(key, mode);
+  try {
+    const res = await fetch('/settings/<%= guild.id %>/images/mode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, mode }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      showToast(mode === 'embed' ? '✅ تم تفعيل وضع الإمبد' : '✅ تم تفعيل وضع الصورة', 'success');
+    } else {
+      ciApplyMode(key, previous);
+      showToast('❌ ' + (data.error || 'فشل تغيير الوضع'), 'error');
+    }
+  } catch {
+    ciApplyMode(key, previous);
+    showToast('❌ تعذّر الاتصال بالخادم', 'error');
+  }
+}
+
+// ─── محرر الإمبد (نافذة مشتركة) ────────────────────────────────────────────
+const ci = { current: null };
+const ciFieldsBox = document.getElementById('ciFields');
+
+function ciSetBusy(label, busy) {
+  if (label) label.classList.toggle('is-uploading', !!busy);
+}
+
+function ciUpdateCounters() {
+  const t = document.getElementById('ciTitle');
+  const d = document.getElementById('ciDesc');
+  const tc = document.getElementById('ciTitleCounter');
+  const dc = document.getElementById('ciDescCounter');
+  if (t && tc) { tc.textContent = t.value.length + '/256'; tc.classList.toggle('warn', t.value.length > 230); }
+  if (d && dc) { dc.textContent = d.value.length + '/4096'; dc.classList.toggle('warn', d.value.length > 3686); }
+}
+
+function ciAddFieldRow(name = '', value = '', inline = false) {
+  if (!ciFieldsBox) return;
+  if (ciFieldsBox.querySelectorAll('.em-field-row').length >= 25) {
+    showToast('الحد الأقصى 25 حقلاً', 'warning');
+    return;
+  }
+  const row = document.createElement('div');
+  row.className = 'em-field-row';
+  row.innerHTML =
+    '<input type="text" class="ci-ctl em-f-name" maxlength="256" placeholder="إسم الحقل" value="' + ciEsc(name) + '">' +
+    '<input type="text" class="ci-ctl em-f-value" maxlength="1024" placeholder="قيمة الحقل" value="' + ciEsc(value) + '">' +
+    '<label class="em-f-inline-wrap"><input type="checkbox" class="em-f-inline"' + (inline ? ' checked' : '') + '> ضمن السطر</label>' +
+    '<button type="button" class="em-f-remove" title="حذف"><i class="fas fa-xmark"></i></button>';
+  row.querySelector('.em-f-remove').addEventListener('click', () => { row.remove(); ciRenderModalPreview(); });
+  row.querySelectorAll('input').forEach((i) => i.addEventListener('input', ciRenderModalPreview));
+  row.querySelector('.em-f-inline').addEventListener('change', ciRenderModalPreview);
+  ciFieldsBox.appendChild(row);
+}
+
+function ciReadFields() {
+  if (!ciFieldsBox) return [];
+  return Array.from(ciFieldsBox.querySelectorAll('.em-field-row')).map((r) => ({
+    name: r.querySelector('.em-f-name').value.trim(),
+    value: r.querySelector('.em-f-value').value.trim(),
+    inline: r.querySelector('.em-f-inline').checked,
+  })).filter((f) => f.name || f.value);
+}
+
+function ciSetColor(hex) {
+  hex = (hex || '').trim().toLowerCase();
+  if (!/^#[0-9a-f]{6}$/.test(hex)) hex = '#d000ff';
+  const hidden = document.getElementById('ciColor');
+  const pick = document.getElementById('ciColorPick');
+  const hexInput = document.getElementById('ciColorHex');
+  if (hidden) hidden.value = hex;
+  if (pick) pick.value = hex;
+  if (hexInput) hexInput.value = hex;
+  document.querySelectorAll('#ciSwatches .em-swatch[data-color]').forEach((s) => {
+    s.classList.toggle('active', s.dataset.color.toLowerCase() === hex);
+  });
+}
+
+function ciReadForm() {
+  const val = (id) => (document.getElementById(id)?.value || '').trim();
+  const cfg = {
+    color: document.getElementById('ciColor')?.value || '#d000ff',
+    authorName: val('ciAuthorName'), authorIcon: val('ciAuthorIcon'),
+    title: val('ciTitle'), description: val('ciDesc'),
+    fields: ciReadFields(),
+    image: val('ciImage'), thumbnail: val('ciThumb'),
+    footerText: val('ciFooterText'), footerIcon: val('ciFooterIcon'),
+    timestamp: !!document.getElementById('ciTimestamp')?.checked,
+  };
+  const empty = !cfg.authorName && !cfg.title && !cfg.description && !cfg.fields.length
+    && !cfg.image && !cfg.thumbnail && !cfg.footerText;
+  return empty ? null : cfg;
+}
+
+function ciRenderModalPreview() {
+  const el = document.getElementById('ciPreview');
+  if (!el) return;
+  const cfg = ciReadForm();
+  el.innerHTML = cfg
+    ? ciPreviewHtml(cfg, ci.current)
+    : '<div class="em-empty"><i class="fas fa-wand-magic-sparkles"></i>ابدأ بتعبئة الحقول لعرض المعاينة هنا</div>';
+}
+
+function ciFillForm(cfg, key) {
+  cfg = cfg || {};
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
+  set('ciAuthorName', cfg.authorName);
+  set('ciAuthorIcon', cfg.authorIcon);
+  set('ciTitle', cfg.title);
+  set('ciDesc', cfg.description);
+  set('ciImage', cfg.image);
+  set('ciThumb', cfg.thumbnail);
+  set('ciFooterText', cfg.footerText);
+  set('ciFooterIcon', cfg.footerIcon);
+  const ts = document.getElementById('ciTimestamp');
+  if (ts) ts.checked = cfg.timestamp !== false;
+  if (ciFieldsBox) ciFieldsBox.innerHTML = '';
+  (Array.isArray(cfg.fields) ? cfg.fields : []).forEach((f) => ciAddFieldRow(f.name, f.value, f.inline));
+  ciSetColor(cfg.color || '#d000ff');
+  ciUpdateCounters();
+
+  const hint = document.getElementById('ciPhHint');
+  if (hint) {
+    const text = ciPhHintText(key);
+    hint.hidden = !text;
+    hint.innerHTML = text;
+  }
+}
+
+function ciOpenModal() {
+  const m = document.getElementById('ciEmbedModal');
+  if (m) m.classList.add('open');
+}
+
+function ciCloseModal() {
+  const m = document.getElementById('ciEmbedModal');
+  if (m) m.classList.remove('open');
+}
+
+function ciOpenEditor(key) {
+  ci.current = key;
+  const item = CI_ITEMS[key] || {};
+  const title = document.getElementById('ciModalTitle');
+  if (title) title.textContent = 'تخصيص إمبد — ' + (item.label || key);
+  ciFillForm(customEmbeds[key] || null, key);
+  ciRenderModalPreview();
+  ciOpenModal();
+}
+
+async function ciSave() {
+  const key = ci.current;
+  if (!key) return;
+  const embed = ciReadForm();
+  const btn = document.getElementById('ciSave');
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ...'; }
+  try {
+    const res = await fetch('/settings/<%= guild.id %>/images/embed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // إرسال null يعني حذف الإمبد والعودة إلى الصورة.
+      body: JSON.stringify({ key, embed: embed || null }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      customEmbeds[key] = data.embed || null;
+      ciRenderItem(key);
+      updateImagesBadge();
+      showToast(data.embed ? '✅ تم حفظ الإمبد' : '🗑️ تم حذف الإمبد', 'success');
+      ciCloseModal();
+    } else {
+      showToast('❌ ' + (data.error || 'فشل الحفظ'), 'error');
+    }
+  } catch {
+    showToast('❌ تعذّر الاتصال بالخادم', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+  }
+}
+
+async function ciUpload(targetId, file, input) {
+  const label = input.closest('.ci-upload-btn');
+  ciSetBusy(label, true);
+  showToast('جارٍ رفع الصورة إلى الموقع...', 'info');
+  try {
+    const res = await fetch('/settings/<%= guild.id %>/images/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      body: file,
+    });
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (!res.ok || !data.success || !data.url) {
+      showToast(data.error || 'فشل رفع الصورة إلى الموقع', 'error');
+      return;
+    }
+    const target = document.getElementById(targetId);
+    if (target) target.value = data.url;
+    showToast('✅ تم رفع الصورة', 'success');
+    ciRenderModalPreview();
+  } catch {
+    showToast('تعذّر الاتصال بموقع رفع الصور', 'error');
+  } finally {
+    ciSetBusy(label, false);
+  }
+}
+
+function ciInitEditor() {
+  const modal = document.getElementById('ciEmbedModal');
+  if (!modal) return;
+
+  ['ciAuthorName', 'ciAuthorIcon', 'ciTitle', 'ciDesc', 'ciImage', 'ciThumb', 'ciFooterText', 'ciFooterIcon']
+    .forEach((id) => document.getElementById(id)?.addEventListener('input', ciRenderModalPreview));
+  document.getElementById('ciTitle')?.addEventListener('input', ciUpdateCounters);
+  document.getElementById('ciDesc')?.addEventListener('input', ciUpdateCounters);
+  document.getElementById('ciTimestamp')?.addEventListener('change', ciRenderModalPreview);
+  document.getElementById('ciAddField')?.addEventListener('click', () => { ciAddFieldRow(); ciRenderModalPreview(); });
+
+  document.querySelectorAll('#ciSwatches .em-swatch[data-color]').forEach((s) => {
+    s.addEventListener('click', () => { ciSetColor(s.dataset.color); ciRenderModalPreview(); });
+  });
+  document.getElementById('ciColorPick')?.addEventListener('input', (e) => { ciSetColor(e.target.value); ciRenderModalPreview(); });
+  document.getElementById('ciColorHex')?.addEventListener('input', (e) => { ciSetColor(e.target.value); ciRenderModalPreview(); });
+
+  document.getElementById('ciSave')?.addEventListener('click', ciSave);
+  document.getElementById('ciCancel')?.addEventListener('click', ciCloseModal);
+  document.getElementById('ciClose')?.addEventListener('click', ciCloseModal);
+  document.getElementById('ciClear')?.addEventListener('click', () => {
+    if (!confirm('تفريغ كل حقول الإمبد؟ (لن يُحفظ الحذف حتى تضغط «حفظ الإمبد»)')) return;
+    ciFillForm(null, ci.current);
+    ciRenderModalPreview();
+  });
+
+  modal.addEventListener('click', (e) => { if (e.target === modal) ciCloseModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') ciCloseModal(); });
+
+  document.querySelectorAll('input[type=file][data-ci-upload]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const targetId = input.dataset.ciUpload;
+      const file = input.files[0];
+      input.value = '';
+      if (!file) return;
+      if (!/^image\/(png|jpe?g|gif|webp)$/i.test(file.type)) {
+        showToast('صيغة غير مدعومة — المسموح: PNG / JPG / GIF / WEBP', 'warning');
+        return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        showToast('حجم الصورة كبير جداً (الحد 8MB)', 'warning');
+        return;
+      }
+      ciUpload(targetId, file, input);
+    });
+  });
+}
 
 const DEFAULT_IMG_ENDPOINT = {
   welcome_image: '/settings/<%= guild.id %>/default-image/welcome',
@@ -1943,5 +2635,6 @@ function waInitEditor() {
 }
 
 waInitEditor();
+ciInitEditor();
 initCustomImages();
 </script>
