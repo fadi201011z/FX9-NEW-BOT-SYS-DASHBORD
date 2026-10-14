@@ -114,6 +114,11 @@ app.set('layout', 'layouts/main');
 // ─── Static Files ────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ─── Health check (Render / any host) ────────────────────────────────────
+// Answered before the session, DB and permission middleware, so a cold or
+// busy deploy is still reported healthy the moment the process is listening.
+app.get('/healthz', (_req, res) => res.status(200).type('text/plain').send('ok'));
+
 // ─── Auto-refresh dashboard role from DB ────────────────────────────────
 import { refreshDashboardRole, getGuildPremium } from './middleware/auth.js';
 import { resolve } from './services/capabilities.js';

@@ -1,0 +1,56 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Render Blueprint — FX9 Dashboard  (Kratos web dashboard)
+#
+#  لماذا هذا الملف؟
+#    النشر القديم كان يستخدم Dockerfile، فيعيد بناء الصورة كاملة مع كل رفعة
+#    (سحب صورة الأساس + npm ci كامل). لذلك كان الرفع يستغرق ~5 دقائق.
+#
+#    بيئة Node الأصلية (runtime: node) أدناه يعيد Render استخدام كاش
+#    node_modules فيها، فيصبح الرفع العادي أقل من دقيقة غالباً.
+#
+#  طريقة التطبيق — اختر واحدة:
+#    (أ) Blueprint (موصى به): Render → New → Blueprint → اختر هذا المستودع.
+#        إن كنت قد أنشأت الخدمة يدوياً سابقاً، فاحذفها أولاً أو غيّر `name`
+#        بالأسفل، وإلّا ستحصل على خدمتين.
+#    (ب) يدوياً: أبقِ الخدمة الحالية واضبط في Settings → Build & Deploy:
+#           Environment       : Node
+#           Build Command     : npm ci
+#           Start Command     : npm start
+#           Health Check Path : /healthz
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  - type: web
+    name: fx9-dashboard
+    runtime: node
+    plan: free                     # غيّرها إلى starter/standard إن كنت على خطة مدفوعة
+    branch: main
+    autoDeploy: true
+    # region: frankfurt            # اضبطها لتطابق منطقة خدمتك الحالية (الافتراضي oregon)
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: LOG_RETENTION_HOURS
+        value: "48"
+      # ─── الأسرار: اتركها sync: false حتى لا تُخزَّن في Git ───
+      #     الصق نفس القيم الموجودة لديك الآن عند أول نشر.
+      - key: SESSION_SECRET
+        sync: false
+      - key: CLIENT_ID
+        sync: false
+      - key: CLIENT_SECRET
+        sync: false
+      - key: CALLBACK_URL
+        sync: false
+      - key: OWNER_ID
+        sync: false
+      - key: BOT_API_URL
+        sync: false
+      - key: API_SECRET
+        sync: false
+      - key: MONGODB_URI
+        sync: false
