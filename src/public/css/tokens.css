@@ -79,7 +79,7 @@
      the content's offset, the bar's track, the brand cell and the narrow-screen
      clamp -- have to move together or the shell grows a seam down one of its
      joins. */
-  --nx-shell-w:   236px;
+  --nx-shell-w:   264px;
   --nx-rail-w:    74px;
 
   /* The server rail's width, and it is the OUTERMOST column -- on the window's

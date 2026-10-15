@@ -301,3 +301,46 @@
   input.addEventListener('search', apply);
   apply();
 })();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   The rail opens where you are
+
+   A labelled rail is taller than the window showing it: the seven sections come
+   to 1753px of rows inside a 487px rail, and the row for the page just opened
+   measured 842px down it -- off the screen, on every page. So each page began
+   with the rail at its top and the answer to "where am I" below the fold, and
+   since every page here is one click from every other, the row had to be hunted
+   for again on the next page and the next.
+
+   Revealing it costs one write to the rail's own scroller -- scrollTop on
+   .sidebar-nav. Not scrollIntoView, which walks up every ancestor and would take
+   the page with it; that is the whole reason this is arithmetic on two rectangles
+   instead. The row is left a third of the rail down rather than at its edge so
+   the section head above it is on screen as well, that head being what names the
+   place the row is in.
+
+   Deliberately once, at load, and deliberately a no-op when the row is already
+   visible: a reader who scrolled the rail by hand has said where they want it,
+   and a second pass on load would drag it back.
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var nav = document.querySelector('.sidebar-nav');
+  var row = nav && nav.querySelector('.nav-row.active');
+  if (!row) return;
+
+  var reveal = function () {
+    var box = nav.getBoundingClientRect();
+    var here = row.getBoundingClientRect();
+    if (here.top >= box.top && here.bottom <= box.bottom) return;
+    nav.scrollTop += (here.top - box.top) - nav.clientHeight * 0.33;
+  };
+
+  /* Below the markup parse, at DOMContentLoaded; otherwise the document is
+     already parsed and the rail's geometry is final where it stands. Either way
+     the fold state above has been read back by now, so the offsets are the ones
+     the reader will see. */
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', reveal);
+  else reveal();
+})();

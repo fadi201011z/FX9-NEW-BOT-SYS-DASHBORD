@@ -2105,6 +2105,60 @@ html.no-arrival .nav-link.active { animation: none; }
 .sidebar.collapsed .nav-row .nav-premium-lock,
 .sidebar.collapsed .nav-row.active::before { display: none; }
 
+/* ── ضبط الألوان ───────────────────────────────────────────────────────────
+   The first pass left the section head, the row label, the badge and the panel
+   within a few points of one another, so the list read as one grey mass: the
+   three things a reader has to tell apart -- the group's name, the page's name,
+   the count -- had no order between them. What changes here is only that order.
+
+     - the row label is the thing being read, so it is lifted off --nx-muted
+       (#858b9d) to #a3a9c0 -- still a step under the near-white that a hovered or
+       current row uses, and enough over the panel to read at a glance;
+     - the section label stays a step darker (#9b98be), so the head of a group
+       never competes with the pages inside it;
+     - the count becomes the rail's one violet chip instead of a grey pill,
+       matching the violet its section's icon already carries;
+     - the section holding the current page keeps a violet wash of its own, so
+       "where am I" survives its row being scrolled out of the rail.
+
+   The panel gains a hair of lift and a hairline highlight along its top edge. It
+   was a 3% white wash (--nx-fill) inside a rail that is #050507, so on a dim
+   screen the group's edge was its border alone -- 6% white -- which is the one
+   thing a panel of rows cannot afford: the rows inside it had nothing saying they
+   belonged together rather than to the list around them.
+
+   Inserted here, ahead of the light-theme block below, so every dark value stays
+   a dark value and the light overrides still land last.
+
+   The rail's own surface is deliberately not touched. tokens.css records why the
+   rail is the page surface exactly -- one colour against a page of the same one,
+   with --nx-hair the only thing between them -- and a violet-tinted rail would
+   re-open that seam on every screen. What was wrong here was the order inside the
+   list, not the colour of the wall behind it. */
+
+.nav-section-head { color: #9b98be; }
+.nav-section-head:hover { color: #edf0ff; background: rgba(237, 240, 255, 0.07); }
+.nav-section.is-active > .nav-section-head { color: #edf0ff; background: rgba(208, 0, 255, 0.1); }
+.nav-hairline { background: linear-gradient(-90deg, rgba(237, 240, 255, 0.18), transparent); }
+.sidebar-nav .nav-section-head { background: rgba(16, 15, 28, 0.94); }
+
+.nav-count {
+  color: #dcb9ff;
+  background: rgba(208, 0, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(208, 0, 255, 0.22);
+}
+
+.nav-panel {
+  border-color: rgba(208, 0, 255, 0.18);
+  background: linear-gradient(180deg, rgba(237, 240, 255, 0.06), rgba(237, 240, 255, 0.028));
+  box-shadow: inset 0 1px 0 rgba(237, 240, 255, 0.05);
+}
+
+.nav-row { color: #a3a9c0; }
+.nav-row:hover { background: rgba(237, 240, 255, 0.085); color: #edf0ff; }
+.nav-row-icon { color: #a3a9c0; background: rgba(237, 240, 255, 0.06); }
+.nav-row:hover .nav-row-icon { color: #fff; background: rgba(208, 0, 255, 0.16); }
+
 /* ── الوضع الفاتح ────────────────────────────────────────────────────────── */
 [data-theme="light"] .nav-section-head { color: #777d90; }
 [data-theme="light"] .nav-section.is-active > .nav-section-head { color: #4b0082; }
