@@ -171,7 +171,7 @@ function initGlobalSearch() {
       const q = search.value.trim().toLowerCase();
       if (!q || q.length < 2) return;
 
-      const links = document.querySelectorAll('.nav-link, .quick-nav-item, .guild-item, .action-item');
+      const links = document.querySelectorAll('.nav-link, .nav-row, .quick-nav-item, .guild-item, .action-item');
       let found = false;
       for (const link of links) {
         /* A class, not link.style.background. The inline version wrote
@@ -192,7 +192,7 @@ function initGlobalSearch() {
       const q = search.value.trim().toLowerCase();
       if (!q) return;
 
-      const links = document.querySelectorAll('.nav-link, .quick-nav-item, .guild-item, .action-item');
+      const links = document.querySelectorAll('.nav-link, .nav-row, .quick-nav-item, .guild-item, .action-item');
       for (const link of links) {
         if (link.textContent.toLowerCase().includes(q)) {
           window.location.href = link.href;
@@ -451,7 +451,7 @@ function showConfetti() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.nav-link.locked, .user-menu-dropdown a.locked').forEach(link => {
+  document.querySelectorAll('.nav-link.locked, .nav-row.locked, .user-menu-dropdown a.locked').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.querySelectorAll('.nav-link[data-req]').forEach(link => {
+  document.querySelectorAll('.nav-link[data-req], .nav-row[data-req]').forEach(link => {
     link.addEventListener('click', (e) => {
       if (link.classList.contains('locked')) {
         e.preventDefault();

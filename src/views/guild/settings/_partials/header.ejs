@@ -1,0 +1,18 @@
+<%
+  pageTitle = typeof pageTitle !== 'undefined' ? pageTitle : 'الإعدادات';
+  pageIcon = typeof pageIcon !== 'undefined' ? pageIcon : 'fa-sliders';
+  pageDesc = typeof pageDesc !== 'undefined' ? pageDesc : '';
+-%>
+<div class="page-header st-header">
+  <div>
+    <h1><i class="fas <%= pageIcon %>"></i> <%= pageTitle %> <span class="st-guild"><%= guild.name %></span></h1>
+    <p><%= pageDesc %></p>
+  </div>
+  <div class="st-header-side">
+    <a href="/settings/<%= guild.id %>" class="st-back-chip"><i class="fas fa-arrow-right" aria-hidden="true"></i> مركز الإعدادات</a>
+    <% if (premium) { %>
+      <a href="/premium/<%= guild.id %>" class="st-prem-chip"><i class="fas fa-gem" aria-hidden="true"></i> باقة <%= premium.plan %> — متبقي <%= premium.daysLeft %> يوم</a>
+    <% } %>
+  </div>
+</div>
+

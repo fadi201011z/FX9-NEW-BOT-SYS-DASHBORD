@@ -1,0 +1,31 @@
+<!-- ─── دليل البدء السريع: فهم الصفحة قبل الضبط ─── -->
+<div class="card glass st-guide">
+  <div class="card-header">
+    <h3><i class="fas fa-route"></i> كيف تبدأ؟ — دليل تفعيل الأنظمة خطوة بخطوة</h3>
+    <span class="badge badge-default"><%= stSteps.filter(s => s.done).length %>/<%= stSteps.length %> مكتملة</span>
+  </div>
+  <p class="card-desc">اضغط أي خطوة للانتقال إلى إعدادها بالأسفل — كل خطوة تشرح ما تفعله الخاصية لماذا تستخدمها.</p>
+  <div class="st-guide-grid">
+    <% stSteps.forEach((s, i) => { %>
+      <a class="st-guide-step <%= s.done ? 'is-done' : '' %>" href="<%= s.href %>">
+        <span class="st-guide-num"><i class="fas <%= s.icon %>" aria-hidden="true"></i></span>
+        <span class="st-guide-body">
+          <strong><%= s.name %></strong>
+          <span><%= s.desc %></span>
+        </span>
+        <span class="st-guide-pill <%= s.done ? 'ok' : '' %>"><i class="fas <%= s.done ? 'fa-check' : 'fa-hourglass-half' %>" aria-hidden="true"></i> <%= s.label %></span>
+      </a>
+    <% }) %>
+  </div>
+</div>
+
+<!-- ─── شريط الحالة السريعة ─── -->
+<div class="st-status-strip">
+  <% statusCells.forEach(c => { %>
+    <div class="st-status-cell <%= (c.v && c.v >= (c.max || 1)) ? 'ok' : (c.v > 0 ? 'mid' : 'no') %>">
+      <i class="fas <%= c.icon %>" aria-hidden="true"></i>
+      <span class="st-status-name"><%= c.name %></span>
+      <span class="st-status-sub"><%= c.sub %></span>
+    </div>
+  <% }) %>
+</div>

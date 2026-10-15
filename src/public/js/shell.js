@@ -114,7 +114,7 @@
      name -- a server the bot is not in -- data-tip wins, and it is the reason
      both attributes exist rather than one. */
 
-  var TIP_ROWS = '.nav-link, .sidebar-collapse-btn, .sidebar-logout, .guild-rail-item';
+  var TIP_ROWS = '.nav-link, .nav-row, .sidebar-collapse-btn, .sidebar-logout, .guild-rail-item';
   var railTip = document.createElement('div');
   railTip.className = 'rail-tip';
   railTip.setAttribute('aria-hidden', 'true');
@@ -182,4 +182,122 @@
   addEventListener('scroll', hideTip, { passive: true, capture: true });
   addEventListener('resize', hideTip, { passive: true });
   addEventListener('blur', hideTip);
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   The rail's sections
+
+   The rail is seven labelled sections now rather than one flat list, and three
+   things follow from that. All three live here, beside the tooltip that had to
+   learn .nav-row anyway:
+
+     - the section holding the current page is marked. On a rail this long the
+       answer to "where am I" should not need the active row to be on screen;
+     - a section head folds its pages, and which sections are folded is
+       remembered, because unfolding the same one on every page load is the kind
+       of small tax that makes a rail feel like work;
+     - the filter above the sections narrows them by page name, and a section
+       with nothing left in it goes away instead of leaving its title behind.
+
+   Section titles are the storage keys. They are unique in the markup and
+   stable across pages, and a key the user can read in devtools beats an index
+   that shifts the day a row is added above it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var nav = document.querySelector('.sidebar-nav');
+  if (!nav) return;
+
+  var sections = Array.prototype.slice.call(nav.querySelectorAll('.nav-section'));
+  if (!sections.length) return;
+
+  var STORE = 'kratos:nav-folded';
+  var folded = {};
+  try { folded = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { folded = {}; }
+
+  var persist = function () {
+    try { localStorage.setItem(STORE, JSON.stringify(folded)); } catch (e) {}
+  };
+
+  var headOf = function (section) { return section.querySelector('.nav-section-head'); };
+  var titleOf = function (section) {
+    var head = headOf(section);
+    return head ? (head.textContent || '').trim() : '';
+  };
+  var rowsOf = function (section) {
+    return Array.prototype.slice.call(section.querySelectorAll('.nav-row'));
+  };
+  var setCollapsed = function (section, isCollapsed) {
+    section.classList.toggle('is-collapsed', isCollapsed);
+    var head = headOf(section);
+    if (head) head.setAttribute('aria-expanded', String(!isCollapsed));
+  };
+
+  sections.forEach(function (section) {
+    var head = headOf(section);
+    if (!head) return;
+
+    if (section.querySelector('.nav-row.active')) section.classList.add('is-active');
+
+    setCollapsed(section, !!folded[titleOf(section)]);
+
+    head.addEventListener('click', function () {
+      var nowCollapsed = !section.classList.contains('is-collapsed');
+      setCollapsed(section, nowCollapsed);
+      var key = titleOf(section);
+      if (nowCollapsed) folded[key] = 1; else delete folded[key];
+      persist();
+    });
+  });
+
+  var input = nav.querySelector('.nav-filter input');
+  if (!input) return;
+
+  var empty = document.createElement('div');
+  empty.className = 'no-results';
+  empty.textContent = 'لا توجد صفحة مطابقة';
+  empty.hidden = true;
+  nav.appendChild(empty);
+
+  var apply = function () {
+    var q = (input.value || '').trim().toLowerCase();
+
+    if (!q) {
+      sections.forEach(function (section) {
+        setCollapsed(section, !!folded[titleOf(section)]);
+        section.classList.remove('is-empty');
+        rowsOf(section).forEach(function (row) { row.hidden = false; });
+      });
+      empty.hidden = true;
+      return;
+    }
+
+    var any = false;
+    sections.forEach(function (section) {
+      var title = titleOf(section);
+      var titleHit = title.toLowerCase().indexOf(q) !== -1;
+      var shown = 0;
+
+      rowsOf(section).forEach(function (row) {
+        var hit = titleHit || (row.textContent || '').toLowerCase().indexOf(q) !== -1;
+        row.hidden = !hit;
+        if (hit) shown++;
+      });
+
+      /* A section whose title matched keeps all of its rows: the title is how
+         the user found it, and a section that hid three quarters of what its
+         own name promised would be answering a different question. */
+      section.classList.toggle('is-empty', shown === 0);
+      if (shown) {
+        setCollapsed(section, false);
+        any = true;
+      }
+    });
+    empty.hidden = any;
+  };
+
+  input.addEventListener('input', apply);
+  input.addEventListener('search', apply);
+  apply();
 })();

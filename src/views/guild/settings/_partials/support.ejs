@@ -1,0 +1,72 @@
+  <!-- ⑤ فريق الدعم والعدادات -->
+  <div class="card glass support-card st-section" id="st-support">
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">5</span>
+      <h3><i class="fas fa-headset"></i> فريق الدعم والعدادات</h3>
+      <span class="card-badge" id="supportCountBadge">0 رتب</span>
+    </div>
+    <p class="card-desc">الرتب المحددة هنا تُعتبر «فريق دعم»: تتسلم التذاكر الجديدة تلقائياً، وترى التذاكر الخاصة، وتستطيع الرد عليها وإغلاقها.</p>
+
+    <div class="support-summary">
+      <div class="summary-item">
+        <i class="fas fa-users"></i>
+        <div>
+          <strong id="supportMembersStat">0</strong>
+          <span>عضو يرتبط برتب الدعم</span>
+        </div>
+      </div>
+      <div class="summary-item">
+        <i class="fas fa-tags"></i>
+        <div>
+          <strong id="supportRolesStat">0</strong>
+          <span>رتبة دعم محددة</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chips-wrap" id="selectedSupportChips"></div>
+
+    <div class="role-picker">
+      <div class="picker-toolbar">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="supportRoleSearch" placeholder="ابحث عن رتبة..." oninput="filterSupportRoles(this.value)">
+        </div>
+        <span class="picker-count"><b id="visibleRoleCount">0</b> رتبة</span>
+      </div>
+      <div class="role-grid" id="supportRoleGrid">
+        <% roles.filter(r => r.name !== '@everyone' && !r.managed).forEach(r => { %>
+        <button type="button" class="role-item<%= supportRoleArray.includes(String(r.id)) ? ' selected' : '' %>"
+          data-role-id="<%= r.id %>" data-role-name="<%= r.name %>" data-role-count="<%= r.members_count ?? 0 %>"
+          title="اضغط للتبديل" onclick="toggleSupportRole(this)">
+          <span class="role-dot" style="background-color:#<%= (r.color || 0).toString(16).padStart(6, '0') %>"></span>
+          <span class="role-name"><%= r.name %></span>
+          <span class="role-members"><%= r.members_count ?? 0 %> <i class="fas fa-user"></i></span>
+          <span class="role-check"><i class="fas fa-check"></i></span>
+        </button>
+        <% }) %>
+      </div>
+      <% if (!roles || roles.filter(r => r.name !== '@everyone' && !r.managed).length === 0) { %>
+        <div class="empty-state" style="padding: 28px 10px;">
+          <i class="fas fa-user-tag"></i>
+          <p>لا توجد رتب متاحة — تأكد من اتصال البوت وتوكنه الصحيح</p>
+        </div>
+      <% } %>
+      <small class="field-hint role-picker-hint"><i class="fas fa-info-circle"></i> الرتب المحددة يمكنها الرد على التذاكر (الدعم الفني) وتستلم التذاكر الجديدة تلقائياً</small>
+    </div>
+
+    <div class="ticket-counter">
+      <div>
+        <label for="ticketCounterInput"><i class="fas fa-hashtag"></i> عداد التذاكر</label>
+        <small class="field-hint">يُستخدم في ترقيم التذاكر الجديدة — كل تذكرة برقم جديد +1</small>
+      </div>
+      <div class="stepper">
+        <button type="button" class="stepper-btn minus" onclick="stepCounter(-1)" title="إنقاص"><i class="fas fa-minus"></i></button>
+        <input type="number" id="ticketCounterInput" data-key="ticket_counter" min="0" value="<%= config.ticket_counter || 0 %>">
+        <button type="button" class="stepper-btn plus" onclick="stepCounter(1)" title="زيادة"><i class="fas fa-plus"></i></button>
+      </div>
+    </div>
+
+    <input type="hidden" id="supportRoleState">
+  </div>
+

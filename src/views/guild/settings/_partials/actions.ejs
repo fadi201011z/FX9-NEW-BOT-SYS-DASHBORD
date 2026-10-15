@@ -1,0 +1,19 @@
+<%
+  pageLabel = typeof pageLabel !== 'undefined' ? pageLabel : '';
+  noSave = typeof noSave !== 'undefined' ? noSave : false;
+-%>
+<div class="actions-bar st-actions">
+  <div class="st-actions-sync">
+    <span id="syncStatus" class="sync-idle"><i class="fas fa-circle"></i> مزامنة تلقائية عند كل حفظ</span>
+  </div>
+  <div class="st-actions-btns">
+    <button type="button" class="btn-secondary" onclick="syncNow()">
+      <i class="fas fa-sync-alt"></i> مزامنة الآن
+    </button>
+    <% if (!noSave) { %>
+    <button type="submit" class="btn-primary" id="saveBtn">
+      <i class="fas fa-save"></i> حفظ <%= pageLabel %>
+    </button>
+    <% } %>
+  </div>
+</div>

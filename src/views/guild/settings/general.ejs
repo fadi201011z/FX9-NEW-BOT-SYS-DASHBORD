@@ -1,0 +1,10 @@
+﻿<%- include('_partials/header', { pageTitle: 'الإعدادات العامة', pageIcon: 'fa-circle-play', pageDesc: 'نقطة البداية: دليل تفعيل الأنظمة خطوة بخطوة، وحالة سيرفرك في لمحة، والوصول السريع إلى كل قسم.' }) %>
+<form id="settingsForm" onsubmit="saveSettings(event)">
+  <%- include('_partials/guide') %>
+  <%- include('_partials/sync-info') %>
+  <%- include('_partials/premium') %>
+  <%- include('_partials/actions', { pageLabel: 'الإعدادات العامة', noSave: true }) %>
+</form>
+<%- include('_partials/modals') %>
+<%- include('_partials/style') %>
+<%- include('_partials/script') %>

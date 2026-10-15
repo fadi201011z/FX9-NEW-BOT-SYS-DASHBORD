@@ -1,0 +1,8 @@
+﻿<%- include('_partials/header', { pageTitle: 'قنوات السجلات', pageIcon: 'fa-clipboard-list', pageDesc: 'وجّه كل نوع من السجلات إلى قناته: السجلات العامة، سجلات الإشراف، وسجلات البوت.' }) %>
+<form id="settingsForm" onsubmit="saveSettings(event)">
+  <%- include('_partials/logs') %>
+  <%- include('_partials/actions', { pageLabel: 'قنوات السجلات' }) %>
+</form>
+<%- include('_partials/modals') %>
+<%- include('_partials/style') %>
+<%- include('_partials/script') %>

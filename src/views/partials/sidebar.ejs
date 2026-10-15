@@ -1,10 +1,21 @@
-<%# The rail. `currentPage` and `perms` are defaulted here because this partial is
-    included by every view on the layout, including the ones a logged-out visitor
-    can reach -- the original assignment (not a declaration) is deliberate: an
-    include() is compiled into the including template's function body, so a const
-    would collide with the host view's own `perms`. --%>
+<%# The rail — seven sections, each holding the pages that belong to it.
+
+    `currentPage`, `settingsPage` and `perms` are defaulted here because this
+    partial is included by every view on the layout, including the ones a
+    logged-out visitor can reach. The original assignment (not a declaration) is
+    deliberate for currentPage/perms: a include()'s locals are its own, so an
+    assignment to a name the host already passed down is how these two have
+    always been normalised. --%>
 <% currentPage = typeof currentPage !== 'undefined' ? currentPage : '' %>
 <% perms = (typeof perms !== 'undefined' && perms) ? perms : { level: -1, role: 'guest', roleLabel: 'زائر', isOwner: false, isDeveloper: false, inGuild: false, can: {} } %>
+<% perms.can = perms.can || {} %>
+<%# Which settings page is open. Only /settings/* passes it; everywhere else the
+    rail has no settings row to light, and asking for the property of a page
+    that never declared it is how an EJS template throws. --%>
+<% const navSettingsPage = (typeof locals.settingsPage !== 'undefined' && locals.settingsPage) ? locals.settingsPage : null %>
+<% const navOnSettings = (slug) => currentPage === 'settings' && ((navSettingsPage || 'general') === slug) %>
+<% const navLock = (cap) => perms.can[cap] ? '' : '<i class="fas fa-lock nav-lock" aria-hidden="true"></i>' %>
+<% const navCls = (cap) => perms.can[cap] ? '' : 'locked' %>
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
@@ -18,10 +29,12 @@
   </div>
 
   <% if (locals.guild) { %>
-  <div class="sidebar-role" data-tip="منصبك في هذا السيرفر">
-    <i class="fas fa-id-badge" aria-hidden="true"></i>
-    <span class="sidebar-role-label"><%= perms.roleLabel %></span>
-    <% if (perms.isDeveloper) { %><span class="sidebar-role-dev">مطور</span><% } %>
+  <div class="side-identity">
+    <span class="si-ava" aria-hidden="true"><%= String(guild.name || '?').trim().charAt(0) %></span>
+    <span class="si-info">
+      <strong data-tip="<%= guild.name %>"><%= guild.name %></strong>
+      <small><%= perms.roleLabel %><% if (perms.isDeveloper) { %> · مطوّر<% } %></small>
+    </span>
   </div>
   <% } %>
 
@@ -30,182 +43,205 @@
   </button>
 
   <nav class="sidebar-nav">
-    <%# The four pages the site is made of, in the order they were asked for, and
-        the only four in this section.
+    <label class="nav-filter">
+      <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+      <input type="search" placeholder="<%= locals.guild ? 'ابحث في صفحات السيرفر...' : 'ابحث في الصفحات...' %>" aria-label="تصفية الصفحات">
+    </label>
 
-        لوحة التحكم and السيرفرات used to sit here as well. They are gone from the
-        rail on purpose: this section is the list of where you can *go*, and
-        neither of them is that -- both are places you configure a server, so both
-        belong to the server's own section, which is where the other twelve
-        per-guild pages already live. Neither is unreachable: the home page's grid
-        links to both, and so does the account menu.
-
-        Nothing here is permission-gated, so no data-req and no lock icon. That was
-        never true of these four and it is worth saying, because the section below
-        is full of them and the absence here would otherwise look like a mistake.
-
-        The whole section is absent inside a server. The rail's first row is /home
-        and it is there on every page, so on a guild page the way back to all four
-        is one press in a column that does not change -- and a second copy of the
-        same four links, a scroll under the server's own twelve, would say the site
-        and the server are two places you stand side by side. They are not: the
-        server is the part of the site you are inside.
-
-        What that costs is one hop, and it is worth being exact about which: on a
-        guild page, /docs and /status are no longer one press away -- both are
-        linked from /home, which is where the rail's home row goes. /about was
-        reachable from this rail and from nowhere else in the shell, so /home links
-        it too now. Nothing is stranded; all three are a press and a half instead
-        of a press. -%>
-    <% if (!locals.guild) { %>
+    <%# ── الرئيسية ─────────────────────────────────────────────────────────
+        Inside a server this is the two pages that report on it: the overview and
+        its health. Outside one it is the site's own four, which is why the two
+        cases are one section and not two -- the rail's first section is always
+        "where you are", and where you are is either inside a guild or not. -%>
     <div class="nav-section">
-      <span class="nav-section-title"><i class="fas fa-compass" aria-hidden="true"></i> <span>الرئيسية</span></span>
-      <a href="/home" class="nav-link <%= currentPage === 'home' ? 'active' : '' %>" data-tip="الصفحة الرئيسية" aria-label="الصفحة الرئيسية"<% if (currentPage === 'home') { %> aria-current="page"<% } %>>
-        <i class="fas fa-home" aria-hidden="true"></i>
-        <span>الصفحة الرئيسية</span>
-      </a>
-      <a href="/docs" class="nav-link <%= currentPage === 'docs' ? 'active' : '' %>" data-tip="الدليل الشامل" aria-label="الدليل الشامل"<% if (currentPage === 'docs') { %> aria-current="page"<% } %>>
-        <i class="fas fa-book" aria-hidden="true"></i>
-        <span>الدليل الشامل</span>
-      </a>
-      <a href="/about" class="nav-link <%= currentPage === 'about' ? 'active' : '' %>" data-tip="نبذة عنا" aria-label="نبذة عنا"<% if (currentPage === 'about') { %> aria-current="page"<% } %>>
-        <i class="fas fa-address-card" aria-hidden="true"></i>
-        <span>نبذة عنا</span>
-      </a>
-      <a href="/status" class="nav-link <%= currentPage === 'status' ? 'active' : '' %>" data-tip="حالة البوت" aria-label="حالة البوت"<% if (currentPage === 'status') { %> aria-current="page"<% } %>>
-        <i class="fas fa-heartbeat" aria-hidden="true"></i>
-        <span>حالة البوت</span>
-      </a>
+      <button class="nav-section-head" type="button" aria-expanded="true">
+        <i class="fas fa-house" aria-hidden="true"></i><span>الرئيسية</span>
+        <span class="nav-hairline"></span>
+        <i class="fas fa-chevron-down nav-sec-caret" aria-hidden="true"></i>
+      </button>
+      <div class="nav-panel">
+        <% if (locals.guild) { %>
+        <a href="/guilds/<%= guild.id %>" class="nav-row <%= currentPage === 'guild-overview' ? 'active' : '' %>" data-tip="نظرة عامة" aria-label="نظرة عامة"<% if (currentPage === 'guild-overview') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-circle-info" aria-hidden="true"></i></span><span class="nav-row-label">نظرة عامة</span>
+        </a>
+        <a href="/guilds/<%= guild.id %>/status" class="nav-row <%= currentPage === 'server-status' ? 'active' : '' %>" data-tip="حالة سيرفرك" aria-label="حالة سيرفرك"<% if (currentPage === 'server-status') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span><span class="nav-row-label">حالة سيرفرك</span>
+        </a>
+        <% } else { %>
+        <a href="/home" class="nav-row <%= currentPage === 'home' ? 'active' : '' %>" data-tip="الصفحة الرئيسية" aria-label="الصفحة الرئيسية"<% if (currentPage === 'home') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-home" aria-hidden="true"></i></span><span class="nav-row-label">الصفحة الرئيسية</span>
+        </a>
+        <a href="/docs" class="nav-row <%= currentPage === 'docs' ? 'active' : '' %>" data-tip="الدليل الشامل" aria-label="الدليل الشامل"<% if (currentPage === 'docs') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-book" aria-hidden="true"></i></span><span class="nav-row-label">الدليل الشامل</span>
+        </a>
+        <a href="/about" class="nav-row <%= currentPage === 'about' ? 'active' : '' %>" data-tip="نبذة عنا" aria-label="نبذة عنا"<% if (currentPage === 'about') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-address-card" aria-hidden="true"></i></span><span class="nav-row-label">نبذة عنا</span>
+        </a>
+        <a href="/status" class="nav-row <%= currentPage === 'status' ? 'active' : '' %>" data-tip="حالة البوت" aria-label="حالة البوت"<% if (currentPage === 'status') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-heartbeat" aria-hidden="true"></i></span><span class="nav-row-label">حالة البوت</span>
+        </a>
+        <% } %>
+      </div>
     </div>
-    <% } %>
 
     <% if (locals.guild) { %>
+    <%# ── الإعدادات الرئيسية ───────────────────────────────────────────────
+        "الصور المخصصة" is not a page any more: the picture of a system is
+        configured inside the system it belongs to -- the welcome card's picture
+        under نظام الترحيب, the ticket panel's under إعدادات التذاكر and the
+        voice panel's under إعدادات الرومات الصوتية. A page that held three
+        pictures belonging to three other pages was a page whose only content was
+        a detour. -%>
     <div class="nav-section">
-      <%# The only section on a server page, and that is the point of it: inside a
-          guild the site section above is gone, so this column is nothing but this
-          server, top to bottom. The way out is not here -- it is the first row of
-          the server rail, which is on every page and does not change when you
-          enter a guild. It was a card here once, above this title, and it was
-          both a second way out and a control whose lifetime had to be kept in step
-          with this block's by hand. One column and one rule is fewer moving parts,
-          and one less thing that can be in two places at once. -%>
-      <span class="nav-section-title"><i class="fas fa-server" aria-hidden="true"></i> <span><%= guild.name %></span></span>
-      <a href="/guilds/<%= guild.id %>" class="nav-link <%= currentPage === 'guild-overview' ? 'active' : '' %>" data-tip="نظرة عامة" aria-label="نظرة عامة"<% if (currentPage === 'guild-overview') { %> aria-current="page"<% } %>>
-        <i class="fas fa-circle-info" aria-hidden="true"></i>
-        <span>نظرة عامة</span>
-      </a>
-      <%# The status page sits second, right behind the overview it reports on.
-          No lock and no data-req, same as the overview above it: it shows a
-          server's health to somebody already allowed into that server, and it
-          writes nothing, so there is no capability left to spend on it. -%>
-      <a href="/guilds/<%= guild.id %>/status" class="nav-link <%= currentPage === 'server-status' ? 'active' : '' %>" data-tip="حالة السيرفر" aria-label="حالة سيرفرك"<% if (currentPage === 'server-status') { %> aria-current="page"<% } %>>
-        <i class="fas fa-chart-line" aria-hidden="true"></i>
-        <span>حالة سيرفرك</span>
-      </a>
-      <a href="/settings/<%= guild.id %>" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %> <%= perms.can.settings ? '' : 'locked' %>" data-req="2" data-tip="الإعدادات" aria-label="الإعدادات"<% if (currentPage === 'settings') { %> aria-current="page"<% } %>>
-        <i class="fas fa-sliders" aria-hidden="true"></i>
-        <span>الإعدادات</span>
-        <% if (!perms.can.settings) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
-      </a>
-      <a href="/commands/<%= guild.id %>" class="nav-link <%= currentPage === 'commands' ? 'active' : '' %> <%= perms.can.commands ? '' : 'locked' %>" data-req="2" data-tip="الأوامر" aria-label="الأوامر"<% if (currentPage === 'commands') { %> aria-current="page"<% } %>>
-        <i class="fas fa-terminal" aria-hidden="true"></i>
-        <span>الأوامر</span>
-        <% if (!perms.can.commands) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
-      </a>
-      <a href="/tickets/<%= guild.id %>" class="nav-link <%= currentPage === 'tickets' ? 'active' : '' %> <%= perms.can.tickets ? '' : 'locked' %>" data-req="0" data-tip="التذاكر" aria-label="التذاكر"<% if (currentPage === 'tickets') { %> aria-current="page"<% } %>>
-        <i class="fas fa-ticket" aria-hidden="true"></i>
-        <span>التذاكر</span>
-        <% if (!perms.can.tickets) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
-      </a>
-      <a href="/voice/<%= guild.id %>" class="nav-link <%= currentPage === 'voice' ? 'active' : '' %> <%= perms.can.voice ? '' : 'locked' %>" data-req="1" data-tip="الرومات المؤقتة" aria-label="الرومات المؤقتة"<% if (currentPage === 'voice') { %> aria-current="page"<% } %>>
-        <i class="fas fa-microphone" aria-hidden="true"></i>
-        <span>الرومات المؤقتة</span>
-        <% if (!perms.can.voice) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
-      </a>
-      <a href="/logs/<%= guild.id %>" class="nav-link <%= currentPage === 'logs' ? 'active' : '' %> <%= perms.can.logs ? '' : 'locked' %>" data-req="1" data-tip="سجل النشاط" aria-label="سجل النشاط"<% if (currentPage === 'logs') { %> aria-current="page"<% } %>>
-        <i class="fas fa-clock-rotate-left" aria-hidden="true"></i>
-        <span>سجل النشاط</span>
-        <% if (!perms.can.logs) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
-      </a>
-      <a href="/notifications/<%= guild.id %>" class="nav-link <%= currentPage === 'notifications' ? 'active' : '' %> <%= perms.can.notifications ? '' : 'locked' %>" data-req="1" data-tip="الإشعارات والإمبد" aria-label="الإشعارات والإمبد"<% if (currentPage === 'notifications') { %> aria-current="page"<% } %>>
-        <i class="fas fa-bell" aria-hidden="true"></i>
-        <span>الإشعارات والإمبد</span>
-        <% if (!perms.can.notifications) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
-      </a>
-      <a href="/protection/<%= guild.id %>" class="nav-link <%= currentPage === 'protection' ? 'active' : '' %> <%= perms.can.protection ? '' : 'locked' %>" data-req="2" data-tip="الحماية" aria-label="الحماية"<% if (currentPage === 'protection') { %> aria-current="page"<% } %>>
-        <i class="fas fa-shield" aria-hidden="true"></i>
-        <span>الحماية</span>
-        <% if (!perms.can.protection) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
-      </a>
-      <a href="/premium/<%= guild.id %>" class="nav-link <%= currentPage === 'premium' ? 'active' : '' %> <%= perms.can.premium ? '' : 'locked' %>" data-req="2" data-tip="نظام البريميوم" aria-label="نظام البريميوم" id="premiumSideLink"<% if (currentPage === 'premium') { %> aria-current="page"<% } %>>
-        <i class="fas fa-gem" aria-hidden="true"></i>
-        <span>نظام البريميوم</span>
-        <% if (locals.premiumStatus && locals.premiumStatus.active) { %>
-          <span class="premium-side-dot" id="premiumSideDot">
-            <span class="dot"></span><%= locals.premiumStatus.planLabel %>
-          </span>
-        <% } %>
-        <% if (!perms.can.premium) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
-      </a>
-      <a href="/admins/<%= guild.id %>" class="nav-link <%= currentPage === 'admins' ? 'active' : '' %> <%= perms.can.admins ? '' : 'locked' %>" data-req="3" data-tip="المدراء" aria-label="المدراء"<% if (currentPage === 'admins') { %> aria-current="page"<% } %>>
-        <i class="fas fa-user-gear" aria-hidden="true"></i>
-        <span>المدراء</span>
-        <% if (!perms.can.admins) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } %>
-      </a>
-      <a href="/backup/<%= guild.id %>" class="nav-link <%= currentPage === 'backup' ? 'active' : '' %> <%= perms.can.backup ? '' : 'locked' %>" data-req="3" data-tip="النسخ الاحتياطي" aria-label="النسخ الاحتياطي"<% if (currentPage === 'backup') { %> aria-current="page"<% } %>>
-        <i class="fas fa-database" aria-hidden="true"></i>
-        <span>النسخ الاحتياطي</span>
-        <% if (!perms.can.backup) { %><i class="fas fa-lock nav-lock" aria-hidden="true"></i><% } else if (!(locals.premiumStatus && locals.premiumStatus.active)) { %><span class="nav-premium-lock" title="ميزة بريميوم"><i class="fas fa-gem" aria-hidden="true"></i> برو</span><% } %>
-      </a>
+      <button class="nav-section-head" type="button" aria-expanded="true">
+        <i class="fas fa-sliders" aria-hidden="true"></i><span>الإعدادات الرئيسية</span>
+        <span class="nav-hairline"></span><span class="nav-count">4</span>
+        <i class="fas fa-chevron-down nav-sec-caret" aria-hidden="true"></i>
+      </button>
+      <div class="nav-panel">
+        <a href="/settings/<%= guild.id %>" class="nav-row <%= navOnSettings('general') ? 'active' : '' %> <%= navCls('settings') %>" data-req="2" data-tip="الإعدادات العامة" aria-label="الإعدادات العامة"<% if (navOnSettings('general')) { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-circle-play" aria-hidden="true"></i></span><span class="nav-row-label">الإعدادات العامة</span><%- navLock('settings') %>
+        </a>
+        <a href="/settings/<%= guild.id %>/welcome" class="nav-row <%= navOnSettings('welcome') ? 'active' : '' %> <%= navCls('settings') %>" data-req="2" data-tip="نظام الترحيب" aria-label="نظام الترحيب"<% if (navOnSettings('welcome')) { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-door-open" aria-hidden="true"></i></span><span class="nav-row-label">نظام الترحيب</span><%- navLock('settings') %>
+        </a>
+        <a href="/settings/<%= guild.id %>/logs" class="nav-row <%= navOnSettings('logs') ? 'active' : '' %> <%= navCls('settings') %>" data-req="2" data-tip="قنوات السجلات" aria-label="قنوات السجلات"<% if (navOnSettings('logs')) { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></span><span class="nav-row-label">قنوات السجلات</span><%- navLock('settings') %>
+        </a>
+        <a href="/settings/<%= guild.id %>/systems" class="nav-row <%= navOnSettings('systems') ? 'active' : '' %> <%= navCls('settings') %>" data-req="2" data-tip="أنظمة أخرى" aria-label="أنظمة أخرى"<% if (navOnSettings('systems')) { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-layer-group" aria-hidden="true"></i></span><span class="nav-row-label">أنظمة أخرى</span><%- navLock('settings') %>
+        </a>
+      </div>
+    </div>
+
+    <%# ── الحماية والإشراف ──────────────────────────────────────────────── -%>
+    <div class="nav-section">
+      <button class="nav-section-head" type="button" aria-expanded="true">
+        <i class="fas fa-shield-halved" aria-hidden="true"></i><span>الحماية والإشراف</span>
+        <span class="nav-hairline"></span><span class="nav-count">3</span>
+        <i class="fas fa-chevron-down nav-sec-caret" aria-hidden="true"></i>
+      </button>
+      <div class="nav-panel">
+        <a href="/protection/<%= guild.id %>" class="nav-row <%= currentPage === 'protection' ? 'active' : '' %> <%= navCls('protection') %>" data-req="2" data-tip="الحماية" aria-label="الحماية"<% if (currentPage === 'protection') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-shield" aria-hidden="true"></i></span><span class="nav-row-label">الحماية</span><%- navLock('protection') %>
+        </a>
+        <a href="/logs/<%= guild.id %>" class="nav-row <%= currentPage === 'logs' ? 'active' : '' %> <%= navCls('logs') %>" data-req="1" data-tip="سجل النشاط" aria-label="سجل النشاط"<% if (currentPage === 'logs') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i></span><span class="nav-row-label">سجل النشاط</span><%- navLock('logs') %>
+        </a>
+        <a href="/admins/<%= guild.id %>" class="nav-row <%= currentPage === 'admins' ? 'active' : '' %> <%= navCls('admins') %>" data-req="3" data-tip="المدراء" aria-label="المدراء"<% if (currentPage === 'admins') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-user-gear" aria-hidden="true"></i></span><span class="nav-row-label">المدراء</span><%- navLock('admins') %>
+        </a>
+      </div>
+    </div>
+
+    <%# ── نظام التذاكر ────────────────────────────────────────────────────
+        The list and its three settings pages. The list is where you *read*
+        tickets; the settings are where you decide where they open, who answers
+        them and which counter runs beside the team -- three pages the old
+        single /settings page held as three cards, now each on its own. -%>
+    <div class="nav-section">
+      <button class="nav-section-head" type="button" aria-expanded="true">
+        <i class="fas fa-ticket" aria-hidden="true"></i><span>نظام التذاكر</span>
+        <span class="nav-hairline"></span><span class="nav-count">3</span>
+        <i class="fas fa-chevron-down nav-sec-caret" aria-hidden="true"></i>
+      </button>
+      <div class="nav-panel">
+        <a href="/tickets/<%= guild.id %>" class="nav-row <%= currentPage === 'tickets' ? 'active' : '' %> <%= navCls('tickets') %>" data-req="0" data-tip="التذاكر" aria-label="التذاكر"<% if (currentPage === 'tickets') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-ticket-simple" aria-hidden="true"></i></span><span class="nav-row-label">التذاكر</span><%- navLock('tickets') %>
+        </a>
+        <a href="/settings/<%= guild.id %>/tickets" class="nav-row <%= navOnSettings('tickets') ? 'active' : '' %> <%= navCls('settings') %>" data-req="2" data-tip="إعدادات التذاكر" aria-label="إعدادات التذاكر"<% if (navOnSettings('tickets')) { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-gear" aria-hidden="true"></i></span><span class="nav-row-label">إعدادات التذاكر</span><%- navLock('settings') %>
+        </a>
+        <a href="/settings/<%= guild.id %>/support" class="nav-row <%= navOnSettings('support') ? 'active' : '' %> <%= navCls('settings') %>" data-req="2" data-tip="فريق الدعم" aria-label="فريق الدعم"<% if (navOnSettings('support')) { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-headset" aria-hidden="true"></i></span><span class="nav-row-label">فريق الدعم</span><%- navLock('settings') %>
+        </a>
+      </div>
+    </div>
+
+    <%# ── نظام الرومات الصوتية ────────────────────────────────────────────
+        Three rows: the live list of temporary rooms, every setting that belongs
+        to them in one page, and the statistics channels that are also voice
+        channels but answer a different question. -%>
+    <div class="nav-section">
+      <button class="nav-section-head" type="button" aria-expanded="true">
+        <i class="fas fa-microphone-lines" aria-hidden="true"></i><span>نظام الرومات الصوتية</span>
+        <span class="nav-hairline"></span><span class="nav-count">3</span>
+        <i class="fas fa-chevron-down nav-sec-caret" aria-hidden="true"></i>
+      </button>
+      <div class="nav-panel">
+        <a href="/voice/<%= guild.id %>" class="nav-row <%= currentPage === 'voice' ? 'active' : '' %> <%= navCls('voice') %>" data-req="1" data-tip="الرومات المؤقتة" aria-label="الرومات المؤقتة"<% if (currentPage === 'voice') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-microphone" aria-hidden="true"></i></span><span class="nav-row-label">الرومات المؤقتة</span><%- navLock('voice') %>
+        </a>
+        <a href="/settings/<%= guild.id %>/voice-rooms" class="nav-row <%= navOnSettings('voice-rooms') ? 'active' : '' %> <%= navCls('settings') %>" data-req="2" data-tip="إعدادات الرومات الصوتية" aria-label="إعدادات الرومات الصوتية"<% if (navOnSettings('voice-rooms')) { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-gear" aria-hidden="true"></i></span><span class="nav-row-label">إعدادات الرومات الصوتية</span><%- navLock('settings') %>
+        </a>
+        <a href="/settings/<%= guild.id %>/voice-stats" class="nav-row <%= navOnSettings('voice-stats') ? 'active' : '' %> <%= navCls('settings') %>" data-req="2" data-tip="الإحصائيات الصوتية" aria-label="الإحصائيات الصوتية"<% if (navOnSettings('voice-stats')) { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-chart-column" aria-hidden="true"></i></span><span class="nav-row-label">الإحصائيات الصوتية</span><%- navLock('settings') %>
+        </a>
+      </div>
+    </div>
+
+    <%# ── إدارة السيرفر ─────────────────────────────────────────────────── -%>
+    <div class="nav-section">
+      <button class="nav-section-head" type="button" aria-expanded="true">
+        <i class="fas fa-user-shield" aria-hidden="true"></i><span>إدارة السيرفر</span>
+        <span class="nav-hairline"></span><span class="nav-count">4</span>
+        <i class="fas fa-chevron-down nav-sec-caret" aria-hidden="true"></i>
+      </button>
+      <div class="nav-panel">
+        <a href="/commands/<%= guild.id %>" class="nav-row <%= currentPage === 'commands' ? 'active' : '' %> <%= navCls('commands') %>" data-req="2" data-tip="الأوامر" aria-label="الأوامر"<% if (currentPage === 'commands') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-terminal" aria-hidden="true"></i></span><span class="nav-row-label">الأوامر</span><%- navLock('commands') %>
+        </a>
+        <a href="/notifications/<%= guild.id %>" class="nav-row <%= currentPage === 'notifications' ? 'active' : '' %> <%= navCls('notifications') %>" data-req="1" data-tip="الإشعارات والإمبد" aria-label="الإشعارات والإمبد"<% if (currentPage === 'notifications') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-bell" aria-hidden="true"></i></span><span class="nav-row-label">الإشعارات والإمبد</span><%- navLock('notifications') %>
+        </a>
+        <a href="/premium/<%= guild.id %>" class="nav-row <%= currentPage === 'premium' ? 'active' : '' %> <%= navCls('premium') %>" data-req="2" data-tip="نظام البريميوم" aria-label="نظام البريميوم" id="premiumSideLink"<% if (currentPage === 'premium') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-gem" aria-hidden="true"></i></span><span class="nav-row-label">نظام البريميوم</span>
+          <% if (locals.premiumStatus && locals.premiumStatus.active) { %>
+            <span class="premium-side-dot" id="premiumSideDot"><span class="dot"></span><%= locals.premiumStatus.planLabel %></span>
+          <% } %>
+          <%- navLock('premium') %>
+        </a>
+        <a href="/backup/<%= guild.id %>" class="nav-row <%= currentPage === 'backup' ? 'active' : '' %> <%= navCls('backup') %>" data-req="3" data-tip="النسخ الاحتياطي" aria-label="النسخ الاحتياطي"<% if (currentPage === 'backup') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-database" aria-hidden="true"></i></span><span class="nav-row-label">النسخ الاحتياطي</span>
+          <% if (perms.can.backup && !(locals.premiumStatus && locals.premiumStatus.active)) { %><span class="nav-premium-lock" title="ميزة بريميوم"><i class="fas fa-gem" aria-hidden="true"></i> برو</span><% } %>
+          <%- navLock('backup') %>
+        </a>
+      </div>
     </div>
     <% } %>
 
-    <%# The developer section. One capability gates the whole of it and every route
-        behind it stands behind the same two middlewares, so a row cannot be
-        reached by typing its address by someone who cannot see the row.
-
-        It replaces a section called "أخرى" that held a single row, لوحة المطور --
-        a heading with one link under it. That page is still there at /dev and
-        still works, still with its guilds table and its maintenance buttons; it
-        is out of the rail because the user menu and the home page's quick links
-        point at it directly (navbar.ejs, home.ejs), so no entry point is lost
-        with the row. It was the seed of these five: /dev already held the
-        guilds table, the bot's invite link, the developer list and the
-        maintenance controls, all on one page.
-
-        Five addresses and five currentPages, all under /dev, all declared in
-        routes/dev.js beside the comment that says why none of them may be flat.
-        Five different glyphs even where two pages share a name: the public
-        "حالة البوت" in the section above wears fa-heartbeat, and a developer
-        looking at both sections is looking at two different pages under one
-        label, so they must not look like the same row either. -%>
+    <%# ── قسم المطورين ────────────────────────────────────────────────────
+        One capability gates the whole of it and every route behind it stands
+        behind the same middlewares, so a row cannot be reached by typing its
+        address by someone who cannot see the row. -%>
     <% if (perms.can.dev) { %>
     <div class="nav-section">
-      <span class="nav-section-title"><i class="fas fa-code" aria-hidden="true"></i> <span>المطورين</span></span>
-      <a href="/dev/guilds" class="nav-link <%= currentPage === 'dev-guilds' ? 'active' : '' %>" data-tip="السيرفرات المتصلة" aria-label="السيرفرات المتصلة"<% if (currentPage === 'dev-guilds') { %> aria-current="page"<% } %>>
-        <i class="fas fa-network-wired" aria-hidden="true"></i>
-        <span>السيرفرات المتصلة</span>
-      </a>
-      <a href="/dev/bot" class="nav-link <%= currentPage === 'dev-bot' ? 'active' : '' %>" data-tip="إدارة البوت" aria-label="إدارة البوت"<% if (currentPage === 'dev-bot') { %> aria-current="page"<% } %>>
-        <i class="fas fa-robot" aria-hidden="true"></i>
-        <span>إدارة البوت</span>
-      </a>
-      <a href="/dev/status" class="nav-link <%= currentPage === 'dev-status' ? 'active' : '' %>" data-tip="حالة البوت" aria-label="حالة البوت"<% if (currentPage === 'dev-status') { %> aria-current="page"<% } %>>
-        <i class="fas fa-gauge-high" aria-hidden="true"></i>
-        <span>حالة البوت</span>
-      </a>
-      <a href="/dev/features" class="nav-link <%= currentPage === 'dev-features' ? 'active' : '' %>" data-tip="حالة الخصائص" aria-label="حالة الخصائص"<% if (currentPage === 'dev-features') { %> aria-current="page"<% } %>>
-        <i class="fas fa-list-check" aria-hidden="true"></i>
-        <span>حالة الخصائص</span>
-      </a>
-      <a href="/dev/maintenance" class="nav-link <%= currentPage === 'dev-maintenance' ? 'active' : '' %>" data-tip="وضع الصيانة" aria-label="وضع الصيانة"<% if (currentPage === 'dev-maintenance') { %> aria-current="page"<% } %>>
-        <i class="fas fa-screwdriver-wrench" aria-hidden="true"></i>
-        <span>وضع الصيانة</span>
-      </a>
-      <a href="/dev/settings" class="nav-link <%= currentPage === 'dev-settings' ? 'active' : '' %>" data-tip="الإعدادات" aria-label="الإعدادات"<% if (currentPage === 'dev-settings') { %> aria-current="page"<% } %>>
-        <i class="fas fa-gear" aria-hidden="true"></i>
-        <span>الإعدادات</span>
-      </a>
+      <button class="nav-section-head" type="button" aria-expanded="true">
+        <i class="fas fa-code" aria-hidden="true"></i><span>قسم المطورين</span>
+        <span class="nav-hairline"></span><span class="nav-count">6</span>
+        <i class="fas fa-chevron-down nav-sec-caret" aria-hidden="true"></i>
+      </button>
+      <div class="nav-panel">
+        <a href="/dev/guilds" class="nav-row <%= currentPage === 'dev-guilds' ? 'active' : '' %>" data-tip="السيرفرات المتصلة" aria-label="السيرفرات المتصلة"<% if (currentPage === 'dev-guilds') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-network-wired" aria-hidden="true"></i></span><span class="nav-row-label">السيرفرات المتصلة</span>
+        </a>
+        <a href="/dev/bot" class="nav-row <%= currentPage === 'dev-bot' ? 'active' : '' %>" data-tip="إدارة البوت" aria-label="إدارة البوت"<% if (currentPage === 'dev-bot') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-robot" aria-hidden="true"></i></span><span class="nav-row-label">إدارة البوت</span>
+        </a>
+        <a href="/dev/status" class="nav-row <%= currentPage === 'dev-status' ? 'active' : '' %>" data-tip="حالة البوت" aria-label="حالة البوت"<% if (currentPage === 'dev-status') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-gauge-high" aria-hidden="true"></i></span><span class="nav-row-label">حالة البوت</span>
+        </a>
+        <a href="/dev/features" class="nav-row <%= currentPage === 'dev-features' ? 'active' : '' %>" data-tip="حالة الخصائص" aria-label="حالة الخصائص"<% if (currentPage === 'dev-features') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-list-check" aria-hidden="true"></i></span><span class="nav-row-label">حالة الخصائص</span>
+        </a>
+        <a href="/dev/settings" class="nav-row <%= currentPage === 'dev-settings' ? 'active' : '' %>" data-tip="إعدادات البوت" aria-label="إعدادات البوت"<% if (currentPage === 'dev-settings') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-gear" aria-hidden="true"></i></span><span class="nav-row-label">إعدادات البوت</span>
+        </a>
+        <a href="/dev/maintenance" class="nav-row <%= currentPage === 'dev-maintenance' ? 'active' : '' %>" data-tip="وضع الصيانة" aria-label="وضع الصيانة"<% if (currentPage === 'dev-maintenance') { %> aria-current="page"<% } %>>
+          <span class="nav-row-icon"><i class="fas fa-screwdriver-wrench" aria-hidden="true"></i></span><span class="nav-row-label">وضع الصيانة</span>
+        </a>
+      </div>
     </div>
     <% } %>
   </nav>

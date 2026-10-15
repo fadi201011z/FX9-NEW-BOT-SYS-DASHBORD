@@ -7,6 +7,7 @@ import { getGuildChannels, getGuildRoles } from '../auth/discord.js';
 import config from '../config.js';
 import { resolveGuild } from '../services/guildResolver.js';
 import { botFetch, botPost } from '../services/botApi.js';
+import { CUSTOM_IMAGE_KEYS, SETTINGS_PAGES, buildSettingsLocals } from '../services/settingsPages.js';
 
 const TICKET_KEY_MAP = {
   ticket_category: 'ticketCategoryId',
@@ -15,8 +16,6 @@ const TICKET_KEY_MAP = {
   log_channel_id: 'logChannelId',
 };
 
-// مفاتيح الصور المخصصة لكل سيرفر (تُقرأ من البوت عبر guildImage.js)
-const CUSTOM_IMAGE_KEYS = ['welcome_image', 'ticket_panel_image', 'voice_panel_image'];
 
 // لكل عنصر مخصّص وضعٌ للعرض: صورة (افتراضي) أو إمبد. الوضع يُخزَّن تحت <mode>
 // والإمبد (JSON) تحت <embed>. البوت يقرأ نفس المفاتيح عبر utils/customDisplay.js.
@@ -107,13 +106,10 @@ router.get('/:guildId', isAuthenticated, hasGuildAccess, requireRole('admin'), a
   if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
   const data = await buildViewData(guildId);
 
-  res.render('guild/settings', {
+  res.render('guild/settings/general', {
+    ...buildSettingsLocals(data, guild, req.session.user),
     user: req.session.user,
     guild,
-    config: data.config,
-    supportRoleArray: data.supportRoleArray,
-    channels: data.channels,
-    roles: data.roles,
     title: 'الإعدادات',
   });
 });
@@ -561,6 +557,26 @@ router.post('/:guildId/welcome-avatar', isAuthenticated, hasGuildAccess, require
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ─── صفحة إعدادات واحدة من مركز الإعدادات (general/welcome/logs/...) ───────
+// تُعرَّف أخيراً لتأتي بعد كل المسارات الثابتة مثل /all و /images.
+router.get('/:guildId/:page', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  const { guildId, page } = req.params;
+  const def = SETTINGS_PAGES[page];
+  if (!def) return res.redirect(`/settings/${guildId}`);
+
+  const guild = await resolveGuild(req.session.user.guilds, guildId);
+  if (!guild) return res.status(404).render('error', { layout: false, message: 'السيرفر غير موجود.', user: req.session.user });
+  const data = await buildViewData(guildId);
+
+  res.render(def.view, {
+    ...buildSettingsLocals(data, guild, req.session.user),
+    user: req.session.user,
+    guild,
+    settingsPage: page,
+    title: def.title,
+  });
 });
 
 export default router;

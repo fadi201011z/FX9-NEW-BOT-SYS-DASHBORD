@@ -1,0 +1,20 @@
+  <!-- ⑦ البريميوم -->
+  <% if (premium) { %>
+    <div class="card glass st-prem">
+      <div class="st-prem-icon"><i class="fas fa-gem"></i></div>
+      <div class="st-prem-text">
+        <strong>باقة <span><%= premium.plan %></span> مفعّلة <span class="st-prem-days"><%= premium.daysLeft %> يوم</span> متبقية</strong>
+        <span>سيرفرك يستفيد من كل مزايا النظام — أدر الباقة أو جدّدها من صفحة البريميوم.</span>
+      </div>
+      <a href="/premium/<%= guild.id %>" class="btn-sm">إدارة الباقة <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
+    </div>
+  <% } else { %>
+    <div class="card glass st-prem is-cta">
+      <div class="st-prem-icon"><i class="fas fa-gem"></i></div>
+      <div class="st-prem-text">
+        <strong>فعّل البريميوم لفتح كل الأنظمة</strong>
+        <span>إحصائيات متقدمة وأولوية معالجة وتخصيص أعمق — اكتشف الباقات المتاحة.</span>
+      </div>
+      <a href="/premium/<%= guild.id %>" class="btn-sm">تصفح البريميوم <i class="fas fa-arrow-left" aria-hidden="true"></i></a>
+    </div>
+  <% } %>

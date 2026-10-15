@@ -1,0 +1,100 @@
+      <!-- صورة الترحيب + محرر موضع الصورة الرمزية -->
+      <div class="stat-voice-item item-lg-general st-welcome-img" data-for="welcome_image">
+        <div class="st-welcome-img-head">
+          <div class="stat-voice-icon"><i class="fas fa-door-open"></i></div>
+          <div class="stat-voice-info">
+            <strong>صورة الترحيب</strong>
+            <small>ارفع خلفية البطاقة ثم حرّك صورة العضو وأعد حجمها داخل الصورة — المعاينة مطابقة لما يُرسله البوت.</small>
+          </div>
+          <span class="ticket-field-state" data-state-of="welcome_image"><i class="fas fa-check-circle"></i><span>افتراضي</span></span>
+        </div>
+
+        <div class="ci-mode" data-ci-mode-group="welcome_image" role="tablist" aria-label="طريقة العرض: صورة أم امبد">
+          <button type="button" class="ci-mode-btn is-active" data-ci-set-mode="welcome_image" data-ci-mode="image" role="tab" aria-selected="true"><i class="fas fa-image" aria-hidden="true"></i> صورة</button>
+          <button type="button" class="ci-mode-btn" data-ci-set-mode="welcome_image" data-ci-mode="embed" role="tab" aria-selected="false"><i class="fas fa-rectangle-ad" aria-hidden="true"></i> امبد</button>
+        </div>
+
+        <div class="ci-pane ci-pane-image" data-ci-pane="welcome_image" data-ci-kind="image">
+        <div class="st-welcome-img-body">
+          <div class="wa-stage-wrap">
+            <div class="wa-stage no-image" id="waStage">
+              <img class="wa-stage-bg" id="waStageBg" alt="" />
+              <div class="wa-stage-empty" id="waStageEmpty">
+                <i class="fas fa-image"></i>
+                <span>لا توجد صورة بعد — ارفع صورة لبدء التخصيص</span>
+              </div>
+              <div class="wa-avatar" id="waAvatar" tabindex="0" role="button" aria-label="صورة العضو — اسحب لتغيير الموضع">
+                <img id="waAvatarImg" src="<%= waAvatarUrl %>" alt="" draggable="false" />
+              </div>
+              <div class="wa-stage-hint"><i class="fas fa-hand-pointer"></i> اسحب الصورة الرمزية لوضعها</div>
+            </div>
+            <div class="wa-stage-meta">
+              <span><i class="fas fa-arrows-left-right"></i> أفقي <b id="waValX"><%= waInit.x %></b></span>
+              <span><i class="fas fa-arrows-up-down"></i> عمودي <b id="waValY"><%= waInit.y %></b></span>
+              <span><i class="fas fa-expand"></i> الحجم <b id="waValSize"><%= waInit.size %></b>px</span>
+            </div>
+          </div>
+
+          <div class="wa-controls">
+            <div class="wa-ctrl-row">
+              <label class="img-upload-btn"><i class="fas fa-upload"></i> رفع صورة
+                <input type="file" accept="image/*" hidden data-img-key="welcome_image" />
+              </label>
+              <button type="button" class="btn-sm btn-view-img" data-img-view="welcome_image" title="عرض الصورة الحالية"><i class="fas fa-eye"></i> عرض الصورة</button>
+              <button type="button" class="btn-delete-sm" data-img-delete="welcome_image" title="استعادة الصورة الافتراضية"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="wa-ctrl-row">
+              <input type="text" class="ticket-select img-url-input" data-img-url="welcome_image" placeholder="أو ألصق رابط صورة مباشر https://..." />
+              <button type="button" class="btn-sm btn-save-img" data-img-save="welcome_image"><i class="fas fa-link"></i> حفظ الرابط</button>
+            </div>
+
+            <div class="wa-sliders">
+              <label class="wa-field">
+                <span><i class="fas fa-up-right-and-down-left-from-center"></i> حجم الصورة الرمزية</span>
+                <input type="range" id="waSize" min="60" max="1080" step="2" value="<%= waInit.size %>">
+                <b id="waSizeVal"><%= waInit.size %>px</b>
+              </label>
+              <label class="wa-field">
+                <span><i class="fas fa-arrows-left-right"></i> الموضع الأفقي</span>
+                <input type="range" id="waX" min="0" max="1920" step="2" value="<%= waInit.x %>">
+                <b id="waXVal"><%= waInit.x %></b>
+              </label>
+              <label class="wa-field">
+                <span><i class="fas fa-arrows-up-down"></i> الموضع العمودي</span>
+                <input type="range" id="waY" min="0" max="1080" step="2" value="<%= waInit.y %>">
+                <b id="waYVal"><%= waInit.y %></b>
+              </label>
+            </div>
+
+            <div class="wa-ring">
+              <label class="wa-toggle">
+                <input type="checkbox" id="waRingOn" <%= waInit.ring ? 'checked' : '' %>>
+                <span class="wa-toggle-track"><span class="wa-toggle-dot"></span></span>
+                إطار حول الصورة
+              </label>
+              <label class="wa-color">اللون <input type="color" id="waRingColor" value="<%= waInit.ringColor %>"></label>
+              <label class="wa-field wa-field--inline">السماكة
+                <input type="range" id="waRingWidth" min="0" max="24" step="1" value="<%= waInit.ringWidth %>">
+                <b id="waRingWidthVal"><%= waInit.ringWidth %>px</b>
+              </label>
+            </div>
+
+            <div class="wa-actions">
+              <button type="button" class="btn-save-img" id="waSave"><i class="fas fa-save"></i> حفظ التخصيص</button>
+              <button type="button" class="btn-sm wa-reset" id="waReset"><i class="fas fa-rotate-left"></i> إعادة ضبط الموضع</button>
+              <span class="wa-status" id="waStatus"></span>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <div class="ci-pane ci-pane-embed" data-ci-pane="welcome_image" data-ci-kind="embed" hidden>
+          <div class="ci-embed-card">
+            <div class="em-preview ci-embed-preview" data-ci-preview="welcome_image"></div>
+            <div class="ci-embed-actions">
+              <button type="button" class="btn-save-img" data-ci-edit="welcome_image"><i class="fas fa-pen-ruler" aria-hidden="true"></i> تخصيص الإمبد</button>
+              <span class="ci-embed-state" data-ci-state="welcome_image">لا يوجد امبد بعد — اضغط «تخصيص الإمبد»</span>
+            </div>
+          </div>
+        </div>
+      </div>

@@ -1,0 +1,8 @@
+﻿<%- include('_partials/header', { pageTitle: 'فريق الدعم', pageIcon: 'fa-headset', pageDesc: 'اختر الرتب التي تتسلّم التذاكر، وحدّد عدّاد التذاكر الذي يظهر للفريق.' }) %>
+<form id="settingsForm" onsubmit="saveSettings(event)">
+  <%- include('_partials/support') %>
+  <%- include('_partials/actions', { pageLabel: 'فريق الدعم' }) %>
+</form>
+<%- include('_partials/modals') %>
+<%- include('_partials/style') %>
+<%- include('_partials/script') %>

@@ -1,0 +1,24 @@
+﻿<%- include('_partials/header', { pageTitle: 'إعدادات التذاكر', pageIcon: 'fa-gear', pageDesc: 'بنل فتح التذاكر، تصنيف الأعضاء، التصنيف الداخلي، وسجل التذاكر — أربع خطوات مرتبطة.' }) %>
+<form id="settingsForm" onsubmit="saveSettings(event)">
+  <%- include('_partials/tickets') %>
+
+  <div class="card glass custom-images-card st-section" id="st-images">
+    <div class="card-header st-sec-head">
+      <h3><i class="fas fa-image"></i> صورة بنل التذاكر</h3>
+      <span class="ticket-status" id="imagesStatusBadge"><span class="ticket-status-dot"></span><span id="imagesStatusText">—</span></span>
+    </div>
+    <p class="card-desc">الصورة العلوية التي يراها العضو قبل فتح تذكرته — أو ابنِ امبداً كاملاً بدل الصورة.</p>
+    <div class="custom-images-note">
+      <i class="fas fa-circle-info"></i>
+      <span>اختر <b>صورة</b> جاهزة أو ابنِ <b>امبد</b> احترافياً — الصيغ المدعومة: <b>PNG / JPG / GIF / WEBP</b> بحد أقصى <b>8MB</b>، ويُخزَّن رابط مباشر فقط.</span>
+    </div>
+    <div class="custom-images-grid">
+      <%- include('_partials/image-ticket') %>
+    </div>
+  </div>
+
+  <%- include('_partials/actions', { pageLabel: 'إعدادات التذاكر' }) %>
+</form>
+<%- include('_partials/modals') %>
+<%- include('_partials/style') %>
+<%- include('_partials/script') %>

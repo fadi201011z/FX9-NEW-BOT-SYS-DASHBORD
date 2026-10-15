@@ -1,0 +1,8 @@
+﻿<%- include('_partials/header', { pageTitle: 'أنظمة أخرى', pageIcon: 'fa-layer-group', pageDesc: 'بقية أنظمة السيرفر تُضبط من صفحاتها المخصّصة — هذه مفاتيحها السريعة.' }) %>
+<form id="settingsForm" onsubmit="saveSettings(event)">
+  <%- include('_partials/systems') %>
+  <%- include('_partials/actions', { pageLabel: 'الأنظمة', noSave: true }) %>
+</form>
+<%- include('_partials/modals') %>
+<%- include('_partials/style') %>
+<%- include('_partials/script') %>

@@ -1,0 +1,80 @@
+  <!-- ② قنوات السجلات -->
+  <div class="card glass log-card st-section" id="st-logs">
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">2</span>
+      <h3><i class="fas fa-clipboard-list"></i> قنوات السجلات</h3>
+      <span class="ticket-status" id="logStatusBadge"><span class="ticket-status-dot"></span><span id="logStatusText">—</span></span>
+    </div>
+    <p class="card-desc">ثلاثة أنواع من السجلات، ولكل نوع أحداثه الخاصة — اختر قناة لكل نوع، أو استخدم قناة واحدة للثلاثة معاً.</p>
+
+    <div class="stats-voice-grid log-grid">
+      <div class="stat-voice-item item-lg-general" data-for="log_channel">
+        <div class="stat-voice-icon"><i class="fas fa-list"></i></div>
+        <div class="stat-voice-info">
+          <strong>السجلات العامة</strong>
+          <small>كل حركة النشاط في السيرفر</small>
+          <span class="st-events"><i>انضمام</i><i>مغادرة</i><i>رسائل</i><i>صوت</i></span>
+        </div>
+        <div class="stat-voice-control">
+          <select data-key="log_channel" class="ticket-select">
+            <option value="">— بدون (معطّل) —</option>
+            <% (channels.text || []).forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= String(config.log_channel || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="stat-voice-tools">
+            <span class="ticket-field-state" data-state-of="log_channel"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('log_channel')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-voice-item item-lg-mod" data-for="modlog_channel">
+        <div class="stat-voice-icon"><i class="fas fa-gavel"></i></div>
+        <div class="stat-voice-info">
+          <strong>سجلات الإشراف</strong>
+          <small>كل إجراءات فريق الإشراف</small>
+          <span class="st-events"><i>Ban</i><i>Kick</i><i>Timeout</i><i>Warn</i><i>الأدوار</i></span>
+        </div>
+        <div class="stat-voice-control">
+          <select data-key="modlog_channel" class="ticket-select">
+            <option value="">— بدون (معطّل) —</option>
+            <% (channels.text || []).forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= String(config.modlog_channel || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="stat-voice-tools">
+            <span class="ticket-field-state" data-state-of="modlog_channel"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('modlog_channel')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-voice-item item-lg-bot" data-for="botlog_channel">
+        <div class="stat-voice-icon"><i class="fas fa-heartbeat"></i></div>
+        <div class="stat-voice-info">
+          <strong>سجل البوت</strong>
+          <small>حالة البوت نفسه وتشخيصه</small>
+          <span class="st-events"><i>تشغيل</i><i>إيقاف</i><i>أخطاء</i><i>تقرير دوري</i></span>
+        </div>
+        <div class="stat-voice-control">
+          <select data-key="botlog_channel" class="ticket-select">
+            <option value="">— بدون (معطّل) —</option>
+            <% (channels.text || []).forEach(ch => { %>
+              <option value="<%= ch.id %>" <%= String(config.botlog_channel || '') === String(ch.id) ? 'selected' : '' %>><%= ch.name %></option>
+            <% }) %>
+          </select>
+          <div class="stat-voice-tools">
+            <span class="ticket-field-state" data-state-of="botlog_channel"><i class="fas fa-check-circle"></i><span>مضبوط</span></span>
+            <button type="button" class="btn-delete-sm" onclick="deleteSetting('botlog_channel')" title="إلغاء هذا الإعداد"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <small class="field-hint role-picker-hint">
+      <i class="fas fa-info-circle"></i>
+      يمكنك إرسال جميع السجلات إلى قناة واحدة باستخدام نفس القناة في الأنواع الثلاثة — خيار مثالي للسيرفرات الصغيرة.
+    </small>
+  </div>
+

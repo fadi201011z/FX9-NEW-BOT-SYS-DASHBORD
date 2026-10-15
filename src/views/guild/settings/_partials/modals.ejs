@@ -1,0 +1,136 @@
+<!-- نافذة عرض الصورة الحالية (تظهر بزر «عرض الصورة الحالية» بجانب كل صورة) -->
+<div class="img-viewer-modal" id="imgViewerModal">
+  <div class="img-viewer-content">
+    <div class="img-viewer-head">
+      <strong id="imgViewerTitle">عرض الصورة الحالية</strong>
+      <button type="button" class="img-viewer-close" id="imgViewerClose" title="إغلاق"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="img-viewer-body">
+      <div class="img-viewer-stage">
+        <img id="imgViewerImage" alt="الصورة الحالية" />
+      </div>
+      <p class="img-viewer-note" id="imgViewerNote">الصورة المعروضة حالياً على البوت في هذا السيرفر</p>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة تخصيص الإمبد (مشتركة للترحيب وبنل التذاكر وبنل الصوتيات) -->
+<div class="img-viewer-modal ci-embed-modal" id="ciEmbedModal">
+  <div class="ci-embed-modal-content" role="dialog" aria-modal="true" aria-labelledby="ciModalTitle">
+    <div class="ci-embed-modal-head">
+      <strong id="ciModalTitle">تخصيص الإمبد</strong>
+      <button type="button" class="img-viewer-close" id="ciClose" title="إغلاق"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="ci-embed-modal-body">
+      <div class="em-layout">
+        <div class="ci-builder">
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-align-right"></i> المحتوى</h4>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="ciAuthorName">إسم الكاتب</label>
+                <input type="text" id="ciAuthorName" class="ci-ctl" maxlength="256" placeholder="مثل: فريق Kratos">
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="ciAuthorIcon">أيقونة الكاتب (رابط)</label>
+                <div class="ci-url-row">
+                  <input type="url" id="ciAuthorIcon" class="ci-ctl" placeholder="https://...">
+                  <label class="ci-upload-btn" title="رفع صورة"><i class="fas fa-upload" aria-hidden="true"></i> رفع<input type="file" accept="image/*" hidden data-ci-upload="ciAuthorIcon"></label>
+                </div>
+              </div>
+            </div>
+            <div class="em-field">
+              <label class="em-label" for="ciTitle">العنوان <span class="em-counter" id="ciTitleCounter">0/256</span></label>
+              <input type="text" id="ciTitle" class="ci-ctl" maxlength="256" placeholder="عنوان الإمبد...">
+            </div>
+            <div class="em-field">
+              <label class="em-label" for="ciDesc">الوصف <span class="em-counter" id="ciDescCounter">0/4096</span></label>
+              <textarea id="ciDesc" class="ci-ctl" maxlength="4096" placeholder="نص الإمبد... يدعم **الغامق** و __المسطر__ و `الكود`"></textarea>
+              <p class="ci-ph-hint" id="ciPhHint" hidden></p>
+            </div>
+          </section>
+
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-palette"></i> التنسيق</h4>
+            <div class="em-field">
+              <label class="em-label">لون الجانب</label>
+              <div class="em-swatches" id="ciSwatches">
+                <% ['#d000ff','#8700ff','#4b0082','#00a8ff','#00c8ff','#00c853','#ffd700','#ff9800','#ff1018','#ff8088','#1a6fff','#7c4dff'].forEach(c => { %>
+                  <button type="button" class="em-swatch" data-color="<%= c %>" style="--sw: <%= c %>" aria-label="<%= c %>"></button>
+                <% }) %>
+                <label class="em-swatch em-swatch-custom" title="لون مخصص">
+                  <input type="color" id="ciColorPick" value="#d000ff">
+                  <i class="fas fa-eye-dropper" aria-hidden="true"></i>
+                </label>
+                <input type="text" id="ciColorHex" class="em-hex" value="#d000ff" maxlength="7" spellcheck="false">
+                <input type="hidden" id="ciColor" value="#d000ff">
+              </div>
+            </div>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="ciThumb">صورة مصغّرة (رابط)</label>
+                <div class="ci-url-row">
+                  <input type="url" id="ciThumb" class="ci-ctl" placeholder="https://...">
+                  <label class="ci-upload-btn" title="رفع صورة"><i class="fas fa-upload" aria-hidden="true"></i> رفع<input type="file" accept="image/*" hidden data-ci-upload="ciThumb"></label>
+                </div>
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="ciImage">صورة كبيرة (رابط)</label>
+                <div class="ci-url-row">
+                  <input type="url" id="ciImage" class="ci-ctl" placeholder="https://...">
+                  <label class="ci-upload-btn" title="رفع صورة"><i class="fas fa-upload" aria-hidden="true"></i> رفع<input type="file" accept="image/*" hidden data-ci-upload="ciImage"></label>
+                </div>
+              </div>
+            </div>
+            <label class="em-toggle">
+              <input type="checkbox" id="ciTimestamp" checked>
+              <span class="em-toggle-track"><span class="em-toggle-dot"></span></span>
+              <span>إظهار الوقت والتاريخ</span>
+            </label>
+          </section>
+
+          <section class="em-sec">
+            <div class="em-sec-head">
+              <h4 class="em-sec-title"><i class="fas fa-table-list"></i> الحقول</h4>
+              <button type="button" class="em-add-field" id="ciAddField"><i class="fas fa-plus"></i> إضافة حقل</button>
+            </div>
+            <div id="ciFields" class="em-fields"></div>
+            <p class="em-hint">أضف حتى 25 حقلاً — فعّل «ضمن السطر» لعرض الحقول بأعمدة.</p>
+          </section>
+
+          <section class="em-sec">
+            <h4 class="em-sec-title"><i class="fas fa-signature"></i> التذييل</h4>
+            <div class="em-grid-2">
+              <div class="em-field">
+                <label class="em-label" for="ciFooterText">نص التذييل</label>
+                <input type="text" id="ciFooterText" class="ci-ctl" maxlength="2048" placeholder="مثل: Kratos System">
+              </div>
+              <div class="em-field">
+                <label class="em-label" for="ciFooterIcon">أيقونة التذييل (رابط)</label>
+                <div class="ci-url-row">
+                  <input type="url" id="ciFooterIcon" class="ci-ctl" placeholder="https://...">
+                  <label class="ci-upload-btn" title="رفع صورة"><i class="fas fa-upload" aria-hidden="true"></i> رفع<input type="file" accept="image/*" hidden data-ci-upload="ciFooterIcon"></label>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="em-side">
+          <div class="em-side-head">
+            <span><i class="fas fa-eye" aria-hidden="true"></i> معاينة مباشرة</span>
+            <span class="em-live-dot"></span>
+          </div>
+          <div class="em-preview" id="ciPreview"></div>
+          <p class="em-hint">هكذا سيظهر الإمبد تقريباً داخل ديسكورد.</p>
+        </div>
+      </div>
+    </div>
+    <div class="ci-embed-modal-foot">
+      <button type="button" class="btn-save-img" id="ciSave"><i class="fas fa-save" aria-hidden="true"></i> حفظ الإمبد</button>
+      <button type="button" class="em-btn-ghost" id="ciClear"><i class="fas fa-eraser" aria-hidden="true"></i> تفريغ</button>
+      <div class="ci-foot-spacer"></div>
+      <button type="button" class="em-btn-ghost" id="ciCancel"><i class="fas fa-xmark" aria-hidden="true"></i> إلغاء</button>
+    </div>
+  </div>
+</div>

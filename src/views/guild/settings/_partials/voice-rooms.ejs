@@ -1,0 +1,45 @@
+<div class="card glass st-voice-setup st-section" id="st-voice-rooms">
+  <div class="card-header st-sec-head">
+    <span class="st-sec-num">1</span>
+    <h3><i class="fas fa-sliders"></i> إعدادات الرومات الصوتية</h3>
+    <span class="ticket-status <%= config.voice_default_name ? 'ready' : 'empty' %>">
+      <span class="ticket-status-dot"></span>
+      <span><%= config.voice_default_name ? 'مضبوط' : 'غير مضبوط' %></span>
+    </span>
+  </div>
+  <p class="card-desc">كل ما يخصّ الغرف الصوتية المؤقتة في مكان واحد: الاسم الافتراضي، الحد الأقصى للأعضاء، طريقة الإنشاء، وصورة/امبد البنل.</p>
+
+  <div class="voice-grid">
+    <div class="stat-voice-item" data-for="voice_default_name">
+      <div class="stat-voice-icon"><i class="fas fa-signature"></i></div>
+      <div class="stat-voice-info">
+        <strong>الاسم الافتراضي للغرفة</strong>
+        <small>يُستخدم عند إنشاء غرفة جديدة. يدعم المتغيّرات: {user} اسم العضو، {count} رقم الغرفة.</small>
+      </div>
+      <div class="ticket-field">
+        <input type="text" data-key="voice_default_name" class="ticket-select" maxlength="100"
+               placeholder="مثال: غرفة {user}" value="<%= config.voice_default_name || '' %>">
+        <span class="ticket-field-state" data-state-of="voice_default_name"><i class="fas fa-check-circle"></i><span><%= config.voice_default_name ? 'مضبوط' : 'غير مضبوط' %></span></span>
+      </div>
+    </div>
+
+    <div class="stat-voice-item" data-for="voice_default_limit">
+      <div class="stat-voice-icon"><i class="fas fa-users"></i></div>
+      <div class="stat-voice-info">
+        <strong>الحد الأقصى للأعضاء</strong>
+        <small>0 تعني بلا حد. يُطبّق على كل غرفة جديدة تُنشأ.</small>
+      </div>
+      <div class="ticket-field">
+        <input type="number" min="0" max="99" data-key="voice_default_limit" class="ticket-select"
+               placeholder="0" value="<%= config.voice_default_limit || 0 %>">
+        <span class="ticket-field-state" data-state-of="voice_default_limit"><i class="fas fa-check-circle"></i><span><%= config.voice_default_limit ? 'مضبوط' : 'بلا حد' %></span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="custom-images-note st-voice-hint">
+    <i class="fas fa-circle-info"></i>
+    <span>الغرف نفسها تُنشأ تلقائياً عند دخول العضو القناة الأساسية — إدارة البوت لهذه القيم تحتاج تفعيلها في البوت عبر مزامنة الإعدادات. القائمة الحيّة للغرف في صفحة <b>الرومات المؤقتة</b>.</span>
+  </div>
+</div>
+

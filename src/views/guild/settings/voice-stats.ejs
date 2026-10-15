@@ -1,0 +1,8 @@
+﻿<%- include('_partials/header', { pageTitle: 'الإحصائيات الصوتية', pageIcon: 'fa-chart-line', pageDesc: 'رومات صوتية تعرض أعداد الأعضاء تلقائياً وتتحدّث كل دقيقة دون أي تدخل.' }) %>
+<form id="settingsForm" onsubmit="saveSettings(event)">
+  <%- include('_partials/voice-stats') %>
+  <%- include('_partials/actions', { pageLabel: 'الإحصائيات الصوتية' }) %>
+</form>
+<%- include('_partials/modals') %>
+<%- include('_partials/style') %>
+<%- include('_partials/script') %>

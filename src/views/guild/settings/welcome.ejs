@@ -1,0 +1,24 @@
+﻿<%- include('_partials/header', { pageTitle: 'نظام الترحيب', pageIcon: 'fa-door-open', pageDesc: 'بطاقة ترحيب باسم العضو وصورته تُرسل تلقائياً عند انضمامه — مع التخصيص الكامل للصورة.' }) %>
+<form id="settingsForm" onsubmit="saveSettings(event)">
+  <%- include('_partials/welcome') %>
+
+  <div class="card glass custom-images-card st-section" id="st-images">
+    <div class="card-header st-sec-head">
+      <h3><i class="fas fa-images"></i> صورة بطاقة الترحيب</h3>
+      <span class="ticket-status" id="imagesStatusBadge"><span class="ticket-status-dot"></span><span id="imagesStatusText">—</span></span>
+    </div>
+    <p class="card-desc">خلفية البطاقة + موضع وحجم صورة العضو وإطارها — أو ابنِ بطاقة امبد كاملة بأسلوب ديسكورد.</p>
+    <div class="custom-images-note">
+      <i class="fas fa-circle-info"></i>
+      <span>اختر <b>صورة</b> جاهزة أو ابنِ <b>امبد</b> احترافياً — الصيغ المدعومة: <b>PNG / JPG / GIF / WEBP</b> بحد أقصى <b>8MB</b>، ويُخزَّن رابط مباشر فقط.</span>
+    </div>
+    <div class="custom-images-grid">
+      <%- include('_partials/image-welcome') %>
+    </div>
+  </div>
+
+  <%- include('_partials/actions', { pageLabel: 'نظام الترحيب' }) %>
+</form>
+<%- include('_partials/modals') %>
+<%- include('_partials/style') %>
+<%- include('_partials/script') %>

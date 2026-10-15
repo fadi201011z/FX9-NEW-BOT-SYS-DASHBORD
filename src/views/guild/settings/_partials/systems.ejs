@@ -1,0 +1,17 @@
+  <!-- ⑧ أنظمة أخرى تُدار من هنا -->
+  <div class="card glass st-sys">
+    <div class="card-header">
+      <h3><i class="fas fa-layer-group"></i> أنظمة أخرى لسيرفرك</h3>
+      <span class="badge badge-default">6 أنظمة</span>
+    </div>
+    <p class="card-desc">هذه الصفحة هي مركز الإعدادات — وبقية الأنظمة تُضبط في صفحاتها المخصصة:</p>
+    <div class="st-sysgrid">
+      <% sysTiles.forEach(t => { %>
+        <a class="st-systile" href="<%= t[0] %>">
+          <span class="st-systile-icon"><i class="fas <%= t[1] %>" aria-hidden="true"></i></span>
+          <span class="st-systile-body"><strong><%= t[2] %></strong><small><%= t[3] %></small></span>
+          <i class="fas fa-arrow-left st-systile-go" aria-hidden="true"></i>
+        </a>
+      <% }) %>
+    </div>
+  </div>
