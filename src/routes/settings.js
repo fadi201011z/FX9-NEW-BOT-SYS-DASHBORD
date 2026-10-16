@@ -26,6 +26,136 @@ const CUSTOM_ITEMS = {
 };
 const CUSTOM_MODE_VALUES = ['image', 'embed'];
 
+// ─── أقسام التذاكر الافتراضية ──────────────────────────────────────────────
+// المرآة الحرفية لأقسام البوت المضمّنة في data/ticketTypes.js: نفس المعرّفات،
+// ونفس الأسماء والأوصاف والحقول. تُعرض في المحرّر حين لا يكون للسيرفر أقسام
+// محفوظة بعد، وحينها يظهر ما يفعله البوت فعلاً بدل صورة مخالفة للواقع. أول
+// حفظ من اللوحة ينسخها إلى قاعدة البيانات فتصبح هذه هي المُلزِمة للبوت.
+const DEFAULT_TICKET_SECTIONS = [
+  {
+    id: 'technical', emoji: '🛠️', label: 'Technical Support',
+    description: 'Bugs, errors, anything broken', color: '#3b82f6', enabled: true, supportRoleIds: [],
+    fields: [
+      { id: 'title',       label: '📌 Summary',        placeholder: 'One line describing the problem',    style: 'short',     required: true,  maxLength: 100 },
+      { id: 'device',      label: '🖥️ Platform',       placeholder: 'PC • Android • iOS',                  style: 'short',     required: true,  maxLength: 50 },
+      { id: 'description', label: '📝 What happened?', placeholder: 'What broke, and when did it start?',  style: 'paragraph', required: true,  maxLength: 1000 },
+      { id: 'steps_tried', label: '🧪 Already tried',  placeholder: 'What have you done to fix it?',       style: 'paragraph', required: false, maxLength: 500 },
+      { id: 'evidence',    label: '🔗 Evidence',       placeholder: 'Screenshot or video link',            style: 'short',     required: false, maxLength: 500 },
+    ],
+  },
+  {
+    id: 'complaint', emoji: '🚫', label: 'Report',
+    description: 'Report a member or a problem', color: '#ef4444', enabled: true, supportRoleIds: [],
+    fields: [
+      { id: 'title',       label: '📌 Summary',        placeholder: 'e.g. Harassment in general chat',  style: 'short',     required: true,  maxLength: 100 },
+      { id: 'target',      label: '👤 Member involved', placeholder: 'Name or user ID',                 style: 'short',     required: true,  maxLength: 50 },
+      { id: 'description', label: '📝 What happened?', placeholder: 'Describe what occurred, in order', style: 'paragraph', required: true,  maxLength: 1000 },
+      { id: 'evidence',    label: '🔗 Evidence',       placeholder: 'Screenshot or recording link',     style: 'short',     required: false, maxLength: 500 },
+    ],
+  },
+  {
+    id: 'partnership', emoji: '🤝', label: 'Partnership',
+    description: 'Sponsorships and collaborations', color: '#22c55e', enabled: true, supportRoleIds: [],
+    fields: [
+      { id: 'title',       label: '🤝 Collaboration type', placeholder: 'Sponsorship • Events • Partnership', style: 'short',     required: true,  maxLength: 100 },
+      { id: 'link',        label: '🔗 Server or channel',  placeholder: 'https://discord.gg/…',              style: 'short',     required: true,  maxLength: 200 },
+      { id: 'description', label: '📝 Your offer',         placeholder: 'Audience, role, and terms',         style: 'paragraph', required: true,  maxLength: 1000 },
+      { id: 'evidence',    label: '🔗 Extra links',        placeholder: 'Any supporting links',              style: 'short',     required: false, maxLength: 500 },
+    ],
+  },
+  {
+    id: 'other', emoji: '❓', label: 'Other',
+    description: 'Anything that does not fit above', color: '#fbbf24', enabled: true, supportRoleIds: [],
+    fields: [
+      { id: 'title',       label: '📌 Summary',   placeholder: 'One line describing your request', style: 'short',     required: true,  maxLength: 100 },
+      { id: 'description', label: '📝 Details',   placeholder: 'What do you need?',                style: 'paragraph', required: true,  maxLength: 1000 },
+      { id: 'evidence',    label: '🔗 Evidence',  placeholder: 'Any helpful links (optional)',     style: 'short',     required: false, maxLength: 500 },
+    ],
+  },
+];
+
+// ─── قيود ديسكورد على الأقسام ──────────────────────────────────────────────
+// تُطبَّق في الخادم لا في المتصفح فقط: قائمة الاختيار تقبل 25 خياراً، والنموذج
+// يقبل 5 حقول، وتسمية الحقل 45 حرفاً. تجاوزها يعني أن يرفض ديسكورد البنل كاملاً
+// لحظة وصوله، لذلك تُقصّ هنا بدل أن تُقبل ثم تفشل لاحقاً.
+const SECTION_LIMITS = { sections: 25, fields: 5, label: 100, desc: 100, fieldLabel: 45, placeholder: 100, maxLength: 1024 };
+
+/** lowercase-ascii/arabic slug — يطابق ما يفعله البوت عند إعادة تسمية تذكرة. */
+function sectionSlug(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9\u0600-\u06ff-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 32);
+}
+
+/**
+ * Cleans the editor's payload into exactly what the bot will read: everything
+ * clamped to Discord's limits, ids made unique and slug-shaped, and disabled
+ * garbage dropped rather than stored.
+ */
+function sanitizeSections(input) {
+  if (!Array.isArray(input)) return [];
+  const L = SECTION_LIMITS;
+  const text = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const clamp = (v, min, max, dflt) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : dflt;
+  };
+  const hex = (v) => {
+    const t = text(v, 9);
+    return /^#[0-9a-f]{6}$/i.test(t) ? t.toLowerCase() : '';
+  };
+
+  const seenIds = new Set();
+  const out = [];
+
+  for (const raw of input.slice(0, L.sections)) {
+    if (!raw || typeof raw !== 'object') continue;
+
+    let id = sectionSlug(raw.id || raw.label) || 'section';
+    while (seenIds.has(id)) id = `${id.slice(0, L.sections > 9 ? 28 : 30)}-${out.length + 1}`;
+    seenIds.add(id);
+
+    // Modal inputs must carry unique custom ids, or Discord rejects the modal.
+    const seenFields = new Set();
+    const fields = (Array.isArray(raw.fields) ? raw.fields : [])
+      .slice(0, L.fields)
+      .map((f, i) => {
+        let fid = (typeof f?.id === 'string' && /^[a-z0-9_]{1,32}$/.test(f.id)) ? f.id : `field_${i + 1}`;
+        while (seenFields.has(fid)) fid = `${fid}_${i + 1}`.slice(0, 32);
+        seenFields.add(fid);
+        return {
+          id: fid,
+          label: text(f?.label, L.fieldLabel),
+          placeholder: text(f?.placeholder, L.placeholder),
+          style: f?.style === 'paragraph' ? 'paragraph' : 'short',
+          required: !!f?.required,
+          maxLength: clamp(f?.maxLength, 1, L.maxLength, 500),
+        };
+      })
+      .filter((f) => f.label);
+
+    out.push({
+      id,
+      emoji: text(raw.emoji, 32) || '🎫',
+      label: text(raw.label, L.label) || id,
+      description: text(raw.description, L.desc),
+      color: hex(raw.color),
+      enabled: raw.enabled !== false,
+      supportRoleIds: (Array.isArray(raw.supportRoleIds) ? raw.supportRoleIds : [])
+        .map((r) => String(r))
+        .filter((r) => /^\d{17,20}$/.test(r))
+        .slice(0, 20),
+      fields,
+    });
+  }
+
+  return out;
+}
+
 const router = Router();
 
 async function fetchGuildChannels(guildId) {
@@ -68,6 +198,12 @@ async function buildViewData(guildId) {
     cfg.ticket_counter = ticketJson.ticketCounter || cfg.ticket_counter || 0;
   }
 
+  // أقسام التذاكر: المحفوظة إن وُجدت، وإلا الافتراضية المضمّنة — حتى يرى المدير
+  // دائماً ما يعمل به البوت فعلاً لا محرّراً فارغاً.
+  const ticketSections = (Array.isArray(ticketJson?.sections) && ticketJson.sections.length)
+    ? ticketJson.sections
+    : DEFAULT_TICKET_SECTIONS;
+
   let supportRoleArray = [];
   if (cfg.support_role) {
     supportRoleArray = String(cfg.support_role).split(',').map(s => s.trim()).filter(Boolean);
@@ -84,7 +220,7 @@ async function buildViewData(guildId) {
   let roles = await fetchGuildRoles(guildId);
   roles.sort((a, b) => (b.position || 0) - (a.position || 0));
 
-  return { config: cfg, supportRoleArray, channels, roles };
+  return { config: cfg, supportRoleArray, channels, roles, ticketSections };
 }
 
 async function syncConfigToBot() {
@@ -554,6 +690,57 @@ router.post('/:guildId/welcome-avatar', isAuthenticated, hasGuildAccess, require
 
     const synced = await syncConfigToBot();
     res.json({ success: true, synced, avatar });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── أقسام التذاكر القابلة للتخصيص ────────────────────────────────────────
+// تُخزَّن في وثيقة TicketGuildConfig (نفس الوثيقة التي يقرأ منها البوت)، لا في
+// جدول الإعدادات المفتاح/القيمة — لأنها بنية لا قيمة مفردة. المساران يعيدان
+// الأقسام دائماً بالشكل النهائي حتى يتزامن المحرّر مع ما ستقرأه البوت فعلاً.
+router.get('/:guildId/ticket-sections', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  try {
+    const ticketJson = await getTicketGuildConfig(req.params.guildId);
+    const saved = Array.isArray(ticketJson?.sections) && ticketJson.sections.length;
+    res.json({
+      success: true,
+      isCustom: !!saved,
+      sections: saved ? ticketJson.sections : DEFAULT_TICKET_SECTIONS,
+      defaults: DEFAULT_TICKET_SECTIONS,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:guildId/ticket-sections', isAuthenticated, hasGuildAccess, requireRole('admin'), async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const sections = sanitizeSections(req.body?.sections);
+
+    const before = await getTicketGuildConfig(guildId);
+    const oldValue = JSON.stringify(before?.sections || []);
+
+    await saveTicketGuildConfig(guildId, { sections });
+
+    logAudit(req.session.user.id, guildId, 'update_setting', 'ticket_sections', oldValue, JSON.stringify(sections), req.ip, req.sessionID);
+    logActivity(req.session.user.id, guildId, 'update_setting', 'ticket_sections', `تعديل أقسام التذاكر (${sections.length} أقسام)`, req.ip, req.sessionID);
+
+    const synced = await syncConfigToBot();
+
+    let refreshed = false;
+    try {
+      const rf = await botFetch(`${config.botApiUrl}/api/panels/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId }),
+        signal: AbortSignal.timeout(4000),
+      });
+      refreshed = rf.ok;
+    } catch {}
+
+    res.json({ success: true, sections, synced, refreshed });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

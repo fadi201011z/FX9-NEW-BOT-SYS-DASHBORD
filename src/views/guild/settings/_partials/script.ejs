@@ -13,6 +13,15 @@
  * [data-key] input that is actually here, and nothing else. A page cannot send
  * a key it does not show, which is the guarantee the whole split rests on.
  */
+
+/* المُهرِّب المشترك لحقول HTML — يُستخدم في كل البطاقات التي تبني نصاً من المدخلات
+   (بما فيها «صورة الروم الصوتي» التي كانت تستدعيه دون تعريف، فتُسقط الحفظ). */
+function escHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function collectSettings() {
   const data = {};
   document.querySelectorAll('[data-key]').forEach(el => {
@@ -1111,6 +1120,353 @@ function waInitEditor() {
   waSyncControls();
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   محرّر أقسام التذاكر
+   الحالة في SEC.list؛ كل تعديل في حقل نصي يُحدّث الشريط والمعاينة فقط (لا
+   يعيد بناء النموذج) حتى لا يضيع التركيز من الحقل الذي تكتبه فيه.
+   إعادة بناء النموذج تحدث عند التغييرات البنيوية: إضافة/حذف/نقل قسم أو سؤال.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const SEC_MAX_SECTIONS = 25;  // سقف قائمة الاختيار في ديسكورد
+const SEC_MAX_FIELDS = 5;     // سقف أسئلة النموذج الواحد في ديسكورد
+const SEC = { list: [], roles: [], sel: 0, gid: null, dirty: false };
+
+function secClone(v) { return JSON.parse(JSON.stringify(v || [])); }
+function secNow() { return SEC.list[SEC.sel]; }
+
+function secInit() {
+  const root = document.getElementById('st-sections');
+  if (!root) return;
+  try {
+    SEC.list = secClone(JSON.parse(root.dataset.sections || '[]'));
+    SEC.roles = JSON.parse(root.dataset.roles || '[]');
+  } catch (e) { SEC.list = []; SEC.roles = []; }
+  SEC.sel = 0;
+  SEC.gid = '<%= guild.id %>';
+  secRender();
+}
+
+function secRenderStrip() {
+  const strip = document.getElementById('secStrip');
+  if (!strip) return;
+  let html = SEC.list.map((s, i) => `
+    <button type="button" class="sec-chip${i === SEC.sel ? ' active' : ''}${s.enabled ? '' : ' off'}" role="tab" aria-selected="${i === SEC.sel}" onclick="secSelect(${i})">
+      <span class="sec-chip-emoji">${escHtml(s.emoji || '🎫')}</span>
+      <span class="sec-chip-lbl">${escHtml(s.label || 'بدون اسم')}</span>
+      <span class="sec-chip-x" role="button" title="حذف القسم" onclick="event.stopPropagation();secRemove(${i})"><i class="fas fa-xmark"></i></span>
+    </button>`).join('');
+  if (SEC.list.length < SEC_MAX_SECTIONS) {
+    html += `<button type="button" class="sec-chip-add" onclick="secAdd()"><i class="fas fa-plus"></i> إضافة</button>`;
+  }
+  strip.innerHTML = html || `<div class="sec-empty"><i class="fas fa-layer-group"></i>لا توجد أقسام بعد — أضف قسماً ليظهر للعضو في قائمة التذاكر</div>`;
+  const badge = document.getElementById('secCountBadge');
+  if (badge) badge.textContent = `${SEC.list.length} أقسام`;
+}
+
+function secRenderForm() {
+  const box = document.getElementById('secForm');
+  if (!box) return;
+  const s = secNow();
+  if (!s) { box.innerHTML = `<div class="sec-empty"><i class="fas fa-pen-ruler"></i>اختر قسماً من الأعلى لتحريره، أو أضف قسماً جديداً</div>`; return; }
+
+  const roleChips = SEC.roles.length
+    ? SEC.roles.map(r => {
+        const on = (s.supportRoleIds || []).includes(r.id);
+        return `<button type="button" class="sec-role-chip${on ? ' on' : ''}" onclick="secToggleRole('${r.id}', this)">
+          <span class="role-dot" style="background:#${(r.color || 0).toString(16).padStart(6, '0')}"></span>${escHtml(r.name)}</button>`;
+      }).join('')
+    : `<div class="sec-roles-empty"><i class="fas fa-info-circle"></i> لا توجد رتب متاحة — سيرثد القسم رتب الدعم العامة من صفحة «فريق الدعم».</div>`;
+
+  const fieldsHtml = (s.fields || []).map((f, fi) => `
+    <div class="sec-qrow">
+      <div class="sec-q-main">
+        <div class="sec-field">
+          <label><span class="sec-q-idx">${fi + 1}</span> نص السؤال <span style="color:var(--text-dim);font-weight:600">— يظهر للعضو كعنوان</span></label>
+          <input type="text" maxlength="45" value="${escHtml(f.label)}" placeholder="مثال: الملخص" oninput="secSetField(${fi},'label',this.value)">
+          <span class="sec-charcount${f.label.length > 45 ? ' over' : ''}">${f.label.length}/45</span>
+        </div>
+        <div class="sec-q-sub">
+          <div class="sec-field">
+            <label>النص البديل داخل الحقل</label>
+            <input type="text" maxlength="100" value="${escHtml(f.placeholder)}" placeholder="مثال: اكتب سطراً واحداً" oninput="secSetField(${fi},'placeholder',this.value)">
+          </div>
+          <div class="sec-field">
+            <label>نوع الحقل</label>
+            <select onchange="secSetField(${fi},'style',this.value)">
+              <option value="short"${f.style === 'short' ? ' selected' : ''}>سطر قصير</option>
+              <option value="paragraph"${f.style === 'paragraph' ? ' selected' : ''}>فقرة طويلة</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="sec-q-tools">
+        <label class="sec-switch" title="حقل إلزامي">
+          <input type="checkbox"${f.required ? ' checked' : ''} onchange="secSetField(${fi},'required',this.checked)">
+          <span class="sec-track"></span>
+          <span class="sec-switch-lbl">إلزامي</span>
+        </label>
+        <button type="button" class="sec-icon-btn" title="أعلى" onclick="secMoveField(${fi},-1)" ${fi === 0 ? 'disabled' : ''}><i class="fas fa-arrow-up"></i></button>
+        <button type="button" class="sec-icon-btn" title="أسفل" onclick="secMoveField(${fi},1)" ${fi === (s.fields || []).length - 1 ? 'disabled' : ''}><i class="fas fa-arrow-down"></i></button>
+        <button type="button" class="sec-icon-btn danger" title="حذف السؤال" onclick="secRemoveField(${fi})"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+
+  const total = (s.fields || []).length;
+  const addQ = `<button type="button" class="sec-addq" onclick="secAddField()" ${total >= SEC_MAX_FIELDS ? 'disabled' : ''}>
+      <i class="fas fa-plus"></i> إضافة سؤال</button>
+    ${total >= SEC_MAX_FIELDS ? `<small class="field-hint"><i class="fas fa-circle-info"></i> بلغت الحد الأقصى: ديسكورد يسمح بـ 5 أسئلة في النموذج الواحد.</small>` : ''}`;
+
+  const idx = SEC.sel;
+  box.innerHTML = `
+    <div class="sec-block">
+      <div class="sec-block-head"><i class="fas fa-tag"></i><strong>هوية القسم</strong>
+        <span class="sec-block-note">الرمز والاسم يظهران في قائمة بنل التذاكر</span></div>
+      <div class="sec-grid sec-grid-3">
+        <div class="sec-field">
+          <label>الرمز</label>
+          <input type="text" class="sec-emoji-in" maxlength="2" value="${escHtml(s.emoji)}" oninput="secSet(${idx},'emoji',this.value)">
+        </div>
+        <div class="sec-field">
+          <label>اسم القسم</label>
+          <input type="text" maxlength="100" value="${escHtml(s.label)}" placeholder="مثال: الدعم الفني" oninput="secSet(${idx},'label',this.value)">
+        </div>
+        <div class="sec-field">
+          <label class="sec-switch">
+            <input type="checkbox"${s.enabled ? ' checked' : ''} onchange="secSet(${idx},'enabled',this.checked);this.closest('.sec-field').querySelector('.sec-switch-lbl').textContent=this.checked?'ظاهر':'مخفي'">
+            <span class="sec-track"></span>
+            <span class="sec-switch-lbl">${s.enabled ? 'ظاهر' : 'مخفي'}</span>
+          </label>
+        </div>
+      </div>
+      <div class="sec-grid sec-grid-2" style="margin-top:12px">
+        <div class="sec-field">
+          <label>شرح القسم</label>
+          <input type="text" maxlength="100" value="${escHtml(s.description)}" placeholder="سطر قصير يظهر تحت الاسم" oninput="secSet(${idx},'description',this.value)">
+        </div>
+        <div class="sec-field">
+          <label>لون إمضبد التذكرة</label>
+          <input type="color" value="${escHtml(s.color || '#5865f2')}" oninput="secSet(${idx},'color',this.value)" style="height:38px;padding:3px">
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-block">
+      <div class="sec-block-head"><i class="fas fa-user-shield"></i><strong>فريق هذا القسم</strong>
+        <span class="sec-block-note">اختياري</span></div>
+      <div class="sec-roles">${roleChips}</div>
+      <small class="field-hint"><i class="fas fa-circle-info"></i> اتركها فارغة ليستلم رتب الدعم العامة، أو حدّد رتباً لتسليم تذاكر هذا القسم لها حصراً.</small>
+    </div>
+
+    <div class="sec-block">
+      <div class="sec-block-head"><i class="fas fa-list-check"></i><strong>أسئلة النموذج</strong>
+        <span class="sec-block-note">${total} / ${SEC_MAX_FIELDS}</span></div>
+      <div class="sec-fields">${fieldsHtml || `<div class="sec-empty"><i class="fas fa-inbox"></i>لا أسئلة بعد — ديسكورد لن يفتح نموذجاً فارغاً، أضف سؤالاً على الأقل</div>`}</div>
+      ${addQ}
+    </div>
+
+    <div class="sec-block">
+      <div class="sec-block-head"><i class="fas fa-arrows-up-down"></i><strong>الترتيب والحذف</strong></div>
+      <div class="sec-q-tools" style="justify-content:space-between">
+        <span style="font-size:.76rem;color:var(--text-dim)">رقم ${idx + 1} من ${SEC.list.length}</span>
+        <span style="display:flex;gap:6px">
+          <button type="button" class="sec-icon-btn" title="تحريك للأعلى" onclick="secMove(${idx},-1)" ${idx === 0 ? 'disabled' : ''}><i class="fas fa-arrow-up"></i></button>
+          <button type="button" class="sec-icon-btn" title="تحريك للأسفل" onclick="secMove(${idx},1)" ${idx === SEC.list.length - 1 ? 'disabled' : ''}><i class="fas fa-arrow-down"></i></button>
+          <button type="button" class="sec-icon-btn" title="تكرار القسم" onclick="secDuplicate(${idx})"><i class="fas fa-copy"></i></button>
+          <button type="button" class="sec-icon-btn danger" title="حذف القسم" onclick="secRemove(${idx})"><i class="fas fa-trash"></i></button>
+        </span>
+      </div>
+    </div>`;
+}
+
+function secRenderPreview() {
+  const selBox = document.getElementById('dpSelect');
+  const modalBox = document.getElementById('dpModal');
+  if (selBox) {
+    selBox.innerHTML = SEC.list.map(s => `
+      <div class="dp-opt${s.enabled ? '' : ' off'}" style="border-inline-start-color:${escHtml(s.color || 'transparent')}">
+        <span class="dp-opt-emoji">${escHtml(s.emoji || '🎫')}</span>
+        <span class="dp-opt-main">
+          <span class="dp-opt-name">${escHtml(s.label || 'بدون اسم')}</span>
+          ${s.description ? `<span class="dp-opt-desc">${escHtml(s.description)}</span>` : ''}
+        </span>
+        ${s.enabled ? '' : `<span class="dp-opt-off-badge">مخفي</span>`}
+      </div>`).join('') || `<div class="dp-opt"><span class="dp-opt-desc">لا توجد أقسام</span></div>`;
+  }
+  const s = secNow();
+  if (modalBox) {
+    if (!s) { modalBox.innerHTML = `<div class="dp-modal-empty">اختر قسماً لمعاينة نموذجه</div>`; return; }
+    const fs = (s.fields || []);
+    modalBox.innerHTML = `
+      <div class="dp-modal-title">${escHtml(s.emoji || '🎫')} ${escHtml(s.label || 'بدون اسم')}</div>
+      ${fs.length ? fs.map(f => `
+        <div class="dp-mfield">
+          <div class="dp-mfield-label">${escHtml(f.label)}${f.required ? '<span class="dp-mfield-req">*</span>' : ''}</div>
+          <div class="dp-mfield-box${f.style === 'paragraph' ? ' para' : ''}">${escHtml(f.placeholder || '…')}</div>
+        </div>`).join('')
+        : `<div class="dp-modal-empty"><i class="fas fa-triangle-exclamation" style="color:#fbbf24"></i> لا أسئلة بعد — لن يفتح ديسكورد نموذجاً فارغاً</div>`}`;
+  }
+}
+
+function secRender() {
+  if (SEC.sel >= SEC.list.length) SEC.sel = Math.max(0, SEC.list.length - 1);
+  secRenderStrip(); secRenderForm(); secRenderPreview();
+}
+
+/* اختيار قسم من الشريط — يُعيد بناء النموذج والمعاينة معاً. */
+function secSelect(i) {
+  if (!SEC.list[i]) return;
+  SEC.sel = i;
+  secRender();
+}
+
+function secMarkDirty() {
+  SEC.dirty = true;
+  const st = document.getElementById('secSyncStatus');
+  if (st && !st.dataset.busy) { st.className = 'sync-warn'; st.innerHTML = '<i class="fas fa-circle"></i> تغييرات غير محفوظة'; }
+}
+
+/* ── تعديلات الحقول النصية: تحديث الحالة + المعاينة فقط ── */
+function secSet(i, key, value) {
+  if (!SEC.list[i]) return;
+  SEC.list[i][key] = value;
+  secRenderStrip(); secRenderPreview(); secMarkDirty();
+}
+function secSetField(fi, key, value) {
+  const s = secNow(); if (!s || !s.fields[fi]) return;
+  s.fields[fi][key] = value;
+  if (key === 'label' || key === 'placeholder') {
+    const row = document.querySelectorAll('.sec-qrow')[fi];
+    const cnt = row && row.querySelector('.sec-q-main .sec-field .sec-charcount');
+    if (cnt && key === 'label') cnt.textContent = `${String(value).length}/45`;
+  }
+  secRenderPreview(); secMarkDirty();
+}
+function secToggleRole(id, btn) {
+  const s = secNow(); if (!s) return;
+  s.supportRoleIds = s.supportRoleIds || [];
+  const at = s.supportRoleIds.indexOf(id);
+  if (at >= 0) s.supportRoleIds.splice(at, 1); else s.supportRoleIds.push(id);
+  if (btn) btn.classList.toggle('on', at < 0);
+  secMarkDirty();
+}
+
+/* ── تغييرات بنيوية ── */
+function secAdd() {
+  if (SEC.list.length >= SEC_MAX_SECTIONS) { showToast('الحد الأقصى 25 قسماً في ديسكورد', '⚠️'); return; }
+  let n = SEC.list.length + 1;
+  let id = `section-${n}`;
+  while (SEC.list.some(s => s.id === id)) { n++; id = `section-${n}`; }
+  SEC.list.push({ id, emoji: '🎫', label: `قسم ${n}`, description: '', color: '#5865f2', enabled: true, supportRoleIds: [], fields: [{ id: 'title', label: 'الملخص', placeholder: 'اكتب سطراً واحداً', style: 'short', required: true, maxLength: 100 }] });
+  SEC.sel = SEC.list.length - 1;
+  secRender(); secMarkDirty();
+}
+function secRemove(i) {
+  if (!SEC.list[i]) return;
+  showToast('اضغط مرة أخرى للتأكيد', '⚠️');
+  if (window.__secConfirm === i) { window.__secConfirm = null; }
+  else { window.__secConfirm = i; setTimeout(() => { if (window.__secConfirm === i) window.__secConfirm = null; }, 3200); return; }
+  SEC.list.splice(i, 1);
+  if (SEC.sel >= SEC.list.length) SEC.sel = Math.max(0, SEC.list.length - 1);
+  secRender(); secMarkDirty();
+}
+function secMove(i, dir) {
+  const j = i + dir;
+  if (!SEC.list[i] || j < 0 || j >= SEC.list.length) return;
+  const [m] = SEC.list.splice(i, 1);
+  SEC.list.splice(j, 0, m);
+  SEC.sel = j;
+  secRender(); secMarkDirty();
+}
+function secDuplicate(i) {
+  if (SEC.list.length >= SEC_MAX_SECTIONS) { showToast('الحد الأقصى 25 قسماً في ديسكورد', '⚠️'); return; }
+  const copy = secClone([SEC.list[i]])[0];
+  copy.id = copy.id + '-copy';
+  copy.label = (copy.label || 'قسم') + ' (نسخة)';
+  SEC.list.splice(i + 1, 0, copy);
+  SEC.sel = i + 1;
+  secRender(); secMarkDirty();
+}
+function secAddField() {
+  const s = secNow(); if (!s) return;
+  s.fields = s.fields || [];
+  if (s.fields.length >= SEC_MAX_FIELDS) { showToast('ديسكورد يسمح بـ 5 أسئلة فقط في النموذج', '⚠️'); return; }
+  let n = s.fields.length + 1;
+  while (s.fields.some(f => f.id === 'q' + n)) n++;
+  s.fields.push({ id: 'q' + n, label: '', placeholder: '', style: 'short', required: false, maxLength: 500 });
+  secRenderForm(); secRenderPreview(); secMarkDirty();
+}
+function secRemoveField(fi) {
+  const s = secNow(); if (!s || !s.fields[fi]) return;
+  s.fields.splice(fi, 1);
+  secRenderForm(); secRenderPreview(); secMarkDirty();
+}
+function secMoveField(fi, dir) {
+  const s = secNow(); if (!s) return;
+  const j = fi + dir;
+  if (!s.fields[fi] || j < 0 || j >= s.fields.length) return;
+  const [m] = s.fields.splice(fi, 1);
+  s.fields.splice(j, 0, m);
+  secRenderForm(); secRenderPreview(); secMarkDirty();
+}
+
+function secReset() {
+  showToast('جارٍ استعادة الأقسام الافتراضية...', '⏳');
+  fetch(`/settings/${SEC.gid}/ticket-sections`)
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) throw new Error('bad');
+      SEC.list = secClone(d.defaults || []);
+      SEC.sel = 0;
+      secRender(); secMarkDirty();
+      showToast('استُعيدت الأقسام الافتراضية — اضغط «حفظ الأقسام» للتطبيق', '✅');
+    })
+    .catch(() => showToast('تعذّر جلب الأقسام الافتراضية', '⚠️'));
+}
+
+function secSyncUi(ok, msg) {
+  const el = document.getElementById('secSyncStatus');
+  if (!el) return;
+  if (ok === true) { el.className = 'sync-ok'; el.innerHTML = '<i class="fas fa-check-circle"></i> متزامن مع البوت الآن'; }
+  else if (ok === false) { el.className = 'sync-warn'; el.innerHTML = '<i class="fas fa-circle"></i> البوت غير متصل — ستُطبق الأقسام تلقائياً خلال ثوانٍ'; }
+  else if (msg) { el.className = 'sync-idle'; el.innerHTML = '<i class="fas fa-circle"></i> ' + msg; }
+}
+
+async function secSave() {
+  const btn = document.getElementById('secSaveBtn');
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ...'; }
+  secSyncUi(null, 'جارٍ الحفظ...');
+
+  // تحذير ودّي إذا كان هناك قسم مفعّل بلا أسئلة (النموذج لن يفتحه ديسكورد).
+  const emptyOnes = SEC.list.filter(s => s.enabled && !(s.fields || []).length);
+  if (emptyOnes.length) showToast(`تنبيه: ${emptyOnes.length} قسم مفعّل بلا أسئلة — سيرفض ديسكورد فتح نموذجه`, '⚠️');
+
+  try {
+    const res = await fetch(`/settings/${SEC.gid}/ticket-sections`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sections: SEC.list }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      SEC.list = secClone(data.sections || SEC.list);
+      SEC.sel = 0;
+      SEC.dirty = false;
+      secRender();
+      if (data.synced) secSyncUi(true);
+      else secSyncUi(false);
+      showToast(`حُفظت ${SEC.list.length} أقسام${data.refreshed ? ' وعُدّل البنل فوراً' : ''}`, '✅');
+    } else {
+      throw new Error(data.error || 'فشل الحفظ');
+    }
+  } catch (e) {
+    secSyncUi(false);
+    showToast('تعذّر حفظ الأقسام — ' + (e.message || 'خطأ'), '⚠️');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+  }
+}
+
+secInit();
 waInitEditor();
 ciInitEditor();
 initCustomImages();

@@ -1,6 +1,8 @@
-﻿<%- include('_partials/header', { pageTitle: 'إعدادات التذاكر', pageIcon: 'fa-gear', pageDesc: 'بنل فتح التذاكر، تصنيف الأعضاء، التصنيف الداخلي، وسجل التذاكر — أربع خطوات مرتبطة.' }) %>
+﻿<%- include('_partials/header', { pageTitle: 'إعدادات التذاكر', pageIcon: 'fa-gear', pageDesc: 'بنل فتح التذاكر، أقسام التذاكر القابلة للتخصيص، التصنيف الداخلي، وسجل التذاكر — خطوات مرتبطة.' }) %>
 <form id="settingsForm" onsubmit="saveSettings(event)">
   <%- include('_partials/tickets') %>
+
+  <%- include('_partials/ticket-sections') %>
 
   <div class="card glass custom-images-card st-section" id="st-images">
     <div class="card-header st-sec-head">

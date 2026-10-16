@@ -1,0 +1,83 @@
+  <!-- ⑥ أقسام التذاكر -->
+  <%
+    // JSON inside a single-quoted attribute: escape the four characters that can
+    // end the attribute or start an entity/tag, so an apostrophe in a section
+    // name (e.g. "Don't") cannot break the page.
+    const secJson = (v) => JSON.stringify(v)
+      .replace(/&/g, '\\u0026').replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e').replace(/'/g, '\\u0027');
+  %>
+  <div class="card glass sections-card st-section" id="st-sections"
+       data-sections='<%- secJson(ticketSections) %>'
+       data-roles='<%- secJson(roles.filter(r => r.name !== "@everyone" && !r.managed).map(r => ({ id: String(r.id), name: r.name, color: Number(r.color || 0) }))) %>'>
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">6</span>
+      <h3><i class="fas fa-layer-group"></i> أقسام التذاكر</h3>
+      <span class="card-badge" id="secCountBadge">0 أقسام</span>
+    </div>
+    <p class="card-desc">
+      هذه الأقسام هي ما يظهر للعضو داخل قائمة «نوع التذكرة» على بنل التذاكر.
+      اضبط اسم كل قسم ورمزه ولون إمضبد التذكرة، والأسئلة التي تسأله بعد اختياره،
+      ورتبه بالسحب أو السهمين — ثم <b>حُفظت الأقسام تُعاد بناء البنل فوراً</b>.
+    </p>
+
+    <div class="sec-layout">
+      <!-- ── محرّر الأقسام ── -->
+      <div class="sec-editor">
+        <div class="sec-strip-wrap">
+          <div class="sec-strip" id="secStrip" role="tablist" aria-label="أقسام التذاكر"></div>
+        </div>
+
+        <div class="sec-form" id="secForm"></div>
+
+        <div class="sec-addbar">
+          <button type="button" class="btn-secondary" onclick="secAdd()">
+            <i class="fas fa-plus"></i> إضافة قسم
+          </button>
+          <button type="button" class="btn-secondary" onclick="secReset()">
+            <i class="fas fa-undo"></i> استعادة الافتراضي
+          </button>
+        </div>
+      </div>
+
+      <!-- ── معاينة حيّة على شكل ديسكورد ── -->
+      <aside class="sec-preview">
+        <div class="sec-preview-head">
+          <i class="fas fa-eye"></i> معاينة البنل
+          <span class="em-live-dot" aria-hidden="true"></span>
+        </div>
+
+        <div class="dp-msg">
+          <div class="dp-embed" style="border-color:#5865f2">
+            <div class="dp-embed-title"><span class="dp-emoji">🎫</span> فتح تذكرة</div>
+            <div class="dp-embed-desc">اختر نوع التذكرة من القائمة أدناه، وسيفتح البوت لك غرفة خاصة مع فريق الدعم.</div>
+            <div class="dp-select" id="dpSelect"></div>
+          </div>
+        </div>
+
+        <div class="sec-preview-head">
+          <i class="fas fa-window-maximize"></i> نموذج القسم المحدَّد
+        </div>
+        <div class="dp-modal" id="dpModal"></div>
+
+        <small class="field-hint sec-limit-hint">
+          <i class="fas fa-info-circle"></i>
+          ديسكورد يسمح بـ <b>25 قسماً</b> كحد أقصى في القائمة، وبـ <b>5 أسئلة</b> في نموذج كل قسم —
+          ويقصّ الموقع ما يزيد عن ذلك تلقائياً.
+        </small>
+      </aside>
+    </div>
+
+    <!-- شريط حفظ خاص بهذه البطاقة -->
+    <div class="actions-bar st-actions sec-savebar">
+      <div class="st-actions-sync">
+        <span id="secSyncStatus" class="sync-idle"><i class="fas fa-circle"></i> مزامنة مع البوت عند الحفظ</span>
+      </div>
+      <div class="st-actions-btns">
+        <button type="button" class="btn-secondary" onclick="secSave()"><i class="fas fa-cloud-upload-alt"></i> مزامنة الآن</button>
+        <button type="button" class="btn-primary" id="secSaveBtn" onclick="secSave()">
+          <i class="fas fa-save"></i> حفظ الأقسام
+        </button>
+      </div>
+    </div>
+  </div>
