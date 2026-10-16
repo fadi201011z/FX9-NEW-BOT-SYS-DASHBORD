@@ -21,13 +21,15 @@
       ورتبه بالسحب أو السهمين — ثم <b>حُفظت الأقسام تُعاد بناء البنل فوراً</b>.
     </p>
 
+    <!-- شريط الأقسام بعرض البطاقة كاملاً: أربعة في الصف والخامس تحتها بنص واضح.
+         داخل عمود المحرّر (≈390px) كانت أربعة أعمدة تحشر الاسم في ~16px فيختفي. -->
+    <div class="sec-strip-wrap">
+      <div class="sec-strip" id="secStrip" role="tablist" aria-label="أقسام التذاكر"></div>
+    </div>
+
     <div class="sec-layout">
       <!-- ── محرّر الأقسام ── -->
       <div class="sec-editor">
-        <div class="sec-strip-wrap">
-          <div class="sec-strip" id="secStrip" role="tablist" aria-label="أقسام التذاكر"></div>
-        </div>
-
         <div class="sec-form" id="secForm"></div>
 
         <div class="sec-addbar">

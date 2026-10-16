@@ -1,4 +1,9 @@
 <style>
+  /* أقسام التذاكر تقرأ `--text-dim` وهو متغيّر لم يُعرّف في أي مكان، فكان كل
+     استخدام له يرجع للون النص الكامل بدل اللون الخافت. --nx-muted هو درجة
+     الخفوت في لوحة الألوان نفسها، وهذا يعطيه القيمة التي كُتب من أجلها. */
+  :root { --text-dim: var(--nx-muted, #858b9d); }
+
   .st-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .st-guild { color: var(--primary); font-weight: 700; }
   .st-prem-chip {
@@ -169,6 +174,20 @@
     flex-wrap: wrap;
     margin: 22px 2px 10px;
   }
+  /* شريط الحفظ الذي تشترك فيه كل صفحات الإعدادات. هذه الأصناف الثلاثة لم يكن
+     لها أي قاعدة أصلاً، فكانت مجموعة الأزرار تضع زرّيها كبلوكين (فوق بعض،
+     وبطولين مختلفين لأن أحدهما flex والآخر inline-flex). منحها صفّاً مرناً
+     وزرّين بشكل واحد يصلح الأمرين. */
+  .st-actions { align-items: center; justify-content: space-between; gap: 12px 16px; }
+  .st-actions-sync { display: inline-flex; align-items: center; min-width: 0; }
+  .st-actions-btns { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .st-actions .btn-secondary,
+  .st-actions .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 20px; border-radius: 12px; font-size: .92rem; line-height: 1;
+    white-space: nowrap; border: 1px solid transparent;
+  }
+  .st-actions .btn-secondary { border-color: var(--border); }
   .btn-secondary {
     padding: 12px 22px;
     border-radius: 12px;
@@ -604,9 +623,11 @@
 
   /* شريط الأقسام */
   .sec-strip-wrap { margin-bottom: 14px; }
-  .sec-strip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: thin; }
+  /* أربعة أقسام في الصف، والخامس ينزل تحتها — بدل أن تتوارى البقية خلف تمرير
+     أفقي. */
+  .sec-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 4px 2px 10px; }
   .sec-chip {
-    position: relative; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px;
+    position: relative; min-width: 0; display: inline-flex; align-items: center; gap: 8px;
     padding: 9px 12px; border-radius: 11px; cursor: pointer; user-select: none;
     background: rgba(237,240,255,0.03); border: 1px solid var(--border);
     transition: border-color .18s ease, background .18s ease, transform .18s ease;
@@ -615,14 +636,15 @@
   .sec-chip:hover { border-color: rgba(88,101,242,0.5); transform: translateY(-1px); }
   .sec-chip.active { border-color: var(--primary); background: rgba(88,101,242,0.12); box-shadow: 0 0 0 3px rgba(88,101,242,0.14); }
   .sec-chip.off { opacity: .48; }
-  .sec-chip .sec-chip-emoji { font-size: 1.05rem; line-height: 1; }
+  .sec-chip .sec-chip-emoji { font-size: 1.05rem; line-height: 1; flex: 0 0 auto; }
+  .sec-chip .sec-chip-lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sec-chip .sec-chip-x {
     margin-inline-start: 2px; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
     border-radius: 6px; background: rgba(255,83,112,0.14); color: #ff6b81; font-size: 10px; cursor: pointer;
   }
   .sec-chip .sec-chip-x:hover { background: rgba(255,83,112,0.3); }
   .sec-chip-add {
-    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 11px;
+    min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px; border-radius: 11px;
     border: 1.5px dashed var(--border); background: transparent; color: var(--text-dim);
     cursor: pointer; font-size: .82rem; font-weight: 600; transition: color .18s ease, border-color .18s ease;
   }
@@ -696,13 +718,24 @@
   .sec-empty { text-align: center; color: var(--text-dim); padding: 30px 10px; font-size: .84rem; }
   .sec-empty i { display: block; font-size: 1.6rem; margin-bottom: 8px; opacity: .6; }
 
-  /* مفتاح التشغيل */
+  /* مفتاح التشغيل. الكرة تُوضع بحدود منطقية (inset-inline) بدل translateX،
+     لأن المتصفح في RTL كان يزيح الكرة المفعّلة 19px يساراً من عند left:3px
+     فتخرج من المسار تماماً. هنا تنتقل من بداية المسار إلى نهايته أياً كان
+     الاتجاه. */
   .sec-switch { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; user-select: none; }
   .sec-switch input { display: none; }
-  .sec-switch .sec-track { width: 42px; height: 23px; border-radius: 999px; background: rgba(237,240,255,0.1); position: relative; transition: background .18s ease; }
-  .sec-switch .sec-track::after { content: ''; position: absolute; top: 3px; inset-inline-end: 3px; width: 17px; height: 17px; border-radius: 50%; background: #fff; transition: transform .18s ease; }
-  .sec-switch input:checked + .sec-track { background: #00c853; }
-  .sec-switch input:checked + .sec-track::after { transform: translateX(-19px); }
+  .sec-switch .sec-track {
+    position: relative; flex: 0 0 auto; width: 42px; height: 23px; border-radius: 999px;
+    background: rgba(237,240,255,0.14); border: 1px solid rgba(237,240,255,0.10);
+    transition: background .18s ease, border-color .18s ease;
+  }
+  .sec-switch .sec-track::after {
+    content: ''; position: absolute; top: 2px; inset-inline-start: 2px; width: 17px; height: 17px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.4);
+    transition: inset-inline-start .18s ease;
+  }
+  .sec-switch input:checked + .sec-track { background: #00c853; border-color: transparent; }
+  .sec-switch input:checked + .sec-track::after { inset-inline-start: calc(100% - 19px); }
   .sec-switch .sec-switch-lbl { font-size: .78rem; font-weight: 700; color: var(--text-dim); }
   .sec-switch input:checked ~ .sec-switch-lbl { color: #00c853; }
 
@@ -743,8 +776,8 @@
   .dp-mfield-box.para { min-height: 62px; }
   .dp-modal-empty { color: #6d7178; font-size: .76rem; text-align: center; padding: 18px 6px; }
 
-  .sec-strip::-webkit-scrollbar, .sec-roles::-webkit-scrollbar { height: 6px; width: 6px; }
-  .sec-strip::-webkit-scrollbar-thumb, .sec-roles::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+  .sec-roles::-webkit-scrollbar { height: 6px; width: 6px; }
+  .sec-roles::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
 
   @media (max-width: 900px) {
     .sec-layout { grid-template-columns: 1fr; }
@@ -752,6 +785,7 @@
   }
   @media (max-width: 620px) {
     .sec-grid-3, .sec-grid-2, .sec-qrow, .sec-qrow .sec-q-sub { grid-template-columns: 1fr; }
+    .sec-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .sec-q-tools { justify-content: flex-start; }
   }
 </style>
