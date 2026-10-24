@@ -31,7 +31,6 @@ import devRoutes from './routes/dev.js';
 import notificationRoutes from './routes/notifications.js';
 
 import homeRoutes from './routes/home.js';
-import cronRoutes from './routes/cron.js';
 import { botFetch, botPost } from './services/botApi.js';
 import { botGuildIds, railGuilds } from './services/guildRail.js';
 
@@ -255,7 +254,6 @@ app.use('/backup', backupRoutes);
 app.use('/alerts', alertRoutes);
 app.use('/api', statusRoutes);
 app.use('/api/user', apiRoutes);
-app.use('/api/cron', cronRoutes);
 app.use('/dev', devRoutes);
 app.use('/notifications', notificationRoutes);
 
@@ -468,63 +466,57 @@ app.use((err, req, res, _next) => {
   res.status(500).render('error', { layout: false, message: 'حدث خطأ داخلي في الخادم.', user: req.session?.user || null });
 });
 
-// ─── Start Server (only in non-serverless environments) ──────────────────
-const isVercel = process.env.VERCEL || process.env.VERCEL_ENV;
+// ─── Start Server ────────────────────────────────────────────────────────
+const server = app.listen(config.port, '0.0.0.0', () => {
+  console.log('═══════════════════════════════════════════════════');
+  console.log(`  Kratos Dashboard v1.0.0`);
+  console.log(`  Server  → http://localhost:${config.port}`);
+  console.log(`  Mode    → ${config.nodeEnv}`);
+  console.log(`  WS      → ws://localhost:${config.port}/ws`);
+  console.log('═══════════════════════════════════════════════════');
+});
 
-let server;
-let ws;
-
-if (!isVercel) {
-  server = app.listen(config.port, '0.0.0.0', () => {
-    console.log('═══════════════════════════════════════════════════');
-    console.log(`  Kratos Dashboard v1.0.0`);
-    console.log(`  Server  → http://localhost:${config.port}`);
-    console.log(`  Mode    → ${config.nodeEnv}`);
-    console.log(`  WS      → ws://localhost:${config.port}/ws`);
-    console.log('═══════════════════════════════════════════════════');
-  });
-
-  // ─── Periodic Admin Sync (every 5 minutes) ──────────────────────────────────
-  import('./database.js').then(({ getAllGuildIdsWithAdminRoles, pruneLogs }) => {
-    setInterval(async () => {
+// ─── Periodic Admin Sync (every 5 minutes) ──────────────────────────────────
+import { getAllGuildIdsWithAdminRoles, pruneLogs } from './database.js';
+setInterval(async () => {
+  try {
+    const guildIds = await getAllGuildIdsWithAdminRoles();
+    if (guildIds.length === 0) return;
+    const { autoSyncAdmins } = await import('./routes/admins.js');
+    for (const guildId of guildIds) {
       try {
-        const guildIds = await getAllGuildIdsWithAdminRoles();
-        if (guildIds.length === 0) return;
-        const { autoSyncAdmins } = await import('./routes/admins.js');
-        for (const guildId of guildIds) {
-          try {
-            const result = await autoSyncAdmins(guildId, 'system');
-            if (result.added > 0 || result.removed > 0) {
-              console.log(`[AdminSync] ${guildId}: +${result.added} / -${result.removed}`);
-            }
-          } catch {}
+        const result = await autoSyncAdmins(guildId, 'system');
+        if (result.added > 0 || result.removed > 0) {
+          console.log(`[AdminSync] ${guildId}: +${result.added} / -${result.removed}`);
         }
-      } catch (err) {
-        console.error('[AdminSync] Error:', err.message);
-      }
-    }, 300_000);
-
-    // ─── Log Retention (every hour) ─────────────────────────────────────────────
-    async function runLogRetention() {
-      try {
-        const removed = await pruneLogs(config.logRetentionHours);
-        const total = removed.server + removed.activity + removed.audit;
-        if (total > 0) {
-          console.log(`[LogRetention] removed ${total} entries older than ${config.logRetentionHours}h`
-            + ` (server ${removed.server} / activity ${removed.activity} / audit ${removed.audit})`);
-        }
-      } catch (err) {
-        console.error('[LogRetention] Error:', err.message);
-      }
+      } catch {}
     }
-    runLogRetention();
-    const logRetentionTimer = setInterval(runLogRetention, 3600_000);
-    if (logRetentionTimer.unref) logRetentionTimer.unref();
-  });
+  } catch (err) {
+    console.error('[AdminSync] Error:', err.message);
+  }
+}, 300_000);
 
-  // ─── WebSocket ───────────────────────────────────────────────────────────
-  ws = setupWebSocket(server);
+// ─── Log Retention (every hour) ─────────────────────────────────────────────
+// Keeps ServerLog/Activity/AuditLog bounded so the logs page cannot grow into
+// a slow query or a crash on the free tier. The TTL index is the primary guard;
+// this sweep makes the window honour LOG_RETENTION_HOURS and trims immediately
+// at boot instead of waiting for Mongo's TTL monitor.
+async function runLogRetention() {
+  try {
+    const removed = await pruneLogs(config.logRetentionHours);
+    const total = removed.server + removed.activity + removed.audit;
+    if (total > 0) {
+      console.log(`[LogRetention] removed ${total} entries older than ${config.logRetentionHours}h`
+        + ` (server ${removed.server} / activity ${removed.activity} / audit ${removed.audit})`);
+    }
+  } catch (err) {
+    console.error('[LogRetention] Error:', err.message);
+  }
 }
+runLogRetention();
+const logRetentionTimer = setInterval(runLogRetention, 3600_000);
+if (logRetentionTimer.unref) logRetentionTimer.unref();
 
+// ─── WebSocket ───────────────────────────────────────────────────────────
+const ws = setupWebSocket(server);
 export { ws };
-export default app;

@@ -1,41 +1,15 @@
 let ws = null;
 let wsReconnectTimer = null;
-let pollingInterval = null;
-
-function startPolling() {
-  // Fallback polling for serverless environments (Vercel)
-  async function pollStatus() {
-    try {
-      const res = await fetch('/api/status');
-      const data = await res.json();
-      if (document.getElementById('botStatus')) {
-        if (data.botOnline) {
-          document.getElementById('botStatus').innerHTML = '<span class="status-dot online"></span><span>البوت متصل</span>';
-        } else {
-          document.getElementById('botStatus').innerHTML = '<span class="status-dot offline"></span><span>غير متصل</span>';
-        }
-      }
-    } catch {}
-  }
-  
-  pollStatus();
-  pollingInterval = setInterval(pollStatus, 30000);
-}
 
 function connectWebSocket() {
-  // Try WebSocket first, fall back to polling
-  try {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${window.location.host}/ws`;
 
+  try {
     ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log('[WS] Connected');
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
-      }
       if (document.getElementById('botStatus')) {
         document.getElementById('botStatus').innerHTML = '<span class="status-dot online"></span><span>البوت متصل</span>';
       }
@@ -58,12 +32,8 @@ function connectWebSocket() {
 
     ws.onerror = () => {
       ws?.close();
-      // Fall back to polling if WebSocket fails
-      if (!pollingInterval) startPolling();
     };
-  } catch {
-    startPolling();
-  }
+  } catch {}
 }
 
 function handleWSMessage(data) {
@@ -77,14 +47,14 @@ function handleWSMessage(data) {
       console.log('[WS] Subscribed to guild:', data.guildId);
       break;
     case 'alerts':
-      if (typeof updateAlerts === 'function') updateAlerts(data.alerts);
+      updateAlerts(data.alerts);
       break;
     case 'activity':
-      if (typeof updateActivity === 'function') updateActivity(data.activity);
+      updateActivity(data.activity);
       break;
     case 'notification':
-      if (typeof showToast === 'function') showToast(data.title || data.message);
-      if (typeof updateNotifBadge === 'function') updateNotifBadge(1);
+      showToast(data.title || data.message);
+      updateNotifBadge(1);
       break;
   }
 }
@@ -139,11 +109,4 @@ function updateNotifBadge(count) {
   }
 }
 
-// Try WebSocket, fall back to polling
 connectWebSocket();
-setTimeout(() => {
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
-    if (!pollingInterval) startPolling();
-  }
-}, 3000);
-

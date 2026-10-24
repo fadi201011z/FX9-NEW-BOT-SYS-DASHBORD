@@ -161,19 +161,15 @@ function fromDisk() {
   try {
     const out = [];
     for (const dir of fs.readdirSync(BOT_COMMANDS_DIR)) {
-      try {
-        const dirPath = path.join(BOT_COMMANDS_DIR, dir);
-        if (!fs.statSync(dirPath).isDirectory()) continue;
-        for (const file of fs.readdirSync(dirPath).filter(f => f.endsWith('.js'))) {
-          try {
-            const content = fs.readFileSync(path.join(dirPath, file), 'utf-8');
-            const name = content.match(/\.setName\(['"](.+?)['"]\)/);
-            if (!name) continue;
-            const desc = content.match(/\.setDescription\(['"](.+?)['"]\)/);
-            out.push({ name: name[1], description: desc ? desc[1] : '', category: dir, file });
-          } catch {}
-        }
-      } catch {}
+      const dirPath = path.join(BOT_COMMANDS_DIR, dir);
+      if (!fs.statSync(dirPath).isDirectory()) continue;
+      for (const file of fs.readdirSync(dirPath).filter(f => f.endsWith('.js'))) {
+        const content = fs.readFileSync(path.join(dirPath, file), 'utf-8');
+        const name = content.match(/\.setName\(['"](.+?)['"]\)/);
+        if (!name) continue;
+        const desc = content.match(/\.setDescription\(['"](.+?)['"]\)/);
+        out.push({ name: name[1], description: desc ? desc[1] : '', category: dir, file });
+      }
     }
     return out.length ? out : null;
   } catch {
