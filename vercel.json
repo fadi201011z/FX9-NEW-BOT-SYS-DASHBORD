@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.js"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/admin-sync",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/log-retention",
+      "schedule": "0 * * * *"
+    }
+  ]
+}

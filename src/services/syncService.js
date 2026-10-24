@@ -2,6 +2,8 @@ import { readdir } from 'fs/promises';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
+import config from '../config.js';
+import { botFetch } from './botApi.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMMANDS_DIR = path.join(__dirname, '..', '..', '..', 'NEW SYS BOT', 'src', 'commands');
@@ -52,28 +54,46 @@ const FALLBACK_COMMANDS = [
 ];
 
 export async function getDocumentation() {
+  // Try bot API first
+  try {
+    const res = await botFetch(`${config.botApiUrl}/api/commands`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const list = await res.json();
+      if (Array.isArray(list) && list.length > 0) {
+        return list.map(c => ({
+          name: c.name,
+          description: c.description || '',
+          category: c.category || 'info',
+          options: c.options || [],
+        }));
+      }
+    }
+  } catch {}
+
   const docs = [];
   const categories = ['setup', 'moderation', 'info', 'members', 'ticket', 'voice', 'notifications', 'announcement'];
 
-  for (const cat of categories) {
-    const dir = path.join(COMMANDS_DIR, cat);
-    let files;
-    try { files = await readdir(dir); } catch { continue; }
+  try {
+    for (const cat of categories) {
+      const dir = path.join(COMMANDS_DIR, cat);
+      let files;
+      try { files = await readdir(dir); } catch { continue; }
 
-    for (const file of files.filter(f => f.endsWith('.js'))) {
-      try {
-        const mod = await import(pathToFileURL(path.join(dir, file)).href);
-        if (mod.data) {
-          docs.push({
-            name: mod.data.name,
-            description: mod.data.description,
-            category: cat,
-            options: mod.data.options || [],
-          });
-        }
-      } catch {}
+      for (const file of files.filter(f => f.endsWith('.js'))) {
+        try {
+          const mod = await import(pathToFileURL(path.join(dir, file)).href);
+          if (mod.data) {
+            docs.push({
+              name: mod.data.name,
+              description: mod.data.description,
+              category: cat,
+              options: mod.data.options || [],
+            });
+          }
+        } catch {}
+      }
     }
-  }
+  } catch {}
 
   return docs.length > 0 ? docs : FALLBACK_COMMANDS;
 }
@@ -85,24 +105,35 @@ export function getCommandStats() {
   try {
     const dirs = readdirSync(COMMANDS_DIR);
     for (const dir of dirs) {
-      const dirPath = path.join(COMMANDS_DIR, dir);
-      if (!statSync(dirPath).isDirectory()) continue;
+      try {
+        const dirPath = path.join(COMMANDS_DIR, dir);
+        if (!statSync(dirPath).isDirectory()) continue;
 
-      const files = readdirSync(dirPath).filter(f => f.endsWith('.js'));
-      let count = 0;
+        const files = readdirSync(dirPath).filter(f => f.endsWith('.js'));
+        let count = 0;
 
-      for (const file of files) {
-        const content = readFileSync(path.join(dirPath, file), 'utf-8');
-        if (/\.setName\(['"`]/.test(content)) count++;
-      }
+        for (const file of files) {
+          try {
+            const content = readFileSync(path.join(dirPath, file), 'utf-8');
+            if (/\.setName\(['"`]/.test(content)) count++;
+          } catch {}
+        }
 
-      if (count > 0) {
-        perCategory[dir] = count;
-        total += count;
-      }
+        if (count > 0) {
+          perCategory[dir] = count;
+          total += count;
+        }
+      } catch {}
     }
   } catch {
     // fallback: count from FALLBACK_COMMANDS
+    for (const cmd of FALLBACK_COMMANDS) {
+      perCategory[cmd.category] = (perCategory[cmd.category] || 0) + 1;
+    }
+    total = FALLBACK_COMMANDS.length;
+  }
+
+  if (total === 0) {
     for (const cmd of FALLBACK_COMMANDS) {
       perCategory[cmd.category] = (perCategory[cmd.category] || 0) + 1;
     }
