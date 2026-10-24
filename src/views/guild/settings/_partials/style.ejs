@@ -617,6 +617,81 @@
     .em-field-row { grid-template-columns: 1fr; }
   }
 
+  /* ═══ ★ الرتب التلقائية ══════════════════════════════════════════════════ */
+  .ar-wrap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 0 20px; }
+  .ar-panel {
+    min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px;
+    border-radius: 14px; border: 1px solid var(--border); background: rgba(237,240,255,0.02);
+  }
+  .ar-panel-head { display: flex; align-items: center; gap: 10px; }
+  .ar-panel-icon {
+    flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(208,0,255,0.12); color: var(--primary);
+  }
+  .ar-panel-title { min-width: 0; }
+  .ar-panel-title strong { display: block; font-size: .9rem; }
+  .ar-panel-title small { display: block; margin-top: 2px; color: var(--text-dim); font-size: .74rem; }
+  .ar-count {
+    margin-inline-start: auto; flex: 0 0 auto; min-width: 26px; padding: 3px 9px;
+    border-radius: 999px; text-align: center; font-size: .76rem; font-weight: 800;
+    color: var(--primary); background: rgba(208,0,255,0.12); border: 1px solid rgba(208,0,255,0.3);
+  }
+  .ar-chips {
+    display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; padding: 8px;
+    border-radius: 10px; border: 1px dashed var(--border); background: rgba(0,0,0,0.15);
+  }
+  .ar-chips:empty::before { content: 'لم تُختر رتبة بعد'; color: var(--text-dim); font-size: .76rem; }
+  .ar-chip {
+    display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+    padding: 4px 8px; border-radius: 999px; font-size: .76rem; font-weight: 600;
+    background: rgba(237,240,255,0.06); border: 1px solid var(--border);
+  }
+  .ar-chip > span:not(.ar-dot) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ar-chip-x {
+    display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px;
+    border: 0; border-radius: 50%; background: transparent; color: var(--text-dim); cursor: pointer; font-size: .7rem;
+  }
+  .ar-chip-x:hover { color: #ff6b81; background: rgba(255,107,129,0.12); }
+  .ar-search {
+    display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+    border-radius: 10px; border: 1px solid var(--border); background: rgba(237,240,255,0.03);
+  }
+  .ar-search i { color: var(--text-dim); font-size: .82rem; }
+  .ar-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font-family: inherit; font-size: .82rem; }
+  .ar-clear { border: 0; background: transparent; color: var(--text-dim); font-family: inherit; font-size: .74rem; font-weight: 700; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+  .ar-clear:hover { color: #ff6b81; }
+  .ar-list { display: flex; flex-direction: column; gap: 3px; max-height: 232px; overflow-y: auto; padding-inline-end: 2px; }
+  .ar-list::-webkit-scrollbar { width: 6px; }
+  .ar-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+  .ar-role {
+    display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px;
+    border-radius: 9px; border: 1px solid transparent; background: transparent;
+    color: var(--text); font-family: inherit; font-size: .81rem; font-weight: 600;
+    text-align: start; cursor: pointer; transition: background .15s ease, border-color .15s ease;
+  }
+  .ar-role:hover { background: rgba(237,240,255,0.05); }
+  .ar-role.selected { background: rgba(208,0,255,0.10); border-color: rgba(208,0,255,0.45); }
+  .ar-check {
+    flex: 0 0 auto; width: 17px; height: 17px; border-radius: 5px; border: 1.5px solid var(--border);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: transparent; font-size: .6rem; transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .ar-role.selected .ar-check { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .ar-dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; }
+  .ar-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ar-members { margin-inline-start: auto; flex: 0 0 auto; color: var(--text-dim); font-size: .72rem; font-weight: 600; }
+  .ar-empty { padding: 22px 8px; text-align: center; color: var(--text-dim); font-size: .8rem; }
+  .ar-empty i { display: block; margin-bottom: 6px; font-size: 1.4rem; opacity: .6; }
+  .ar-note {
+    display: flex; align-items: flex-start; gap: 8px; margin: 14px 20px 0; padding: 10px 12px;
+    border-radius: 10px; font-size: .78rem; line-height: 1.6; color: var(--text-dim);
+    background: rgba(88,101,242,0.08); border: 1px solid rgba(88,101,242,0.25);
+  }
+  .ar-note i { margin-top: 2px; color: var(--primary); }
+  .ar-savebar { margin: 14px 20px 18px; }
+  @media (max-width: 820px) { .ar-wrap { grid-template-columns: 1fr; } }
+
   /* ═══ ⑥ أقسام التذاكر ═══════════════════════════════════════════════════ */
   .sec-layout { display: grid; grid-template-columns: minmax(0,1fr) 350px; gap: 18px; align-items: start; }
   .sec-editor { min-width: 0; }

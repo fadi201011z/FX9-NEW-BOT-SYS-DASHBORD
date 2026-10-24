@@ -1466,8 +1466,150 @@ async function secSave() {
   }
 }
 
+// ─── الرتب التلقائية (الأشخاص / البوتات) ───────────────────────────────────
+// حالتان مستقلتان، كل واحدة مجموعة معرّفات. البطاقة تُرسل القائمتين دفعة
+// واحدة إلى مسار مخصص، فيُحفظ ما اختاره المدير كما هو (بما في ذلك قائمة فارغة).
+const AR_STATE = { human: new Set(), bot: new Set() };
+let arReady = false;
+
+function arPanel(kind) { return document.querySelector('.ar-panel[data-kind="' + kind + '"]'); }
+
+function arInit() {
+  const card = document.getElementById('st-autoroles');
+  if (!card) return;
+  ['human', 'bot'].forEach(kind => {
+    const panel = arPanel(kind);
+    if (!panel) return;
+    panel.querySelectorAll('.ar-role.selected').forEach(b => AR_STATE[kind].add(b.dataset.roleId));
+    arRender(kind);
+  });
+  arReady = true;
+  const el = document.getElementById('arStatus');
+  if (el) { el.className = 'sync-idle'; el.innerHTML = '<i class="fas fa-circle"></i> مطابق للمحفوظ'; }
+}
+
+function arRender(kind) {
+  const panel = arPanel(kind);
+  if (!panel) return;
+  const chips = panel.querySelector('.ar-chips');
+  const count = panel.querySelector('.ar-count');
+  chips.innerHTML = '';
+  AR_STATE[kind].forEach(id => {
+    const btn = panel.querySelector('.ar-role[data-role-id="' + id + '"]');
+    const chip = document.createElement('span');
+    chip.className = 'ar-chip';
+    const dot = document.createElement('span');
+    dot.className = 'ar-dot';
+    dot.style.background = btn ? btn.dataset.color : '#888888';
+    const lbl = document.createElement('span');
+    lbl.textContent = btn ? btn.dataset.name : id;
+    const x = document.createElement('button');
+    x.type = 'button'; x.className = 'ar-chip-x'; x.title = 'إزالة';
+    x.innerHTML = '<i class="fas fa-xmark"></i>';
+    x.addEventListener('click', () => arRemove(kind, id));
+    chip.append(dot, lbl, x);
+    chips.appendChild(chip);
+  });
+  count.textContent = AR_STATE[kind].size;
+  const badge = document.getElementById('arTotalBadge');
+  if (badge) badge.textContent = (AR_STATE.human.size + AR_STATE.bot.size) + ' رتبة';
+  arDirty();
+}
+
+function arDirty() {
+  if (!arReady) return;
+  const el = document.getElementById('arStatus');
+  if (!el) return;
+  el.className = 'sync-warn';
+  el.innerHTML = '<i class="fas fa-circle"></i> تغييرات غير محفوظة';
+}
+
+function arToggle(kind, btn) {
+  const id = btn.dataset.roleId;
+  if (AR_STATE[kind].has(id)) { AR_STATE[kind].delete(id); btn.classList.remove('selected'); }
+  else {
+    if (AR_STATE[kind].size >= 10) { showToast('الحد الأقصى 10 رتب لكل نوع', 'warning'); return; }
+    AR_STATE[kind].add(id); btn.classList.add('selected');
+  }
+  arRender(kind);
+}
+
+function arRemove(kind, id) {
+  AR_STATE[kind].delete(id);
+  const btn = arPanel(kind) && arPanel(kind).querySelector('.ar-role[data-role-id="' + id + '"]');
+  if (btn) btn.classList.remove('selected');
+  arRender(kind);
+}
+
+function arClear(kind) {
+  AR_STATE[kind].clear();
+  const panel = arPanel(kind);
+  if (panel) panel.querySelectorAll('.ar-role.selected').forEach(b => b.classList.remove('selected'));
+  arRender(kind);
+}
+
+function arFilter(kind, q) {
+  q = String(q || '').trim().toLowerCase();
+  const panel = arPanel(kind);
+  if (!panel) return;
+  panel.querySelectorAll('.ar-role').forEach(btn => {
+    btn.style.display = (!q || btn.dataset.name.toLowerCase().includes(q)) ? '' : 'none';
+  });
+}
+
+function arReset() {
+  const card = document.getElementById('st-autoroles');
+  if (!card) return;
+  ['human', 'bot'].forEach(kind => {
+    AR_STATE[kind] = new Set(JSON.parse(card.dataset[kind] || '[]').map(String));
+    const panel = arPanel(kind);
+    if (panel) panel.querySelectorAll('.ar-role').forEach(b => b.classList.toggle('selected', AR_STATE[kind].has(b.dataset.roleId)));
+    arRender(kind);
+  });
+  const el = document.getElementById('arStatus');
+  if (el) { el.className = 'sync-idle'; el.innerHTML = '<i class="fas fa-circle"></i> استُعيد المحفوظ'; }
+}
+
+function arSyncUi(ok) {
+  const el = document.getElementById('arStatus');
+  if (!el) return;
+  if (ok === true) { el.className = 'sync-ok'; el.innerHTML = '<i class="fas fa-check-circle"></i> متزامن مع البوت الآن'; }
+  else { el.className = 'sync-warn'; el.innerHTML = '<i class="fas fa-circle"></i> البوت غير متصل — ستُطبَّق خلال ثوانٍ'; }
+}
+
+async function arSave() {
+  const btn = document.getElementById('arSaveBtn');
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ...'; }
+  try {
+    const res = await fetch('/settings/<%= guild.id %>/autoroles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ human: [...AR_STATE.human], bot: [...AR_STATE.bot] }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      const card = document.getElementById('st-autoroles');
+      if (card) {
+        card.dataset.human = JSON.stringify(data.human || []);
+        card.dataset.bot = JSON.stringify(data.bot || []);
+      }
+      arReady = true;
+      arSyncUi(data.synced);
+      showToast('✅ تم حفظ الرتب التلقائية' + (data.synced ? ' — مزامنة فورية مع البوت' : ' — ستُطبَّق تلقائياً خلال ثوانٍ'), 'success');
+    } else {
+      showToast('❌ ' + (data.error || 'فشل الحفظ'), 'error');
+    }
+  } catch {
+    showToast('❌ حدث خطأ في الاتصال', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+  }
+}
+
 secInit();
 waInitEditor();
 ciInitEditor();
 initCustomImages();
+arInit();
 </script>

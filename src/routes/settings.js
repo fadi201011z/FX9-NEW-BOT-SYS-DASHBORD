@@ -156,6 +156,16 @@ function sanitizeSections(input) {
   return out;
 }
 
+/**
+ * يحوّل قائمة رتب من الطلب إلى معرّفات Snowflake فريدة، بحد أقصى عشر رتب.
+ * نتحقق هنا لا في الواجهة فقط: الطلب يمكن أن يصل من خارج الصفحة.
+ */
+function sanitizeRoleList(value) {
+  const raw = Array.isArray(value) ? value : String(value ?? '').split(',');
+  const ids = raw.map((v) => String(v).trim()).filter((v) => /^\d{17,20}$/.test(v));
+  return [...new Set(ids)].slice(0, 10);
+}
+
 const router = Router();
 
 async function fetchGuildChannels(guildId) {
@@ -340,6 +350,39 @@ router.post('/:guildId/delete', isAuthenticated, hasGuildAccess, requireRole('ad
     logActivity(req.session.user.id, guildId, 'delete_setting', key, `حذف ${key}`, req.ip, req.sessionID);
 
     res.json({ success: true, key });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Auto-roles (general settings) ─────────────────────────────────────────
+// قائمتان مستقلتان: واحدة للأشخاص وواحدة للبوتات. تُخزَّن حتى وهي فارغة —
+// البوت يقرأ "" كـ«المدير أفرغ القائمة» والمفتاح الغائب كـ«لم يُضبط بعد»،
+// وهذا ما يسمح له بالرجوع إلى `autorole_id` القديم عند عدم الضبط.
+router.post('/:guildId/autoroles', isAuthenticated, hasGuildAccess, requireRole('admin'), sanitizeInput, async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const human = sanitizeRoleList(req.body.human);
+    const bot = sanitizeRoleList(req.body.bot);
+    const humanValue = human.join(',');
+    const botValue = bot.join(',');
+
+    const [oldHuman, oldBot] = await Promise.all([
+      getGuildConfig(guildId, 'autorole_human'),
+      getGuildConfig(guildId, 'autorole_bot'),
+    ]);
+
+    await Promise.all([
+      setGuildConfig(guildId, 'autorole_human', humanValue),
+      setGuildConfig(guildId, 'autorole_bot', botValue),
+    ]);
+
+    logAudit(req.session.user.id, guildId, 'update_setting', 'autorole_human', oldHuman?.value ?? null, humanValue, req.ip, req.sessionID);
+    logAudit(req.session.user.id, guildId, 'update_setting', 'autorole_bot', oldBot?.value ?? null, botValue, req.ip, req.sessionID);
+    logActivity(req.session.user.id, guildId, 'update_setting', 'الرتب التلقائية', `الأشخاص: ${human.length} / البوتات: ${bot.length}`, req.ip, req.sessionID);
+
+    const synced = await syncConfigToBot();
+    res.json({ success: true, synced, human, bot });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

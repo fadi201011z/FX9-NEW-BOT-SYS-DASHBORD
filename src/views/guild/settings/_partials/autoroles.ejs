@@ -1,0 +1,85 @@
+  <!-- ★ الرتب التلقائية -->
+  <%
+    const arList = (v) => String(v == null ? '' : v).split(',').map(s => s.trim()).filter(Boolean);
+    const arHuman = arList(config.autorole_human);
+    const arBot   = arList(config.autorole_bot);
+    const arRoles = (roles || []).filter(r => r.name !== '@everyone' && !r.managed);
+    const arColor = (c) => '#' + (Number(c || 0)).toString(16).padStart(6, '0');
+    const arHas = (ids, id) => ids.includes(String(id));
+    // JSON داخل خاصية بعلامة اقتباس مفردة: نهرّب ما يمكن أن ينهيها.
+    const arJson = (v) => JSON.stringify(v)
+      .replace(/&/g, '\\u0026').replace(/</g, '\\u003c')
+      .replace(/>/g, '\\u003e').replace(/'/g, '\\u0027');
+  %>
+  <div class="card glass ar-card st-section" id="st-autoroles"
+       data-human='<%- arJson(arHuman) %>' data-bot='<%- arJson(arBot) %>'>
+    <div class="card-header st-sec-head">
+      <span class="st-sec-num">★</span>
+      <h3><i class="fas fa-user-shield"></i> الرتب التلقائية</h3>
+      <span class="card-badge" id="arTotalBadge"><%= arHuman.length + arBot.length %> رتبة</span>
+    </div>
+    <p class="card-desc">
+      رتب تُمنح تلقائياً لحظة انضمام العضو — قائمة مستقلة للأشخاص وأخرى للبوتات.
+      يحتاج البوت صلاحية <b>إدارة الرتب</b> وأن تكون رتبته أعلى من كل رتبة تختارها هنا.
+    </p>
+
+    <div class="ar-wrap">
+      <% [['human', 'الأشخاص', 'fa-user', 'تُمنح لكل عضو بشري عند أول دخول'],
+          ['bot',   'البوتات', 'fa-robot', 'تُمنح لكل بوت يُضاف إلى السيرفر']].forEach(([kind, title, icon, desc]) => {
+        const ids = kind === 'human' ? arHuman : arBot; %>
+      <div class="ar-panel" data-kind="<%= kind %>">
+        <div class="ar-panel-head">
+          <span class="ar-panel-icon"><i class="fas <%= icon %>"></i></span>
+          <div class="ar-panel-title">
+            <strong><%= title %></strong>
+            <small><%= desc %></small>
+          </div>
+          <span class="ar-count"><%= ids.length %></span>
+        </div>
+
+        <div class="ar-chips"></div>
+
+        <div class="ar-search">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="ابحث عن رتبة..." oninput="arFilter('<%= kind %>', this.value)">
+          <button type="button" class="ar-clear" onclick="arClear('<%= kind %>')" title="مسح القائمة">مسح</button>
+        </div>
+
+        <div class="ar-list">
+          <% if (!arRoles.length) { %>
+            <div class="ar-empty"><i class="fas fa-user-tag"></i> لا توجد رتب متاحة — تأكد من اتصال البوت</div>
+          <% } %>
+          <% arRoles.forEach(r => { %>
+            <button type="button" class="ar-role<%= arHas(ids, r.id) ? ' selected' : '' %>"
+              data-role-id="<%= r.id %>" data-name="<%= r.name %>" data-color="<%= arColor(r.color) %>"
+              onclick="arToggle('<%= kind %>', this)">
+              <span class="ar-check"><i class="fas fa-check"></i></span>
+              <span class="ar-dot" style="background:<%= arColor(r.color) %>"></span>
+              <span class="ar-name"><%= r.name %></span>
+              <span class="ar-members"><%= r.members_count ?? 0 %></span>
+            </button>
+          <% }) %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+
+    <div class="ar-note">
+      <i class="fas fa-circle-info"></i>
+      <span>الرتب المختارة تظهر أعلاه كمعاينة لما سيحصل عليه العضو — بحد أقصى 10 رتب لكل نوع. إفراغ القائمة يعني «بدون رتبة تلقائية» لهذا النوع، والبوتات لا ترث رتب الأشخاص.</span>
+    </div>
+
+    <div class="actions-bar st-actions ar-savebar">
+      <div class="st-actions-sync">
+        <span id="arStatus" class="sync-idle"><i class="fas fa-circle"></i> لم تُحفظ التغييرات بعد</span>
+      </div>
+      <div class="st-actions-btns">
+        <button type="button" class="btn-secondary" onclick="arReset()">
+          <i class="fas fa-rotate-left"></i> استعادة المحفوظ
+        </button>
+        <button type="button" class="btn-primary" id="arSaveBtn" onclick="arSave()">
+          <i class="fas fa-save"></i> حفظ الرتب التلقائية
+        </button>
+      </div>
+    </div>
+  </div>

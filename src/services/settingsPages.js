@@ -49,6 +49,8 @@ export function buildSettingsLocals(data, guild, user) {
     ? { plan: cfg.premium_plan, daysLeft: Math.max(1, Math.ceil((premExp - Date.now()) / 86400000)) }
     : null;
   const imgCustom = CUSTOM_IMAGE_KEYS.filter(k => cfg[k]).length;
+  const arCount = ['autorole_human', 'autorole_bot']
+    .reduce((n, k) => n + String(cfg[k] == null ? '' : cfg[k]).split(',').filter(Boolean).length, 0);
 
   // مُهيّئات محرر صورة الترحيب: الموضع/الحجم/الإطار الافتراضية + صورة العضو التجريبية.
   const waNum = (v, d) => {
@@ -71,6 +73,7 @@ export function buildSettingsLocals(data, guild, user) {
   // كل خطوة تقود إلى صفحتها، لا إلى مرساة داخل صفحة واحدة كما كان.
   const stSteps = [
     { id: 'st-welcome', href: `/settings/${guild.id}/welcome`, icon: 'fa-door-open', name: 'تفعيل بطاقة الترحيب', desc: 'بطاقة باسم العضو وصورته ورقمه تُرسل تلقائياً عند دخوله السيرفر', done: welcomeSet, label: welcomeSet ? 'مفعّلة' : 'لم تُفعّل بعد' },
+    { id: 'st-autoroles', href: `/settings/${guild.id}`, icon: 'fa-user-shield', name: 'ضبط الرتب التلقائية', desc: 'رتبة أو أكثر تُمنح تلقائياً لكل شخص أو بوت عند دخوله السيرفر', done: arCount > 0, label: arCount > 0 ? arCount + ' رتبة' : 'لم تُضبط' },
     { id: 'st-logs', href: `/settings/${guild.id}/logs`, icon: 'fa-clipboard-list', name: 'توجيه قنوات السجلات', desc: 'السجلات العامة والإشراف والبوت — لكل نوع قناة خاصة به (أو واحدة للجميع)', done: logReady >= 1, label: logReady + ' من 3 قنوات' },
     { id: 'st-stats', href: `/settings/${guild.id}/voice-stats`, icon: 'fa-chart-line', name: 'إنشاء رومات الإحصائيات', desc: 'رومات صوتية تعرض الأعداد في الاسم وتتحدث تلقائياً كل دقيقة', done: statsReady >= 1, label: statsReady + ' من 3 رومات' },
     { id: 'st-tickets', href: `/settings/${guild.id}/tickets`, icon: 'fa-ticket', name: 'استكمال نظام التذاكر', desc: 'بنل + تصنيف التذاكر + تصنيفها الداخلي + سجلها — أربع خطوات مرتبطة', done: ticketReady >= 3, label: ticketReady + ' من 4 خطوات' },
@@ -79,6 +82,7 @@ export function buildSettingsLocals(data, guild, user) {
   ];
   const statusCells = [
     { icon: 'fa-door-open', name: 'الترحيب', v: welcomeSet, sub: welcomeSet ? 'مفعّل' : 'متوقف' },
+    { icon: 'fa-user-shield', name: 'الرتب التلقائية', v: arCount, sub: arCount > 0 ? arCount + ' رتبة' : 'متوقف' },
     { icon: 'fa-clipboard-list', name: 'السجلات', v: logReady, max: 3, sub: logReady + '/3' },
     { icon: 'fa-chart-line', name: 'الإحصائيات', v: statsReady, max: 3, sub: statsReady + '/3' },
     { icon: 'fa-ticket', name: 'التذاكر', v: ticketReady, max: 4, sub: ticketReady + '/4' },
